@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/src/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+import { ProfileDisplayNameForm } from './profile-display-name-form';
 import { ProfileImageForm } from './profile-image-form';
 
 type ProfilePageProps = {
@@ -27,7 +28,18 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <CardTitle>{t('title')}</CardTitle>
         <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-8">
+        <ProfileDisplayNameForm
+          currentDisplayName={session.user.name ?? ''}
+          labels={{
+            label: t('form.displayName.label'),
+            placeholder: t('form.displayName.placeholder'),
+            save: t('form.displayName.save'),
+            saving: t('form.displayName.saving'),
+            success: t('form.displayName.success'),
+          }}
+        />
+
         <ProfileImageForm
           currentImage={session.user.image ?? null}
           labels={{

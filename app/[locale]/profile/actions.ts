@@ -14,6 +14,52 @@ export type UpdateProfileImageState = {
   success?: boolean;
 };
 
+export type UpdateDisplayNameState = {
+  error?: string;
+  success?: boolean;
+};
+
+const DISPLAY_NAME_MIN_LENGTH = 2;
+const DISPLAY_NAME_MAX_LENGTH = 60;
+
+export async function updateDisplayName(
+  _previousState: UpdateDisplayNameState,
+  formData: FormData,
+): Promise<UpdateDisplayNameState> {
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    return { error: 'You must be signed in to update your display name.' };
+  }
+
+  const rawDisplayName = formData.get('displayName');
+  const displayName = typeof rawDisplayName === 'string' ? rawDisplayName.trim() : '';
+
+  if (displayName.length < DISPLAY_NAME_MIN_LENGTH) {
+    return { error: `Display name must be at least ${DISPLAY_NAME_MIN_LENGTH} characters.` };
+  }
+
+  if (displayName.length > DISPLAY_NAME_MAX_LENGTH) {
+    return { error: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or fewer.` };
+  }
+
+  try {
+    await getDb()
+      .update(users)
+      .set({ name: displayName, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+
+    revalidatePath('/');
+    revalidatePath('/[locale]', 'layout');
+    revalidatePath('/[locale]/profile');
+
+    return { success: true };
+  } catch {
+    return { error: 'Unable to update display name right now. Please try again.' };
+  }
+}
+
 export async function updateProfileImage(
   _previousState: UpdateProfileImageState,
   formData: FormData,
