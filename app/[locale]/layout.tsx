@@ -24,7 +24,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <NavigationBar />
+      <NavigationBar locale={locale} />
       <main className="mx-auto min-h-[calc(100vh-4rem)] w-full max-w-5xl px-4 py-10">{children}</main>
     </NextIntlClientProvider>
   );

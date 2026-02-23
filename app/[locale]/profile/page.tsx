@@ -1,4 +1,6 @@
 import { getTranslations } from 'next-intl/server';
+
+
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
@@ -28,6 +30,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         <CardTitle>{t('title')}</CardTitle>
         <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-8">
         <ProfileDisplayNameForm
           currentDisplayName={session.user.name ?? ''}

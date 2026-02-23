@@ -3,8 +3,10 @@ import { getServerSession } from 'next-auth';
 
 import { Link } from '@/i18n/navigation';
 import { isAdmin } from '@/lib/authorization';
+
 import { authOptions } from '@/src/auth';
 
+import { AuthNavigation } from '@/components/auth-navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { buttonVariants } from '@/components/ui/button';
 
@@ -13,9 +15,14 @@ const baseNavLinks = [
   { href: '/about', key: 'about' },
 ] as const;
 
-export async function NavigationBar() {
+type NavigationBarProps = {
+  locale: string;
+};
+
+export async function NavigationBar({ locale }: NavigationBarProps) {
   const t = await getTranslations('NavigationBar');
   const session = await getServerSession(authOptions);
+
   const navLinks = [
     ...baseNavLinks,
     ...(session?.user?.id ? [{ href: '/profile', key: 'profile' as const }] : []),
@@ -42,6 +49,18 @@ export async function NavigationBar() {
               {t(`links.${link.key}`)}
             </Link>
           ))}
+          <AuthNavigation
+            isAuthenticated={Boolean(session?.user)}
+            locale={locale}
+            user={session?.user}
+            labels={{
+              login: t('auth.login'),
+              profile: t('auth.profile'),
+              settings: t('auth.settings'),
+              logout: t('auth.logout'),
+              menu: t('auth.menu'),
+            }}
+          />
           <ThemeToggle />
         </div>
       </nav>

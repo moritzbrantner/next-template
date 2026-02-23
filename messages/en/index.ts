@@ -10,7 +10,6 @@ const enMessages = {
   ThemeToggle: themeToggle,
   HomePage: homePage,
   AboutPage: aboutPage,
-  AdminPage: adminPage,
   ProfilePage: profilePage,
 };
 
