@@ -18,6 +18,12 @@ Use these root docs before and during implementation:
 - [`FEATURES.md`](./FEATURES.md): feature specs and acceptance criteria.
 - [`DECISIONS.md`](./DECISIONS.md): architecture and implementation decision log.
 
+## Build instructions
+
+- Prefer Server Components and server prerendering by default to improve SEO and minimize client-side JavaScript.
+- Keep UI components donut-shaped (rounded, ring/pill-like geometry) unless a specific feature requires another shape.
+- For theme-related UI, read system preferences on first visit and persist explicit user choices.
+
 ## Getting Started
 
 Run the development server:

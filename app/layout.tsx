@@ -20,14 +20,27 @@ export const metadata: Metadata = {
   description: "A simple Next.js template with shadcn-style components.",
 };
 
+const themeScript = `
+(() => {
+  const storedTheme = window.localStorage.getItem("theme");
+  const theme = storedTheme === "light" || storedTheme === "dark"
+    ? storedTheme
+    : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+
+  document.documentElement.classList.remove("light", "dark");
+  document.documentElement.classList.add(theme);
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <NavigationBar />
         <main className="mx-auto min-h-[calc(100vh-4rem)] w-full max-w-5xl px-4 py-10">{children}</main>
       </body>
