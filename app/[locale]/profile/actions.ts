@@ -2,12 +2,13 @@
 
 import { getServerSession } from 'next-auth';
 import { revalidatePath } from 'next/cache';
-import { eq } from 'drizzle-orm';
 
 import { authOptions } from '@/src/auth';
-import { getDb } from '@/src/db/client';
-import { users } from '@/src/db/schema';
-import { ImageValidationError, validateAndEncodeImage } from '@/src/profile/image-validation';
+import {
+  removeProfileImageUseCase,
+  updateDisplayNameUseCase,
+  updateProfileImageUseCase,
+} from '@/src/domain/profile/use-cases';
 
 export type UpdateProfileImageState = {
   error?: string;
@@ -19,8 +20,11 @@ export type UpdateDisplayNameState = {
   success?: boolean;
 };
 
-const DISPLAY_NAME_MIN_LENGTH = 2;
-const DISPLAY_NAME_MAX_LENGTH = 60;
+function revalidateProfileSurfaces() {
+  revalidatePath('/');
+  revalidatePath('/[locale]', 'layout');
+  revalidatePath('/[locale]/profile');
+}
 
 export async function updateDisplayName(
   _previousState: UpdateDisplayNameState,
@@ -34,26 +38,16 @@ export async function updateDisplayName(
   }
 
   const rawDisplayName = formData.get('displayName');
-  const displayName = typeof rawDisplayName === 'string' ? rawDisplayName.trim() : '';
-
-  if (displayName.length < DISPLAY_NAME_MIN_LENGTH) {
-    return { error: `Display name must be at least ${DISPLAY_NAME_MIN_LENGTH} characters.` };
-  }
-
-  if (displayName.length > DISPLAY_NAME_MAX_LENGTH) {
-    return { error: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or fewer.` };
-  }
+  const displayName = typeof rawDisplayName === 'string' ? rawDisplayName : '';
 
   try {
-    await getDb()
-      .update(users)
-      .set({ name: displayName, updatedAt: new Date() })
-      .where(eq(users.id, userId));
+    const result = await updateDisplayNameUseCase(userId, displayName);
 
-    revalidatePath('/');
-    revalidatePath('/[locale]', 'layout');
-    revalidatePath('/[locale]/profile');
+    if (!result.ok) {
+      return { error: result.error.message };
+    }
 
+    revalidateProfileSurfaces();
     return { success: true };
   } catch {
     return { error: 'Unable to update display name right now. Please try again.' };
@@ -78,23 +72,15 @@ export async function updateProfileImage(
   }
 
   try {
-    const { dataUrl } = await validateAndEncodeImage(file);
+    const result = await updateProfileImageUseCase(userId, file);
 
-    await getDb()
-      .update(users)
-      .set({ image: dataUrl, updatedAt: new Date() })
-      .where(eq(users.id, userId));
-
-    revalidatePath('/');
-    revalidatePath('/[locale]', 'layout');
-    revalidatePath('/[locale]/profile');
-
-    return { success: true };
-  } catch (error) {
-    if (error instanceof ImageValidationError) {
-      return { error: error.message };
+    if (!result.ok) {
+      return { error: result.error.message };
     }
 
+    revalidateProfileSurfaces();
+    return { success: true };
+  } catch {
     return { error: 'Unable to update profile picture right now. Please try again.' };
   }
 }
@@ -107,12 +93,11 @@ export async function removeProfileImage() {
     return;
   }
 
-  await getDb()
-    .update(users)
-    .set({ image: null, updatedAt: new Date() })
-    .where(eq(users.id, userId));
+  const result = await removeProfileImageUseCase(userId);
 
-  revalidatePath('/');
-  revalidatePath('/[locale]', 'layout');
-  revalidatePath('/[locale]/profile');
+  if (!result.ok) {
+    return;
+  }
+
+  revalidateProfileSurfaces();
 }
