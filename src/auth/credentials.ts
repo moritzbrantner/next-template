@@ -22,11 +22,11 @@ type CredentialsDependencies = {
 };
 
 async function resolveDefaultDependencies(): Promise<CredentialsDependencies> {
-  const { db } = await import("@/src/db/client");
+  const { getDb } = await import("@/src/db/client");
 
   return {
     findUserByEmail: async (email) => {
-      return db.query.users.findFirst({
+      return getDb().query.users.findFirst({
         where: (table, { eq }) => eq(table.email, email),
       });
     },

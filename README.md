@@ -59,13 +59,13 @@ Use these root docs before and during implementation:
 2. Run migrations:
 
    ```bash
-   npx prisma migrate dev
+   bun run db:migrate
    ```
 
 3. Run Next app:
 
    ```bash
-   npm run dev
+   bun run dev
    ```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -77,14 +77,14 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
 1. Run integration tests for credential authorization logic:
 
    ```bash
-   npm run test:integration
+   bun run test:integration
    ```
 
 2. Run end-to-end authentication tests (requires Postgres and `.env`):
 
    ```bash
    docker compose up -d postgres
-   npm run test:e2e
+   bun run test:e2e
    ```
 
 ## Suggested next steps

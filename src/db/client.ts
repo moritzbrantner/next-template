@@ -3,26 +3,33 @@ import { Pool } from "pg";
 
 import * as schema from "@/src/db/schema";
 
-const connectionString = process.env.DATABASE_URL;
-
-if (!connectionString) {
-  throw new Error("DATABASE_URL is not set");
-}
-
 const globalForDb = globalThis as unknown as {
   pool?: Pool;
   db?: ReturnType<typeof drizzle<typeof schema>>;
 };
 
-const pool =
-  globalForDb.pool ??
-  new Pool({
-    connectionString,
-  });
+export function getDb() {
+  if (globalForDb.db) {
+    return globalForDb.db;
+  }
 
-export const db = globalForDb.db ?? drizzle(pool, { schema });
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set");
+  }
 
-if (process.env.NODE_ENV !== "production") {
-  globalForDb.pool = pool;
-  globalForDb.db = db;
+  const pool =
+    globalForDb.pool ??
+    new Pool({
+      connectionString,
+    });
+
+  const db = drizzle(pool, { schema });
+
+  if (process.env.NODE_ENV !== "production") {
+    globalForDb.pool = pool;
+    globalForDb.db = db;
+  }
+
+  return db;
 }

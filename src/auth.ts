@@ -1,10 +1,10 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import NextAuth from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 
 import { authorizeCredentials } from "@/src/auth/credentials";
-import { db } from "@/src/db/client";
+import { getDb } from "@/src/db/client";
 import { accounts, sessions, users, verificationTokens } from "@/src/db/schema";
 
 type AppRole = "ADMIN" | "USER";
@@ -15,7 +15,7 @@ const credentialsProvider = Credentials({
     email: { label: "Email", type: "email" },
     password: { label: "Password", type: "password" },
   },
-  authorize: authorizeCredentials,
+  authorize: (credentials) => authorizeCredentials(credentials),
 });
 
 const githubProvider =
@@ -28,15 +28,22 @@ const githubProvider =
       ]
     : [];
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(db, {
-    usersTable: users,
-    accountsTable: accounts,
-    sessionsTable: sessions,
-    verificationTokensTable: verificationTokens,
-  }),
+const hasDatabase = Boolean(process.env.DATABASE_URL);
+
+export const authOptions: NextAuthOptions = {
+  secret: process.env.AUTH_SECRET ?? "local-build-secret",
+  ...(hasDatabase
+    ? {
+        adapter: DrizzleAdapter(getDb(), {
+          usersTable: users,
+          accountsTable: accounts,
+          sessionsTable: sessions,
+          verificationTokensTable: verificationTokens,
+        }),
+      }
+    : {}),
   session: {
-    strategy: "database",
+    strategy: hasDatabase ? "database" : "jwt",
   },
   providers: [credentialsProvider, ...githubProvider],
   callbacks: {
@@ -50,11 +57,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token, user }) {
       if (session.user) {
-        session.user.id = user.id;
-        session.user.role = (user.role as AppRole | undefined) ?? (token.role as AppRole | undefined) ?? "USER";
+        const userId = user?.id ?? (typeof token.userId === "string" ? token.userId : undefined);
+        if (userId) {
+          session.user.id = userId;
+        }
+
+        session.user.role = (user?.role as AppRole | undefined) ?? (token.role as AppRole | undefined) ?? "USER";
       }
 
       return session;
     },
   },
-});
+};
