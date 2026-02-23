@@ -81,7 +81,19 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
    bun run test:integration
    ```
 
-2. Run end-to-end authentication tests (requires Postgres and `.env`):
+2. Seed default test users (optional, but recommended for manual QA):
+
+   ```bash
+   bun run db:seed:test-users
+   ```
+
+   Default seeded credentials:
+
+   - `admin@example.com` / `admin`
+   - `manager@example.com` / `manager`
+   - `user@example.com` / `user`
+
+3. Run end-to-end authentication tests (requires Postgres and `.env`):
 
    ```bash
    docker compose up -d postgres
