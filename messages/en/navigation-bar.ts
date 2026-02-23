@@ -6,10 +6,11 @@ export const navigationBar = {
     profile: 'Profile',
     admin: 'Admin',
   },
-  menu: {
+  auth: {
+    login: 'Log in',
     profile: 'Profile',
     settings: 'Settings',
     logout: 'Log out',
-    openMenu: 'Open profile menu',
+    menu: 'Open user menu',
   },
 };

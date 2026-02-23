@@ -4,6 +4,7 @@ import { homePage } from './home-page';
 import { navigationBar } from './navigation-bar';
 import { profilePage } from './profile-page';
 import { settingsPage } from './settings-page';
+
 import { themeToggle } from './theme-toggle';
 
 const deMessages = {
@@ -11,7 +12,7 @@ const deMessages = {
   ThemeToggle: themeToggle,
   HomePage: homePage,
   AboutPage: aboutPage,
-  AdminPage: adminPage,
+  SettingsPage: settingsPage,
   ProfilePage: profilePage,
   SettingsPage: settingsPage,
 };

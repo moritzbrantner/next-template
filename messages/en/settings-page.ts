@@ -13,4 +13,5 @@ export const settingsPage = {
     empty: 'No image',
     alt: 'Profile picture',
   },
+
 };

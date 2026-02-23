@@ -19,6 +19,10 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
     redirect(`/${locale}`);
   }
 
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+export default async function SettingsPage() {
   const t = await getTranslations('SettingsPage');
 
   return (
