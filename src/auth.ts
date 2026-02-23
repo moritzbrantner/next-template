@@ -14,7 +14,7 @@ const credentialsProvider = Credentials({
     email: { label: "Email", type: "email" },
     password: { label: "Password", type: "password" },
   },
-  authorize: (credentials) => authorizeCredentials(credentials),
+  authorize: (credentials, request) => authorizeCredentials(credentials, undefined, request),
 });
 
 const githubProvider =

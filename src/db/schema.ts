@@ -12,6 +12,8 @@ export const users = pgTable(
     emailVerified: timestamp("emailVerified", { withTimezone: false, mode: "date" }),
     role: roleEnum("role").notNull().default("USER"),
     passwordHash: text("passwordHash"),
+    failedSignInAttempts: integer("failedSignInAttempts").notNull().default(0),
+    lockoutUntil: timestamp("lockoutUntil", { withTimezone: false, mode: "date" }),
     createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
   },
