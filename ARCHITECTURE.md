@@ -98,3 +98,36 @@ Use this file to document the technical blueprint of the template.
 | Date | Change | Author | Notes |
 |---|---|---|---|
 | YYYY-MM-DD | Initial architecture entry |  |  |
+
+
+## 8) Layer dependency rules (enforced conventions)
+
+### Import boundaries
+
+```text
+app/ -> features/, components/, stores/, lib/services/, lib/validation/, src/**
+features/ -> lib/services/, lib/validation/, features/<same feature>/**
+stores/ -> lib/validation/ (optional), stores/**
+lib/services/ -> external SDKs + src/** infra only (no app/features/stores imports)
+lib/validation/ -> framework-agnostic contracts/types only (no app/features/stores/services imports)
+```
+
+### Allowed dependencies per layer
+
+| Layer | Can depend on | Must not depend on |
+|---|---|---|
+| `app/**` | `features/**`, `components/**`, `stores/**`, `lib/**`, `src/**` | (none, app is composition root) |
+| `features/**` | local feature files, `lib/services/**`, `lib/validation/**`, `components/**` | `app/**`, unrelated feature internals |
+| `stores/**` | other store files, `lib/validation/**` | `app/**`, `features/**`, `lib/services/**` |
+| `lib/services/**` | external SDKs, `src/**` infra adapters | `app/**`, `features/**`, `stores/**` |
+| `lib/validation/**` | TypeScript standard library only | `app/**`, `features/**`, `stores/**`, `lib/services/**` |
+
+### Baseline module examples
+
+- `features/profile/` demonstrates a feature slice with:
+  - `ui/` presentational component.
+  - `server/` adapter for route/action interaction.
+  - `domain/` domain use-cases.
+- `stores/` demonstrates a Zustand-like slice shape and persistence guardrails (`allowedSlices`, `forbiddenKeys`).
+- `lib/services/` defines external adapters for auth, email, storage, and rate limiting.
+- `lib/validation/` defines shared contracts reusable in server and client code.
