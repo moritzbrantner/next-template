@@ -14,6 +14,7 @@ const deMessages = {
   AboutPage: aboutPage,
   SettingsPage: settingsPage,
   ProfilePage: profilePage,
+  SettingsPage: settingsPage,
 };
 
 export default deMessages;
