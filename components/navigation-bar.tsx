@@ -22,7 +22,6 @@ type NavigationBarProps = {
 
 export async function NavigationBar({ locale }: NavigationBarProps) {
   const t = await getTranslations('NavigationBar');
-  const locale = await getLocale();
   const session = await getServerSession(authOptions);
 
   const navLinks = [
