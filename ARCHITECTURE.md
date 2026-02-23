@@ -64,6 +64,14 @@ Use this file to document the technical blueprint of the template.
 - Write: client interaction -> action/endpoint -> validation -> service -> persistence.
 - Client state: local UI state in component; shared UI/session state in Zustand.
 
+## 5.1) URL state conventions (shareable/reproducible state)
+- Treat the URL as the source of truth for **shareable, reproducible, non-sensitive view state**.
+- Use route segments for canonical resource identity and locale.
+- Use query parameters for filters, sort, pagination, tabs, and search state.
+- Do **not** store sensitive data, tokens, secrets, or private personal data in URL parameters.
+- Keep ephemeral interaction state (temporary toggles, animation-only flags, unsaved local drafts) out of the URL unless explicit deep-linking is required.
+- Normalize and validate query parameters at route boundaries to ensure deterministic links and stable tests.
+
 ## 6) Non-functional requirements
 - Performance budget targets:
   - LCP < 2.5s on key landing pages.
