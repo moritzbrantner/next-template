@@ -7,6 +7,7 @@ import { authorizeCredentials } from "@/src/auth/credentials";
 import { getDb } from "@/src/db/client";
 import { accounts, sessions, users, verificationTokens } from "@/src/db/schema";
 import type { AppRole } from "@/lib/authorization";
+import { buildProfileImageUrl } from "@/src/profile/object-storage";
 
 const credentialsProvider = Credentials({
   name: "Email and Password",
@@ -51,7 +52,7 @@ export const authOptions: NextAuthOptions = {
         token.userId = user.id;
         token.role = (user as { role?: AppRole }).role ?? "USER";
         token.name = user.name ?? null;
-        token.image = user.image ?? null;
+        token.image = buildProfileImageUrl(user.image) ?? null;
       }
 
       return token;
@@ -65,7 +66,7 @@ export const authOptions: NextAuthOptions = {
 
         session.user.role = (user?.role as AppRole | undefined) ?? (token.role as AppRole | undefined) ?? "USER";
         session.user.name = user?.name ?? (typeof token.name === "string" ? token.name : session.user.name ?? null);
-        session.user.image = user?.image ?? (typeof token.image === "string" ? token.image : session.user.image ?? null);
+        session.user.image = buildProfileImageUrl(user?.image) ?? (typeof token.image === "string" ? token.image : session.user.image ?? null);
       }
 
       return session;

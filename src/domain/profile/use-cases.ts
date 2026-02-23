@@ -3,7 +3,8 @@ import { eq } from 'drizzle-orm';
 import { getDb } from '@/src/db/client';
 import { users } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
-import { ImageValidationError, validateAndEncodeImage } from '@/src/profile/image-validation';
+import { ImageValidationError, validateImageUpload } from '@/src/profile/image-validation';
+import { deleteProfileImage, uploadProfileImage } from '@/src/profile/object-storage';
 
 const DISPLAY_NAME_MIN_LENGTH = 2;
 const DISPLAY_NAME_MAX_LENGTH = 60;
@@ -18,7 +19,8 @@ export type UpdateDisplayNamePayload = {
 };
 
 export type UpdateProfileImagePayload = {
-  imageDataUrl: string;
+  imageKey: string;
+  imageUrl: string;
 };
 
 export async function updateDisplayNameUseCase(
@@ -77,10 +79,26 @@ export async function updateProfileImageUseCase(
     });
   }
 
-  let dataUrl: string;
   try {
-    const encoded = await validateAndEncodeImage(file);
-    dataUrl = encoded.dataUrl;
+    const validated = await validateImageUpload(file);
+    const uploaded = await uploadProfileImage(userId, validated);
+
+    try {
+      await getDb()
+        .update(users)
+        .set({ image: uploaded.key, updatedAt: new Date() })
+        .where(eq(users.id, userId));
+    } catch (error) {
+      await deleteProfileImage(uploaded.key);
+      throw error;
+    }
+
+    await deleteProfileImage(existingUser.image);
+
+    return success({
+      imageKey: uploaded.key,
+      imageUrl: uploaded.url,
+    });
   } catch (error) {
     if (error instanceof ImageValidationError) {
       return failure({
@@ -91,15 +109,6 @@ export async function updateProfileImageUseCase(
 
     throw error;
   }
-
-  await getDb()
-    .update(users)
-    .set({ image: dataUrl, updatedAt: new Date() })
-    .where(eq(users.id, userId));
-
-  return success({
-    imageDataUrl: dataUrl,
-  });
 }
 
 export async function removeProfileImageUseCase(userId: string): Promise<ServiceResult<{ removed: true }, ProfileError>> {
@@ -118,6 +127,8 @@ export async function removeProfileImageUseCase(userId: string): Promise<Service
     .update(users)
     .set({ image: null, updatedAt: new Date() })
     .where(eq(users.id, userId));
+
+  await deleteProfileImage(existingUser.image);
 
   return success({ removed: true });
 }
