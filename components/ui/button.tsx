@@ -18,7 +18,7 @@ export function buttonVariants({
   className?: string;
 }) {
   const base =
-    "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-zinc-50";
+    "inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-zinc-50";
 
   const variantClassNames = {
     default:
@@ -28,7 +28,7 @@ export function buttonVariants({
 
   const sizeClassNames = {
     default: "h-10 px-4 py-2",
-    sm: "h-9 rounded-md px-3",
+    sm: "h-9 rounded-full px-3",
   };
 
   return [base, variantClassNames[variant], sizeClassNames[size], className].filter(Boolean).join(" ");

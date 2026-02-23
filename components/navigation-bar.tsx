@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 
 const navLinks = [
@@ -28,6 +29,7 @@ export function NavigationBar() {
               {link.label}
             </Link>
           ))}
+          <ThemeToggle />
         </div>
       </nav>
     </header>
