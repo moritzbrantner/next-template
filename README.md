@@ -24,15 +24,45 @@ Use these root docs before and during implementation:
 - Keep UI components donut-shaped (rounded, ring/pill-like geometry) unless a specific feature requires another shape.
 - For theme-related UI, read system preferences on first visit and persist explicit user choices.
 
+## Local database (Docker)
+
+1. Start the Postgres container:
+
+   ```bash
+   docker compose up -d postgres
+   ```
+
+2. Wait for the healthcheck to pass and verify status:
+
+   ```bash
+   docker compose ps
+   ```
+
+## Authentication setup
+
+1. Copy environment variables:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Set `AUTH_SECRET`, `AUTH_URL`, and any OAuth provider credentials you plan to use.
+
 ## Getting Started
 
-Run the development server:
+1. Run database migrations (Prisma):
 
-```bash
-npm run dev
-```
+   ```bash
+   npx prisma migrate dev
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+2. Run the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 Start editing by updating `app/page.tsx`; the page auto-updates as you save.
 
