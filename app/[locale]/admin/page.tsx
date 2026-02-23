@@ -2,13 +2,8 @@ import { getTranslations } from 'next-intl/server';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
-import {
-  canManageSystemSettings,
-  canManageUsers,
-  canViewReports,
-  isAdmin,
-} from '@/lib/authorization';
 import { authOptions } from '@/src/auth';
+import { getAdminAuthorization } from '@/src/domain/authorization/use-cases';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 type AdminPageProps = {
@@ -18,28 +13,14 @@ type AdminPageProps = {
 export default async function AdminPage({ params }: AdminPageProps) {
   const { locale } = await params;
   const session = await getServerSession(authOptions);
-  const role = session?.user?.role;
+  const authorization = getAdminAuthorization(session);
 
-  if (!isAdmin(role)) {
+  if (!authorization.ok) {
     redirect(`/${locale}`);
   }
 
   const t = await getTranslations('AdminPage');
-
-  const actions = [
-    {
-      key: 'viewReports',
-      allowed: canViewReports(role),
-    },
-    {
-      key: 'manageUsers',
-      allowed: canManageUsers(role),
-    },
-    {
-      key: 'manageSystemSettings',
-      allowed: canManageSystemSettings(role),
-    },
-  ] as const;
+  const { actions } = authorization.data;
 
   return (
     <Card className="mx-auto max-w-2xl">
