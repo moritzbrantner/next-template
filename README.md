@@ -34,6 +34,13 @@ Use these root docs before and during implementation:
 
 2. Set `AUTH_SECRET`, `AUTH_URL` (or `NEXTAUTH_URL` for equivalent setups), and any OAuth provider credentials you plan to use.
 
+3. For account lifecycle emails (sign-up verification + password reset), configure one of:
+
+   - `EMAIL_PROVIDER=console` (default in local development; logs secure links to stdout)
+   - `EMAIL_PROVIDER=resend` plus `RESEND_API_KEY` and `EMAIL_FROM`
+
+4. Ensure `DATABASE_URL` is present; account lifecycle tokens and lockout counters are persisted in Postgres.
+
 ## Local database (Docker)
 
 1. Start the Postgres container:
@@ -127,8 +134,12 @@ Set these environment variables in each deploy environment (preview and producti
 - `DATABASE_URL`
 - `AUTH_SECRET`
 - `AUTH_URL` (or `NEXTAUTH_URL` in equivalent Auth.js setups)
+- `EMAIL_PROVIDER` (`console` or `resend`)
+- `EMAIL_FROM`
 
 If you enable OAuth providers, also set the provider-specific credentials (for example `GITHUB_ID` / `GITHUB_SECRET`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, or `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`).
+
+For hosted transactional email via Resend, add `RESEND_API_KEY` and set `EMAIL_PROVIDER=resend`.
 
 ### Branch strategy
 
