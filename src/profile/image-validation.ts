@@ -1,6 +1,7 @@
 const MAX_UPLOAD_BYTES = 1024 * 1024;
 const MAX_IMAGE_DIMENSION_PX = 512;
 const MIN_IMAGE_DIMENSION_PX = 64;
+const ALLOWED_MIME_TYPES = ["image/png", "image/jpeg"] as const;
 
 export class ImageValidationError extends Error {
   constructor(message: string) {
@@ -21,17 +22,8 @@ function parsePngDimensions(bytes: Uint8Array) {
     throw new ImageValidationError("Image is not a valid PNG file.");
   }
 
-  const width =
-    (bytes[16] << 24) |
-    (bytes[17] << 16) |
-    (bytes[18] << 8) |
-    bytes[19];
-
-  const height =
-    (bytes[20] << 24) |
-    (bytes[21] << 16) |
-    (bytes[22] << 8) |
-    bytes[23];
+  const width = (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
+  const height = (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
 
   return { width, height };
 }
@@ -68,12 +60,7 @@ function parseJpegDimensions(bytes: Uint8Array) {
       throw new ImageValidationError("Image is not a valid JPEG file.");
     }
 
-    const isSofMarker =
-      marker >= 0xc0 &&
-      marker <= 0xcf &&
-      marker !== 0xc4 &&
-      marker !== 0xc8 &&
-      marker !== 0xcc;
+    const isSofMarker = marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc;
 
     if (isSofMarker) {
       if (offset + 6 >= bytes.length) {
@@ -103,7 +90,7 @@ function getDimensions(bytes: Uint8Array, mimeType: string) {
   throw new ImageValidationError("Only PNG and JPEG images are supported.");
 }
 
-export async function validateAndEncodeImage(file: File) {
+function validateUploadMetadata(file: File) {
   if (!file.size) {
     throw new ImageValidationError("Please select an image file.");
   }
@@ -112,10 +99,21 @@ export async function validateAndEncodeImage(file: File) {
     throw new ImageValidationError("Image must be 1MB or smaller.");
   }
 
-  const allowedMimeTypes = ["image/png", "image/jpeg"];
-  if (!allowedMimeTypes.includes(file.type)) {
+  if (!ALLOWED_MIME_TYPES.includes(file.type as (typeof ALLOWED_MIME_TYPES)[number])) {
     throw new ImageValidationError("Only PNG and JPEG images are supported.");
   }
+}
+
+export type ValidatedImageUpload = {
+  bytes: Uint8Array;
+  mimeType: string;
+  width: number;
+  height: number;
+  size: number;
+};
+
+export async function validateImageUpload(file: File): Promise<ValidatedImageUpload> {
+  validateUploadMetadata(file);
 
   const bytes = new Uint8Array(await file.arrayBuffer());
   const { width, height } = getDimensions(bytes, file.type);
@@ -131,11 +129,12 @@ export async function validateAndEncodeImage(file: File) {
     );
   }
 
-  const base64 = Buffer.from(bytes).toString("base64");
   return {
-    dataUrl: `data:${file.type};base64,${base64}`,
+    bytes,
+    mimeType: file.type,
     width,
     height,
+    size: file.size,
   };
 }
 
@@ -143,4 +142,5 @@ export const imageConstraints = {
   maxUploadBytes: MAX_UPLOAD_BYTES,
   minDimensionPx: MIN_IMAGE_DIMENSION_PX,
   maxDimensionPx: MAX_IMAGE_DIMENSION_PX,
+  allowedMimeTypes: ALLOWED_MIME_TYPES,
 };

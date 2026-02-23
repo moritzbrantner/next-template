@@ -41,6 +41,18 @@ Use these root docs before and during implementation:
 
 4. Ensure `DATABASE_URL` is present; account lifecycle tokens and lockout counters are persisted in Postgres.
 
+5. Configure profile image object storage (S3-compatible):
+
+   - `PROFILE_IMAGE_STORAGE_BUCKET`
+   - `PROFILE_IMAGE_STORAGE_REGION`
+   - `PROFILE_IMAGE_STORAGE_ENDPOINT`
+   - `PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID`
+   - `PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY`
+   - `PROFILE_IMAGE_PUBLIC_BASE_URL`
+   - `PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE` (optional, provider-specific)
+
+   Migration and rollback notes are documented in [`docs/profile-image-storage-migration.md`](./docs/profile-image-storage-migration.md).
+
 ## Local database (Docker)
 
 1. Start the Postgres container:
