@@ -1,10 +1,11 @@
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { getServerSession } from 'next-auth';
 
 import { Link } from '@/i18n/navigation';
 import { isAdmin } from '@/lib/authorization';
 import { authOptions } from '@/src/auth';
 
+import { ProfileMenu } from '@/components/profile-menu';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { buttonVariants } from '@/components/ui/button';
 
@@ -15,10 +16,10 @@ const baseNavLinks = [
 
 export async function NavigationBar() {
   const t = await getTranslations('NavigationBar');
+  const locale = await getLocale();
   const session = await getServerSession(authOptions);
   const navLinks = [
     ...baseNavLinks,
-    ...(session?.user?.id ? [{ href: '/profile', key: 'profile' as const }] : []),
     ...(isAdmin(session?.user?.role) ? [{ href: '/admin', key: 'admin' as const }] : []),
   ];
 
@@ -42,6 +43,21 @@ export async function NavigationBar() {
               {t(`links.${link.key}`)}
             </Link>
           ))}
+          {session?.user?.id ? (
+            <ProfileMenu
+              locale={locale}
+              profileHref="/profile"
+              settingsHref="/settings"
+              imageUrl={session.user.image ?? null}
+              displayName={session.user.name ?? 'User'}
+              labels={{
+                profile: t('menu.profile'),
+                settings: t('menu.settings'),
+                logout: t('menu.logout'),
+                openMenu: t('menu.openMenu'),
+              }}
+            />
+          ) : null}
           <ThemeToggle />
         </div>
       </nav>

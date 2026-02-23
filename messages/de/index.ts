@@ -3,6 +3,7 @@ import { adminPage } from './admin-page';
 import { homePage } from './home-page';
 import { navigationBar } from './navigation-bar';
 import { profilePage } from './profile-page';
+import { settingsPage } from './settings-page';
 import { themeToggle } from './theme-toggle';
 
 const deMessages = {
@@ -12,6 +13,7 @@ const deMessages = {
   AboutPage: aboutPage,
   AdminPage: adminPage,
   ProfilePage: profilePage,
+  SettingsPage: settingsPage,
 };
 
 export default deMessages;
