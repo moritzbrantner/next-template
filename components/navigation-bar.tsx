@@ -16,9 +16,11 @@ const baseNavLinks = [
 export async function NavigationBar() {
   const t = await getTranslations('NavigationBar');
   const session = await getServerSession(authOptions);
-  const navLinks = isAdmin(session?.user?.role)
-    ? [...baseNavLinks, { href: '/admin', key: 'admin' as const }]
-    : baseNavLinks;
+  const navLinks = [
+    ...baseNavLinks,
+    ...(session?.user?.id ? [{ href: '/profile', key: 'profile' as const }] : []),
+    ...(isAdmin(session?.user?.role) ? [{ href: '/admin', key: 'admin' as const }] : []),
+  ];
 
   return (
     <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
