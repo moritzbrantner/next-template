@@ -14,15 +14,28 @@ Use this file to define and track major capabilities in the template.
 ## 1) Core platform features
 
 ### Feature: User Management
-- **Status:** planned
-- **Summary:** Authentication, profile management, role-aware access control.
-- **User value:** Enables secure personalization and account-based experiences.
-- **Scope includes:** sign up/in/out, password reset, profile edit, role checks.
-- **Acceptance criteria:**
-  - [ ] Auth flow works end-to-end.
-  - [ ] Protected routes block unauthorized users.
-  - [ ] User profile data is persisted and editable.
-- **Dependencies:** DB, auth provider, email provider.
+- **Status:** in progress
+- **Summary:** Authentication, session lifecycle, profile management, and role-aware access control shipped as independent slices.
+- **User value:** Enables secure personalization and account-based experiences with clear delivery milestones.
+- **Dependencies:** DB, auth provider, email provider, role policy definitions.
+
+#### Slice plan
+
+| Slice | Status | Owner | Release target | Acceptance criteria (linked to code) |
+|---|---|---|---|---|
+| Sign-in (credentials + GitHub) | done | Auth Team | v0.3.0 | [x] Credentials and optional GitHub providers are configured and wired to NextAuth in `src/auth.ts`. [x] Credentials authorization path delegates to dedicated logic in `src/auth/credentials.ts`. [x] Auth route is exposed via NextAuth catch-all route in `app/api/auth/[...nextauth]/route.ts`. |
+| Session handling | done | Auth Team | v0.3.0 | [x] Session strategy falls back between DB and JWT in `src/auth.ts`. [x] JWT callback stores user id + role claims in `src/auth.ts`. [x] Session callback materializes typed session user data in `src/auth.ts` and `src/types/next-auth.d.ts`. |
+| Profile edit | done | Profile Team | v0.4.0 | [x] Display name updates validate lengths and persist to `users` table in `app/[locale]/profile/actions.ts`. [x] Profile image upload validates and stores image data in `app/[locale]/profile/actions.ts` and `src/profile/image-validation.ts`. [x] Profile page and forms consume these actions in `app/[locale]/profile/page.tsx`, `app/[locale]/profile/profile-display-name-form.tsx`, and `app/[locale]/profile/profile-image-form.tsx`. |
+| Authorization matrix | in progress | Security Team | v0.5.0 | [x] Role definitions and guards are used by `requireRole` and permission checks in `app/api/admin/reports/authorization/route.ts` and `src/domain/authorization/use-cases.ts`. [ ] Expand matrix coverage and documentation for all admin and settings actions in `app/[locale]/admin/page.tsx` and `app/[locale]/settings/page.tsx`. |
+| Admin reporting API | done | Security Team | v0.5.0 | [x] Authorization report endpoint enforces authentication/authorization in `app/api/admin/reports/authorization/route.ts`. [x] Endpoint applies rate limiting + audit logging via `src/api/security.ts`. [x] Endpoint returns permission payload for `viewReports` from `src/domain/authorization/use-cases.ts`. |
+| Sign-up | planned | Auth Team | v0.6.0 | [ ] Add self-serve account registration flow and persistence using `users` schema in `src/db/schema.ts`. [ ] Add UX entry points and validation screens under localized routes (to be added near `app/[locale]/page.tsx`). [ ] Connect registration to auth/session bootstrap in `src/auth.ts`. |
+| Password reset | planned | Auth Team | v0.7.0 | [ ] Add password reset request + token issuance using verification token storage in `src/db/schema.ts`. [ ] Add secure password reset action endpoint(s) under `app/api/auth/*` (to be implemented alongside `app/api/auth/[...nextauth]/route.ts`). [ ] Add updated credential verification path in `src/auth/credentials.ts`. |
+| Email verification | blocked | Platform Team | v0.7.0 | [ ] Require verified email before privileged access by extending checks in `src/auth.ts`. [ ] Add verification token generation/consume flow using `verificationTokens` from `src/db/schema.ts`. [ ] Implement outbound email delivery integration (blocked pending provider selection and secrets management). |
+| Account recovery | blocked | Support + Auth Team | v0.8.0 | [ ] Add recovery flow for locked or inaccessible accounts with auditable actions in `src/api/security.ts`. [ ] Add admin/support recovery controls aligned to role policies in `src/domain/authorization/use-cases.ts`. [ ] Define recovery UX and localized content under `app/[locale]/*` routes (blocked on support policy and compliance review). |
+
+### Not started yet
+
+The following platform capabilities are still not started and need initial slice planning before implementation.
 
 ### Feature: 3D Interactive Experiences
 - **Status:** planned
