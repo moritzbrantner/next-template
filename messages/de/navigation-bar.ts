@@ -3,6 +3,8 @@ export const navigationBar = {
   links: {
     home: 'Startseite',
     about: 'Über uns',
+    profile: 'Profil',
+    admin: 'Admin',
   },
   auth: {
     login: 'Anmelden',

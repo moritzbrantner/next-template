@@ -1,8 +1,10 @@
 import { aboutPage } from './about-page';
+import { adminPage } from './admin-page';
 import { homePage } from './home-page';
 import { navigationBar } from './navigation-bar';
 import { profilePage } from './profile-page';
 import { settingsPage } from './settings-page';
+
 import { themeToggle } from './theme-toggle';
 
 const deMessages = {
@@ -10,8 +12,8 @@ const deMessages = {
   ThemeToggle: themeToggle,
   HomePage: homePage,
   AboutPage: aboutPage,
-  ProfilePage: profilePage,
   SettingsPage: settingsPage,
+  ProfilePage: profilePage,
 };
 
 export default deMessages;

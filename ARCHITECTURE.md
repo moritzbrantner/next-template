@@ -64,6 +64,25 @@ Use this file to document the technical blueprint of the template.
 - Write: client interaction -> action/endpoint -> validation -> service -> persistence.
 - Client state: local UI state in component; shared UI/session state in Zustand.
 
+
+## 5.1) URL state conventions (shareable/reproducible state)
+- Treat the URL as the source of truth for **shareable, reproducible, non-sensitive view state**.
+- Use route segments for canonical resource identity and locale.
+- Use query parameters for filters, sort, pagination, tabs, and search state.
+- Do **not** store sensitive data, tokens, secrets, or private personal data in URL parameters.
+- Keep ephemeral interaction state (temporary toggles, animation-only flags, unsaved local drafts) out of the URL unless explicit deep-linking is required.
+- Normalize and validate query parameters at route boundaries to ensure deterministic links and stable tests.
+
+## 5.2) Domain logic once, multi-transport adapters
+- Domain logic should be implemented once in `src/domain/**` as pure use-cases/services that do not depend on route handlers or UI components.
+- Domain services must return a standardized result contract:
+  - success: `{ ok: true, data: ... }`
+  - business failure: `{ ok: false, error: { code, message, ... } }`
+- Adapters stay thin:
+  - API routes (`app/api/**`): validate input, call domain service, map typed domain errors to HTTP status codes and response bodies.
+  - UI/server components (`app/[locale]/**`): call domain service (or server action facade), branch on the same typed result shape, and render/redirect accordingly.
+- Current authorization use-cases (`viewReports`, `manageUsers`, `manageSystemSettings`) are implemented in `src/domain/authorization/use-cases.ts` and consumed by the admin page route as a thin adapter.
+
 ## 6) Non-functional requirements
 - Performance budget targets:
   - LCP < 2.5s on key landing pages.

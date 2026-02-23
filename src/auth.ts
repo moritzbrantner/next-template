@@ -50,6 +50,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.userId = user.id;
         token.role = (user as { role?: AppRole }).role ?? "USER";
+        token.name = user.name ?? null;
+        token.image = user.image ?? null;
       }
 
       return token;
@@ -62,6 +64,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         session.user.role = (user?.role as AppRole | undefined) ?? (token.role as AppRole | undefined) ?? "USER";
+        session.user.name = user?.name ?? (typeof token.name === "string" ? token.name : session.user.name ?? null);
+        session.user.image = user?.image ?? (typeof token.image === "string" ? token.image : session.user.image ?? null);
       }
 
       return session;
