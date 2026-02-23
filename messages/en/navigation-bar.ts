@@ -3,5 +3,6 @@ export const navigationBar = {
   links: {
     home: 'Home',
     about: 'About',
+    admin: 'Admin',
   },
 };
