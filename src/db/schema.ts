@@ -11,6 +11,7 @@ export const users = pgTable(
     image: text("image"),
     emailVerified: timestamp("emailVerified", { withTimezone: false, mode: "date" }),
     role: roleEnum("role").notNull().default("USER"),
+    passwordHash: text("passwordHash"),
     createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
   },
