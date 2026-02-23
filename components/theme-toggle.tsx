@@ -1,36 +1,39 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import { Button } from "@/components/ui/button";
+import { useTranslations } from 'next-intl';
 
-const THEME_STORAGE_KEY = "theme";
+import { Button } from '@/components/ui/button';
 
-type Theme = "light" | "dark";
+const THEME_STORAGE_KEY = 'theme';
+
+type Theme = 'light' | 'dark';
 
 function getSystemTheme(): Theme {
-  if (typeof window === "undefined") {
-    return "light";
+  if (typeof window === 'undefined') {
+    return 'light';
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function getInitialTheme(): Theme {
-  if (typeof window === "undefined") {
-    return "light";
+  if (typeof window === 'undefined') {
+    return 'light';
   }
 
   const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  return storedTheme === "light" || storedTheme === "dark" ? storedTheme : getSystemTheme();
+  return storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : getSystemTheme();
 }
 
 function applyTheme(theme: Theme) {
-  document.documentElement.classList.remove("light", "dark");
+  document.documentElement.classList.remove('light', 'dark');
   document.documentElement.classList.add(theme);
 }
 
 export function ThemeToggle() {
+  const t = useTranslations('ThemeToggle');
   const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
 
   useEffect(() => {
@@ -38,7 +41,8 @@ export function ThemeToggle() {
     window.localStorage.setItem(THEME_STORAGE_KEY, theme);
   }, [theme]);
 
-  const nextTheme = theme === "dark" ? "light" : "dark";
+  const nextTheme = theme === 'dark' ? 'light' : 'dark';
+  const nextThemeLabel = nextTheme === 'dark' ? t('darkTheme') : t('lightTheme');
 
   return (
     <Button
@@ -46,10 +50,10 @@ export function ThemeToggle() {
       variant="ghost"
       size="sm"
       onClick={() => setTheme(nextTheme)}
-      aria-label={`Switch to ${nextTheme} mode`}
-      title={`Switch to ${nextTheme} mode`}
+      aria-label={t('switchTo', { theme: nextThemeLabel })}
+      title={t('switchTo', { theme: nextThemeLabel })}
     >
-      {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
+      {theme === 'dark' ? t('darkLabel') : t('lightLabel')}
     </Button>
   );
 }
