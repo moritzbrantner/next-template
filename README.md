@@ -59,6 +59,7 @@ Use these root docs before and during implementation:
 2. Run migrations:
 
    ```bash
+   bun run db:generate
    bun run db:migrate
    ```
 
@@ -86,6 +87,47 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
    docker compose up -d postgres
    bun run test:e2e
    ```
+
+## CI/CD
+
+### Required checks
+
+PRs targeting `main` must pass all CI checks:
+
+- `lint`
+- `typecheck`
+- `build`
+- `db-check` (Drizzle schema validation)
+
+These correspond to the commands run in CI:
+
+```bash
+bun run lint
+bunx tsc --noEmit
+bun run build
+bunx drizzle-kit check
+```
+
+### Required deploy secrets
+
+Set these environment variables in each deploy environment (preview and production):
+
+- `DATABASE_URL`
+- `AUTH_SECRET`
+- `AUTH_URL` (or `NEXTAUTH_URL` in equivalent Auth.js setups)
+
+If you enable OAuth providers, also set the provider-specific credentials (for example `GITHUB_ID` / `GITHUB_SECRET`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, or `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`).
+
+### Branch strategy
+
+- `main` is a protected branch.
+- All changes should be merged via pull request.
+- Require CI checks to pass before merging.
+
+### Preview and production deploy behavior
+
+- **Preview deploys** should run for pull requests, using preview-scoped secrets and infrastructure.
+- **Production deploys** should run only after changes are merged to `main`, using production-scoped secrets and infrastructure.
 
 ## Suggested next steps
 
