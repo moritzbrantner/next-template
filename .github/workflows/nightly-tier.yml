@@ -1,0 +1,13 @@
+name: Nightly Tier
+
+on:
+  pull_request:
+    branches: [nightly]
+  push:
+    branches: [nightly]
+
+jobs:
+  nightly:
+    uses: ./.github/workflows/tier-checks.yml
+    with:
+      tier: nightly

@@ -94,13 +94,25 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
 
 ## Testing
 
-1. Run integration tests for credential authorization logic:
+1. Run tiered checks locally depending on branch target:
+
+   ```bash
+   bun run checks:nightly
+   bun run checks:beta
+   bun run checks:main
+   ```
+
+   - `checks:nightly`: lint + typecheck + unit tests
+   - `checks:beta`: nightly checks + integration tests
+   - `checks:main`: beta checks + database schema check + production build + e2e tests
+
+2. Run integration tests directly when iterating on service logic:
 
    ```bash
    bun run test:integration
    ```
 
-2. Seed default test users (optional, but recommended for manual QA):
+3. Seed default test users (optional, but recommended for manual QA):
 
    ```bash
    bun run db:seed:test-users
@@ -112,7 +124,7 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
    - `manager@example.com` / `manager`
    - `user@example.com` / `user`
 
-3. Run end-to-end authentication tests (requires Postgres and `.env`):
+4. Run end-to-end authentication/profile user-story tests (requires Postgres and `.env`):
 
    ```bash
    docker compose up -d postgres
@@ -121,23 +133,22 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
 
 ## CI/CD
 
-### Required checks
+### Tiered branch and workflow hierarchy
 
-PRs targeting `main` must pass all CI checks:
+Adopt three long-lived integration branches:
 
-- `lint`
-- `typecheck`
-- `build`
-- `db-check` (Drizzle schema validation)
+- `nightly`: receives frequent merges; validates fast feedback (`checks:nightly`).
+- `beta`: stabilization branch; validates integration behavior (`checks:beta`).
+- `main`: release branch; validates full pre-release quality gate (`checks:main`).
 
-These correspond to the commands run in CI:
+GitHub workflows are split by target branch and call a shared reusable workflow:
 
-```bash
-bun run lint
-bunx tsc --noEmit
-bun run build
-bunx drizzle-kit check
-```
+- `.github/workflows/nightly-tier.yml`
+- `.github/workflows/beta-tier.yml`
+- `.github/workflows/main-tier.yml`
+- `.github/workflows/tier-checks.yml` (shared execution logic)
+
+Each workflow runs the corresponding local command so local and CI behavior stays aligned.
 
 ### Required deploy secrets
 
@@ -155,9 +166,11 @@ For hosted transactional email via Resend, add `RESEND_API_KEY` and set `EMAIL_P
 
 ### Branch strategy
 
-- `main` is a protected branch.
-- All changes should be merged via pull request.
-- Require CI checks to pass before merging.
+- Protect `nightly`, `beta`, and `main`.
+- Merge feature branches into `nightly` first.
+- Promote `nightly` -> `beta` after nightly checks stay green.
+- Promote `beta` -> `main` only after full `checks:main` passes.
+- Require the matching workflow status check on each branch before merging.
 
 ### Preview and production deploy behavior
 
