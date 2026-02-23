@@ -1,4 +1,5 @@
-import { pgEnum, pgTable, primaryKey, text, timestamp, integer, index, uniqueIndex } from "drizzle-orm/pg-core";
+
+import { pgEnum, pgTable, primaryKey, text, timestamp, integer, index, uniqueIndex, jsonb } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("Role", ["ADMIN", "USER"]);
 
@@ -76,4 +77,26 @@ export const verificationTokens = pgTable(
     primaryKey({ columns: [table.identifier, table.token], name: "VerificationToken_pkey" }),
     uniqueIndex("VerificationToken_token_key").on(table.token),
   ],
+);
+
+
+export const securityRateLimitCounters = pgTable("SecurityRateLimitCounter", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull(),
+  resetAt: timestamp("resetAt", { withTimezone: false, mode: "date" }).notNull(),
+  updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+});
+
+export const securityAuditLogs = pgTable(
+  "SecurityAuditLog",
+  {
+    id: text("id").primaryKey(),
+    actorId: text("actorId"),
+    action: text("action").notNull(),
+    outcome: text("outcome").notNull(),
+    statusCode: integer("statusCode").notNull(),
+    metadata: jsonb("metadata").notNull().default({}),
+    timestamp: timestamp("timestamp", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [index("SecurityAuditLog_actorId_idx").on(table.actorId), index("SecurityAuditLog_action_idx").on(table.action)],
 );
