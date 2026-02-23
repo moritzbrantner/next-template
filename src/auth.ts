@@ -6,8 +6,7 @@ import GitHub from "next-auth/providers/github";
 import { authorizeCredentials } from "@/src/auth/credentials";
 import { getDb } from "@/src/db/client";
 import { accounts, sessions, users, verificationTokens } from "@/src/db/schema";
-
-type AppRole = "ADMIN" | "USER";
+import type { AppRole } from "@/lib/authorization";
 
 const credentialsProvider = Credentials({
   name: "Email and Password",

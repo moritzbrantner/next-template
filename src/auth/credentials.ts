@@ -1,6 +1,5 @@
+import type { AppRole } from "@/lib/authorization";
 import { verifyPassword } from "@/lib/password";
-
-type AppRole = "ADMIN" | "USER";
 
 type CredentialsInput = {
   email?: unknown;
