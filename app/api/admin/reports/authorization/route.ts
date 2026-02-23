@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { requireRole } from "@/lib/authorization";
 import { authOptions } from "@/src/auth";
-import { auditAction, enforceRateLimit, getRateLimitKey } from "@/src/api/security";
+import { auditAdminReportsAction, enforceAdminReportsRateLimit } from "@/src/api/security-adapters";
 import { getAdminActionPermissions } from "@/src/domain/authorization/use-cases";
 
 export async function GET(request: NextRequest) {
@@ -11,11 +11,10 @@ export async function GET(request: NextRequest) {
   const actorId = session?.user?.id ?? null;
   const action = "viewReports";
 
-  const rateLimitKey = getRateLimitKey(request, actorId);
-  const rateLimit = enforceRateLimit(rateLimitKey);
+  const rateLimit = await enforceAdminReportsRateLimit(request, actorId);
 
   if (!rateLimit.ok) {
-    auditAction({
+    await auditAdminReportsAction({
       actorId,
       action,
       outcome: "rate_limited",
@@ -39,7 +38,7 @@ export async function GET(request: NextRequest) {
       (permission) => permission.key === "viewReports",
     );
 
-    auditAction({
+    await auditAdminReportsAction({
       actorId: authorizedSession.user.id,
       action,
       outcome: "allowed",
@@ -66,7 +65,7 @@ export async function GET(request: NextRequest) {
     const status = (error as { status?: number })?.status;
 
     if (status === 401 || status === 403) {
-      auditAction({
+      await auditAdminReportsAction({
         actorId,
         action,
         outcome: "denied",
@@ -81,7 +80,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    auditAction({
+    await auditAdminReportsAction({
       actorId,
       action,
       outcome: "error",
