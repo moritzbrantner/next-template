@@ -13,9 +13,14 @@
     "db:check": "drizzle-kit check",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "test:integration": "vitest run",
+    "test:integration": "vitest run tests/integration",
     "test:e2e": "playwright test",
-    "db:seed:test-users": "bun run scripts/seed-test-users.ts"
+    "db:seed:test-users": "bun run scripts/seed-test-users.ts",
+    "test:unit": "vitest run tests/unit",
+    "checks:nightly": "./scripts/ci/tier-nightly.sh",
+    "checks:beta": "./scripts/ci/tier-beta.sh",
+    "checks:main": "./scripts/ci/tier-main.sh",
+    "checks:all": "./scripts/ci/tier-all.sh"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
