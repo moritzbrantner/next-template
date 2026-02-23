@@ -40,7 +40,7 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile --production=false
+        run: bun install --frozen-lockfile
 
       - name: Verify runtime dependency availability
         run: bun pm ls @aws-sdk/client-s3
