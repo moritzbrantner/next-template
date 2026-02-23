@@ -72,6 +72,21 @@ Use these root docs before and during implementation:
 
 Start editing by updating `app/page.tsx`; the page auto-updates as you save.
 
+## Testing
+
+1. Run integration tests for credential authorization logic:
+
+   ```bash
+   npm run test:integration
+   ```
+
+2. Run end-to-end authentication tests (requires Postgres and `.env`):
+
+   ```bash
+   docker compose up -d postgres
+   npm run test:e2e
+   ```
+
 ## Suggested next steps
 
 1. Finalize `PRODUCT_BRIEF.md` for your target audience.

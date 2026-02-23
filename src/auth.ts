@@ -3,7 +3,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 
-import { verifyPassword } from "@/lib/password";
+import { authorizeCredentials } from "@/src/auth/credentials";
 import { db } from "@/src/db/client";
 import { accounts, sessions, users, verificationTokens } from "@/src/db/schema";
 
@@ -15,40 +15,7 @@ const credentialsProvider = Credentials({
     email: { label: "Email", type: "email" },
     password: { label: "Password", type: "password" },
   },
-  async authorize(credentials) {
-    const email = credentials?.email;
-    const password = credentials?.password;
-
-    if (typeof email !== "string" || typeof password !== "string") {
-      return null;
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail) {
-      return null;
-    }
-
-    const user = await db.query.users.findFirst({
-      where: (table, { eq }) => eq(table.email, normalizedEmail),
-    });
-
-    if (!user?.passwordHash) {
-      return null;
-    }
-
-    const isValidPassword = await verifyPassword(password, user.passwordHash);
-    if (!isValidPassword) {
-      return null;
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      image: user.image,
-      role: user.role,
-    };
-  },
+  authorize: authorizeCredentials,
 });
 
 const githubProvider =
