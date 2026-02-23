@@ -1,7 +1,14 @@
 export const profilePage = {
   title: 'Profil',
-  description: 'Verwalte dein Profilbild.',
+  description: 'Verwalte deinen Anzeigenamen und dein Profilbild.',
   form: {
+    displayName: {
+      label: 'Anzeigename',
+      placeholder: 'Dein Anzeigename',
+      save: 'Namen speichern',
+      saving: 'Wird gespeichert…',
+      success: 'Anzeigename aktualisiert.',
+    },
     chooseImage: 'Profilbild auswählen',
     hint: 'Verwende für beste Ergebnisse ein quadratisches PNG- oder JPEG-Bild.',
     upload: 'Bild hochladen',
