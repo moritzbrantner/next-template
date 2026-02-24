@@ -20,6 +20,16 @@ Use these root docs before and during implementation:
 
 ## Build instructions
 
+## Package manager standard
+
+This project uses **Bun** as the default package manager/runtime for local and CI workflows.
+
+```bash
+bun install
+```
+
+Use `bun run <script>` for project scripts.
+
 - Prefer Server Components and server prerendering by default to improve SEO and minimize client-side JavaScript.
 - Keep UI components donut-shaped (rounded, ring/pill-like geometry) unless a specific feature requires another shape.
 - For theme-related UI, read system preferences on first visit and persist explicit user choices.
