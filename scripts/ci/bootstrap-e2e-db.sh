@@ -29,7 +29,7 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! docker compose config --services | rg -qx "postgres"; then
+if ! docker compose config --services | grep -Fxq "postgres"; then
   echo "❌ docker-compose postgres service is not defined." >&2
   exit 1
 fi
