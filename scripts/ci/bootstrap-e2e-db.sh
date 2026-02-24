@@ -3,6 +3,28 @@ set -euo pipefail
 
 MARKER_FILE="/tmp/next-template-e2e-db-bootstrap.started"
 
+can_reach_database() {
+  bun --eval '
+    const { Client } = require("pg");
+
+    if (!process.env.DATABASE_URL) {
+      process.exit(1);
+    }
+
+    const client = new Client({ connectionString: process.env.DATABASE_URL });
+
+    try {
+      await client.connect();
+      await client.query("SELECT 1");
+      process.exit(0);
+    } catch {
+      process.exit(1);
+    } finally {
+      await client.end().catch(() => undefined);
+    }
+  ' >/dev/null 2>&1
+}
+
 teardown() {
   if [[ -f "$MARKER_FILE" ]]; then
     echo "ℹ️ Cleaning up Postgres service started by bootstrap script..."
@@ -24,20 +46,23 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   echo "ℹ️ DATABASE_URL was not set; defaulting to docker-compose Postgres endpoint."
 fi
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "❌ Docker is required for e2e DB bootstrap." >&2
-  exit 1
+if can_reach_database; then
+  echo "ℹ️ Reusing already-reachable Postgres instance from DATABASE_URL."
+else
+  if ! command -v docker >/dev/null 2>&1; then
+    echo "❌ Docker is required to start Postgres for e2e DB bootstrap." >&2
+    exit 1
+  fi
+
+  if ! docker compose config --services | grep -Fxq "postgres"; then
+    echo "❌ docker-compose postgres service is not defined." >&2
+    exit 1
+  fi
+
+  echo "ℹ️ Starting Postgres service for e2e bootstrap..."
+  docker compose up -d postgres
+  touch "$MARKER_FILE"
 fi
-
-if ! docker compose config --services | grep -Fxq "postgres"; then
-  echo "❌ docker-compose postgres service is not defined." >&2
-  exit 1
-fi
-
-echo "ℹ️ Starting Postgres service for e2e bootstrap..."
-docker compose up -d postgres
-
-touch "$MARKER_FILE"
 
 export DB_BOOTSTRAP_TIMEOUT_SECONDS="${DB_BOOTSTRAP_TIMEOUT_SECONDS:-90}"
 
