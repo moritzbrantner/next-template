@@ -7,7 +7,9 @@ on:
     branches: [beta]
 
 jobs:
-  beta:
+  beta-tier:
+    name: Beta Tier
     uses: ./.github/workflows/tier-checks.yml
     with:
-      tier: beta
+      tier-name: beta
+      check-command: checks:beta
