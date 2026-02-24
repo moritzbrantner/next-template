@@ -8,6 +8,7 @@ export default defineConfig({
   timeout: 60_000,
   use: {
     baseURL,
+    channel: "chrome",
   },
   webServer: {
     command: "bun run dev -- --port 3005",
