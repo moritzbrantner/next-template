@@ -10,7 +10,7 @@ export default defineConfig({
     baseURL,
   },
   webServer: {
-    command: "npm run dev -- --port 3005",
+    command: "bun run dev -- --port 3005",
     url: baseURL,
     timeout: 120_000,
     reuseExistingServer: !process.env.CI,
