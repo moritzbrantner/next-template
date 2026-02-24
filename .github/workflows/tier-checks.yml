@@ -60,12 +60,6 @@ jobs:
       - name: Verify runtime dependency availability
         run: bun pm ls @aws-sdk/client-s3
 
-      - name: Apply database migrations
-        run: bun run db:migrate
-
-      - name: Seed test users for auth/e2e flows
-        run: bun run db:seed:test-users
-
       - name: Install Playwright browser dependencies
         if: inputs.check-command == 'checks:main'
         run: bunx playwright install --with-deps chromium

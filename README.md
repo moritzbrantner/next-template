@@ -114,7 +114,7 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
 
    - `checks:nightly`: lint + typecheck + unit tests
    - `checks:beta`: nightly checks + integration tests
-   - `checks:main`: beta checks + database schema check + production build + strict e2e preflight + e2e tests
+   - `checks:main`: beta checks + database schema check + production build + strict e2e preflight + deterministic DB bootstrap (start Postgres, wait for readiness, apply migrations, seed baseline users) + e2e tests
 
 2. Run integration tests directly when iterating on service logic:
 
@@ -135,7 +135,7 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
    - `user@example.com` / `user`
 
 
-   `checks:main` now runs `scripts/ci/assert-e2e-prereqs.sh` before Playwright. In CI, this preflight fails fast when required auth/database environment values are missing or Postgres is unreachable, so the main-tier gate fails early with a clear prerequisites error.
+   `checks:main` runs `scripts/ci/assert-e2e-prereqs.sh` and then `scripts/ci/bootstrap-e2e-db.sh` before Playwright. The bootstrap step is idempotent, reuses an already reachable `DATABASE_URL` when present (for example CI service containers), and otherwise starts `docker compose` Postgres. It always re-applies migrations plus baseline seeded users (`bun run db:migrate` and `bun run db:seed:test-users`) so each run has deterministic auth/e2e fixtures.
 
 4. Run end-to-end authentication/profile user-story tests (requires Postgres and `.env`):
 
@@ -163,7 +163,9 @@ GitHub workflows are split by target branch and call a shared reusable workflow:
 
 Each workflow runs the corresponding local command so local and CI behavior stays aligned.
 
-For `main`, CI uses the same strict e2e preflight as local `checks:main`; missing `DATABASE_URL`, missing auth env (`AUTH_SECRET` + `AUTH_URL`/`NEXTAUTH_URL`), or an unreachable Postgres instance will fail the job before Playwright starts.
+For `main`, CI uses the same strict e2e preflight as local `checks:main`; missing `DATABASE_URL`, missing auth env (`AUTH_SECRET` + `AUTH_URL`/`NEXTAUTH_URL`), or an unreachable Postgres instance will fail the job before Playwright starts. After preflight succeeds, deterministic bootstrap reuses the runner's reachable database service when available (avoiding port-collision conflicts) or starts Postgres via `docker compose up -d postgres`, then waits for readiness, reapplies migrations, and reseeds baseline users before e2e execution.
+
+In CI mode (`CI=true`), `checks:main` also runs bootstrap teardown on exit (`scripts/ci/bootstrap-e2e-db.sh --teardown`) and only removes containers/volumes it started itself. This avoids cross-job contamination on runners while remaining safe for local developer databases.
 
 ### Required deploy secrets
 
