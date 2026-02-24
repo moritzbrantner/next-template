@@ -43,7 +43,7 @@ export const authOptions: NextAuthOptions = {
       }
     : {}),
   session: {
-    strategy: hasDatabase ? "database" : "jwt",
+    strategy: "jwt",
   },
   providers: [credentialsProvider, ...githubProvider],
   callbacks: {
