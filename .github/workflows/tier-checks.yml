@@ -3,19 +3,24 @@ name: Tier Checks (Reusable)
 on:
   workflow_call:
     inputs:
-      tier:
+      tier-name:
+        description: Tier label for logging and check-run naming.
+        required: true
+        type: string
+      check-command:
+        description: Local check script to execute (for example checks:nightly).
         required: true
         type: string
 
-env:
-  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/next_template?schema=public
-  AUTH_SECRET: ci-dummy-auth-secret-not-for-production
-  AUTH_URL: http://localhost:3000
-  NEXTAUTH_URL: http://localhost:3000
-
 jobs:
-  checks:
+  tier-checks:
+    name: Tier checks (${{ inputs.tier-name }})
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/next_template?schema=public
+      AUTH_SECRET: ci-dummy-auth-secret-not-for-production
+      AUTH_URL: http://localhost:3000
+      NEXTAUTH_URL: http://localhost:3000
     services:
       postgres:
         image: postgres:16
@@ -34,10 +39,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Bun
+      - name: Set up Bun runtime
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Restore Bun dependency cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -52,8 +67,8 @@ jobs:
         run: bun run db:seed:test-users
 
       - name: Install Playwright browser dependencies
-        if: inputs.tier == 'main'
+        if: inputs.check-command == 'checks:main'
         run: bunx playwright install --with-deps chromium
 
       - name: Run tier checks
-        run: bun run checks:${{ inputs.tier }}
+        run: bun run ${{ inputs.check-command }}
