@@ -1,66 +1,44 @@
-import { expect, test } from "@playwright/test";
-import { randomUUID } from "node:crypto";
+import { expect, test } from '@playwright/test';
 
-import { hashPassword } from "@/lib/password";
-import { Pool } from "pg";
+import { TEST_USERS } from '@/src/testing/test-users';
 
-test.describe.skip("authentication", () => { // Temporarily disabled to stabilize CI; re-enable after auth flow hardening.
-  test("allows credentials sign in and creates an auth session", async ({ request, baseURL }) => {
+const testUser = TEST_USERS.find((user) => user.email === 'user@example.com');
+
+if (!testUser) {
+  throw new Error('Expected default e2e test user to exist');
+}
+
+test.describe('authentication', () => {
+  test('logs in through the UI, reaches protected pages, and logs out', async ({ page }) => {
     if (!process.env.DATABASE_URL) {
-      test.skip(true, "DATABASE_URL is required for e2e auth tests");
+      test.skip(true, 'DATABASE_URL is required for e2e auth tests');
     }
 
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const userId = randomUUID();
-    const email = `e2e-${Date.now()}@example.com`;
-    const password = "SuperSecure!123";
+    await page.goto('/en');
 
-    try {
-      try {
-        await pool.query("SELECT 1");
-      } catch {
-        test.skip(true, "Postgres is not reachable for e2e auth tests");
-      }
+    await expect(page.getByRole('button', { name: 'Log in' })).toBeVisible();
+    await page.getByRole('button', { name: 'Log in' }).click();
 
-      await pool.query('ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "passwordHash" text');
+    await expect(page).toHaveURL(/\/api\/auth\/signin/);
 
-      const passwordHash = await hashPassword(password);
-      await pool.query(
-        'INSERT INTO "User" ("id", "email", "name", "passwordHash") VALUES ($1, $2, $3, $4)',
-        [userId, email, "E2E Tester", passwordHash],
-      );
+    await page.getByLabel('Email').fill(testUser.email);
+    await page.getByLabel('Password').fill(testUser.password);
+    await page.getByRole('button', { name: 'Sign in with Email and Password' }).click();
 
-      const csrfResponse = await request.get(`${baseURL}/api/auth/csrf`);
-      expect(csrfResponse.ok()).toBeTruthy();
-      const csrfPayload = await csrfResponse.json();
-      const csrfToken = csrfPayload.csrfToken as string;
+    await expect(page).toHaveURL(/\/en(?:\?.*)?$/);
+    await expect(page.getByRole('button', { name: 'Log in' })).toHaveCount(0);
 
-      const signInResponse = await request.post(`${baseURL}/api/auth/callback/credentials?json=true`, {
-        form: {
-          email,
-          password,
-          csrfToken,
-          callbackUrl: `${baseURL}/`,
-          json: "true",
-        },
-      });
+    await page.getByRole('button', { name: 'Open user menu' }).click();
+    await expect(page.getByRole('link', { name: 'Profile' })).toBeVisible();
+    await page.getByRole('link', { name: 'Profile' }).click();
 
-      expect(signInResponse.ok()).toBeTruthy();
-      const signInData = await signInResponse.json();
-      expect(signInData.url).toBe(`${baseURL}/`);
+    await expect(page).toHaveURL('/en/profile');
+    await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
 
-      const setCookie = signInResponse.headersArray().filter((header) => header.name.toLowerCase() === "set-cookie");
-      const sessionCookie = setCookie.find((header) => header.value.includes("authjs.session-token"));
-      expect(sessionCookie).toBeTruthy();
+    await page.getByRole('button', { name: 'Open user menu' }).click();
+    await page.getByRole('button', { name: 'Log out' }).click();
 
-      const sessionResponse = await request.get(`${baseURL}/api/auth/session`);
-      expect(sessionResponse.ok()).toBeTruthy();
-      const session = await sessionResponse.json();
-      expect(session?.user?.email).toBe(email);
-    } finally {
-      await pool.query('DELETE FROM "Session" WHERE "userId" = $1', [userId]).catch(() => undefined);
-      await pool.query('DELETE FROM "User" WHERE "id" = $1', [userId]).catch(() => undefined);
-      await pool.end().catch(() => undefined);
-    }
+    await expect(page).toHaveURL('/en');
+    await expect(page.getByRole('button', { name: 'Log in' })).toBeVisible();
   });
 });
