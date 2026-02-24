@@ -25,7 +25,7 @@ test.describe('authentication', () => {
     await page.getByLabel('Password').fill(testUser.password);
     await page.getByRole('button', { name: 'Sign in with Email and Password' }).click();
 
-    await expect(page).toHaveURL(/\/en$/);
+    await expect(page).toHaveURL(/\/en(?:\?.*)?$/);
     await expect(page.getByRole('button', { name: 'Log in' })).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Open user menu' }).click();

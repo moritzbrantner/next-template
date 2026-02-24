@@ -19,8 +19,9 @@ jobs:
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/next_template?schema=public
       AUTH_SECRET: ci-dummy-auth-secret-not-for-production
-      AUTH_URL: http://localhost:3000
-      NEXTAUTH_URL: http://localhost:3000
+      AUTH_URL: http://127.0.0.1:3005
+      NEXTAUTH_URL: http://127.0.0.1:3005
+      E2E_BASE_URL: http://127.0.0.1:3005
     services:
       postgres:
         image: postgres:16
@@ -60,9 +61,9 @@ jobs:
       - name: Verify runtime dependency availability
         run: bun pm ls @aws-sdk/client-s3
 
-      - name: Install Playwright browser dependencies
+      - name: Install Playwright system dependencies
         if: inputs.check-command == 'checks:main'
-        run: bunx playwright install --with-deps chromium
+        run: bunx playwright install-deps chromium
 
       - name: Run tier checks
         run: bun run ${{ inputs.check-command }}
