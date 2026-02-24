@@ -104,7 +104,7 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
 
    - `checks:nightly`: lint + typecheck + unit tests
    - `checks:beta`: nightly checks + integration tests
-   - `checks:main`: beta checks + database schema check + production build + e2e tests
+   - `checks:main`: beta checks + database schema check + production build + strict e2e preflight + e2e tests
 
 2. Run integration tests directly when iterating on service logic:
 
@@ -123,6 +123,9 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
    - `admin@example.com` / `admin`
    - `manager@example.com` / `manager`
    - `user@example.com` / `user`
+
+
+   `checks:main` now runs `scripts/ci/assert-e2e-prereqs.sh` before Playwright. In CI, this preflight fails fast when required auth/database environment values are missing or Postgres is unreachable, so the main-tier gate fails early with a clear prerequisites error.
 
 4. Run end-to-end authentication/profile user-story tests (requires Postgres and `.env`):
 
@@ -149,6 +152,8 @@ GitHub workflows are split by target branch and call a shared reusable workflow:
 - `.github/workflows/tier-checks.yml` (shared execution logic)
 
 Each workflow runs the corresponding local command so local and CI behavior stays aligned.
+
+For `main`, CI uses the same strict e2e preflight as local `checks:main`; missing `DATABASE_URL`, missing auth env (`AUTH_SECRET` + `AUTH_URL`/`NEXTAUTH_URL`), or an unreachable Postgres instance will fail the job before Playwright starts.
 
 ### Required deploy secrets
 
