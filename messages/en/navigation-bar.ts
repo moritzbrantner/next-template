@@ -13,4 +13,10 @@ export const navigationBar = {
     logout: 'Log out',
     menu: 'Open user menu',
   },
+  menu: {
+    profile: 'Profile',
+    settings: 'Settings',
+    logout: 'Log out',
+    openMenu: 'Open user menu',
+  },
 };

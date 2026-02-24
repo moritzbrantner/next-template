@@ -13,4 +13,10 @@ export const navigationBar = {
     logout: 'Abmelden',
     menu: 'Benutzermenü öffnen',
   },
+  menu: {
+    profile: 'Profil',
+    settings: 'Einstellungen',
+    logout: 'Abmelden',
+    openMenu: 'Benutzermenü öffnen',
+  },
 };
