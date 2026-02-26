@@ -34,7 +34,11 @@ function applyTheme(theme: Theme) {
 
 export function ThemeToggle() {
   const t = useTranslations('ThemeToggle');
-  const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
+  const [theme, setTheme] = useState<Theme>('light');
+
+  useEffect(() => {
+    setTheme(getInitialTheme());
+  }, []);
 
   useEffect(() => {
     applyTheme(theme);
