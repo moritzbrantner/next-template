@@ -1,50 +1,59 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
+
+const DEPRECATED_IMPORT_PATTERNS = ['@/features/*', '@/stores/*', '@/lib/services/auth'];
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    files: ["features/**/*.{ts,tsx}"],
+    files: ['app/**/*.{ts,tsx}', 'src/**/*.{ts,tsx}'],
     rules: {
-      "no-restricted-imports": [
-        "error",
+      'no-restricted-imports': [
+        'error',
         {
-          patterns: ["@/app/*"],
+          patterns: DEPRECATED_IMPORT_PATTERNS,
         },
       ],
     },
   },
   {
-    files: ["stores/**/*.{ts,tsx}"],
+    files: ['src/domain/**/*.{ts,tsx}'],
     rules: {
-      "no-restricted-imports": [
-        "error",
+      'no-restricted-imports': [
+        'error',
         {
-          patterns: ["@/app/*", "@/features/*", "@/lib/services/*"],
+          patterns: ['@/app/*', '@/components/*'],
         },
       ],
     },
   },
   {
-    files: ["lib/services/**/*.{ts,tsx}"],
+    files: ['src/db/**/*.{ts,tsx}'],
     rules: {
-      "no-restricted-imports": [
-        "error",
+      'no-restricted-imports': [
+        'error',
         {
-          patterns: ["@/app/*", "@/features/*", "@/stores/*"],
+          patterns: ['@/app/*', '@/components/*', '@/src/domain/*', '@/src/profile/*'],
         },
       ],
     },
   },
   {
-    files: ["lib/validation/**/*.{ts,tsx}"],
+    files: ['lib/validation/**/*.{ts,tsx}'],
     rules: {
-      "no-restricted-imports": [
-        "error",
+      'no-restricted-imports': [
+        'error',
         {
-          patterns: ["@/app/*", "@/features/*", "@/stores/*", "@/lib/services/*"],
+          patterns: [
+            '@/app/*',
+            '@/components/*',
+            '@/features/*',
+            '@/stores/*',
+            '@/src/*',
+            '@/lib/services/*',
+          ],
         },
       ],
     },
@@ -52,10 +61,10 @@ const eslintConfig = defineConfig([
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts',
   ]),
 ]);
 

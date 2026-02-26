@@ -10,6 +10,27 @@ This repository is a starter template for building impressive, production-ready 
 
 ## Documentation-first workflow
 
+## Authoritative directory map
+
+The repository uses **domain-first modules under `src/`** as the only canonical application structure.
+
+```text
+app/                     App Router pages, layouts, API route entrypoints, server actions
+components/              Shared UI primitives/composites
+src/api/                 API-facing adapters
+src/auth/                Auth and account-lifecycle services
+src/db/                  Database client/schema
+src/domain/              Business use-cases
+src/profile/             Profile domain helpers and adapters
+src/testing/             Test fixtures/helpers
+src/types/               Type augmentation
+lib/authorization.ts     Role/authorization constants
+lib/password.ts          Password utilities
+lib/validation/          Validation contracts and parsing
+```
+
+Legacy demo paths (`features/`, `stores/`, and `lib/services/auth.ts`) are deprecated. See [`MIGRATION_NOTES.md`](./MIGRATION_NOTES.md).
+
 Use these root docs before and during implementation:
 
 - [`PRODUCT_BRIEF.md`](./PRODUCT_BRIEF.md): product goals, audience, and success criteria.
