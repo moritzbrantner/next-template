@@ -48,6 +48,8 @@ export function ProfileMenu({
         className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800"
         aria-label={labels.openMenu}
         aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen((current) => !current)}
       >
         {imageUrl ? (
           <Image
@@ -69,6 +71,7 @@ export function ProfileMenu({
         <div className="absolute right-0 top-full z-20 w-44 rounded-md border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900">
           <Link
             href={profileHref}
+            onClick={() => setOpen(false)}
             className={buttonVariants({
               variant: 'ghost',
               size: 'sm',
@@ -79,6 +82,7 @@ export function ProfileMenu({
           </Link>
           <Link
             href={settingsHref}
+            onClick={() => setOpen(false)}
             className={buttonVariants({
               variant: 'ghost',
               size: 'sm',
