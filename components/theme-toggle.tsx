@@ -1,49 +1,56 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
-
-const THEME_STORAGE_KEY = 'theme';
-
-type Theme = 'light' | 'dark';
+import { THEME_COOKIE_NAME, THEME_STORAGE_KEY, Theme, isTheme } from '@/lib/theme';
 
 function getSystemTheme(): Theme {
-  if (typeof window === 'undefined') {
-    return 'light';
-  }
-
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-function getInitialTheme(): Theme {
+function getThemeSnapshot(): Theme {
   if (typeof window === 'undefined') {
     return 'light';
   }
 
   const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  return storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : getSystemTheme();
+  return isTheme(storedTheme) ? storedTheme : getSystemTheme();
 }
 
-function applyTheme(theme: Theme) {
+function subscribeTheme(onStoreChange: () => void) {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
+  const onThemeChange = () => onStoreChange();
+
+  window.addEventListener('storage', onThemeChange);
+  window.addEventListener('themechange', onThemeChange);
+
+  return () => {
+    window.removeEventListener('storage', onThemeChange);
+    window.removeEventListener('themechange', onThemeChange);
+  };
+}
+
+function persistTheme(theme: Theme) {
   document.documentElement.classList.remove('light', 'dark');
   document.documentElement.classList.add(theme);
+  window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  document.cookie = `${THEME_COOKIE_NAME}=${theme}; path=/; max-age=31536000; samesite=lax`;
+  window.dispatchEvent(new Event('themechange'));
 }
 
-export function ThemeToggle() {
+type ThemeToggleProps = {
+  initialTheme: Theme;
+};
+
+export function ThemeToggle({ initialTheme }: ThemeToggleProps) {
   const t = useTranslations('ThemeToggle');
-  const [theme, setTheme] = useState<Theme>('light');
-
-  useEffect(() => {
-    setTheme(getInitialTheme());
-  }, []);
-
-  useEffect(() => {
-    applyTheme(theme);
-    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-  }, [theme]);
+  const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, () => initialTheme);
 
   const nextTheme = theme === 'dark' ? 'light' : 'dark';
   const nextThemeLabel = nextTheme === 'dark' ? t('darkTheme') : t('lightTheme');
@@ -53,7 +60,7 @@ export function ThemeToggle() {
       type="button"
       variant="ghost"
       size="sm"
-      onClick={() => setTheme(nextTheme)}
+      onClick={() => persistTheme(nextTheme)}
       aria-label={t('switchTo', { theme: nextThemeLabel })}
       title={t('switchTo', { theme: nextThemeLabel })}
     >

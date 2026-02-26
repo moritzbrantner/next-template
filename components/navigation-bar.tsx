@@ -1,8 +1,10 @@
 import { getTranslations } from 'next-intl/server';
 import { getServerSession } from 'next-auth';
+import { cookies } from 'next/headers';
 
 import { Link } from '@/i18n/navigation';
 import { isAdmin } from '@/lib/authorization';
+import { THEME_COOKIE_NAME, isTheme } from '@/lib/theme';
 
 import { authOptions } from '@/src/auth';
 
@@ -23,6 +25,8 @@ type NavigationBarProps = {
 export async function NavigationBar({ locale }: NavigationBarProps) {
   const t = await getTranslations('NavigationBar');
   const session = await getServerSession(authOptions);
+  const themeCookie = (await cookies()).get(THEME_COOKIE_NAME)?.value;
+  const initialTheme = isTheme(themeCookie) ? themeCookie : 'light';
 
   const navLinks = [
     ...baseNavLinks,
@@ -77,7 +81,7 @@ export async function NavigationBar({ locale }: NavigationBarProps) {
               menu: t('auth.menu'),
             }}
           />
-          <ThemeToggle />
+          <ThemeToggle initialTheme={initialTheme} />
         </div>
       </nav>
     </header>
