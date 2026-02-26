@@ -4,6 +4,7 @@ export const navigationBar = {
     home: 'Startseite',
     about: 'Über uns',
     profile: 'Profil',
+    dataEntry: 'Dateneingabe',
     admin: 'Admin',
   },
   auth: {
