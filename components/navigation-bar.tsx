@@ -26,6 +26,7 @@ export async function NavigationBar({ locale }: NavigationBarProps) {
 
   const navLinks = [
     ...baseNavLinks,
+    ...(session?.user?.id ? [{ href: '/data-entry', key: 'dataEntry' as const }] : []),
     ...(isAdmin(session?.user?.role) ? [{ href: '/admin', key: 'admin' as const }] : []),
   ];
 
