@@ -1,4 +1,5 @@
 import { aboutPage } from './about-page';
+import { adminPage } from './admin-page';
 import { homePage } from './home-page';
 import { navigationBar } from './navigation-bar';
 import { profilePage } from './profile-page';
@@ -10,6 +11,7 @@ const enMessages = {
   ThemeToggle: themeToggle,
   HomePage: homePage,
   AboutPage: aboutPage,
+  AdminPage: adminPage,
   ProfilePage: profilePage,
   SettingsPage: settingsPage,
 };
