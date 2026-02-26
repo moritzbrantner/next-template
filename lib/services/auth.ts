@@ -1,12 +1,4 @@
-export type AuthUser = {
-  id: string;
-  email: string;
-};
-
-export async function getCurrentUser(): Promise<AuthUser | null> {
-  // Replace with your auth provider adapter (NextAuth, Clerk, Auth0, etc.).
-  return {
-    id: "user_123",
-    email: "alex@example.com",
-  };
-}
+/**
+ * @deprecated Use `@/src/auth/current-user` instead.
+ */
+export { getCurrentUser, type AuthUser } from '@/src/auth/current-user';

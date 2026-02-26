@@ -1,133 +1,57 @@
 # ARCHITECTURE.md
 
-Use this file to document the technical blueprint of the template.
+## Canonical application structure
 
-## How to use this file well
-
-- Describe architecture for **future contributors**, not just current maintainers.
-- Prefer diagrams + short explanations over long prose.
-- Keep implementation details in code, but keep **design rationale** here.
-- Update this file when introducing new core dependencies, services, or patterns.
-- Record trade-offs and constraints explicitly.
-
-## Architecture principles for this template
-
-1. **Scalable by default:** structure for growth from marketing site to full SaaS.
-2. **Composable UI:** reusable components and feature modules.
-3. **Performance-first:** Core Web Vitals, streaming, progressive hydration where needed.
-4. **Secure by design:** auth boundaries, least-privilege integrations, safe defaults.
-5. **Developer experience:** fast setup, clear conventions, automated quality checks.
-
-## System overview template
-
-## 1) Context
-- Product type: Comprehensive Next.js app template for high-impact websites and product experiences.
-- Key capabilities expected:
-  - User management (auth, roles, profiles).
-  - Rich 3D animation (Three.js / React Three Fiber).
-  - Video-first sections (`react-player` or similar integration pattern).
-  - Production forms (validation, async submit, error states).
-  - Global client state (Zustand or equivalent).
-
-## 2) High-level diagram
-```text
-[Browser]
-   |
-[Next.js App Router]
-   |-- [Public Marketing Pages]
-   |-- [Authenticated App Area]
-   |-- [API Routes / Server Actions]
-   |
-[Data Layer]
-   |-- DB / ORM
-   |-- Auth Provider
-   |-- File/Media Storage
-```
-
-## 3) Module boundaries
-| Layer | Responsibility | Suggested Location |
-|---|---|---|
-| App routing | Route groups, layouts, metadata | `app/` |
-| UI system | Shared primitives + composites | `components/` |
-| Feature modules | Domain-specific logic/UI | `features/` |
-| State | Cross-feature client state | `stores/` |
-| Services | API clients, adapters, integrations | `lib/services/` |
-| Validation | Schemas and input contracts | `lib/validation/` |
-
-## 4) Runtime split
-- **Server Components:** data fetching, SEO-critical content, secure boundaries.
-- **Client Components:** interactive scenes, media controls, form interactions.
-- **Server Actions/API Routes:** mutations and protected operations.
-
-## 5) Data flow patterns
-- Read: route -> server component -> service layer -> data source.
-- Write: client interaction -> action/endpoint -> validation -> service -> persistence.
-- Client state: local UI state in component; shared UI/session state in Zustand.
-
-
-## 5.1) URL state conventions (shareable/reproducible state)
-- Treat the URL as the source of truth for **shareable, reproducible, non-sensitive view state**.
-- Use route segments for canonical resource identity and locale.
-- Use query parameters for filters, sort, pagination, tabs, and search state.
-- Do **not** store sensitive data, tokens, secrets, or private personal data in URL parameters.
-- Keep ephemeral interaction state (temporary toggles, animation-only flags, unsaved local drafts) out of the URL unless explicit deep-linking is required.
-- Normalize and validate query parameters at route boundaries to ensure deterministic links and stable tests.
-
-## 5.2) Domain logic once, multi-transport adapters
-- Domain logic should be implemented once in `src/domain/**` as pure use-cases/services that do not depend on route handlers or UI components.
-- Domain services must return a standardized result contract:
-  - success: `{ ok: true, data: ... }`
-  - business failure: `{ ok: false, error: { code, message, ... } }`
-- Adapters stay thin:
-  - API routes (`app/api/**`): validate input, call domain service, map typed domain errors to HTTP status codes and response bodies.
-  - UI/server components (`app/[locale]/**`): call domain service (or server action facade), branch on the same typed result shape, and render/redirect accordingly.
-- Current authorization use-cases (`viewReports`, `manageUsers`, `manageSystemSettings`) are implemented in `src/domain/authorization/use-cases.ts` and consumed by the admin page route as a thin adapter.
-
-## 6) Non-functional requirements
-- Performance budget targets:
-  - LCP < 2.5s on key landing pages.
-  - CLS < 0.1.
-  - Keep bundle size tracked per route.
-- Accessibility:
-  - Keyboard navigation for interactive media/3D controls.
-  - WCAG AA color contrast.
-- Observability:
-  - Error monitoring and basic analytics hooks.
-
-## 7) Change log
-| Date | Change | Author | Notes |
-|---|---|---|---|
-| YYYY-MM-DD | Initial architecture entry |  |  |
-
-
-## 8) Layer dependency rules (enforced conventions)
-
-### Import boundaries
+This project uses a **domain-first `src/` architecture** as the single canonical structure.
 
 ```text
-app/ -> features/, components/, stores/, lib/services/, lib/validation/, src/**
-features/ -> lib/services/, lib/validation/, features/<same feature>/**
-stores/ -> lib/validation/ (optional), stores/**
-lib/services/ -> external SDKs + src/** infra only (no app/features/stores imports)
-lib/validation/ -> framework-agnostic contracts/types only (no app/features/stores/services imports)
+app/                     Next.js App Router entrypoints (UI composition + route handlers)
+components/              Shared UI components
+src/
+  api/                   API-facing service adapters
+  auth/                  Authentication/account services
+  db/                    Database client + schema
+  domain/                Core business use-cases (pure application logic)
+  profile/               Profile-focused domain helpers/adapters
+  testing/               Test fixtures and test-only helpers
+  types/                 Project-level type augmentation
+lib/
+  authorization.ts       Shared role/authorization constants
+  password.ts            Password hashing/verification helpers
+  validation/            Shared validation contracts and parsers
 ```
 
-### Allowed dependencies per layer
+Deprecated paths (`features/`, `stores/`, `lib/services/auth.ts`) are documented in `MIGRATION_NOTES.md` and should not be used for new implementation.
 
-| Layer | Can depend on | Must not depend on |
-|---|---|---|
-| `app/**` | `features/**`, `components/**`, `stores/**`, `lib/**`, `src/**` | (none, app is composition root) |
-| `features/**` | local feature files, `lib/services/**`, `lib/validation/**`, `components/**` | `app/**`, unrelated feature internals |
-| `stores/**` | other store files, `lib/validation/**` | `app/**`, `features/**`, `lib/services/**` |
-| `lib/services/**` | external SDKs, `src/**` infra adapters | `app/**`, `features/**`, `stores/**` |
-| `lib/validation/**` | TypeScript standard library only | `app/**`, `features/**`, `stores/**`, `lib/services/**` |
+## Runtime flow
 
-### Baseline module examples
+- **Read path:** `app/**` -> `src/domain/**` (or thin adapters in `src/*`) -> `src/db/**`
+- **Write path:** `app/**` server action / route -> validation (`lib/validation/**`) -> `src/domain/**` -> persistence/integration
 
-- `features/profile/` demonstrates a feature slice with:
-  - `ui/` presentational component.
-  - `server/` adapter for route/action interaction.
-  - `domain/` domain use-cases.
-- `stores/` demonstrates a Zustand-like slice shape and persistence guardrails (`allowedSlices`, `forbiddenKeys`).
-- `lib/services/` defines external adapters for auth, email, storage, and rate limiting.
-- `lib/validation/` defines shared contracts reusable in server and client code.
+## Dependency rules
+
+### Allowed import directions
+
+```text
+app/**           -> components/**, lib/**, src/**
+components/**    -> components/**, lib/**
+src/api/**       -> src/domain/**, src/auth/**, src/db/**, src/api/**
+src/auth/**      -> src/db/**, src/auth/**, lib/**
+src/domain/**    -> src/domain/**, src/db/**, src/profile/**, src/auth/**, lib/**
+src/profile/**   -> src/profile/**, src/domain/**, src/db/**, src/auth/**, lib/**
+src/db/**        -> src/db/**
+lib/validation/**-> TypeScript/runtime validation utilities only
+```
+
+### Forbidden imports
+
+- `app/**` and `src/**` must not import from deprecated modules:
+  - `@/features/*`
+  - `@/stores/*`
+  - `@/lib/services/auth`
+- `src/domain/**` must not import from UI/runtime composition layers (`@/app/*`, `@/components/*`).
+- `src/db/**` must stay infrastructure-only and must not import from `app/**`, `components/**`, `src/domain/**`, or feature-like presentation modules.
+
+## Enforcement
+
+`eslint.config.mjs` encodes import restrictions with `no-restricted-imports` rules that match the dependency policy above.
