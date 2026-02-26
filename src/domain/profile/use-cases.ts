@@ -44,7 +44,7 @@ export async function updateDisplayNameUseCase(
   }
 
   const existingUser = await getDb().query.users.findFirst({
-    where: (table, { eq }) => eq(table.id, userId),
+    where: (table, { eq: innerEq }) => innerEq(table.id, userId),
   });
 
   if (!existingUser) {
@@ -69,7 +69,7 @@ export async function updateProfileImageUseCase(
   file: File,
 ): Promise<ServiceResult<UpdateProfileImagePayload, ProfileError>> {
   const existingUser = await getDb().query.users.findFirst({
-    where: (table, { eq }) => eq(table.id, userId),
+    where: (table, { eq: innerEq }) => innerEq(table.id, userId),
   });
 
   if (!existingUser) {
@@ -111,9 +111,11 @@ export async function updateProfileImageUseCase(
   }
 }
 
-export async function removeProfileImageUseCase(userId: string): Promise<ServiceResult<{ removed: true }, ProfileError>> {
+export async function removeProfileImageUseCase(
+  userId: string,
+): Promise<ServiceResult<{ removed: true }, ProfileError>> {
   const existingUser = await getDb().query.users.findFirst({
-    where: (table, { eq }) => eq(table.id, userId),
+    where: (table, { eq: innerEq }) => innerEq(table.id, userId),
   });
 
   if (!existingUser) {
