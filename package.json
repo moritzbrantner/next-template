@@ -20,7 +20,8 @@
     "checks:nightly": "./scripts/ci/tier-nightly.sh",
     "checks:beta": "./scripts/ci/tier-beta.sh",
     "checks:main": "./scripts/ci/tier-main.sh",
-    "checks:all": "./scripts/ci/tier-all.sh"
+    "checks:all": "./scripts/ci/tier-all.sh",
+    "db:schema:generate": "bun run scripts/generate-db-schema.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
