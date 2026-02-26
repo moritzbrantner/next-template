@@ -111,7 +111,10 @@ Use `bun run <script>` for project scripts.
    ```bash
    bun run db:generate
    bun run db:migrate
+   bun run db:schema:generate
    ```
+
+   `db:schema:generate` derives `db-schema.json` from the Drizzle table configs used by the admin data studio.
 
 3. Run Next app:
 
