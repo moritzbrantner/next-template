@@ -16,6 +16,7 @@ import { buttonVariants } from '@/components/ui/button';
 const baseNavLinks = [
   { href: '/', key: 'home' },
   { href: '/about', key: 'about' },
+  { href: '/table', key: 'table' },
 ] as const;
 
 type NavigationBarProps = {
