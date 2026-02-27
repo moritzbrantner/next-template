@@ -15,7 +15,7 @@ type EmployeeRow = {
 };
 
 const employeeColumns: Array<RestDataColumn<EmployeeRow>> = [
-  { key: 'id', header: 'ID' },
+  { key: 'id', header: 'ID', valueType: 'number' },
   { key: 'firstName', header: 'First name' },
   { key: 'lastName', header: 'Last name' },
   { key: 'birthday', header: 'Birthday', valueType: 'date' },
@@ -25,7 +25,7 @@ const employeeColumns: Array<RestDataColumn<EmployeeRow>> = [
   { key: 'team', header: 'Team' },
   { key: 'startDate', header: 'Start date', valueType: 'date' },
   { key: 'bonusEligible', header: 'Bonus', valueType: 'boolean' },
-  { key: 'managerId', header: 'Manager ID' },
+  { key: 'managerId', header: 'Manager ID', valueType: 'number' },
 ];
 
 export default function TablePage() {
