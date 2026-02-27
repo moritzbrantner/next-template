@@ -5,8 +5,38 @@ import NextLink from 'next/link';
 import { Link } from '@/i18n/navigation';
 
 import { StorytellingExperience } from '@/components/storytelling-experience';
+import { RestDataTable, type RestDataColumn } from '@/components/rest-data-table';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+
+type EmployeeRow = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  birthday: string;
+  email: string;
+  salary: number;
+  active: boolean;
+  team: string;
+  startDate: string;
+  bonusEligible: boolean;
+  managerId: number | null;
+};
+
+const employeeColumns: Array<RestDataColumn<EmployeeRow>> = [
+  { key: 'id', header: 'ID' },
+  { key: 'firstName', header: 'First name' },
+  { key: 'lastName', header: 'Last name' },
+  { key: 'birthday', header: 'Birthday', valueType: 'date' },
+  { key: 'email', header: 'Email' },
+  { key: 'salary', header: 'Salary (USD)', valueType: 'currency' },
+  { key: 'active', header: 'Active', valueType: 'boolean' },
+  { key: 'team', header: 'Team' },
+  { key: 'startDate', header: 'Start date', valueType: 'date' },
+  { key: 'bonusEligible', header: 'Bonus', valueType: 'boolean' },
+  { key: 'managerId', header: 'Manager ID' },
+];
 
 export default async function Home() {
   const t = await getTranslations('HomePage');
@@ -25,6 +55,21 @@ export default async function Home() {
           <NextLink href="https://nextjs.org/docs" className={buttonVariants({ variant: 'ghost' })}>
             {t('docs')}
           </NextLink>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Generic REST endpoint table</CardTitle>
+          <CardDescription>
+            ShadCN-style table rendering a generic endpoint with mixed data types.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RestDataTable<EmployeeRow>
+            endpoint="/api/employees"
+            columns={employeeColumns}
+          />
         </CardContent>
       </Card>
 
