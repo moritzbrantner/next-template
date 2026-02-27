@@ -27,6 +27,7 @@
     "@auth/drizzle-adapter": "^1.11.1",
     "@aws-sdk/client-s3": "^3.996.0",
     "@react-email/components": "1.0.8",
+    "@react-three/fiber": "^9.5.0",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.1",
     "next": "16.1.6",
@@ -34,7 +35,8 @@
     "next-intl": "^4.8.3",
     "pg": "^8.18.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "three": "^0.183.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
@@ -44,6 +46,7 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.183.1",
     "drizzle-kit": "^0.31.9",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
