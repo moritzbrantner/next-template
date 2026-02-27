@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-test('the employee REST table is displayed with dummy data', async ({ page }) => {
-  await page.goto('/en');
+test('the employee REST table page displays dummy data', async ({ page }) => {
+  await page.goto('/en/table');
 
-  await expect(page.getByRole('heading', { name: 'Generic REST endpoint table' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Employee table' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'First name' })).toBeVisible();
   await expect(page.getByRole('cell', { name: 'Ava' })).toBeVisible();
   await expect(page.getByRole('cell', { name: 'ava.thompson@example.com' })).toBeVisible();
