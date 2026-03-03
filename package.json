@@ -6,10 +6,12 @@
     "dev": "turbo run dev",
     "start": "turbo run start",
     "lint": "turbo run lint",
+    "typecheck": "pnpm check-types",
     "test": "turbo run test:unit && turbo run test:integration && turbo run test:e2e",
     "test:unit": "turbo run test:unit",
     "test:integration": "turbo run test:integration",
     "test:e2e": "turbo run test:e2e",
+    "benchmark": "pnpm build",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"
   },
