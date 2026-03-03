@@ -9,8 +9,8 @@
     "start": "next start",
     "lint": "eslint --max-warnings 0",
     "check-types": "next typegen && tsc --noEmit",
-    "test:unit": "node -e \"console.log('No unit tests configured yet.')\"",
-    "test:integration": "node -e \"console.log('No integration tests configured yet.')\"",
+    "test:unit": "node --test ./tests/unit.test.js",
+    "test:integration": "node --test ./tests/integration.test.js",
     "test:e2e": "node ../../scripts/run-playwright-e2e.mjs web"
   },
   "dependencies": {
