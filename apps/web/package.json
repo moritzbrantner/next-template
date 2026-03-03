@@ -21,6 +21,7 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",

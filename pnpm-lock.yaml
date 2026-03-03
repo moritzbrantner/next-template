@@ -66,9 +66,15 @@ importers:
       '@electron/fuses':
         specifier: ^1.0.0
         version: 1.8.0
+      '@playwright/test':
+        specifier: ^1.58.2
+        version: 1.58.2
       '@types/electron-squirrel-startup':
         specifier: ^1.0.2
         version: 1.0.2
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.15.3
       '@typescript-eslint/eslint-plugin':
         specifier: ^5.0.0
         version: 5.62.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@4.5.5))(eslint@8.57.1)(typescript@4.5.5)
@@ -101,7 +107,7 @@ importers:
         version: link:../../packages/ui
       next:
         specifier: 16.1.5
-        version: 16.1.5(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 16.1.5(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react:
         specifier: ^19.2.0
         version: 19.2.0
@@ -212,6 +218,12 @@ importers:
         specifier: 0.5.1
         version: 0.5.1(@babel/core@7.29.0)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
     devDependencies:
+      '@playwright/test':
+        specifier: ^1.58.2
+        version: 1.58.2
+      '@types/node':
+        specifier: ^22.15.3
+        version: 22.15.3
       '@types/react':
         specifier: ~19.1.0
         version: 19.1.17
@@ -238,7 +250,7 @@ importers:
         version: 12.34.5(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       next:
         specifier: 16.1.5
-        version: 16.1.5(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 16.1.5(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       react:
         specifier: ^19.2.0
         version: 19.2.0
@@ -246,6 +258,9 @@ importers:
         specifier: ^19.2.0
         version: 19.2.0(react@19.2.0)
     devDependencies:
+      '@playwright/test':
+        specifier: ^1.58.2
+        version: 1.58.2
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
@@ -1679,6 +1694,11 @@ packages:
     resolution: {integrity: sha512-mJd2Z5TjYWq/ttPLLGqArdtnC74J6bOzg4rMDnN+p1xTacZ2yPRCk2y0oSWQtygLR9YVQXgOcONrwtnk3JupxQ==}
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
     deprecated: This functionality has been moved to @npmcli/fs
+
+  '@playwright/test@1.58.2':
+    resolution: {integrity: sha512-akea+6bHYBBfA9uQqSYmlJXn61cTa+jbO87xVLCWbTqbWadRVmhxlXATaOjOgcBaWU4ePo0wB41KMFv3o35IXA==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   '@radix-ui/primitive@1.1.3':
     resolution: {integrity: sha512-JTF99U/6XIjCBo0wqkU5sK10glYe27MRRsfwoiq5zzOEZLHU3A3KCMa5X/azekYRCJ0HlwI0crAXS/5dEHTzDg==}
@@ -8480,6 +8500,10 @@ snapshots:
       mkdirp: 1.0.4
       rimraf: 3.0.2
 
+  '@playwright/test@1.58.2':
+    dependencies:
+      playwright: 1.58.2
+
   '@radix-ui/primitive@1.1.3': {}
 
   '@radix-ui/react-collection@1.1.7(@types/react-dom@19.2.2(@types/react@19.1.17))(@types/react@19.1.17)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
@@ -10498,14 +10522,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint@9.39.1(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2)
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -10558,7 +10581,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint-import-resolver-node@0.3.9)(eslint@9.39.1(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -12471,7 +12494,7 @@ snapshots:
 
   nested-error-stacks@2.0.1: {}
 
-  next@16.1.5(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
+  next@16.1.5(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0):
     dependencies:
       '@next/env': 16.1.5
       '@swc/helpers': 0.5.15
@@ -12490,6 +12513,7 @@ snapshots:
       '@next/swc-linux-x64-musl': 16.1.5
       '@next/swc-win32-arm64-msvc': 16.1.5
       '@next/swc-win32-x64-msvc': 16.1.5
+      '@playwright/test': 1.58.2
       babel-plugin-react-compiler: 1.0.0
       sharp: 0.34.5
     transitivePeerDependencies:
