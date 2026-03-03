@@ -12,8 +12,8 @@
     "dev": "expo start",
     "build": "expo export --platform web",
     "test": "node -e \"console.log('No automated tests configured for this app yet.')\"",
-    "test:unit": "node -e \"console.log('No unit tests configured yet.')\"",
-    "test:integration": "node -e \"console.log('No integration tests configured yet.')\"",
+    "test:unit": "node --test ./tests/unit.test.js",
+    "test:integration": "node --test ./tests/integration.test.js",
     "test:e2e": "node ../../scripts/run-playwright-e2e.mjs mobile"
   },
   "dependencies": {
