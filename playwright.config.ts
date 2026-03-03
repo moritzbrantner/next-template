@@ -5,8 +5,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  reporter: 'list',
+  reporter: [['html', { open: 'never' }], ['list']],
   use: {
+    screenshot: 'only-on-failure',
     trace: 'on-first-retry',
   },
   projects: [

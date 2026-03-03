@@ -5,8 +5,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: false,
   retries: 0,
-  reporter: 'html',
+  reporter: [['html', { open: 'never' }], ['list']],
   use: {
+    screenshot: 'only-on-failure',
     trace: 'on-first-retry',
   },
   projects: [
