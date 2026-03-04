@@ -22,6 +22,9 @@ export default async function Home() {
           <Link href="/about" className={buttonVariants({ variant: 'default' })}>
             {t('visitAbout')}
           </Link>
+          <Link href="/forms" className={buttonVariants({ variant: 'default' })}>
+            {t('visitForm')}
+          </Link>
           <NextLink href="https://nextjs.org/docs" className={buttonVariants({ variant: 'ghost' })}>
             {t('docs')}
           </NextLink>
