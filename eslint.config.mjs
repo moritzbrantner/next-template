@@ -2,13 +2,13 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
 
-const DEPRECATED_IMPORT_PATTERNS = ['@/features/*', '@/stores/*', '@/lib/services/auth'];
+const DEPRECATED_IMPORT_PATTERNS = ['@/features/*', '@/stores/*', '@/lib/services/*'];
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    files: ['app/**/*.{ts,tsx}', 'src/**/*.{ts,tsx}'],
+    files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',

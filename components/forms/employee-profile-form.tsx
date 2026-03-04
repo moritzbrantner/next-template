@@ -8,7 +8,7 @@ import {
   departmentOptions,
   employeeProfileDefaultValues,
   type EmployeeProfileFormValues,
-} from '@/features/forms/employee-profile-form';
+} from '@/src/domain/forms/employee-profile-form';
 
 export function EmployeeProfileForm() {
   const [submissionMessage, setSubmissionMessage] = useState('');
