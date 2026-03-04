@@ -2,7 +2,14 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
 
-const DEPRECATED_IMPORT_PATTERNS = ['@/features/*', '@/stores/*', '@/lib/services/*'];
+const DEPRECATED_IMPORT_PATTERNS = [
+  '@features/*',
+  '@stores/*',
+  '@services/*',
+  '@/features/*',
+  '@/stores/*',
+  '@/lib/services/*',
+];
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -49,9 +56,12 @@ const eslintConfig = defineConfig([
           patterns: [
             '@/app/*',
             '@/components/*',
+            '@features/*',
             '@/features/*',
+            '@stores/*',
             '@/stores/*',
             '@/src/*',
+            '@services/*',
             '@/lib/services/*',
           ],
         },

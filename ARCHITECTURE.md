@@ -30,6 +30,16 @@ Deprecated paths (`features/`, `stores/`, `lib/services/auth.ts`) are documented
 
 ## Dependency rules
 
+## Import Conventions
+
+- Use canonical aliases only:
+  - `@/src/*` for all application/domain/auth/db/profile/testing/types modules under `src/`
+  - `@/app/*`, `@/components/*`, `@/lib/*`, and `@/i18n/*` for intentionally supported top-level folders
+  - `@/tests/*`, `@/scripts/*`, `@/messages/*`, `@/emails/*` where test/tooling/content modules need explicit imports
+  - `@/db-schema.json` for schema document import usage
+- Do not use deprecated aliases (`@features/*`, `@stores/*`, `@services/*`) or their legacy `@/...` equivalents.
+- Prefer explicit canonical aliases over ad-hoc root aliasing.
+
 ### Allowed import directions
 
 ```text
@@ -46,9 +56,9 @@ lib/validation/**-> TypeScript/runtime validation utilities only
 ### Forbidden imports
 
 - `app/**` and `src/**` must not import from deprecated modules:
-  - `@/features/*`
-  - `@/stores/*`
-  - `@/lib/services/auth`
+  - `@features/*` / `@/features/*`
+  - `@stores/*` / `@/stores/*`
+  - `@services/*` / `@/lib/services/*`
 - `src/domain/**` must not import from UI/runtime composition layers (`@/app/*`, `@/components/*`).
 - `src/db/**` must stay infrastructure-only and must not import from `app/**`, `components/**`, `src/domain/**`, or feature-like presentation modules.
 
