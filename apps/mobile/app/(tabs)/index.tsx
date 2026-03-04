@@ -7,6 +7,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 
+import { ThemeModeToggle } from '@/components/theme-mode-toggle';
+
 export default function HomeScreen() {
   return (
     <ParallaxScrollView
@@ -63,6 +65,9 @@ export default function HomeScreen() {
         <ThemedText>
           {`Tap the Explore tab to learn more about what's included in this starter app.`}
         </ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.stepContainer}>
+        <ThemeModeToggle />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
