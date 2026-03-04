@@ -23,20 +23,35 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
+      "@/app/*": [
+        "./app/*"
       ],
-      "@features/*": [
-        "./features/*"
+      "@/components/*": [
+        "./components/*"
       ],
-      "@stores/*": [
-        "./stores/*"
+      "@/src/*": [
+        "./src/*"
       ],
-      "@services/*": [
-        "./lib/services/*"
+      "@/lib/*": [
+        "./lib/*"
       ],
-      "@validation/*": [
-        "./lib/validation/*"
+      "@/i18n/*": [
+        "./i18n/*"
+      ],
+      "@/tests/*": [
+        "./tests/*"
+      ],
+      "@/scripts/*": [
+        "./scripts/*"
+      ],
+      "@/messages/*": [
+        "./messages/*"
+      ],
+      "@/emails/*": [
+        "./emails/*"
+      ],
+      "@/db-schema.json": [
+        "./db-schema.json"
       ]
     }
   },
