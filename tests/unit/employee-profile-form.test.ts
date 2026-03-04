@@ -4,7 +4,7 @@ import {
   buildSubmissionMessage,
   departmentOptions,
   employeeProfileDefaultValues,
-} from '@/features/forms/employee-profile-form';
+} from '@/src/domain/forms/employee-profile-form';
 
 describe('employee profile form configuration', () => {
   it('exposes ten default values', () => {
