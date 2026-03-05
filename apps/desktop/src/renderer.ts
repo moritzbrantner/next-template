@@ -1,4 +1,5 @@
 import './index.css';
+import { createNavbar } from './navbar';
 
 type ThemeMode = 'light' | 'dark';
 
@@ -29,6 +30,8 @@ if (title) {
 
 const app = document.getElementById('app');
 if (app) {
+  app.prepend(createNavbar());
+
   const controls = document.createElement('div');
   controls.className = 'theme-controls';
 
