@@ -5,11 +5,12 @@ import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { currentUser, getProfileByUsername } from '@/data/profiles';
 import { Link } from 'expo-router';
 
-import { ThemeModeToggle } from '@/components/theme-mode-toggle';
-
 export default function HomeScreen() {
+  const teammateProfile = getProfileByUsername('jules');
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -67,9 +68,6 @@ export default function HomeScreen() {
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemeModeToggle />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
         <ThemedText>
           {`When you're ready, run `}
@@ -78,6 +76,30 @@ export default function HomeScreen() {
           <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
           <ThemedText type="defaultSemiBold">app-example</ThemedText>.
         </ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.stepContainer}>
+        <ThemedText type="subtitle">Uploads</ThemedText>
+        <ThemedText>
+          Open the Uploads tab to compare how the web, desktop, and mobile apps intake and manage
+          files.
+        </ThemedText>
+        <Link href="/uploads" style={styles.profileLink}>
+          <ThemedText type="defaultSemiBold">Open upload flows</ThemedText>
+        </Link>
+      </ThemedView>
+      <ThemedView style={styles.stepContainer}>
+        <ThemedText type="subtitle">Profiles</ThemedText>
+        <ThemedText>Open your own mobile profile or jump to a dummy teammate page.</ThemedText>
+        <Link href={`/profile/@${currentUser.username}`} style={styles.profileLink}>
+          <ThemedText type="defaultSemiBold">Open my profile</ThemedText>
+        </Link>
+        {teammateProfile ? (
+          <Link href={`/profile/@${teammateProfile.username}`} style={styles.profileLink}>
+            <ThemedText type="defaultSemiBold">
+              Open @{teammateProfile.username}&apos;s profile
+            </ThemedText>
+          </Link>
+        ) : null}
       </ThemedView>
     </ParallaxScrollView>
   );
@@ -92,6 +114,13 @@ const styles = StyleSheet.create({
   stepContainer: {
     gap: 8,
     marginBottom: 8,
+  },
+  profileLink: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(127, 127, 127, 0.45)',
   },
   reactLogo: {
     height: 178,

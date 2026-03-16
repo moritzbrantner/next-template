@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3000",
+    "dev": "next dev --port 4001",
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
@@ -14,6 +14,7 @@
     "test:e2e": "node ../../scripts/run-playwright-e2e.mjs web"
   },
   "dependencies": {
+    "@repo/upload-playbook": "workspace:*",
     "@repo/ui": "workspace:*",
     "motion": "^12.34.5",
     "next": "16.1.5",

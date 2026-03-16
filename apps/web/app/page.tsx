@@ -1,7 +1,9 @@
 import Image, { type ImageProps } from "next/image";
+import Link from "next/link";
 import { Button } from "@repo/ui/button";
+import { getProfileByUsername } from "./profiles";
+import { SiteNav } from "./site-nav";
 import styles from "./page.module.css";
-import { ThemeToggle } from "./theme-toggle";
 
 type Props = Omit<ImageProps, "src"> & {
   srcLight: string;
@@ -20,8 +22,11 @@ const ThemeImage = (props: Props) => {
 };
 
 export default function Home() {
+  const featuredProfile = getProfileByUsername("jules");
+
   return (
     <div className={styles.page}>
+      <SiteNav activePage="home" />
       <main className={styles.main}>
         <ThemeImage
           className={styles.logo}
@@ -40,6 +45,15 @@ export default function Home() {
         </ol>
 
         <div className={styles.ctas}>
+          <Link href="/settings" className={styles.secondary}>
+            Open settings
+          </Link>
+          <Link href="/uploads" className={styles.secondary}>
+            Open uploads
+          </Link>
+          <Link href="/three" className={styles.secondary}>
+            Open Three.js
+          </Link>
           <a
             className={styles.primary}
             href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
@@ -67,7 +81,29 @@ export default function Home() {
         <Button appName="web" className={styles.secondary}>
           Open alert
         </Button>
-        <ThemeToggle />
+
+        {featuredProfile ? (
+          <section className={styles.profileSpotlight}>
+            <p className={styles.spotlightEyebrow}>Dummy teammate profile</p>
+            <div className={styles.profileCard}>
+              <div className={styles.profileHeader}>
+                <div>
+                  <h2>{featuredProfile.name}</h2>
+                  <p className={styles.profileMeta}>
+                    @{featuredProfile.username} · {featuredProfile.role}
+                  </p>
+                </div>
+                <Link
+                  href={`/profile/@${featuredProfile.username}`}
+                  className={styles.secondary}
+                >
+                  Open profile
+                </Link>
+              </div>
+              <p className={styles.profileBio}>{featuredProfile.bio}</p>
+            </div>
+          </section>
+        ) : null}
       </main>
       <footer className={styles.footer}>
         <a
