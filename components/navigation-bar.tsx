@@ -10,13 +10,18 @@ import { authOptions } from '@/src/auth';
 
 import { ProfileMenu } from '@/components/profile-menu';
 import { AuthNavigation } from '@/components/auth-navigation';
+import { LanguageSelector } from '@/components/language-selector';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { buttonVariants } from '@/components/ui/button';
 
 const baseNavLinks = [
   { href: '/', key: 'home' },
   { href: '/about', key: 'about' },
+  { href: '/forms', key: 'forms' },
+  { href: '/story', key: 'story' },
+  { href: '/communication', key: 'communication' },
   { href: '/table', key: 'table' },
+  { href: '/uploads', key: 'uploads' },
 ] as const;
 
 type NavigationBarProps = {
@@ -37,12 +42,12 @@ export async function NavigationBar({ locale }: NavigationBarProps) {
 
   return (
     <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
-      <nav className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4">
+      <nav className="mx-auto flex min-h-16 w-full max-w-5xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           {t('brand')}
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -69,19 +74,15 @@ export async function NavigationBar({ locale }: NavigationBarProps) {
                 openMenu: t('menu.openMenu'),
               }}
             />
-          ) : null}
-          <AuthNavigation
-            isAuthenticated={Boolean(session?.user)}
-            locale={locale}
-            user={session?.user}
-            labels={{
-              login: t('auth.login'),
-              profile: t('auth.profile'),
-              settings: t('auth.settings'),
-              logout: t('auth.logout'),
-              menu: t('auth.menu'),
-            }}
-          />
+          ) : (
+            <AuthNavigation
+              labels={{
+                login: t('auth.login'),
+                register: t('auth.register'),
+              }}
+            />
+          )}
+          <LanguageSelector />
           <ThemeToggle initialTheme={initialTheme} />
         </div>
       </nav>

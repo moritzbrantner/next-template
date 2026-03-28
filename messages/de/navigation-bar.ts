@@ -3,17 +3,18 @@ export const navigationBar = {
   links: {
     home: 'Startseite',
     about: 'Über uns',
+    forms: 'Formular-Demo',
+    story: 'Story-Demo',
+    communication: 'Kommunikation',
     profile: 'Profil',
     table: 'Tabelle',
+    uploads: 'Uploads',
     dataEntry: 'Dateneingabe',
     admin: 'Admin',
   },
   auth: {
     login: 'Anmelden',
-    profile: 'Profil',
-    settings: 'Einstellungen',
-    logout: 'Abmelden',
-    menu: 'Benutzermenü öffnen',
+    register: 'Registrieren',
   },
   menu: {
     profile: 'Profil',

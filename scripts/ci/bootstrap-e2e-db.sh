@@ -2,6 +2,7 @@
 set -euo pipefail
 
 MARKER_FILE="/tmp/next-template-e2e-db-bootstrap.started"
+export POSTGRES_PORT="${POSTGRES_PORT:-55433}"
 
 can_reach_database() {
   bun --eval '
@@ -42,7 +43,7 @@ if [[ "${1:-}" == "--teardown" ]]; then
 fi
 
 if [[ -z "${DATABASE_URL:-}" ]]; then
-  export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/next_template?schema=public"
+  export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:${POSTGRES_PORT}/next_template?schema=public"
   echo "ℹ️ DATABASE_URL was not set; defaulting to docker-compose Postgres endpoint."
 fi
 

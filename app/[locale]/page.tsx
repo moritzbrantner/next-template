@@ -1,73 +1,54 @@
 import { getTranslations } from 'next-intl/server';
 
-import NextLink from 'next/link';
-
 import { Link } from '@/i18n/navigation';
 
-import { StorytellingExperience } from '@/components/storytelling-experience';
 import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default async function Home() {
   const t = await getTranslations('HomePage');
 
   return (
-    <div className="space-y-8">
-      <Card className="mx-auto max-w-2xl">
-        <CardHeader>
-          <CardTitle>{t('title')}</CardTitle>
-          <CardDescription>{t('description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex gap-3">
-          <Link href="/about" className={buttonVariants({ variant: 'default' })}>
-            {t('visitAbout')}
-          </Link>
+    <section className="space-y-8">
+      <div className="rounded-[2rem] border border-zinc-200 bg-[radial-gradient(circle_at_top_left,#fde68a,transparent_26%),radial-gradient(circle_at_right,#bfdbfe,transparent_24%),linear-gradient(145deg,#ffffff,#f4f4f5)] p-8 dark:border-zinc-800 dark:bg-[radial-gradient(circle_at_top_left,#854d0e,transparent_26%),radial-gradient(circle_at_right,#1d4ed8,transparent_24%),linear-gradient(145deg,#09090b,#18181b)]">
+        <div className="space-y-4">
+          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+            {t('eyebrow')}
+          </p>
+          <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            {t('title')}
+          </h1>
+          <p className="max-w-3xl text-base leading-7 text-zinc-700 dark:text-zinc-300">{t('description')}</p>
+        </div>
+
+        <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/forms" className={buttonVariants({ variant: 'default' })}>
             {t('visitForm')}
           </Link>
-          <NextLink href="https://nextjs.org/docs" className={buttonVariants({ variant: 'ghost' })}>
-            {t('docs')}
-          </NextLink>
-        </CardContent>
-      </Card>
+          <Link href="/story" className={buttonVariants({ variant: 'ghost' })}>
+            {t('visitStory')}
+          </Link>
+          <Link href="/communication" className={buttonVariants({ variant: 'ghost' })}>
+            {t('visitCommunication')}
+          </Link>
+          <Link href="/uploads" className={buttonVariants({ variant: 'ghost' })}>
+            {t('visitUploads')}
+          </Link>
+        </div>
+      </div>
 
-      <StorytellingExperience
-        scenes={[
-          {
-            id: 'arrival',
-            title: 'Act I — Arrival',
-            description:
-              'The camera eases into the world as your audience enters the story space.',
-            progressionStart: 0,
-            progressionEnd: 30,
-            color: '#4f46e5',
-            position: [-2.4, -0.5, -1],
-            scale: 0.9,
-          },
-          {
-            id: 'conflict',
-            title: 'Act II — Conflict',
-            description:
-              'Tension rises. Smooth, frame-by-frame transitions keep the narrative cinematic.',
-            progressionStart: 30,
-            progressionEnd: 75,
-            color: '#f59e0b',
-            position: [0.2, 0.4, 0],
-            scale: 1.15,
-          },
-          {
-            id: 'resolution',
-            title: 'Act III — Resolution',
-            description:
-              'Everything settles into a calm finale while the progression reaches 100.',
-            progressionStart: 75,
-            progressionEnd: 100,
-            color: '#10b981',
-            position: [2.4, -0.3, -1.2],
-            scale: 0.95,
-          },
-        ]}
-      />
-    </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        {(['foundation', 'interaction', 'delivery'] as const).map((section) => (
+          <article
+            key={section}
+            className="rounded-[1.75rem] border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+          >
+            <h2 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">{t(`sections.${section}.title`)}</h2>
+            <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+              {t(`sections.${section}.description`)}
+            </p>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

@@ -1,11 +1,21 @@
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-
 import type { ValidatedImageUpload } from '@/src/profile/image-validation';
 
 export type StoredProfileImage = {
   key: string;
   url: string;
 };
+
+type S3Module = typeof import('@aws-sdk/client-s3');
+
+let s3ModulePromise: Promise<S3Module> | null = null;
+
+function loadS3Module() {
+  if (!s3ModulePromise) {
+    s3ModulePromise = import('@aws-sdk/client-s3');
+  }
+
+  return s3ModulePromise;
+}
 
 function requireEnv(name: string) {
   const value = process.env[name];
@@ -16,7 +26,9 @@ function requireEnv(name: string) {
   return value;
 }
 
-function getClient() {
+async function getClient() {
+  const { S3Client } = await loadS3Module();
+
   return new S3Client({
     region: process.env.PROFILE_IMAGE_STORAGE_REGION ?? 'auto',
     endpoint: process.env.PROFILE_IMAGE_STORAGE_ENDPOINT,
@@ -67,9 +79,11 @@ export function buildProfileImageUrl(keyOrUrl: string | null | undefined) {
 }
 
 export async function uploadProfileImage(userId: string, image: ValidatedImageUpload): Promise<StoredProfileImage> {
+  const { PutObjectCommand } = await loadS3Module();
   const key = `profile-images/${userId}/${Date.now()}-${crypto.randomUUID()}.${extensionForMime(image.mimeType)}`;
+  const client = await getClient();
 
-  await getClient().send(
+  await client.send(
     new PutObjectCommand({
       Bucket: getBucket(),
       Key: key,
@@ -95,10 +109,12 @@ export async function deleteProfileImage(keyOrUrl: string | null | undefined) {
     return;
   }
 
+  const { DeleteObjectCommand } = await loadS3Module();
   const baseUrl = getPublicBaseUrl();
   const key = baseUrl ? keyOrUrl.replace(`${baseUrl}/`, '') : keyOrUrl;
+  const client = await getClient();
 
-  await getClient().send(
+  await client.send(
     new DeleteObjectCommand({
       Bucket: getBucket(),
       Key: key,

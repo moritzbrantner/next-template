@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('user can navigate to the forms page and submit all fields', async ({ page }) => {
   await page.goto('/en');
 
-  await page.getByRole('link', { name: 'Open Form Demo' }).click();
+  await page.getByRole('link', { name: 'Form Demo' }).click();
   await expect(page).toHaveURL('/en/forms');
 
   await page.getByLabel('First name').fill('Jane');

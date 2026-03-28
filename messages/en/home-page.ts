@@ -1,8 +1,24 @@
 export const homePage = {
-  title: 'Welcome',
+  eyebrow: 'Start',
+  title: 'One template, multiple production-ready starting points.',
   description:
-    'This starter now includes locale-based routing powered by next-intl and page-level translation namespaces.',
-  visitAbout: 'Visit About Page',
+    'The merged starter now combines localized navigation, auth, forms, data views, storytelling, communication notes, and upload scaffolding in one Next.js base.',
   visitForm: 'Open Form Demo',
-  docs: 'Next.js Docs',
+  visitStory: 'Open Story Demo',
+  visitCommunication: 'Open Communication',
+  visitUploads: 'Open Uploads',
+  sections: {
+    foundation: {
+      title: 'Application foundation',
+      description: 'Authentication, locale routing, profile management, admin controls, and typed service boundaries.',
+    },
+    interaction: {
+      title: 'Interaction demos',
+      description: 'Form state, scroll-driven storytelling, data tables, and richer UI patterns for future features.',
+    },
+    delivery: {
+      title: 'Delivery scaffolding',
+      description: 'Upload handling rules, communication guidance, and dedicated lanes for 3D or realtime work.',
+    },
+  },
 };

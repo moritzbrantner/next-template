@@ -1,19 +1,24 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig } from '@playwright/test';
 
-const baseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:3005";
+import { createE2EEnvironment, getE2EBaseURL } from '@/tests/e2e/environment';
+
+const baseURL = getE2EBaseURL();
+const e2eEnvironment = createE2EEnvironment(baseURL);
 
 export default defineConfig({
-  globalSetup: "./tests/e2e/global-setup.ts",
-  testDir: "tests/e2e",
+  globalSetup: './tests/e2e/global-setup.ts',
+  globalTeardown: './tests/e2e/global-teardown.ts',
+  testDir: 'tests/e2e',
   timeout: 60_000,
   use: {
     baseURL,
-    channel: "chrome",
+    channel: 'chrome',
   },
   webServer: {
-    command: "bun run dev -- --port 3005",
+    command: `./scripts/e2e/start-playwright-server.sh ${new URL(baseURL).port}`,
+    env: e2eEnvironment,
     url: baseURL,
-    timeout: 120_000,
+    timeout: 180_000,
     reuseExistingServer: !process.env.CI,
   },
 });

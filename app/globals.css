@@ -36,3 +36,13 @@ body {
   color: var(--foreground);
   font-family: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
+
+@keyframes spin-cube {
+  from {
+    transform: rotateX(-18deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(-18deg) rotateY(360deg);
+  }
+}
