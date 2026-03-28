@@ -1,71 +1,67 @@
-# ARCHITECTURE.md — monorepo-nextjs-expo-electron template
+# ARCHITECTURE.md
 
-This repository is a starter template, not the long-lived source of truth for a fleet of production apps.
+## Canonical application structure
 
-## Purpose
-- bootstrap new app repositories with a working monorepo shape
-- provide baseline Next.js, Expo, and Electron entrypoints
-- provide lint, typecheck, test, build, CI, and agent conventions
-- demonstrate where shared code belongs without making this repo the shared platform itself
+This project uses a **domain-first `src/` architecture** as the single canonical structure.
 
-## Workspace boundaries
+```text
+app/                     Next.js App Router entrypoints (UI composition + route handlers)
+components/              Shared UI components
+src/
+  api/                   API-facing service adapters
+  auth/                  Authentication/account services
+  db/                    Database client + schema
+  domain/                Core business use-cases (pure application logic)
+  profile/               Profile-focused domain helpers/adapters
+  testing/               Test fixtures and test-only helpers
+  types/                 Project-level type augmentation
+lib/
+  authorization.ts       Shared role/authorization constants
+  password.ts            Password hashing/verification helpers
+  validation/            Shared validation contracts and parsers
+```
 
-### `apps/*`
-Deployable composition roots.
+Deprecated paths (`features/`, `stores/`, `lib/services/auth.ts`) are documented in `MIGRATION_NOTES.md` and should not be used for new implementation.
 
-These workspaces own:
-- product-specific routes, screens, and flows
-- deployment configuration
-- app branding and content
-- composition of shared packages
-- app-level manifests
+## Runtime flow
 
-These workspaces should not become publishable shared packages by default.
+- **Read path:** `app/**` -> `src/domain/**` (or thin adapters in `src/*`) -> `src/db/**`
+- **Write path:** `app/**` server action / route -> validation (`lib/validation/**`) -> `src/domain/**` -> persistence/integration
 
-### `packages/*`
-Reusable local packages that demonstrate extraction boundaries.
+## Dependency rules
 
-Use this area for:
-- UI primitives and design tokens
-- lint and TypeScript presets
-- cross-app utility or domain modules that are still template-level examples
+## Import Conventions
 
-If a package becomes real shared platform code for multiple repositories, extract it into a dedicated private packages repository and consume it as a versioned dependency.
+- Use canonical aliases only:
+  - `@/src/*` for all application/domain/auth/db/profile/testing/types modules under `src/`
+  - `@/app/*`, `@/components/*`, `@/lib/*`, and `@/i18n/*` for intentionally supported top-level folders
+  - `@/tests/*`, `@/scripts/*`, `@/messages/*`, `@/emails/*` where test/tooling/content modules need explicit imports
+  - `@/db-schema.json` for schema document import usage
+- Do not use deprecated aliases (`@features/*`, `@stores/*`, `@services/*`) or their legacy `@/...` equivalents.
+- Prefer explicit canonical aliases over ad-hoc root aliasing.
 
-### `templates/platform-packages/*`
-Scaffolding for a separate private packages repository.
+### Allowed import directions
 
-This folder exists to make the extraction path explicit:
-- publish shared packages from a dedicated repo
-- version with Changesets
-- distribute through private GitHub Packages
-- let independent app repos upgrade on their own schedule
+```text
+app/**           -> components/**, lib/**, src/**
+components/**    -> components/**, lib/**
+src/api/**       -> src/domain/**, src/auth/**, src/db/**, src/api/**
+src/auth/**      -> src/db/**, src/auth/**, lib/**
+src/domain/**    -> src/domain/**, src/db/**, src/profile/**, src/auth/**, lib/**
+src/profile/**   -> src/profile/**, src/domain/**, src/db/**, src/auth/**, lib/**
+src/db/**        -> src/db/**
+lib/validation/**-> TypeScript/runtime validation utilities only
+```
 
-## Decision rules
-- Put code in `apps/*` when it belongs to one deployable app or one release cadence.
-- Put code in `packages/*` when it is shared inside this starter or demonstrates a boundary worth copying.
-- Move code to a separate packages repo when 3+ apps are expected to reuse it and it needs independent versioning.
-- Keep this template focused on scaffolding improvements, not live product logic.
+### Forbidden imports
 
-## Extraction policy
-- `@repo/eslint-config`, `@repo/typescript-config`, and `@repo/ui` are examples of what should become private shared packages in a real app portfolio.
-- `@repo/upload-playbook` is demo domain code. Keep or replace it only if it teaches the structure; do not treat it as permanent platform logic by default.
-- Avoid cross-package private imports and app-specific assumptions in shared packages.
-- Favor explicit public APIs and semver-governed exports for anything intended to leave this repository.
+- `app/**` and `src/**` must not import from deprecated modules:
+  - `@features/*` / `@/features/*`
+  - `@stores/*` / `@/stores/*`
+  - `@services/*` / `@/lib/services/*`
+- `src/domain/**` must not import from UI/runtime composition layers (`@/app/*`, `@/components/*`).
+- `src/db/**` must stay infrastructure-only and must not import from `app/**`, `components/**`, `src/domain/**`, or feature-like presentation modules.
 
-## App manifest contract
-Every deployable app should expose an `app.manifest.ts` file.
+## Enforcement
 
-Required fields:
-- `appId`
-- `slug`
-- `displayName`
-- `platform`
-- `packageName`
-- `entryWorkspace`
-- `releaseCadence`
-- `sharedPackages`
-- `featureFlags`
-- `deployment`
-
-The manifest is the contract between app-specific configuration and shared platform code. It should stay small, typed by convention, and safe to read in tests and tooling.
+`eslint.config.mjs` encodes import restrictions with `no-restricted-imports` rules that match the dependency policy above.

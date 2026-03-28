@@ -1,27 +1,24 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
+
+import { createE2EEnvironment, getE2EBaseURL } from '@/tests/e2e/environment';
+
+const baseURL = getE2EBaseURL();
+const e2eEnvironment = createE2EEnvironment(baseURL);
 
 export default defineConfig({
-  testDir: './tests/e2e',
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  reporter: [['html', { open: 'never' }], ['list']],
+  globalSetup: './tests/e2e/global-setup.ts',
+  globalTeardown: './tests/e2e/global-teardown.ts',
+  testDir: 'tests/e2e',
+  timeout: 60_000,
   use: {
-    screenshot: 'only-on-failure',
-    trace: 'on-first-retry',
+    baseURL,
+    channel: 'chrome',
   },
-  projects: [
-    {
-      name: 'desktop',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
-      name: 'web',
-      use: { ...devices['Desktop Safari'] },
-    },
-    {
-      name: 'mobile',
-      use: { ...devices['Pixel 7'] },
-    },
-  ],
+  webServer: {
+    command: `./scripts/e2e/start-playwright-server.sh ${new URL(baseURL).port}`,
+    env: e2eEnvironment,
+    url: baseURL,
+    timeout: 180_000,
+    reuseExistingServer: !process.env.CI,
+  },
 });
