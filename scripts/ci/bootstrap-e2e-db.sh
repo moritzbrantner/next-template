@@ -6,23 +6,20 @@ export POSTGRES_PORT="${POSTGRES_PORT:-55433}"
 
 can_reach_database() {
   node --eval '
-    const { Client } = require("pg");
-
-    if (!process.env.DATABASE_URL) {
-      process.exit(1);
-    }
-
-    const client = new Client({ connectionString: process.env.DATABASE_URL });
-
-    try {
-      await client.connect();
-      await client.query("SELECT 1");
-      process.exit(0);
-    } catch {
-      process.exit(1);
-    } finally {
-      await client.end().catch(() => undefined);
-    }
+    (async () => {
+      const { Client } = require("pg");
+      if (!process.env.DATABASE_URL) process.exit(1);
+      const client = new Client({ connectionString: process.env.DATABASE_URL });
+      try {
+        await client.connect();
+        await client.query("SELECT 1");
+        process.exit(0);
+      } catch {
+        process.exit(1);
+      } finally {
+        await client.end().catch(() => undefined);
+      }
+    })();
   ' >/dev/null 2>&1
 }
 
@@ -69,27 +66,26 @@ export DB_BOOTSTRAP_TIMEOUT_SECONDS="${DB_BOOTSTRAP_TIMEOUT_SECONDS:-90}"
 
 echo "ℹ️ Waiting for Postgres readiness..."
 node --eval '
-  const timeoutSeconds = Number(process.env.DB_BOOTSTRAP_TIMEOUT_SECONDS ?? "90");
-  const start = Date.now();
-
-  while (Date.now() - start < timeoutSeconds * 1_000) {
+  (async () => {
     const { Client } = require("pg");
-    const client = new Client({ connectionString: process.env.DATABASE_URL });
-
-    try {
-      await client.connect();
-      await client.query("SELECT 1");
-      console.log("✅ Postgres is ready.");
-      process.exit(0);
-    } catch {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } finally {
-      await client.end().catch(() => undefined);
+    const timeoutSeconds = Number(process.env.DB_BOOTSTRAP_TIMEOUT_SECONDS ?? "90");
+    const start = Date.now();
+    while (Date.now() - start < timeoutSeconds * 1_000) {
+      const client = new Client({ connectionString: process.env.DATABASE_URL });
+      try {
+        await client.connect();
+        await client.query("SELECT 1");
+        console.log("✅ Postgres is ready.");
+        process.exit(0);
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } finally {
+        await client.end().catch(() => undefined);
+      }
     }
-  }
-
-  console.error(`❌ Timed out waiting for Postgres after ${timeoutSeconds}s.`);
-  process.exit(1);
+    console.error("❌ Timed out waiting for Postgres after " + timeoutSeconds + "s.");
+    process.exit(1);
+  })();
 '
 
 echo "ℹ️ Applying migrations..."
