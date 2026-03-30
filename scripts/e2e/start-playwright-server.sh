@@ -3,5 +3,5 @@ set -euo pipefail
 
 PORT="${1:-3006}"
 
-bun run build
-exec bun run start -- --port "$PORT"
+pnpm run build
+exec pnpm run start -- --port "$PORT"
