@@ -5,7 +5,7 @@ MARKER_FILE="/tmp/next-template-e2e-db-bootstrap.started"
 export POSTGRES_PORT="${POSTGRES_PORT:-55433}"
 
 can_reach_database() {
-  bun --eval '
+  node --eval '
     const { Client } = require("pg");
 
     if (!process.env.DATABASE_URL) {
@@ -68,7 +68,7 @@ fi
 export DB_BOOTSTRAP_TIMEOUT_SECONDS="${DB_BOOTSTRAP_TIMEOUT_SECONDS:-90}"
 
 echo "ℹ️ Waiting for Postgres readiness..."
-bun --eval '
+node --eval '
   const timeoutSeconds = Number(process.env.DB_BOOTSTRAP_TIMEOUT_SECONDS ?? "90");
   const start = Date.now();
 
@@ -93,9 +93,9 @@ bun --eval '
 '
 
 echo "ℹ️ Applying migrations..."
-bun run db:migrate
+pnpm run db:migrate
 
 echo "ℹ️ Seeding baseline e2e users..."
-bun run db:seed:test-users
+pnpm run db:seed:test-users
 
 echo "✅ E2E DB bootstrap complete."
