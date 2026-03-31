@@ -7,8 +7,8 @@ const e2eEnvironment = createE2EEnvironment(baseURL);
 
 export default defineConfig({
   tsconfig: './playwright.tsconfig.json',
-  globalSetup: './tests/e2e/global-setup.ts',
-  globalTeardown: './tests/e2e/global-teardown.ts',
+  globalSetup: './tests/e2e/global-setup.cts',
+  globalTeardown: './tests/e2e/global-teardown.cts',
   testDir: 'tests/e2e',
   timeout: 60_000,
   use: {

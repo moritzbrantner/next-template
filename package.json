@@ -18,13 +18,13 @@
     "test:e2e:setup": "./scripts/ci/bootstrap-e2e-db.sh",
     "test:e2e:teardown": "./scripts/ci/bootstrap-e2e-db.sh --teardown",
     "test:e2e:auth": "playwright test tests/e2e/authentication.spec.ts",
-    "db:seed:test-users": "pnpm run scripts/seed-test-users.ts",
+    "db:seed:test-users": "bun run ./scripts/seed-test-users.ts",
     "test:unit": "vitest run tests/unit",
     "checks:nightly": "./scripts/ci/tier-nightly.sh",
     "checks:beta": "./scripts/ci/tier-beta.sh",
     "checks:main": "./scripts/ci/tier-main.sh",
     "checks:all": "./scripts/ci/tier-all.sh",
-    "db:schema:generate": "pnpm run scripts/generate-db-schema.ts"
+    "db:schema:generate": "bun run ./scripts/generate-db-schema.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
