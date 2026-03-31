@@ -43,13 +43,13 @@ Use these root docs before and during implementation:
 
 ## Package manager standard
 
-This project uses **Bun** as the default package manager/runtime for local and CI workflows.
+This project uses **pnpm** as the package manager and runs scripts with Node-compatible tooling in local and CI workflows.
 
 ```bash
-bun install
+pnpm install
 ```
 
-Use `bun run <script>` for project scripts.
+Use `pnpm run <script>` for project scripts.
 
 - Prefer Server Components and server prerendering by default to improve SEO and minimize client-side JavaScript.
 - Keep UI components donut-shaped (rounded, ring/pill-like geometry) unless a specific feature requires another shape.
@@ -109,9 +109,9 @@ Use `bun run <script>` for project scripts.
 2. Run migrations:
 
    ```bash
-   bun run db:generate
-   bun run db:migrate
-   bun run db:schema:generate
+   pnpm run db:generate
+   pnpm run db:migrate
+   pnpm run db:schema:generate
    ```
 
    `db:schema:generate` derives `db-schema.json` from the Drizzle table configs used by the admin data studio.
@@ -119,7 +119,7 @@ Use `bun run <script>` for project scripts.
 3. Run Next app:
 
    ```bash
-   bun run dev
+   pnpm run dev
    ```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -131,9 +131,9 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
 1. Run tiered checks locally depending on branch target:
 
    ```bash
-   bun run checks:nightly
-   bun run checks:beta
-   bun run checks:main
+   pnpm run checks:nightly
+   pnpm run checks:beta
+   pnpm run checks:main
    ```
 
    - `checks:nightly`: lint + typecheck + unit tests
@@ -143,13 +143,13 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
 2. Run integration tests directly when iterating on service logic:
 
    ```bash
-   bun run test:integration
+   pnpm run test:integration
    ```
 
 3. Seed default test users (optional, but recommended for manual QA):
 
    ```bash
-   bun run db:seed:test-users
+   pnpm run db:seed:test-users
    ```
 
    Default seeded credentials:
@@ -159,13 +159,13 @@ Start editing by updating `app/page.tsx`; the page auto-updates as you save.
    - `user@example.com` / `user`
 
 
-   `checks:main` runs `scripts/ci/assert-e2e-prereqs.sh` and then `scripts/ci/bootstrap-e2e-db.sh` before Playwright. The bootstrap step is idempotent, reuses an already reachable `DATABASE_URL` when present (for example CI service containers), and otherwise starts `docker compose` Postgres. It always re-applies migrations plus baseline seeded users (`bun run db:migrate` and `bun run db:seed:test-users`) so each run has deterministic auth/e2e fixtures.
+   `checks:main` runs `scripts/ci/assert-e2e-prereqs.sh` and then `scripts/ci/bootstrap-e2e-db.sh` before Playwright. The bootstrap step is idempotent, reuses an already reachable `DATABASE_URL` when present (for example CI service containers), and otherwise starts `docker compose` Postgres. It always re-applies migrations plus baseline seeded users (`pnpm run db:migrate` and `pnpm run db:seed:test-users`) so each run has deterministic auth/e2e fixtures.
 
 4. Run end-to-end authentication/profile user-story tests (requires Postgres and `.env`):
 
    ```bash
    docker compose up -d postgres
-   bun run test:e2e
+   pnpm run test:e2e
    ```
 
 ## CI/CD
