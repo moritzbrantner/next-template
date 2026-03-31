@@ -1,22 +1,18 @@
+// tests/e2e/global-setup.ts
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { applyE2EEnvironment } from '@/tests/e2e/environment';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const appRoot = path.resolve(__dirname, '../..');
-const bootstrapScript = path.join(appRoot, 'scripts/ci/bootstrap-e2e-db.sh');
+const setupFile = fileURLToPath(import.meta.url);
+const setupDir = path.dirname(setupFile);
 
-async function globalSetup() {
+export default async function globalSetup() {
   applyE2EEnvironment();
 
-  execFileSync('bash', [bootstrapScript], {
-    cwd: appRoot,
-    env: process.env,
+  execFileSync('pnpm', ['exec', 'playwright', 'install', '--with-deps'], {
+    cwd: path.resolve(setupDir, '../..'),
     stdio: 'inherit',
   });
 }
-
-export default globalSetup;
