@@ -1,5 +1,10 @@
 export const navigationBar = {
   brand: 'Next Template',
+  categories: {
+    discover: 'Discover',
+    workspace: 'Workspace',
+    admin: 'Admin',
+  },
   links: {
     home: 'Home',
     about: 'About',

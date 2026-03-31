@@ -1,5 +1,10 @@
 export const navigationBar = {
   brand: 'Next Vorlage',
+  categories: {
+    discover: 'Entdecken',
+    workspace: 'Arbeitsbereich',
+    admin: 'Admin',
+  },
   links: {
     home: 'Startseite',
     about: 'Über uns',
