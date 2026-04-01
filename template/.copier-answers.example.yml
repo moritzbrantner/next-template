@@ -1,0 +1,6 @@
+_src_path: ../next-template
+project_name: Example Platform App
+project_slug: example-platform-app
+project_description: Example app generated from next-template
+platform_ui_dependency: file:../platform-packages/packages/ui
+platform_storytelling_dependency: file:../platform-packages/packages/storytelling

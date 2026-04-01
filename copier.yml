@@ -1,0 +1,28 @@
+_subdirectory: template
+_answers_file: .copier-answers.yml
+_templates_suffix: ""
+
+project_name:
+  type: str
+  default: Next Platform App
+  help: Human-readable application name.
+
+project_slug:
+  type: str
+  default: "{{ project_name | lower | replace(' ', '-') }}"
+  help: npm package name and repository slug.
+
+project_description:
+  type: str
+  default: Shared Next.js platform application
+  help: Description used in package metadata.
+
+platform_ui_dependency:
+  type: str
+  default: file:../platform-packages/packages/ui
+  help: Dependency source for @platform/ui.
+
+platform_storytelling_dependency:
+  type: str
+  default: file:../platform-packages/packages/storytelling
+  help: Dependency source for @platform/storytelling.
