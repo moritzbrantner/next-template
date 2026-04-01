@@ -8,9 +8,9 @@ Syncable Next.js application template powered by `Copier`.
 - generic CI, Playwright, Tailwind 4, and package-wiring defaults
 
 ## Current package wiring
-- The template consumes `@platform/ui` and `@platform/storytelling`.
-- Default dependency values point to local sibling packages so this workspace can be verified end-to-end before GitHub Packages publishing.
-- Before using the template outside this workspace, override those dependency values to your published package versions or GitHub Packages scope.
+- The template consumes `@moritzbrantner/ui` and `@moritzbrantner/storytelling`.
+- Default dependency values point to the published `0.1.0` GitHub Packages releases for that scope.
+- If you need a different source, override the dependency values during `copier copy` with any valid npm package spec.
 
 ## Usage
 
@@ -18,6 +18,14 @@ Create a new app:
 
 ```bash
 copier copy . ../my-next-app
+```
+
+Before installing dependencies in the generated app, export a GitHub Packages token:
+
+```bash
+export GH_PACKAGES_TOKEN=your-token
+cd ../my-next-app
+pnpm install
 ```
 
 Update an existing app that tracks the template:

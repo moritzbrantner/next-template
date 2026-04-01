@@ -1,2 +1,2 @@
-@import "@platform/ui/styles.css";
-@source "../node_modules/@platform/storytelling/dist/**/*.{js,mjs}";
+@import "@moritzbrantner/ui/styles.css";
+@source "../node_modules/@moritzbrantner/storytelling/dist/**/*.{js,mjs}";

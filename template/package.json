@@ -15,8 +15,8 @@
     "test:e2e:install": "playwright install --with-deps chromium"
   },
   "dependencies": {
-    "@platform/storytelling": "{{ platform_storytelling_dependency }}",
-    "@platform/ui": "{{ platform_ui_dependency }}",
+    "@moritzbrantner/storytelling": "{{ platform_storytelling_dependency }}",
+    "@moritzbrantner/ui": "{{ platform_ui_dependency }}",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"

@@ -19,10 +19,10 @@ project_description:
 
 platform_ui_dependency:
   type: str
-  default: file:../platform-packages/packages/ui
-  help: Dependency source for @platform/ui.
+  default: "0.1.0"
+  help: Dependency source for @moritzbrantner/ui.
 
 platform_storytelling_dependency:
   type: str
-  default: file:../platform-packages/packages/storytelling
-  help: Dependency source for @platform/storytelling.
+  default: "0.1.0"
+  help: Dependency source for @moritzbrantner/storytelling.

@@ -1,5 +1,5 @@
-import { StoryContainer, StoryScene, StorySeries } from "@platform/storytelling";
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@platform/ui";
+import { StoryContainer, StoryScene, StorySeries } from "@moritzbrantner/storytelling";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@moritzbrantner/ui";
 
 export default function HomePage() {
   return (
@@ -25,7 +25,7 @@ export default function HomePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">
-            `@platform/ui` provides the design-system contract.
+            `@moritzbrantner/ui` provides the design-system contract.
           </p>
         </CardContent>
       </Card>
