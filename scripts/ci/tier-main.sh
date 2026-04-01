@@ -10,8 +10,8 @@ cleanup() {
 trap cleanup EXIT
 
 ./scripts/ci/tier-beta.sh
-bun run db:check
-bun run build
+pnpm run db:check
+pnpm run build
 ./scripts/ci/assert-e2e-prereqs.sh
 ./scripts/ci/bootstrap-e2e-db.sh
-bun run test:e2e
+pnpm run test:e2e

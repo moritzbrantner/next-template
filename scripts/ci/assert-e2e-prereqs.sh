@@ -30,22 +30,24 @@ if (( ${#missing[@]} > 0 )); then
   exit 1
 fi
 
-bun --eval '
-  const { Client } = require("pg");
+node --eval '
+  (async () => {
+    const { Client } = require("pg");
 
-  const connectionString = process.env.DATABASE_URL;
-  const client = new Client({ connectionString });
+    const connectionString = process.env.DATABASE_URL;
+    const client = new Client({ connectionString });
 
-  try {
-    await client.connect();
-    await client.query("SELECT 1");
-  } catch (error) {
-    console.error("❌ Unable to reach Postgres using DATABASE_URL.");
-    console.error(error instanceof Error ? error.message : error);
-    process.exit(1);
-  } finally {
-    await client.end().catch(() => undefined);
-  }
+    try {
+      await client.connect();
+      await client.query("SELECT 1");
+    } catch (error) {
+      console.error("❌ Unable to reach Postgres using DATABASE_URL.");
+      console.error(error instanceof Error ? error.message : error);
+      process.exit(1);
+    } finally {
+      await client.end().catch(() => undefined);
+    }
+  })();
 '
 
 echo "✅ E2E prerequisites verified."

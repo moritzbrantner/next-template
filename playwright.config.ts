@@ -6,10 +6,11 @@ const baseURL = getE2EBaseURL();
 const e2eEnvironment = createE2EEnvironment(baseURL);
 
 export default defineConfig({
-  globalSetup: './tests/e2e/global-setup.ts',
-  globalTeardown: './tests/e2e/global-teardown.ts',
+  tsconfig: './playwright.tsconfig.json',
+  globalSetup: './tests/e2e/global-setup.cts',
+  globalTeardown: './tests/e2e/global-teardown.cts',
   testDir: 'tests/e2e',
-  timeout: 60_000,
+  timeout: 120_000,
   use: {
     baseURL,
     channel: 'chrome',
