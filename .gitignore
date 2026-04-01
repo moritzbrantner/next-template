@@ -40,6 +40,5 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-src/routeTree.gen.ts
 
 test-results/
