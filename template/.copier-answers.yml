@@ -1,6 +1,0 @@
-_src_path: {{ _src_path }}
-project_name: {{ project_name }}
-project_slug: {{ project_slug }}
-project_description: {{ project_description }}
-platform_ui_dependency: {{ platform_ui_dependency }}
-platform_storytelling_dependency: {{ platform_storytelling_dependency }}
