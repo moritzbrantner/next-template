@@ -1,11 +1,10 @@
-import type { Session } from "next-auth";
-
 import {
   canManageSystemSettings,
   canManageUsers,
   canViewReports,
   type AppRole,
 } from "@/lib/authorization";
+import type { AppSession } from "@/src/auth";
 import { failure, success, type ServiceResult } from "@/src/domain/shared/result";
 
 export const adminActionKeys = ["viewReports", "manageUsers", "manageSystemSettings"] as const;
@@ -49,7 +48,7 @@ export function getAdminActionPermissions(role: AppRole | null | undefined): rea
 }
 
 export function getAdminAuthorization(
-  session: Session | null,
+  session: AppSession | null,
 ): ServiceResult<AdminAuthorizationPayload, AuthorizationError> {
   if (!session?.user?.id) {
     return failure({

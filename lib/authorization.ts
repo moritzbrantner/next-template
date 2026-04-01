@@ -1,18 +1,16 @@
-import type { Session } from "next-auth";
-import { getServerSession } from "next-auth";
+import type { AppSession } from '@/src/auth';
+import { getAuthSession } from '@/src/auth.server';
 
-import { authOptions } from "@/src/auth";
-
-export type AppRole = "ADMIN" | "USER";
+export type AppRole = 'ADMIN' | 'USER';
 
 type RoleInput = AppRole | AppRole[];
 
 type BusinessAction =
-  | "viewDashboard"
-  | "editOwnProfile"
-  | "viewReports"
-  | "manageUsers"
-  | "manageSystemSettings";
+  | 'viewDashboard'
+  | 'editOwnProfile'
+  | 'viewReports'
+  | 'manageUsers'
+  | 'manageSystemSettings';
 
 const roleHierarchy: Record<AppRole, number> = {
   USER: 0,
@@ -20,19 +18,15 @@ const roleHierarchy: Record<AppRole, number> = {
 };
 
 const actionPermissions: Record<BusinessAction, readonly AppRole[]> = {
-  viewDashboard: ["USER", "ADMIN"],
-  editOwnProfile: ["USER", "ADMIN"],
-  viewReports: ["ADMIN"],
-  manageUsers: ["ADMIN"],
-  manageSystemSettings: ["ADMIN"],
+  viewDashboard: ['USER', 'ADMIN'],
+  editOwnProfile: ['USER', 'ADMIN'],
+  viewReports: ['ADMIN'],
+  manageUsers: ['ADMIN'],
+  manageSystemSettings: ['ADMIN'],
 };
 
 function normalizeRoles(roleOrRoles: RoleInput): readonly AppRole[] {
-  if (Array.isArray(roleOrRoles)) {
-    return roleOrRoles;
-  }
-
-  return [roleOrRoles];
+  return Array.isArray(roleOrRoles) ? roleOrRoles : [roleOrRoles];
 }
 
 export function hasRole(currentRole: AppRole | null | undefined, minimumRole: AppRole): boolean {
@@ -44,7 +38,7 @@ export function hasRole(currentRole: AppRole | null | undefined, minimumRole: Ap
 }
 
 export function isAdmin(role: AppRole | null | undefined): boolean {
-  return hasRole(role, "ADMIN");
+  return hasRole(role, 'ADMIN');
 }
 
 function canPerform(role: AppRole | null | undefined, action: BusinessAction): boolean {
@@ -56,55 +50,55 @@ function canPerform(role: AppRole | null | undefined, action: BusinessAction): b
 }
 
 export function canViewDashboard(role: AppRole | null | undefined): boolean {
-  return canPerform(role, "viewDashboard");
+  return canPerform(role, 'viewDashboard');
 }
 
 export function canEditOwnProfile(role: AppRole | null | undefined): boolean {
-  return canPerform(role, "editOwnProfile");
+  return canPerform(role, 'editOwnProfile');
 }
 
 export function canViewReports(role: AppRole | null | undefined): boolean {
-  return canPerform(role, "viewReports");
+  return canPerform(role, 'viewReports');
 }
 
 export function canManageUsers(role: AppRole | null | undefined): boolean {
-  return canPerform(role, "manageUsers");
+  return canPerform(role, 'manageUsers');
 }
 
 export function canManageSystemSettings(role: AppRole | null | undefined): boolean {
-  return canPerform(role, "manageSystemSettings");
+  return canPerform(role, 'manageSystemSettings');
 }
 
 function createAuthError(message: string, status: 401 | 403): Error & { status: 401 | 403 } {
   const error = new Error(message) as Error & { status: 401 | 403 };
-  error.name = "AuthorizationError";
+  error.name = 'AuthorizationError';
   error.status = status;
 
   return error;
 }
 
-export async function requireAuth(): Promise<Session> {
-  const session = await getServerSession(authOptions);
+export async function requireAuth(): Promise<AppSession> {
+  const session = await getAuthSession();
 
   if (!session?.user?.id) {
-    throw createAuthError("Authentication required.", 401);
+    throw createAuthError('Authentication required.', 401);
   }
 
   return session;
 }
 
-export async function requireRole(roleOrRoles: RoleInput): Promise<Session> {
+export async function requireRole(roleOrRoles: RoleInput): Promise<AppSession> {
   const session = await requireAuth();
   const allowedRoles = normalizeRoles(roleOrRoles);
 
   if (!session.user.role || !allowedRoles.includes(session.user.role)) {
-    throw createAuthError("You do not have permission to perform this action.", 403);
+    throw createAuthError('You do not have permission to perform this action.', 403);
   }
 
   return session;
 }
 
-export function forbidUnless(condition: unknown, message = "Forbidden"): asserts condition {
+export function forbidUnless(condition: unknown, message = 'Forbidden'): asserts condition {
   if (!condition) {
     throw createAuthError(message, 403);
   }

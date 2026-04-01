@@ -1,10 +1,10 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Link, useRouter } from '@/i18n/navigation';
+import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,7 @@ type LoginFormValues = {
 };
 
 type LoginFormProps = {
-  locale: string;
+  locale: AppLocale;
   labels: {
     email: string;
     password: string;
@@ -48,14 +48,18 @@ export function LoginForm({ locale, labels }: LoginFormProps) {
   const onSubmit = handleSubmit(async (values) => {
     setPending(true);
 
-    const result = await signIn('credentials', {
-      redirect: false,
-      email: values.email,
-      password: values.password,
-      callbackUrl: `/${locale}/profile`,
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: values.email,
+        password: values.password,
+      }),
     });
 
-    if (!result || result.error) {
+    if (!response.ok) {
       setError('root', {
         type: 'server',
         message: labels.invalidCredentials,
@@ -64,7 +68,7 @@ export function LoginForm({ locale, labels }: LoginFormProps) {
       return;
     }
 
-    router.push('/profile');
+    router.push('/profile', locale);
     router.refresh();
   });
 

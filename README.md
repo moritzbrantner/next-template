@@ -1,6 +1,6 @@
 # next-template
 
-Syncable Next.js application template powered by `Copier`.
+Syncable TanStack Start application template powered by `Copier`.
 
 ## What lives here
 - `copier.yml`: template questions and defaults
@@ -87,7 +87,7 @@ Update an existing app that tracks the template:
 
    `db:schema:generate` derives `db-schema.json` from the Drizzle table configs used by the admin data studio.
 
-3. Run Next app:
+3. Run the TanStack Start app:
 
    ```bash
    pnpm run dev
@@ -95,7 +95,7 @@ Update an existing app that tracks the template:
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-Start editing by updating `app/page.tsx`; the page auto-updates as you save.
+Start editing by updating the route files in `src/routes/`; the page auto-updates as you save.
 
 ## Testing
 

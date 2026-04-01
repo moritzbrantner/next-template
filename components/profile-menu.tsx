@@ -1,14 +1,14 @@
 'use client';
 
-import Image from 'next/image';
-import { signOut } from 'next-auth/react';
 import { useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
+import type { AppLocale } from '@/i18n/routing';
 import { buttonVariants } from '@/components/ui/button';
+import { useRouter } from '@/i18n/navigation';
 
 type ProfileMenuProps = {
-  locale: string;
+  locale: AppLocale;
   profileHref: string;
   settingsHref: string;
   imageUrl: string | null;
@@ -30,6 +30,7 @@ export function ProfileMenu({
   labels,
 }: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <div
@@ -49,13 +50,10 @@ export function ProfileMenu({
         onClick={() => setOpen((current) => !current)}
       >
         {imageUrl ? (
-          <Image
+          <img
             src={imageUrl}
             alt={displayName}
-            width={36}
-            height={36}
             className="h-full w-full object-cover"
-            unoptimized
           />
         ) : (
           <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-100">
@@ -96,7 +94,12 @@ export function ProfileMenu({
               className: 'w-full justify-start text-red-600 hover:text-red-600 dark:text-red-400 dark:hover:text-red-400',
             })}
             onClick={() => {
-              void signOut({ callbackUrl: `/${locale}` });
+              void fetch('/api/auth/logout', {
+                method: 'POST',
+              }).then(() => {
+                router.push('/', locale);
+                router.refresh();
+              });
             }}
           >
             {labels.logout}

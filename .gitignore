@@ -13,9 +13,10 @@
 # testing
 /coverage
 
-# next.js
+# next.js / tanstack start
 /.next/
 /out/
+/dist/
 
 # production
 /build
@@ -39,6 +40,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+src/routeTree.gen.ts
 
 test-results/

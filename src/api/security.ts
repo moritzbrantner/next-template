@@ -1,5 +1,4 @@
 import { eq, lte, sql } from "drizzle-orm";
-import type { NextRequest } from "next/server";
 
 import { getDb } from "@/src/db/client";
 import { securityAuditLogs, securityRateLimitCounters } from "@/src/db/schema";
@@ -39,7 +38,7 @@ export interface AuditPersistenceAdapter {
 }
 
 export interface SecurityService {
-  getRateLimitKey(request: NextRequest, userId: string | null): string;
+  getRateLimitKey(request: Request, userId: string | null): string;
   enforceRateLimit(key: string): Promise<RateLimitResult>;
   auditAction(record: AuditRecord): Promise<void>;
 }
@@ -74,7 +73,7 @@ function sanitizeMetadata(value: unknown): unknown {
   return value;
 }
 
-function getClientIp(request: NextRequest): string {
+function getClientIp(request: Request): string {
   const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
     return forwardedFor.split(",")[0]?.trim() ?? "unknown";
@@ -202,7 +201,7 @@ export class DefaultSecurityService implements SecurityService {
     },
   ) {}
 
-  getRateLimitKey(request: NextRequest, userId: string | null): string {
+  getRateLimitKey(request: Request, userId: string | null): string {
     if (userId) {
       return `user:${userId}`;
     }
@@ -252,7 +251,7 @@ const securityService = new DefaultSecurityService(
   new PostgresAuditPersistenceAdapter(),
 );
 
-export function getRateLimitKey(request: NextRequest, userId: string | null): string {
+export function getRateLimitKey(request: Request, userId: string | null): string {
   return securityService.getRateLimitKey(request, userId);
 }
 

@@ -1,29 +1,25 @@
-import { getTranslations } from 'next-intl/server';
-import { getServerSession } from 'next-auth';
-import { cookies } from 'next/headers';
-
 import { Link } from '@/i18n/navigation';
+import type { AppLocale } from '@/i18n/routing';
 import { isAdmin } from '@/lib/authorization';
-import { THEME_COOKIE_NAME, isTheme } from '@/lib/theme';
+import type { Theme } from '@/lib/theme';
 import { buildNavigationCategories } from '@/src/navigation/navigation-categories';
+import { useTranslations } from '@/src/i18n';
+import type { AppSession } from '@/src/auth';
 
-import { authOptions } from '@/src/auth';
-
-import { ProfileMenu } from '@/components/profile-menu';
 import { AuthNavigation } from '@/components/auth-navigation';
 import { GroupedNavigationMenu } from '@/components/grouped-navigation-menu';
 import { LanguageSelector } from '@/components/language-selector';
+import { ProfileMenu } from '@/components/profile-menu';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 type NavigationBarProps = {
-  locale: string;
+  initialTheme: Theme;
+  locale: AppLocale;
+  session: AppSession | null;
 };
 
-export async function NavigationBar({ locale }: NavigationBarProps) {
-  const t = await getTranslations('NavigationBar');
-  const session = await getServerSession(authOptions);
-  const themeCookie = (await cookies()).get(THEME_COOKIE_NAME)?.value;
-  const initialTheme = isTheme(themeCookie) ? themeCookie : 'light';
+export function NavigationBar({ initialTheme, locale, session }: NavigationBarProps) {
+  const t = useTranslations('NavigationBar');
   const navigationCategories = buildNavigationCategories({
     isAuthenticated: Boolean(session?.user?.id),
     isAdmin: isAdmin(session?.user?.role),

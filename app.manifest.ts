@@ -9,7 +9,7 @@ export const appManifest = {
   sharedPackages: ['@repo/upload-playbook'],
   featureFlags: ['tabs', 'profiles', 'uploads'],
   deployment: {
-    runtime: 'nextjs',
+    runtime: 'tanstack-start',
     scheme: 'web',
   },
 } as const;

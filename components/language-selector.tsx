@@ -1,9 +1,8 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
-
 import { Link, usePathname } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
+import { useLocale, useTranslations } from '@/src/i18n';
 
 type LanguageSelectorProps = {
   className?: string;

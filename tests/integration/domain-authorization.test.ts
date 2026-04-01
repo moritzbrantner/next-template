@@ -1,15 +1,17 @@
-import type { Session } from "next-auth";
 import { describe, expect, it } from "vitest";
 
+import type { AppSession } from "@/src/auth";
 import { getAdminActionPermissions, getAdminAuthorization } from "@/src/domain/authorization/use-cases";
 
-function createSession(role: "ADMIN" | "USER"): Session {
+function createSession(role: "ADMIN" | "USER"): AppSession {
   return {
     user: {
       id: role === "ADMIN" ? "admin_1" : "user_1",
+      email: `${role.toLowerCase()}@example.com`,
+      image: null,
+      name: null,
       role,
     },
-    expires: "2999-01-01T00:00:00.000Z",
   };
 }
 

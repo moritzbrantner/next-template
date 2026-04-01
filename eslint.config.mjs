@@ -1,6 +1,6 @@
-import { defineConfig, globalIgnores } from 'eslint/config';
-import nextVitals from 'eslint-config-next/core-web-vitals';
-import nextTs from 'eslint-config-next/typescript';
+import js from '@eslint/js';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
 const DEPRECATED_IMPORT_PATTERNS = [
   '@features/*',
@@ -11,11 +11,24 @@ const DEPRECATED_IMPORT_PATTERNS = [
   '@/lib/services/*',
 ];
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
+export default tseslint.config(
   {
-    files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}'],
+    ignores: ['.next/**', 'dist/**', 'out/**', 'build/**', 'coverage/**', 'src/routeTree.gen.ts'],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+  },
+  {
+    files: ['components/**/*.{ts,tsx}', 'src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}', 'scripts/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -31,7 +44,7 @@ const eslintConfig = defineConfig([
       'no-restricted-imports': [
         'error',
         {
-          patterns: ['@/app/*', '@/components/*'],
+          patterns: ['@/components/*'],
         },
       ],
     },
@@ -42,7 +55,7 @@ const eslintConfig = defineConfig([
       'no-restricted-imports': [
         'error',
         {
-          patterns: ['@/app/*', '@/components/*', '@/src/domain/*', '@/src/profile/*'],
+          patterns: ['@/components/*', '@/src/domain/*', '@/src/profile/*'],
         },
       ],
     },
@@ -53,29 +66,9 @@ const eslintConfig = defineConfig([
       'no-restricted-imports': [
         'error',
         {
-          patterns: [
-            '@/app/*',
-            '@/components/*',
-            '@features/*',
-            '@/features/*',
-            '@stores/*',
-            '@/stores/*',
-            '@/src/*',
-            '@services/*',
-            '@/lib/services/*',
-          ],
+          patterns: ['@/components/*', '@/src/*', '@features/*', '@/features/*', '@stores/*', '@/stores/*'],
         },
       ],
     },
   },
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    '.next/**',
-    'out/**',
-    'build/**',
-    'next-env.d.ts',
-  ]),
-]);
-
-export default eslintConfig;
+);

@@ -1,8 +1,7 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useState, type FormEvent } from 'react';
 
-import { initialPersistState, persistSchemaRecord } from '@/app/[locale]/admin/data-studio/actions';
 import type { DbSchemaTable } from '@/src/dynamic-db/schema';
 
 type SchemaTableFormProps = {
@@ -22,10 +21,33 @@ function inputTypeForField(type: DbSchemaTable['fields'][number]['type']) {
 }
 
 export function SchemaTableForm({ table }: SchemaTableFormProps) {
-  const [state, formAction, isPending] = useActionState(persistSchemaRecord, initialPersistState);
+  const [state, setState] = useState<{ ok: boolean; message: string }>({ ok: false, message: '' });
+  const [isPending, setIsPending] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsPending(true);
+    setState({ ok: false, message: '' });
+
+    const response = await fetch('/api/admin/data-studio/records', {
+      method: 'POST',
+      body: new FormData(event.currentTarget),
+    });
+    const body = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
+
+    if (!response.ok) {
+      setState({ ok: false, message: body?.message ?? 'Unable to save record.' });
+      setIsPending(false);
+      return;
+    }
+
+    setState({ ok: body?.ok ?? true, message: body?.message ?? `${table.label} record created successfully.` });
+    setIsPending(false);
+    event.currentTarget.reset();
+  }
 
   return (
-    <form action={formAction} className="space-y-4 rounded-xl border p-4 dark:border-zinc-800">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border p-4 dark:border-zinc-800">
       <input type="hidden" name="tableName" value={table.name} />
 
       <div>

@@ -1,8 +1,6 @@
-import type { NextRequest } from "next/server";
-
 import { auditAction, enforceRateLimit, getRateLimitKey, type AuditRecord } from "@/src/api/security";
 
-export async function enforceAdminReportsRateLimit(request: NextRequest, actorId: string | null) {
+export async function enforceAdminReportsRateLimit(request: Request, actorId: string | null) {
   const key = getRateLimitKey(request, actorId);
   return enforceRateLimit(key);
 }

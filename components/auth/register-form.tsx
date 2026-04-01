@@ -1,10 +1,10 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Link, useRouter } from '@/i18n/navigation';
+import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +17,7 @@ type RegisterFormValues = {
 };
 
 type RegisterFormProps = {
-  locale: string;
+  locale: AppLocale;
   labels: {
     name: string;
     email: string;
@@ -86,23 +86,7 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
       return;
     }
 
-    const signInResult = await signIn('credentials', {
-      redirect: false,
-      email: values.email,
-      password: values.password,
-      callbackUrl: `/${locale}/profile`,
-    });
-
-    if (!signInResult || signInResult.error) {
-      setError('root', {
-        type: 'server',
-        message: labels.genericError,
-      });
-      setPending(false);
-      return;
-    }
-
-    router.push('/profile');
+    router.push('/profile', locale);
     router.refresh();
   });
 

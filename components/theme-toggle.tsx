@@ -2,10 +2,9 @@
 
 import { useSyncExternalStore } from 'react';
 
-import { useTranslations } from 'next-intl';
-
 import { Button } from '@/components/ui/button';
 import { THEME_COOKIE_NAME, THEME_STORAGE_KEY, Theme, isTheme } from '@/lib/theme';
+import { useTranslations } from '@/src/i18n';
 
 function getSystemTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

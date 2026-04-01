@@ -8,6 +8,6 @@ export const PERSISTENCE_POLICY = {
 
 export function assertPersistenceWhitelist(sliceName: string): void {
   if (!PERSISTENCE_POLICY.allowedSlices.includes(sliceName as (typeof PERSISTENCE_POLICY.allowedSlices)[number])) {
-    throw new Error(`Slice \"${sliceName}\" is not whitelisted for persistence.`);
+    throw new Error(`Slice "${sliceName}" is not whitelisted for persistence.`);
   }
 }
