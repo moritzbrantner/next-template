@@ -30,6 +30,11 @@ if (( ${#missing[@]} > 0 )); then
   exit 1
 fi
 
+if (( ${#AUTH_SECRET} < 32 )); then
+  echo "❌ AUTH_SECRET must be at least 32 characters for the session store." >&2
+  exit 1
+fi
+
 node --eval '
   (async () => {
     const { Client } = require("pg");

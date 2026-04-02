@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { expectStatusMessage, gotoAndWaitForHydration } from '@/tests/e2e/helpers';
 
 test('user can navigate to the forms page and submit all fields', async ({ page }) => {
-  await page.goto('/en');
+  await gotoAndWaitForHydration(page, '/en');
 
   await page.getByRole('link', { name: 'Open Form Demo' }).click();
   await expect(page).toHaveURL('/en/forms');
@@ -19,13 +20,11 @@ test('user can navigate to the forms page and submit all fields', async ({ page 
 
   await page.getByRole('button', { name: 'Submit profile' }).click();
 
-  await expect(
-    page.getByRole('status').filter({ hasText: 'Jane Doe submitted their profile for the Engineering team.' }),
-  ).toBeVisible();
+  await expectStatusMessage(page, 'Jane Doe submitted their profile for the Engineering team.');
 });
 
 test('form displays validation errors when required fields are empty', async ({ page }) => {
-  await page.goto('/en/forms');
+  await gotoAndWaitForHydration(page, '/en/forms');
 
   await page.getByRole('button', { name: 'Submit profile' }).click();
 

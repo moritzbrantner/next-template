@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { gotoAndWaitForHydration } from '@/tests/e2e/helpers';
 
 test('the employee REST table page displays, sorts, and filters data', async ({ page }) => {
-  await page.goto('/en/table');
+  await gotoAndWaitForHydration(page, '/en/table');
 
   await expect(page.getByRole('heading', { name: 'Employee table' })).toBeVisible();
   await expect(page.getByRole('columnheader', { name: 'First name' })).toBeVisible();

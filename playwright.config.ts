@@ -1,9 +1,9 @@
 import { defineConfig } from '@playwright/test';
-
 import { createE2EEnvironment, getE2EBaseURL } from '@/tests/e2e/environment';
 
 const baseURL = getE2EBaseURL();
 const e2eEnvironment = createE2EEnvironment(baseURL);
+const port = Number(new URL(baseURL).port);
 
 export default defineConfig({
   tsconfig: './playwright.tsconfig.json',
@@ -16,10 +16,15 @@ export default defineConfig({
     channel: 'chrome',
   },
   webServer: {
-    command: `./scripts/e2e/start-playwright-server.sh ${new URL(baseURL).port}`,
-    env: e2eEnvironment,
-    url: baseURL,
+    command: `./scripts/e2e/start-playwright-server.sh ${port}`,
+    env: {
+      ...e2eEnvironment,
+      PLAYWRIGHT_TEST: '1',
+    },
+    port,
     timeout: 180_000,
     reuseExistingServer: !process.env.CI,
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
 });

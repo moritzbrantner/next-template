@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { gotoAndWaitForHydration } from '@/tests/e2e/helpers';
 
 test('navbar groups destinations into categories and reveals submenu links on click', async ({ page }) => {
-  await page.goto('/en');
+  await gotoAndWaitForHydration(page, '/en');
   const discoverSubmenu = page.locator('#navigation-submenu-discover');
 
   await expect(page.getByRole('button', { name: 'Discover' })).toBeVisible();

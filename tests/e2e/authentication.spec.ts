@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { TEST_USERS } from '@/src/testing/test-users';
+import { gotoAndWaitForHydration } from '@/tests/e2e/helpers';
 
 const seededUser = TEST_USERS.find((user) => user.email === 'user@example.com');
 
@@ -10,7 +11,7 @@ if (!seededUser) {
 
 test.describe('authentication', () => {
   test('shows client-side validation errors on the registration form', async ({ page }) => {
-    await page.goto('/en/register');
+    await gotoAndWaitForHydration(page, '/en/register');
 
     await page.getByRole('button', { name: 'Create account' }).click();
 
@@ -20,7 +21,7 @@ test.describe('authentication', () => {
   });
 
   test('shows login errors for invalid credentials', async ({ page }) => {
-    await page.goto('/en/login');
+    await gotoAndWaitForHydration(page, '/en/login');
 
     await page.getByLabel('Email').fill('user@example.com');
     await page.getByLabel('Password').fill('wrong-password');
@@ -34,7 +35,7 @@ test.describe('authentication', () => {
     const email = `playwright-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
     const password = 'StrongPass123';
 
-    await page.goto('/en/register');
+    await gotoAndWaitForHydration(page, '/en/register');
 
     await expect(page.getByRole('heading', { name: 'Start with a secure account and get into the app immediately.' })).toBeVisible();
 
@@ -55,7 +56,7 @@ test.describe('authentication', () => {
   });
 
   test('logs in through the custom page and logs out from the profile menu', async ({ page }) => {
-    await page.goto('/en/login');
+    await gotoAndWaitForHydration(page, '/en/login');
 
     await expect(page.getByRole('heading', { name: 'Sign in to continue where you left off.' })).toBeVisible();
 

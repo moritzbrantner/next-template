@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 
+import { useEffect } from 'react';
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
@@ -57,6 +58,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootComponent() {
   const { theme } = Route.useRouteContext();
+
+  useEffect(() => {
+    document.documentElement.dataset.appHydrated = 'true';
+  }, []);
 
   return (
     <html lang="en" className={theme} suppressHydrationWarning>
