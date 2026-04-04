@@ -1,22 +1,13 @@
-export type NavigationLinkKey =
-  | 'home'
-  | 'about'
-  | 'forms'
-  | 'story'
-  | 'communication'
-  | 'table'
-  | 'uploads'
-  | 'dataEntry'
-  | 'admin';
+import type { AppRole } from '@/lib/authorization';
+import { getVisibleAppPages } from '@/src/navigation/app-routes';
 
 export type NavigationCategoryKey = 'discover' | 'workspace' | 'admin';
 
-type NavigationVisibility = 'public' | 'authenticated' | 'admin';
-
 type NavigationLinkDefinition = {
   href: string;
-  key: NavigationLinkKey;
-  visibility?: NavigationVisibility;
+  key: string;
+  translationKey: string;
+  hotkey: readonly [string, string];
 };
 
 type NavigationCategoryDefinition = {
@@ -29,55 +20,56 @@ export type NavigationCategory = {
   links: readonly NavigationLinkDefinition[];
 };
 
-const navigationCategoryDefinitions = [
-  {
-    key: 'discover',
-    links: [
-      { href: '/', key: 'home' },
-      { href: '/about', key: 'about' },
-      { href: '/story', key: 'story' },
-      { href: '/communication', key: 'communication' },
-    ],
-  },
-  {
-    key: 'workspace',
-    links: [
-      { href: '/forms', key: 'forms' },
-      { href: '/table', key: 'table' },
-      { href: '/uploads', key: 'uploads' },
-      { href: '/data-entry', key: 'dataEntry', visibility: 'authenticated' },
-    ],
-  },
-  {
-    key: 'admin',
-    links: [{ href: '/admin', key: 'admin', visibility: 'admin' }],
-  },
-] as const satisfies readonly NavigationCategoryDefinition[];
-
-function isLinkVisible(
-  link: NavigationLinkDefinition,
-  { isAuthenticated, isAdmin }: { isAuthenticated: boolean; isAdmin: boolean },
-) {
-  if (link.visibility === 'admin') {
-    return isAdmin;
-  }
-
-  if (link.visibility === 'authenticated') {
-    return isAuthenticated;
-  }
-
-  return true;
-}
-
 export function buildNavigationCategories({
   isAuthenticated,
-  isAdmin,
+  role,
 }: {
   isAuthenticated: boolean;
-  isAdmin: boolean;
+  role: AppRole | null | undefined;
 }): NavigationCategory[] {
+  const pages = getVisibleAppPages({
+    isAuthenticated,
+    role,
+  });
+
+  const navigationCategoryDefinitions: readonly NavigationCategoryDefinition[] = [
+    {
+      key: 'discover',
+      links: pages
+        .filter((page) => page.navigationCategory === 'discover')
+        .map((page) => ({
+          href: page.href,
+          key: page.key,
+          translationKey: page.translationKey,
+          hotkey: page.hotkey,
+        })),
+    },
+    {
+      key: 'workspace',
+      links: pages
+        .filter((page) => page.navigationCategory === 'workspace')
+        .map((page) => ({
+          href: page.href,
+          key: page.key,
+          translationKey: page.translationKey,
+          hotkey: page.hotkey,
+        })),
+    },
+    {
+      key: 'admin',
+      links: pages
+        .filter((page) => page.navigationCategory === 'admin')
+        .map((page) => ({
+          href: page.href,
+          key: page.key,
+          translationKey: page.translationKey,
+          hotkey: page.hotkey,
+        })),
+    },
+  ];
+
   return navigationCategoryDefinitions.flatMap((category) => {
-    const links = category.links.filter((link) => isLinkVisible(link, { isAuthenticated, isAdmin }));
+    const links = category.links;
 
     if (!links.length) {
       return [];

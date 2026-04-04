@@ -4,71 +4,71 @@ import { buildNavigationCategories } from '@/src/navigation/navigation-categorie
 
 describe('navigation categories', () => {
   it('shows only grouped public links for signed-out visitors', () => {
-    expect(buildNavigationCategories({ isAuthenticated: false, isAdmin: false })).toEqual([
+    expect(buildNavigationCategories({ isAuthenticated: false, role: null })).toEqual([
       {
         key: 'discover',
         links: [
-          { href: '/', key: 'home' },
-          { href: '/about', key: 'about' },
-          { href: '/story', key: 'story' },
-          { href: '/communication', key: 'communication' },
+          { href: '/', key: 'home', translationKey: 'links.home', hotkey: ['g', 'h'] },
+          { href: '/about', key: 'about', translationKey: 'links.about', hotkey: ['g', 'a'] },
+          { href: '/story', key: 'story', translationKey: 'links.story', hotkey: ['g', 's'] },
+          { href: '/communication', key: 'communication', translationKey: 'links.communication', hotkey: ['g', 'c'] },
         ],
       },
       {
         key: 'workspace',
         links: [
-          { href: '/forms', key: 'forms' },
-          { href: '/table', key: 'table' },
-          { href: '/uploads', key: 'uploads' },
+          { href: '/forms', key: 'forms', translationKey: 'links.forms', hotkey: ['g', 'f'] },
+          { href: '/table', key: 'table', translationKey: 'links.table', hotkey: ['g', 't'] },
+          { href: '/uploads', key: 'uploads', translationKey: 'links.uploads', hotkey: ['g', 'u'] },
         ],
       },
     ]);
   });
 
   it('adds authenticated and admin-only destinations without leaving empty categories', () => {
-    expect(buildNavigationCategories({ isAuthenticated: true, isAdmin: false })).toEqual([
+    expect(buildNavigationCategories({ isAuthenticated: true, role: 'USER' })).toEqual([
       {
         key: 'discover',
         links: [
-          { href: '/', key: 'home' },
-          { href: '/about', key: 'about' },
-          { href: '/story', key: 'story' },
-          { href: '/communication', key: 'communication' },
+          { href: '/', key: 'home', translationKey: 'links.home', hotkey: ['g', 'h'] },
+          { href: '/about', key: 'about', translationKey: 'links.about', hotkey: ['g', 'a'] },
+          { href: '/story', key: 'story', translationKey: 'links.story', hotkey: ['g', 's'] },
+          { href: '/communication', key: 'communication', translationKey: 'links.communication', hotkey: ['g', 'c'] },
         ],
       },
       {
         key: 'workspace',
         links: [
-          { href: '/forms', key: 'forms' },
-          { href: '/table', key: 'table' },
-          { href: '/uploads', key: 'uploads' },
-          { href: '/data-entry', key: 'dataEntry', visibility: 'authenticated' },
+          { href: '/forms', key: 'forms', translationKey: 'links.forms', hotkey: ['g', 'f'] },
+          { href: '/table', key: 'table', translationKey: 'links.table', hotkey: ['g', 't'] },
+          { href: '/uploads', key: 'uploads', translationKey: 'links.uploads', hotkey: ['g', 'u'] },
+          { href: '/data-entry', key: 'dataEntry', translationKey: 'links.dataEntry', hotkey: ['g', 'd'] },
         ],
       },
     ]);
 
-    expect(buildNavigationCategories({ isAuthenticated: true, isAdmin: true })).toEqual([
+    expect(buildNavigationCategories({ isAuthenticated: true, role: 'MANAGER' })).toEqual([
       {
         key: 'discover',
         links: [
-          { href: '/', key: 'home' },
-          { href: '/about', key: 'about' },
-          { href: '/story', key: 'story' },
-          { href: '/communication', key: 'communication' },
+          { href: '/', key: 'home', translationKey: 'links.home', hotkey: ['g', 'h'] },
+          { href: '/about', key: 'about', translationKey: 'links.about', hotkey: ['g', 'a'] },
+          { href: '/story', key: 'story', translationKey: 'links.story', hotkey: ['g', 's'] },
+          { href: '/communication', key: 'communication', translationKey: 'links.communication', hotkey: ['g', 'c'] },
         ],
       },
       {
         key: 'workspace',
         links: [
-          { href: '/forms', key: 'forms' },
-          { href: '/table', key: 'table' },
-          { href: '/uploads', key: 'uploads' },
-          { href: '/data-entry', key: 'dataEntry', visibility: 'authenticated' },
+          { href: '/forms', key: 'forms', translationKey: 'links.forms', hotkey: ['g', 'f'] },
+          { href: '/table', key: 'table', translationKey: 'links.table', hotkey: ['g', 't'] },
+          { href: '/uploads', key: 'uploads', translationKey: 'links.uploads', hotkey: ['g', 'u'] },
+          { href: '/data-entry', key: 'dataEntry', translationKey: 'links.dataEntry', hotkey: ['g', 'd'] },
         ],
       },
       {
         key: 'admin',
-        links: [{ href: '/admin', key: 'admin', visibility: 'admin' }],
+        links: [{ href: '/admin', key: 'admin', translationKey: 'links.admin', hotkey: ['g', 'm'] }],
       },
     ]);
   });

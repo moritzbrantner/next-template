@@ -1,6 +1,80 @@
 export const settingsPage = {
   title: 'Settings',
-  description: 'Manage your profile picture.',
+  description: 'Tune appearance, date behavior, hotkey visibility, and profile controls in one place.',
+  saveState: 'Settings save automatically',
+  tabs: {
+    appearance: 'Appearance',
+    dates: 'Dates',
+    workflow: 'Workflow',
+  },
+  roles: {
+    admin: 'Admin',
+    manager: 'Manager',
+    user: 'User',
+  },
+  rbac: {
+    title: 'Role-based access',
+    description: 'Authorization now uses a Better Auth access-control matrix instead of one-off role checks.',
+    allowed: 'Allowed',
+    denied: 'Not allowed',
+    permissions: {
+      viewReports: 'View reports',
+      manageUsers: 'Manage users',
+      adminWorkspace: 'Open admin workspace',
+      systemSettings: 'Manage system settings',
+    },
+  },
+  appearance: {
+    title: 'Appearance controls',
+    description: 'Adjust the shell atmosphere and how dense the interface feels.',
+    compactSpacing: 'Compact spacing',
+    compactSpacingDescription: 'Reduce padding and tighten the main workspace layout.',
+    reducedMotion: 'Reduce motion',
+    reducedMotionDescription: 'Lower non-essential movement and animation across the shell.',
+    backgrounds: {
+      paper: {
+        title: 'Paper',
+        description: 'Neutral canvas with soft contrast.',
+      },
+      aurora: {
+        title: 'Aurora',
+        description: 'Cool cyan and green gradients.',
+      },
+      dusk: {
+        title: 'Dusk',
+        description: 'Warmer tones with more color depth.',
+      },
+      forest: {
+        title: 'Forest',
+        description: 'Muted green atmosphere for calmer screens.',
+      },
+    },
+  },
+  dates: {
+    title: 'Date and picker behavior',
+    description: 'Choose how dates are formatted and how calendars should behave.',
+    formatLabel: 'Date format',
+    weekStartsLabel: 'Week starts on',
+    showOutsideDays: 'Show outside days',
+    showOutsideDaysDescription: 'Display the previous and next month’s trailing days in the calendar grid.',
+    previewLabel: 'Preview',
+    formats: {
+      localized: 'Localized medium',
+      long: 'Long weekday format',
+      iso: 'ISO 8601',
+    },
+    weekStarts: {
+      monday: 'Monday',
+      sunday: 'Sunday',
+    },
+  },
+  workflow: {
+    title: 'Workflow and navigation',
+    description: 'Decide how much guidance the app should show while you move between routes.',
+    hotkeyHints: 'Show hotkey hints',
+    hotkeyHintsDescription: 'Display the hotkeys launcher and inline shortcut badges in navigation.',
+    hotkeySummary: 'Use `G` followed by a letter to jump between pages, or press `?` to open the full shortcut list.',
+  },
   profilePictureTitle: 'Profile picture',
   profilePictureDescription: 'Upload a new profile picture or remove your current one.',
   form: {
@@ -13,5 +87,4 @@ export const settingsPage = {
     empty: 'No image',
     alt: 'Profile picture',
   },
-
 };

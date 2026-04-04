@@ -1,6 +1,5 @@
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
-import { isAdmin } from '@/lib/authorization';
 import type { Theme } from '@/lib/theme';
 import { buildNavigationCategories } from '@/src/navigation/navigation-categories';
 import { useTranslations } from '@/src/i18n';
@@ -9,6 +8,7 @@ import type { AppSession } from '@/src/auth';
 import { AuthNavigation } from '@/components/auth-navigation';
 import { GroupedNavigationMenu } from '@/components/grouped-navigation-menu';
 import { LanguageSelector } from '@/components/language-selector';
+import { NavigationHotkeys } from '@/components/navigation-hotkeys';
 import { ProfileMenu } from '@/components/profile-menu';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -22,13 +22,14 @@ export function NavigationBar({ initialTheme, locale, session }: NavigationBarPr
   const t = useTranslations('NavigationBar');
   const navigationCategories = buildNavigationCategories({
     isAuthenticated: Boolean(session?.user?.id),
-    isAdmin: isAdmin(session?.user?.role),
+    role: session?.user?.role,
   }).map((category) => ({
     key: category.key,
     label: t(`categories.${category.key}`),
     links: category.links.map((link) => ({
       href: link.href,
-      label: t(`links.${link.key}`),
+      label: t(link.translationKey),
+      hotkey: link.hotkey.map((part) => part.toUpperCase()).join(' '),
     })),
   }));
 
@@ -64,6 +65,7 @@ export function NavigationBar({ initialTheme, locale, session }: NavigationBarPr
               }}
             />
           )}
+          <NavigationHotkeys session={session} />
           <LanguageSelector />
           <ThemeToggle initialTheme={initialTheme} />
         </div>

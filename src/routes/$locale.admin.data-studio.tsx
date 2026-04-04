@@ -1,16 +1,14 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
+import { canManageSystemSettings } from '@/lib/authorization';
 import dbSchema from '@/db-schema.json';
 import { SchemaTableForm } from '@/components/dynamic-db/schema-table-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getAdminAuthorization } from '@/src/domain/authorization/use-cases';
 import { parseDbSchemaDocument } from '@/src/dynamic-db/schema';
 
 export const Route = createFileRoute('/$locale/admin/data-studio')({
   beforeLoad: ({ context, params }) => {
-    const authorization = getAdminAuthorization(context.session);
-
-    if (!authorization.ok) {
+    if (!canManageSystemSettings(context.session?.user.role)) {
       throw redirect({
         to: '/$locale',
         params: { locale: params.locale },

@@ -2,7 +2,7 @@
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
-import { applyE2EEnvironment } from '@/tests/e2e/environment';
+import { applyE2EEnvironment } from './environment';
 
 const setupFile = __filename;
 const setupDir = path.dirname(setupFile);

@@ -1,6 +1,6 @@
 export const adminPage = {
   title: 'Admin overview',
-  description: 'This page gives administrators a quick summary of the available admin actions.',
+  description: 'This page gives authorized roles a quick summary of the available admin actions.',
   status: {
     allowed: 'Allowed',
     denied: 'Not allowed',

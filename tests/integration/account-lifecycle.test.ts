@@ -49,6 +49,78 @@ describe('account lifecycle', () => {
     expect(deps.issueToken).toHaveBeenCalledTimes(1);
   });
 
+  it('rejects invalid and duplicate account creation attempts', async () => {
+    const deps = createDeps();
+
+    await expect(
+      signUpWithCredentials(
+        {
+          email: 'not-an-email',
+          password: 'VerySecure123',
+        },
+        deps,
+      ),
+    ).resolves.toEqual({ ok: false, error: 'A valid email is required.' });
+
+    await expect(
+      signUpWithCredentials(
+        {
+          email: 'person@example.com',
+          password: 'short',
+        },
+        deps,
+      ),
+    ).resolves.toEqual({ ok: false, error: 'Password must be at least 10 characters.' });
+
+    await expect(
+      signUpWithCredentials(
+        {
+          email: 'person@example.com',
+          password: 'verysecure123',
+        },
+        deps,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: 'Password must include uppercase, lowercase, and a number.',
+    });
+
+    await expect(
+      signUpWithCredentials(
+        {
+          email: 'person@example.com',
+          password: 'VerySecure123',
+          name: 'x'.repeat(81),
+        },
+        deps,
+      ),
+    ).resolves.toEqual({ ok: false, error: 'Display name must be 80 characters or fewer.' });
+
+    expect(deps.createUser).not.toHaveBeenCalled();
+    expect(deps.issueToken).not.toHaveBeenCalled();
+
+    const duplicateDeps = createDeps();
+    duplicateDeps.findUserByEmail.mockResolvedValue({
+      id: 'existing_user',
+      email: 'person@example.com',
+      failedSignInAttempts: 0,
+      lockoutUntil: null,
+    });
+
+    await expect(
+      signUpWithCredentials(
+        {
+          email: 'person@example.com',
+          password: 'VerySecure123',
+        },
+        duplicateDeps,
+      ),
+    ).resolves.toEqual({ ok: false, error: 'An account already exists for this email.' });
+
+    expect(duplicateDeps.createUser).not.toHaveBeenCalled();
+    expect(duplicateDeps.issueToken).not.toHaveBeenCalled();
+  });
+
   it('verifies email using token and rejects expired tokens', async () => {
     const deps = createDeps();
     deps.findToken.mockResolvedValueOnce({
@@ -70,6 +142,21 @@ describe('account lifecycle', () => {
     const expiredResult = await verifyEmailByToken('expired-raw-token', deps);
     expect(expiredResult).toEqual({ ok: false, error: 'Verification token has expired.' });
     expect(deps.deleteToken).toHaveBeenCalledWith('expired-token');
+  });
+
+  it('rejects invalid verification and password reset tokens', async () => {
+    const deps = createDeps();
+    deps.findToken.mockResolvedValue(undefined);
+
+    await expect(verifyEmailByToken('missing-token', deps)).resolves.toEqual({
+      ok: false,
+      error: 'Invalid verification token.',
+    });
+
+    await expect(resetPasswordWithToken('missing-reset', 'AnotherSecure123', deps)).resolves.toEqual({
+      ok: false,
+      error: 'Invalid password reset token.',
+    });
   });
 
   it('issues and consumes password reset tokens', async () => {
@@ -97,5 +184,15 @@ describe('account lifecycle', () => {
     expect(deps.hashPassword).toHaveBeenCalledWith('AnotherSecure123');
     expect(deps.updatePassword).toHaveBeenCalledWith('user_2', 'hashed-password');
     expect(deps.deleteToken).toHaveBeenCalledWith('stored-reset-token');
+  });
+
+  it('does not issue password reset tokens for invalid or unknown emails', async () => {
+    const deps = createDeps();
+    deps.findUserByEmail.mockResolvedValue(undefined);
+
+    await expect(requestPasswordReset('not-an-email', deps)).resolves.toEqual({ ok: true });
+    await expect(requestPasswordReset('missing@example.com', deps)).resolves.toEqual({ ok: true });
+
+    expect(deps.issueToken).not.toHaveBeenCalled();
   });
 });

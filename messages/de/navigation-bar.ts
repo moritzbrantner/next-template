@@ -27,4 +27,13 @@ export const navigationBar = {
     logout: 'Abmelden',
     openMenu: 'Benutzermenü öffnen',
   },
+  hotkeys: {
+    button: 'Hotkeys',
+    title: 'Navigations-Hotkeys',
+    description: 'Wechsle zwischen Seiten, ohne das Menü zu öffnen.',
+    searchPlaceholder: 'Seiten suchen…',
+    empty: 'Keine passenden Seiten.',
+    pending: 'Drücke die zweite Taste zur Navigation',
+    accountGroup: 'Konto',
+  },
 };

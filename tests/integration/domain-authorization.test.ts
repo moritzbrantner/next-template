@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import type { AppSession } from "@/src/auth";
 import { getAdminActionPermissions, getAdminAuthorization } from "@/src/domain/authorization/use-cases";
 
-function createSession(role: "ADMIN" | "USER"): AppSession {
+function createSession(role: "ADMIN" | "MANAGER" | "USER"): AppSession {
   return {
     user: {
-      id: role === "ADMIN" ? "admin_1" : "user_1",
+      id: role === "ADMIN" ? "admin_1" : role === "MANAGER" ? "manager_1" : "user_1",
       email: `${role.toLowerCase()}@example.com`,
       image: null,
       name: null,
@@ -40,6 +40,22 @@ describe("authorization domain use-cases", () => {
     });
   });
 
+  it("returns allowed actions for manager", () => {
+    const result = getAdminAuthorization(createSession("MANAGER"));
+
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.data.actions).toEqual([
+      { key: "viewReports", allowed: true },
+      { key: "manageUsers", allowed: false },
+      { key: "manageSystemSettings", allowed: false },
+    ]);
+  });
+
   it("returns allowed actions for admin", () => {
     const result = getAdminAuthorization(createSession("ADMIN"));
 
@@ -59,6 +75,12 @@ describe("authorization domain use-cases", () => {
   it("computes admin action permissions from role", () => {
     expect(getAdminActionPermissions("USER")).toEqual([
       { key: "viewReports", allowed: false },
+      { key: "manageUsers", allowed: false },
+      { key: "manageSystemSettings", allowed: false },
+    ]);
+
+    expect(getAdminActionPermissions("MANAGER")).toEqual([
+      { key: "viewReports", allowed: true },
       { key: "manageUsers", allowed: false },
       { key: "manageSystemSettings", allowed: false },
     ]);

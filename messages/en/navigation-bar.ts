@@ -27,4 +27,13 @@ export const navigationBar = {
     logout: 'Log out',
     openMenu: 'Open user menu',
   },
+  hotkeys: {
+    button: 'Hotkeys',
+    title: 'Navigation hotkeys',
+    description: 'Jump between routes without reaching for the menu.',
+    searchPlaceholder: 'Search pages…',
+    empty: 'No matching pages.',
+    pending: 'Press a second key for navigation',
+    accountGroup: 'Account',
+  },
 };

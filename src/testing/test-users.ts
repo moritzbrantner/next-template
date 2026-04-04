@@ -17,7 +17,7 @@ export const TEST_USERS = [
     email: "manager@example.com",
     password: "manager",
     name: "Test Manager",
-    role: "USER" as const,
+    role: "MANAGER" as const,
   },
   {
     email: "user@example.com",

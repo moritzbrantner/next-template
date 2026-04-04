@@ -7,11 +7,14 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import type { Theme } from '@/lib/theme';
 import type { AppSession } from '@/src/auth';
 import { loadAppContext } from '@/src/runtime.functions';
+import { AppSettingsProvider } from '@/src/settings/provider';
+import { defaultAppSettings, type AppSettings } from '@/src/settings/preferences';
 import appCss from '@/src/styles/app.css?url';
 
 type RouterContext = {
   session: AppSession | null;
   theme: Theme;
+  settings: AppSettings;
 };
 
 const themeScript = `
@@ -29,6 +32,35 @@ const themeScript = `
 
   document.documentElement.classList.remove('light', 'dark');
   document.documentElement.classList.add(theme);
+})();
+`;
+
+const settingsScript = `
+(() => {
+  const defaultSettings = ${JSON.stringify(defaultAppSettings)};
+  const parseSettings = (value) => {
+    if (!value) return null;
+    try {
+      return JSON.parse(decodeURIComponent(value));
+    } catch {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return null;
+      }
+    }
+  };
+  const cookieSettings = document.cookie
+    .split('; ')
+    .find((cookie) => cookie.startsWith('app-settings='))
+    ?.split('=')[1];
+  const storedSettings = window.localStorage.getItem('app-settings');
+  const settings = { ...defaultSettings, ...(parseSettings(cookieSettings) ?? parseSettings(storedSettings) ?? {}) };
+
+  document.documentElement.dataset.background = settings.background;
+  document.documentElement.dataset.density = settings.compactSpacing ? 'compact' : 'comfortable';
+  document.documentElement.dataset.motion = settings.reducedMotion ? 'reduced' : 'full';
+  document.documentElement.dataset.hotkeyHints = settings.showHotkeyHints ? 'visible' : 'hidden';
 })();
 `;
 
@@ -57,22 +89,33 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
-  const { theme } = Route.useRouteContext();
+  const { theme, settings } = Route.useRouteContext();
 
   useEffect(() => {
     document.documentElement.dataset.appHydrated = 'true';
   }, []);
 
   return (
-    <html lang="en" className={theme} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={theme}
+      data-background={settings.background}
+      data-density={settings.compactSpacing ? 'compact' : 'comfortable'}
+      data-motion={settings.reducedMotion ? 'reduced' : 'full'}
+      data-hotkey-hints={settings.showHotkeyHints ? 'visible' : 'hidden'}
+      suppressHydrationWarning
+    >
       <head>
         <HeadContent />
       </head>
       <body className="antialiased">
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <Outlet />
-        <TanStackRouterDevtools position="bottom-right" />
-        <Scripts />
+        <script dangerouslySetInnerHTML={{ __html: settingsScript }} />
+        <AppSettingsProvider initialSettings={settings}>
+          <Outlet />
+          <TanStackRouterDevtools position="bottom-right" />
+          <Scripts />
+        </AppSettingsProvider>
       </body>
     </html>
   );

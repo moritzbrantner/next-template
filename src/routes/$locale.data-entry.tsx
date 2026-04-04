@@ -1,12 +1,13 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
+import { canAccessDataEntryWorkspace } from '@/lib/authorization';
 import { TableEntryForm } from '@/components/data-entry/table-entry-form';
 import { getTablePermissionViews } from '@/src/domain/data-entry/use-cases';
 import { useTranslations } from '@/src/i18n';
 
 export const Route = createFileRoute('/$locale/data-entry')({
   beforeLoad: ({ context, params }) => {
-    if (!context.session?.user?.id || !context.session.user.role) {
+    if (!context.session?.user?.id || !canAccessDataEntryWorkspace(context.session.user.role)) {
       throw redirect({
         to: '/$locale',
         params: { locale: params.locale },

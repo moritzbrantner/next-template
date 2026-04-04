@@ -1,28 +1,85 @@
+import { createAccessControl } from 'better-auth/plugins/access';
+
 import type { AppSession } from '@/src/auth';
 import { getAuthSession } from '@/src/auth.server';
 
-export type AppRole = 'ADMIN' | 'USER';
+export type AppRole = 'ADMIN' | 'MANAGER' | 'USER';
 
 type RoleInput = AppRole | AppRole[];
 
 type BusinessAction =
   | 'viewDashboard'
   | 'editOwnProfile'
+  | 'accessDataEntryWorkspace'
+  | 'accessAdminArea'
   | 'viewReports'
   | 'manageUsers'
   | 'manageSystemSettings';
 
 const roleHierarchy: Record<AppRole, number> = {
   USER: 0,
-  ADMIN: 1,
+  MANAGER: 1,
+  ADMIN: 2,
 };
 
-const actionPermissions: Record<BusinessAction, readonly AppRole[]> = {
-  viewDashboard: ['USER', 'ADMIN'],
-  editOwnProfile: ['USER', 'ADMIN'],
-  viewReports: ['ADMIN'],
-  manageUsers: ['ADMIN'],
-  manageSystemSettings: ['ADMIN'],
+const appAccessControl = createAccessControl({
+  dashboard: ['view'],
+  profile: ['update'],
+  workspace: ['access'],
+  admin: ['access'],
+  reports: ['view'],
+  users: ['manage'],
+  system: ['manage'],
+});
+
+const appRoles = {
+  USER: appAccessControl.newRole({
+    dashboard: ['view'],
+    profile: ['update'],
+    workspace: ['access'],
+  }),
+  MANAGER: appAccessControl.newRole({
+    dashboard: ['view'],
+    profile: ['update'],
+    workspace: ['access'],
+    admin: ['access'],
+    reports: ['view'],
+  }),
+  ADMIN: appAccessControl.newRole({
+    dashboard: ['view'],
+    profile: ['update'],
+    workspace: ['access'],
+    admin: ['access'],
+    reports: ['view'],
+    users: ['manage'],
+    system: ['manage'],
+  }),
+} as const;
+
+type PermissionRequest = Parameters<(typeof appRoles)['ADMIN']['authorize']>[0];
+
+const actionPermissions: Record<BusinessAction, PermissionRequest> = {
+  viewDashboard: {
+    dashboard: ['view'],
+  },
+  editOwnProfile: {
+    profile: ['update'],
+  },
+  accessDataEntryWorkspace: {
+    workspace: ['access'],
+  },
+  accessAdminArea: {
+    admin: ['access'],
+  },
+  viewReports: {
+    reports: ['view'],
+  },
+  manageUsers: {
+    users: ['manage'],
+  },
+  manageSystemSettings: {
+    system: ['manage'],
+  },
 };
 
 function normalizeRoles(roleOrRoles: RoleInput): readonly AppRole[] {
@@ -46,7 +103,7 @@ function canPerform(role: AppRole | null | undefined, action: BusinessAction): b
     return false;
   }
 
-  return actionPermissions[action].includes(role);
+  return (appRoles[role] as (typeof appRoles)['ADMIN']).authorize(actionPermissions[action]).success;
 }
 
 export function canViewDashboard(role: AppRole | null | undefined): boolean {
@@ -59,6 +116,14 @@ export function canEditOwnProfile(role: AppRole | null | undefined): boolean {
 
 export function canViewReports(role: AppRole | null | undefined): boolean {
   return canPerform(role, 'viewReports');
+}
+
+export function canAccessDataEntryWorkspace(role: AppRole | null | undefined): boolean {
+  return canPerform(role, 'accessDataEntryWorkspace');
+}
+
+export function canAccessAdminArea(role: AppRole | null | undefined): boolean {
+  return canPerform(role, 'accessAdminArea');
 }
 
 export function canManageUsers(role: AppRole | null | undefined): boolean {

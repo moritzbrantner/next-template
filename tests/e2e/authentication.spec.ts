@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test';
 
-import { TEST_USERS } from '@/src/testing/test-users';
-import { gotoAndWaitForHydration } from '@/tests/e2e/helpers';
+import {
+  getSeededUser,
+  gotoAndWaitForHydration,
+  loginWithCredentials,
+  logoutFromProfileMenu,
+} from '@/tests/e2e/helpers';
 
-const seededUser = TEST_USERS.find((user) => user.email === 'user@example.com');
-
-if (!seededUser) {
-  throw new Error('Expected default e2e test user to exist');
-}
+const seededUser = getSeededUser('user@example.com');
 
 test.describe('authentication', () => {
   test('shows client-side validation errors on the registration form', async ({ page }) => {
@@ -48,30 +48,40 @@ test.describe('authentication', () => {
     await expect(page).toHaveURL('/en/profile');
     await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'Open user menu' }).click();
-    await page.getByRole('button', { name: 'Log out' }).click();
-
-    await expect(page).toHaveURL('/en');
+    await logoutFromProfileMenu(page);
     await expect(page.getByRole('link', { name: 'Register' })).toBeVisible();
   });
 
-  test('logs in through the custom page and logs out from the profile menu', async ({ page }) => {
-    await gotoAndWaitForHydration(page, '/en/login');
+  test('rejects duplicate account creation on the registration page', async ({ page }) => {
+    await gotoAndWaitForHydration(page, '/en/register');
 
-    await expect(page.getByRole('heading', { name: 'Sign in to continue where you left off.' })).toBeVisible();
-
+    await page.getByLabel('Display name').fill('Existing User');
     await page.getByLabel('Email').fill(seededUser.email);
-    await page.getByLabel('Password').fill(seededUser.password);
-    await page.getByRole('button', { name: 'Log in' }).click();
+    await page.getByLabel('Password', { exact: true }).fill('StrongPass123');
+    await page.getByLabel('Confirm password').fill('StrongPass123');
+    await page.getByRole('button', { name: 'Create account' }).click();
 
+    await expect(page.getByText('An account already exists for this email.')).toBeVisible();
+    await expect(page).toHaveURL('/en/register');
+  });
+
+  test('redirects authenticated users away from login and register pages', async ({ page }) => {
+    await loginWithCredentials(page, seededUser.email, seededUser.password);
+
+    await page.goto('/en/login');
     await expect(page).toHaveURL('/en/profile');
+    await gotoAndWaitForHydration(page, '/en/register');
+    await expect(page).toHaveURL('/en/profile');
+  });
+
+  test('logs in through the custom page, logs out, and loses access to protected pages', async ({ page }) => {
+    await loginWithCredentials(page, seededUser.email, seededUser.password);
     await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'Open user menu' }).click();
-    await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
-    await page.getByRole('button', { name: 'Log out' }).click();
-
-    await expect(page).toHaveURL('/en');
+    await logoutFromProfileMenu(page);
     await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible();
+
+    await gotoAndWaitForHydration(page, '/en/profile');
+    await expect(page).toHaveURL('/en');
   });
 });

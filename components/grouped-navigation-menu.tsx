@@ -5,6 +5,7 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'motion/r
 
 import { Link, usePathname } from '@/i18n/navigation';
 import { type NavigationCategoryKey } from '@/src/navigation/navigation-categories';
+import { useAppSettings } from '@/src/settings/provider';
 
 type GroupedNavigationMenuProps = {
   categories: Array<{
@@ -13,6 +14,7 @@ type GroupedNavigationMenuProps = {
     links: Array<{
       href: string;
       label: string;
+      hotkey: string;
     }>;
   }>;
 };
@@ -27,6 +29,7 @@ function matchesPath(pathname: string, href: string) {
 
 export function GroupedNavigationMenu({ categories }: GroupedNavigationMenuProps) {
   const pathname = usePathname();
+  const { settings } = useAppSettings();
   const prefersReducedMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const [openState, setOpenState] = useState<{
@@ -198,7 +201,12 @@ export function GroupedNavigationMenu({ categories }: GroupedNavigationMenuProps
                         setOpenState(null);
                       }}
                     >
-                      {link.label}
+                      <span>{link.label}</span>
+                      {settings.showHotkeyHints ? (
+                        <span className="ml-auto rounded-full border border-zinc-200/80 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                          {link.hotkey}
+                        </span>
+                      ) : null}
                     </Link>
                   </motion.li>
                 );

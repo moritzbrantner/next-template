@@ -1,4 +1,5 @@
 import {
+  canAccessAdminArea,
   canManageSystemSettings,
   canManageUsers,
   canViewReports,
@@ -58,7 +59,7 @@ export function getAdminAuthorization(
   }
 
   const role = session.user.role;
-  if (role !== "ADMIN") {
+  if (!canAccessAdminArea(role)) {
     return failure({
       code: "FORBIDDEN",
       message: "You do not have permission to access admin actions.",
