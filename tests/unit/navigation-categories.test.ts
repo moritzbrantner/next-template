@@ -10,6 +10,7 @@ describe('navigation categories', () => {
         links: [
           { href: '/', key: 'home', translationKey: 'links.home', hotkey: ['alt', 'h'] },
           { href: '/about', key: 'about', translationKey: 'links.about', hotkey: ['alt', 'a'] },
+          { href: '/report-problem', key: 'reportProblem', translationKey: 'links.reportProblem', hotkey: ['alt', 'b'] },
           { href: '/story', key: 'story', translationKey: 'links.story', hotkey: ['alt', 's'] },
           { href: '/communication', key: 'communication', translationKey: 'links.communication', hotkey: ['alt', 'c'] },
         ],
@@ -32,6 +33,7 @@ describe('navigation categories', () => {
         links: [
           { href: '/', key: 'home', translationKey: 'links.home', hotkey: ['alt', 'h'] },
           { href: '/about', key: 'about', translationKey: 'links.about', hotkey: ['alt', 'a'] },
+          { href: '/report-problem', key: 'reportProblem', translationKey: 'links.reportProblem', hotkey: ['alt', 'b'] },
           { href: '/story', key: 'story', translationKey: 'links.story', hotkey: ['alt', 's'] },
           { href: '/communication', key: 'communication', translationKey: 'links.communication', hotkey: ['alt', 'c'] },
         ],
@@ -54,6 +56,7 @@ describe('navigation categories', () => {
         links: [
           { href: '/', key: 'home', translationKey: 'links.home', hotkey: ['alt', 'h'] },
           { href: '/about', key: 'about', translationKey: 'links.about', hotkey: ['alt', 'a'] },
+          { href: '/report-problem', key: 'reportProblem', translationKey: 'links.reportProblem', hotkey: ['alt', 'b'] },
           { href: '/story', key: 'story', translationKey: 'links.story', hotkey: ['alt', 's'] },
           { href: '/communication', key: 'communication', translationKey: 'links.communication', hotkey: ['alt', 'c'] },
         ],

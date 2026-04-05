@@ -47,7 +47,7 @@ export function NavigationBar({ initialTheme, locale, session }: NavigationBarPr
           {session?.user?.id ? (
             <ProfileMenu
               locale={locale}
-              profileHref="/profile"
+              profileHref={`/profile/${session.user.id}`}
               settingsHref="/settings"
               imageUrl={session.user.image ?? null}
               displayName={session.user.name ?? 'User'}

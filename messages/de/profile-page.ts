@@ -1,6 +1,17 @@
 export const profilePage = {
   title: 'Profil',
   description: 'Verwalte deinen Anzeigenamen und dein Profilbild.',
+  view: {
+    title: 'Profil',
+    description: 'Sieh dir dieses Profil an und folge der Person bei Bedarf.',
+    followers: 'Follower',
+    follow: 'Folgen',
+    unfollow: 'Nicht mehr folgen',
+    following: 'Wird gefolgt…',
+    unfollowing: 'Wird entfolgt…',
+    editProfile: 'Profil bearbeiten',
+    error: 'Der Follow-Status konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+  },
   form: {
     displayName: {
       label: 'Anzeigename',

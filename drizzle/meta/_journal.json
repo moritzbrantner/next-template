@@ -36,6 +36,13 @@
       "when": 1775393963120,
       "tag": "0004_charming_solo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775416126921,
+      "tag": "0005_fuzzy_cyclops",
+      "breakpoints": true
     }
   ]
 }

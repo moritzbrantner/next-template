@@ -1,10 +1,10 @@
-import { eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
-import { users } from '@/src/db/schema';
+import { userFollows, users } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
+import { buildProfileImageUrl, deleteProfileImage, uploadProfileImage } from '@/src/profile/object-storage';
 import { ImageValidationError, validateImageUpload } from '@/src/profile/image-validation';
-import { deleteProfileImage, uploadProfileImage } from '@/src/profile/object-storage';
 
 const DISPLAY_NAME_MIN_LENGTH = 2;
 const DISPLAY_NAME_MAX_LENGTH = 60;
@@ -12,6 +12,15 @@ const DISPLAY_NAME_MAX_LENGTH = 60;
 export type ProfileError = {
   code: 'VALIDATION_ERROR' | 'NOT_FOUND' | 'FORBIDDEN' | 'CONFLICT';
   message: string;
+};
+
+export type ProfileViewPayload = {
+  userId: string;
+  displayName: string;
+  imageUrl: string | null;
+  followerCount: number;
+  isOwnProfile: boolean;
+  isFollowing: boolean;
 };
 
 export type UpdateDisplayNamePayload = {
@@ -22,6 +31,148 @@ export type UpdateProfileImagePayload = {
   imageKey: string;
   imageUrl: string;
 };
+
+type ProfileUserRecord = {
+  id: string;
+  email: string | null;
+  name: string | null;
+  image: string | null;
+};
+
+export type ProfileUseCaseDeps = {
+  findUserById: (userId: string) => Promise<ProfileUserRecord | undefined>;
+  countFollowers: (userId: string) => Promise<number>;
+  hasFollowRelationship: (followerId: string, followingId: string) => Promise<boolean>;
+  createFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
+  deleteFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
+};
+
+function getProfileUseCaseDeps(): ProfileUseCaseDeps {
+  return {
+    findUserById: (userId) =>
+      getDb().query.users.findFirst({
+        where: (table, { eq: innerEq }) => innerEq(table.id, userId),
+      }),
+    countFollowers: async (userId) => {
+      const [result] = await getDb()
+        .select({ value: count() })
+        .from(userFollows)
+        .where(eq(userFollows.followingId, userId));
+
+      return result?.value ?? 0;
+    },
+    hasFollowRelationship: async (followerId, followingId) => {
+      const relationship = await getDb().query.userFollows.findFirst({
+        where: (table, { and: innerAnd, eq: innerEq }) =>
+          innerAnd(innerEq(table.followerId, followerId), innerEq(table.followingId, followingId)),
+      });
+
+      return Boolean(relationship);
+    },
+    createFollowRelationship: async (followerId, followingId) => {
+      await getDb()
+        .insert(userFollows)
+        .values({
+          followerId,
+          followingId,
+        })
+        .onConflictDoNothing();
+    },
+    deleteFollowRelationship: async (followerId, followingId) => {
+      await getDb()
+        .delete(userFollows)
+        .where(and(eq(userFollows.followerId, followerId), eq(userFollows.followingId, followingId)));
+    },
+  };
+}
+
+function resolveProfileDisplayName(user: Pick<ProfileUserRecord, 'name' | 'email'>) {
+  const trimmedName = user.name?.trim();
+
+  if (trimmedName) {
+    return trimmedName;
+  }
+
+  const emailPrefix = user.email?.split('@')[0]?.trim();
+  return emailPrefix || 'User';
+}
+
+export async function getProfileViewUseCase(
+  profileUserId: string,
+  viewerUserId?: string | null,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileViewPayload, ProfileError>> {
+  const user = await deps.findUserById(profileUserId);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const isOwnProfile = Boolean(viewerUserId && viewerUserId === profileUserId);
+  const [followerCount, isFollowing] = await Promise.all([
+    deps.countFollowers(profileUserId),
+    viewerUserId && !isOwnProfile ? deps.hasFollowRelationship(viewerUserId, profileUserId) : Promise.resolve(false),
+  ]);
+
+  return success({
+    userId: user.id,
+    displayName: resolveProfileDisplayName(user),
+    imageUrl: buildProfileImageUrl(user.image) ?? null,
+    followerCount,
+    isOwnProfile,
+    isFollowing,
+  });
+}
+
+async function updateFollowRelationship(
+  actorUserId: string,
+  targetUserId: string,
+  shouldFollow: boolean,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<{ following: boolean }, ProfileError>> {
+  if (actorUserId === targetUserId) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: 'You cannot follow your own profile.',
+    });
+  }
+
+  const targetUser = await deps.findUserById(targetUserId);
+
+  if (!targetUser) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  if (shouldFollow) {
+    await deps.createFollowRelationship(actorUserId, targetUserId);
+    return success({ following: true });
+  }
+
+  await deps.deleteFollowRelationship(actorUserId, targetUserId);
+  return success({ following: false });
+}
+
+export function followUserUseCase(
+  actorUserId: string,
+  targetUserId: string,
+  deps?: ProfileUseCaseDeps,
+) {
+  return updateFollowRelationship(actorUserId, targetUserId, true, deps);
+}
+
+export function unfollowUserUseCase(
+  actorUserId: string,
+  targetUserId: string,
+  deps?: ProfileUseCaseDeps,
+) {
+  return updateFollowRelationship(actorUserId, targetUserId, false, deps);
+}
 
 export async function updateDisplayNameUseCase(
   userId: string,

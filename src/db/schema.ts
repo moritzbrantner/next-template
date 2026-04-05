@@ -35,6 +35,24 @@ export const profiles = pgTable(
   (table) => [uniqueIndex("Profile_userId_key").on(table.userId)],
 );
 
+export const userFollows = pgTable(
+  "UserFollow",
+  {
+    followerId: text("followerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    followingId: text("followingId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.followerId, table.followingId], name: "UserFollow_pkey" }),
+    index("UserFollow_followerId_idx").on(table.followerId),
+    index("UserFollow_followingId_idx").on(table.followingId),
+  ],
+);
+
 export const accounts = pgTable(
   "Account",
   {

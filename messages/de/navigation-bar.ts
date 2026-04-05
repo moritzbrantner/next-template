@@ -8,6 +8,7 @@ export const navigationBar = {
   links: {
     home: 'Startseite',
     about: 'Über uns',
+    reportProblem: 'Problem melden',
     forms: 'Formular-Demo',
     story: 'Story-Demo',
     communication: 'Kommunikation',

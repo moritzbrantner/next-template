@@ -1,6 +1,17 @@
 export const profilePage = {
   title: 'Profile',
   description: 'Manage your display name and profile picture.',
+  view: {
+    title: 'Profile',
+    description: 'View this user and keep up with their activity.',
+    followers: 'followers',
+    follow: 'Follow',
+    unfollow: 'Unfollow',
+    following: 'Following…',
+    unfollowing: 'Unfollowing…',
+    editProfile: 'Edit profile',
+    error: 'Unable to update follow status right now. Please try again.',
+  },
   form: {
     displayName: {
       label: 'Display name',
