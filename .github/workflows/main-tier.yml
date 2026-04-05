@@ -6,17 +6,17 @@ on:
   push:
     branches: [main]
 
-concurrency:
-  group: main-tier-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
+  packages: read
 
 jobs:
   main-tier:
     name: Main Tier
     uses: ./.github/workflows/tier-checks.yml
+    permissions:
+      contents: read
+      packages: read
     with:
       tier-name: main
       check-command: checks:main
