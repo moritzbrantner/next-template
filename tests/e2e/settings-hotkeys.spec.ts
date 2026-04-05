@@ -41,13 +41,11 @@ test.describe('settings and hotkeys', () => {
 
     await expect(page.getByRole('button', { name: 'Hotkeys' })).toBeVisible();
 
-    await page.keyboard.press('g');
-    await page.keyboard.press('m');
+    await page.keyboard.press('Alt+M');
     await expect(page).toHaveURL('/en/admin');
     await expect(page.getByRole('heading', { name: 'Admin overview' })).toBeVisible();
 
-    await page.keyboard.press('g');
-    await page.keyboard.press('e');
+    await page.keyboard.press('Alt+E');
     await expect(page).toHaveURL('/en/settings');
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   });

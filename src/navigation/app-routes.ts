@@ -23,13 +23,15 @@ export type AppPageKey =
 
 type Visibility = 'public' | 'guest' | 'authenticated' | 'workspace' | 'manager' | 'admin';
 
+export type AppHotkey = readonly [modifier: 'alt', key: string];
+
 export type AppPageDefinition = {
   key: AppPageKey;
   href: string;
   translationKey: string;
   visibility: Visibility;
   navigationCategory?: NavigationCategoryKey;
-  hotkey: readonly [string, string];
+  hotkey: AppHotkey;
 };
 
 export const appPageDefinitions: readonly AppPageDefinition[] = [
@@ -39,7 +41,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'links.home',
     visibility: 'public',
     navigationCategory: 'discover',
-    hotkey: ['g', 'h'],
+    hotkey: ['alt', 'h'],
   },
   {
     key: 'about',
@@ -47,7 +49,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'links.about',
     visibility: 'public',
     navigationCategory: 'discover',
-    hotkey: ['g', 'a'],
+    hotkey: ['alt', 'a'],
   },
   {
     key: 'story',
@@ -55,7 +57,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'links.story',
     visibility: 'public',
     navigationCategory: 'discover',
-    hotkey: ['g', 's'],
+    hotkey: ['alt', 's'],
   },
   {
     key: 'communication',
@@ -63,7 +65,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'links.communication',
     visibility: 'public',
     navigationCategory: 'discover',
-    hotkey: ['g', 'c'],
+    hotkey: ['alt', 'c'],
   },
   {
     key: 'forms',
@@ -71,7 +73,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'links.forms',
     visibility: 'public',
     navigationCategory: 'workspace',
-    hotkey: ['g', 'f'],
+    hotkey: ['alt', 'f'],
   },
   {
     key: 'table',
@@ -79,7 +81,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'links.table',
     visibility: 'public',
     navigationCategory: 'workspace',
-    hotkey: ['g', 't'],
+    hotkey: ['alt', 't'],
   },
   {
     key: 'uploads',
@@ -87,7 +89,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'links.uploads',
     visibility: 'public',
     navigationCategory: 'workspace',
-    hotkey: ['g', 'u'],
+    hotkey: ['alt', 'u'],
   },
   {
     key: 'dataEntry',
@@ -95,7 +97,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'links.dataEntry',
     visibility: 'workspace',
     navigationCategory: 'workspace',
-    hotkey: ['g', 'd'],
+    hotkey: ['alt', 'd'],
   },
   {
     key: 'admin',
@@ -103,37 +105,41 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'links.admin',
     visibility: 'manager',
     navigationCategory: 'admin',
-    hotkey: ['g', 'm'],
+    hotkey: ['alt', 'm'],
   },
   {
     key: 'profile',
     href: '/profile',
     translationKey: 'menu.profile',
     visibility: 'authenticated',
-    hotkey: ['g', 'p'],
+    hotkey: ['alt', 'p'],
   },
   {
     key: 'settings',
     href: '/settings',
     translationKey: 'menu.settings',
     visibility: 'authenticated',
-    hotkey: ['g', 'e'],
+    hotkey: ['alt', 'e'],
   },
   {
     key: 'login',
     href: '/login',
     translationKey: 'auth.login',
     visibility: 'guest',
-    hotkey: ['g', 'l'],
+    hotkey: ['alt', 'l'],
   },
   {
     key: 'register',
     href: '/register',
     translationKey: 'auth.register',
     visibility: 'guest',
-    hotkey: ['g', 'r'],
+    hotkey: ['alt', 'r'],
   },
 ] as const;
+
+export function formatAppHotkey(hotkey: AppHotkey) {
+  return hotkey.map((part) => part.toUpperCase()).join('+');
+}
 
 export function canViewAppPage(
   page: AppPageDefinition,

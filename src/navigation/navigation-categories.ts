@@ -1,5 +1,5 @@
 import type { AppRole } from '@/lib/authorization';
-import { getVisibleAppPages } from '@/src/navigation/app-routes';
+import { getVisibleAppPages, type AppHotkey } from '@/src/navigation/app-routes';
 
 export type NavigationCategoryKey = 'discover' | 'workspace' | 'admin';
 
@@ -7,7 +7,7 @@ type NavigationLinkDefinition = {
   href: string;
   key: string;
   translationKey: string;
-  hotkey: readonly [string, string];
+  hotkey: AppHotkey;
 };
 
 type NavigationCategoryDefinition = {

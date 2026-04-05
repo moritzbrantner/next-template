@@ -30,10 +30,10 @@ export const navigationBar = {
   hotkeys: {
     button: 'Hotkeys',
     title: 'Navigations-Hotkeys',
-    description: 'Wechsle zwischen Seiten, ohne das Menü zu öffnen.',
+    description: 'Wechsle mit Alt-Kürzeln zwischen Seiten, ohne das Menü zu öffnen.',
     searchPlaceholder: 'Seiten suchen…',
     empty: 'Keine passenden Seiten.',
-    pending: 'Drücke die zweite Taste zur Navigation',
+    pending: 'Halte Alt gedrückt, während du eine Kürzeltaste drückst',
     accountGroup: 'Konto',
   },
 };

@@ -73,7 +73,7 @@ export const settingsPage = {
     description: 'Decide how much guidance the app should show while you move between routes.',
     hotkeyHints: 'Show hotkey hints',
     hotkeyHintsDescription: 'Display the hotkeys launcher and inline shortcut badges in navigation.',
-    hotkeySummary: 'Use `G` followed by a letter to jump between pages, or press `?` to open the full shortcut list.',
+    hotkeySummary: 'Use `Alt` plus a letter to jump between pages, or press `?` to open the full shortcut list.',
   },
   profilePictureTitle: 'Profile picture',
   profilePictureDescription: 'Upload a new profile picture or remove your current one.',

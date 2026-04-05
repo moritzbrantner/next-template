@@ -74,7 +74,7 @@ export const settingsPage = {
     hotkeyHints: 'Hotkey-Hinweise anzeigen',
     hotkeyHintsDescription: 'Zeigt den Hotkey-Launcher und Inline-Kürzel in der Navigation an.',
     hotkeySummary:
-      'Nutze `G` gefolgt von einem Buchstaben zum Seitenwechsel oder drücke `?`, um die vollständige Kürzelliste zu öffnen.',
+      'Nutze `Alt` plus einen Buchstaben zum Seitenwechsel oder drücke `?`, um die vollständige Kürzelliste zu öffnen.',
   },
   profilePictureTitle: 'Profilbild',
   profilePictureDescription: 'Lade ein neues Profilbild hoch oder entferne dein aktuelles Bild.',

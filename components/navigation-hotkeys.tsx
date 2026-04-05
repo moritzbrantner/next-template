@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTranslations } from '@/src/i18n';
-import { getVisibleAppPages, type AppPageDefinition } from '@/src/navigation/app-routes';
+import { formatAppHotkey, getVisibleAppPages, type AppPageDefinition } from '@/src/navigation/app-routes';
 import { useAppSettings } from '@/src/settings/provider';
 import type { AppSession } from '@/src/auth';
 
@@ -24,8 +24,8 @@ function isTypingTarget(target: EventTarget | null) {
   return tagName === 'input' || tagName === 'textarea' || tagName === 'select' || target.isContentEditable;
 }
 
-function formatShortcut(shortcut: readonly [string, string]) {
-  return shortcut.map((part) => part.toUpperCase()).join(' ');
+function getShortcutCode(shortcut: AppPageDefinition['hotkey']) {
+  return `Key${shortcut[1].toUpperCase()}`;
 }
 
 export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
@@ -33,7 +33,6 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
   const router = useRouter();
   const { settings } = useAppSettings();
   const [open, setOpen] = useState(false);
-  const [leaderKeyActive, setLeaderKeyActive] = useState(false);
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -58,23 +57,11 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
   }, [open]);
 
   useEffect(() => {
-    let leaderTimer: number | undefined;
-
-    const clearLeader = () => {
-      if (typeof leaderTimer === 'number') {
-        window.clearTimeout(leaderTimer);
-        leaderTimer = undefined;
-      }
-
-      setLeaderKeyActive(false);
-    };
-
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         if (open) {
           setOpen(false);
         }
-        clearLeader();
         return;
       }
 
@@ -85,42 +72,30 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
       if ((event.key === '?' && !event.metaKey && !event.ctrlKey) || ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k')) {
         event.preventDefault();
         setOpen((currentOpenState) => !currentOpenState);
-        clearLeader();
         return;
       }
 
-      if (!leaderKeyActive && !event.metaKey && !event.ctrlKey && !event.altKey && event.key.toLowerCase() === 'g') {
-        event.preventDefault();
-        setLeaderKeyActive(true);
-        leaderTimer = window.setTimeout(() => {
-          setLeaderKeyActive(false);
-          leaderTimer = undefined;
-        }, 1200);
+      if (!event.altKey || event.metaKey || event.ctrlKey || event.shiftKey) {
         return;
       }
 
-      if (!leaderKeyActive) {
-        return;
-      }
-
-      const matchingPage = pages.find((page) => page.hotkey[1] === event.key.toLowerCase());
-      clearLeader();
+      const matchingPage = pages.find((page) => getShortcutCode(page.hotkey) === event.code);
 
       if (!matchingPage) {
         return;
       }
 
       event.preventDefault();
+      setOpen(false);
       router.push(matchingPage.href);
     };
 
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      clearLeader();
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [leaderKeyActive, open, pages, router]);
+  }, [open, pages, router]);
 
   const groupedPages = pages.reduce<Record<string, AppPageDefinition[]>>((groups, page) => {
     const groupKey =
@@ -146,7 +121,7 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
         }
 
         const label = t(page.translationKey).toLowerCase();
-        const searchValue = `${groupLabel} ${label} ${page.hotkey.join(' ')}`.toLowerCase();
+        const searchValue = `${groupLabel} ${label} ${page.hotkey.join(' ')} ${formatAppHotkey(page.hotkey)}`.toLowerCase();
         return searchValue.includes(normalizedQuery);
       }),
     ] as const)
@@ -161,12 +136,6 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
             ?
           </Badge>
         </Button>
-      ) : null}
-
-      {leaderKeyActive ? (
-        <div className="fixed bottom-4 right-4 z-40 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-medium shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
-          {t('hotkeys.pending')}
-        </div>
       ) : null}
 
       {open ? (
@@ -218,7 +187,7 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
                           }}
                         >
                           <span className="font-medium">{t(page.translationKey)}</span>
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">{formatShortcut(page.hotkey)}</span>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">{formatAppHotkey(page.hotkey)}</span>
                         </button>
                       ))}
                     </div>

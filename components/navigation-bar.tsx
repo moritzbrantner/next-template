@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import type { Theme } from '@/lib/theme';
+import { formatAppHotkey } from '@/src/navigation/app-routes';
 import { buildNavigationCategories } from '@/src/navigation/navigation-categories';
 import { useTranslations } from '@/src/i18n';
 import type { AppSession } from '@/src/auth';
@@ -29,7 +30,7 @@ export function NavigationBar({ initialTheme, locale, session }: NavigationBarPr
     links: category.links.map((link) => ({
       href: link.href,
       label: t(link.translationKey),
-      hotkey: link.hotkey.map((part) => part.toUpperCase()).join(' '),
+      hotkey: formatAppHotkey(link.hotkey),
     })),
   }));
 
