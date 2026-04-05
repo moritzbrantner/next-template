@@ -3,56 +3,48 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { Link, useRouter } from '@/i18n/navigation';
+import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-type RegisterFormValues = {
-  name: string;
-  email: string;
+type ResetPasswordFormValues = {
   password: string;
   confirmPassword: string;
 };
 
-type RegisterFormProps = {
+type ResetPasswordFormProps = {
   locale: AppLocale;
+  token: string;
   labels: {
-    name: string;
-    email: string;
     password: string;
     confirmPassword: string;
     submit: string;
     submitting: string;
-    requiredEmail: string;
-    invalidEmail: string;
     requiredPassword: string;
     weakPassword: string;
     requiredConfirmPassword: string;
     passwordMismatch: string;
-    nameTooLong: string;
     genericError: string;
-    loginPrompt: string;
+    success: string;
     loginCta: string;
   };
 };
 
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{10,}$/;
 
-export function RegisterForm({ locale, labels }: RegisterFormProps) {
-  const router = useRouter();
+export function ResetPasswordForm({ locale, token, labels }: ResetPasswordFormProps) {
   const [pending, setPending] = useState(false);
+  const [success, setSuccess] = useState(false);
   const {
     register,
     handleSubmit,
     watch,
     setError,
     formState: { errors },
-  } = useForm<RegisterFormValues>({
+  } = useForm<ResetPasswordFormValues>({
     defaultValues: {
-      name: '',
-      email: '',
       password: '',
       confirmPassword: '',
     },
@@ -62,17 +54,16 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
 
   const onSubmit = handleSubmit(async (values) => {
     setPending(true);
+    setSuccess(false);
 
-    const response = await fetch('/api/account/signup', {
+    const response = await fetch('/api/account/reset-password', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: values.name.trim() || undefined,
-        email: values.email,
+        token,
         password: values.password,
-        locale,
       }),
     });
 
@@ -87,50 +78,33 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
       return;
     }
 
-    router.push('/profile', locale);
-    router.refresh();
+    setSuccess(true);
+    setPending(false);
   });
+
+  if (success) {
+    return (
+      <div className="space-y-4">
+        <p role="status" className="text-sm text-emerald-700 dark:text-emerald-400">
+          {labels.success}
+        </p>
+        <Link
+          href="/login"
+          locale={locale}
+          className="inline-flex rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
+        >
+          {labels.loginCta}
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <form className="space-y-5" onSubmit={onSubmit} noValidate>
       <div className="space-y-2">
-        <Label htmlFor="name">{labels.name}</Label>
+        <Label htmlFor="reset-password">{labels.password}</Label>
         <Input
-          id="name"
-          autoComplete="name"
-          aria-invalid={errors.name ? 'true' : 'false'}
-          {...register('name', {
-            maxLength: {
-              value: 80,
-              message: labels.nameTooLong,
-            },
-          })}
-        />
-        {errors.name ? <p className="text-sm text-red-600 dark:text-red-400">{errors.name.message}</p> : null}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="email">{labels.email}</Label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          aria-invalid={errors.email ? 'true' : 'false'}
-          {...register('email', {
-            required: labels.requiredEmail,
-            pattern: {
-              value: /\S+@\S+\.\S+/,
-              message: labels.invalidEmail,
-            },
-          })}
-        />
-        {errors.email ? <p className="text-sm text-red-600 dark:text-red-400">{errors.email.message}</p> : null}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="password">{labels.password}</Label>
-        <Input
-          id="password"
+          id="reset-password"
           type="password"
           autoComplete="new-password"
           aria-invalid={errors.password ? 'true' : 'false'}
@@ -146,9 +120,9 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">{labels.confirmPassword}</Label>
+        <Label htmlFor="reset-password-confirm">{labels.confirmPassword}</Label>
         <Input
-          id="confirmPassword"
+          id="reset-password-confirm"
           type="password"
           autoComplete="new-password"
           aria-invalid={errors.confirmPassword ? 'true' : 'false'}
@@ -167,13 +141,6 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? labels.submitting : labels.submit}
       </Button>
-
-      <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
-        {labels.loginPrompt}{' '}
-        <Link href="/login" className="font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-50">
-          {labels.loginCta}
-        </Link>
-      </p>
     </form>
   );
 }

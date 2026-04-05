@@ -1,6 +1,9 @@
 import { eq, like } from 'drizzle-orm';
 
 import { hashPassword } from '@/lib/password';
+import { withLocalePath, type AppLocale, hasLocale, routing } from '@/i18n/routing';
+import { createPasswordResetEmail, createVerificationEmail } from '@/src/email/templates';
+import { sendEmail } from '@/src/email/service';
 import { getDb } from '@/src/db/client';
 import { users, verificationTokens } from '@/src/db/schema';
 
@@ -25,6 +28,10 @@ function createRawToken(): string {
 
 function getBaseUrl(): string {
   return process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
+}
+
+function normalizeLocale(locale?: string): AppLocale {
+  return locale && hasLocale(locale) ? locale : routing.defaultLocale;
 }
 
 type DbUser = {
@@ -54,6 +61,10 @@ type LifecycleDependencies = {
   findUserById: (userId: string) => Promise<DbUser | undefined>;
   hashPassword: (password: string) => Promise<string>;
 };
+
+function isLifecycleDependencies(value: unknown): value is LifecycleDependencies {
+  return value !== null && typeof value === 'object' && 'findUserByEmail' in value;
+}
 
 async function resolveDependencies(): Promise<LifecycleDependencies> {
   return {
@@ -106,7 +117,7 @@ async function resolveDependencies(): Promise<LifecycleDependencies> {
   };
 }
 
-export type SignupInput = { email: string; password: string; name?: string };
+export type SignupInput = { email: string; password: string; name?: string; locale?: string };
 export type SignupResult = { ok: true; userId: string; verificationToken: string } | { ok: false; error: string };
 
 function validateSignupInput(input: SignupInput): { ok: true } | { ok: false; error: string } {
@@ -117,6 +128,15 @@ function validateSignupInput(input: SignupInput): { ok: true } | { ok: false; er
     return { ok: false, error: 'Password must include uppercase, lowercase, and a number.' };
   }
   if (input.name && input.name.trim().length > 80) return { ok: false, error: 'Display name must be 80 characters or fewer.' };
+  return { ok: true };
+}
+
+function validatePasswordStrength(password: string): { ok: true } | { ok: false; error: string } {
+  if (password.length < 10) return { ok: false, error: 'Password must be at least 10 characters.' };
+  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
+    return { ok: false, error: 'Password must include uppercase, lowercase, and a number.' };
+  }
+
   return { ok: true };
 }
 
@@ -133,6 +153,12 @@ export async function signUpWithCredentials(input: SignupInput, deps?: Lifecycle
   await d.createUser({ id: userId, email, name: input.name?.trim() || null, passwordHash: passwordHashValue });
 
   const rawToken = createRawToken();
+  const locale = normalizeLocale(input.locale);
+  const verificationUrl = `${getBaseUrl()}${withLocalePath(
+    `/verify-email?token=${encodeURIComponent(rawToken)}`,
+    locale,
+  )}`;
+
   await d.issueToken({
     identifier: `${EMAIL_VERIFICATION_PREFIX}${userId}`,
     token: hashToken(rawToken),
@@ -141,8 +167,25 @@ export async function signUpWithCredentials(input: SignupInput, deps?: Lifecycle
 
   console.info('[auth] email verification token issued', {
     email,
-    verificationUrl: `${getBaseUrl()}/api/account/verify-email?token=${encodeURIComponent(rawToken)}`,
+    verificationUrl,
   });
+
+  try {
+    const message = createVerificationEmail({
+      verificationUrl,
+      name: input.name,
+    });
+
+    await sendEmail({
+      to: email,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+      tags: ['account-verification'],
+    });
+  } catch (error) {
+    console.error('[auth] failed to send verification email', { email, error });
+  }
 
   return { ok: true, userId, verificationToken: rawToken };
 }
@@ -161,8 +204,13 @@ export async function verifyEmailByToken(rawToken: string, deps?: LifecycleDepen
   return { ok: true };
 }
 
-export async function requestPasswordReset(emailInput: string, deps?: LifecycleDependencies): Promise<{ ok: true; token?: string }> {
-  const d = deps ?? (await resolveDependencies());
+export async function requestPasswordReset(
+  emailInput: string,
+  optionsOrDeps?: { locale?: string } | LifecycleDependencies,
+  deps?: LifecycleDependencies,
+): Promise<{ ok: true; token?: string }> {
+  const options = isLifecycleDependencies(optionsOrDeps) ? undefined : optionsOrDeps;
+  const d = (isLifecycleDependencies(optionsOrDeps) ? optionsOrDeps : deps) ?? (await resolveDependencies());
   const email = normalizeEmail(emailInput);
   if (!email || !email.includes('@')) return { ok: true };
 
@@ -171,6 +219,8 @@ export async function requestPasswordReset(emailInput: string, deps?: LifecycleD
 
   await d.deleteTokensByIdentifierPrefix(`${PASSWORD_RESET_PREFIX}${user.id}`);
   const rawToken = createRawToken();
+  const locale = normalizeLocale(options?.locale);
+  const resetUrl = `${getBaseUrl()}${withLocalePath(`/reset-password?token=${encodeURIComponent(rawToken)}`, locale)}`;
   await d.issueToken({
     identifier: `${PASSWORD_RESET_PREFIX}${user.id}`,
     token: hashToken(rawToken),
@@ -179,8 +229,22 @@ export async function requestPasswordReset(emailInput: string, deps?: LifecycleD
 
   console.info('[auth] password reset token issued', {
     email,
-    resetUrl: `${getBaseUrl()}/api/account/reset-password?token=${encodeURIComponent(rawToken)}`,
+    resetUrl,
   });
+
+  try {
+    const message = createPasswordResetEmail({ resetUrl });
+
+    await sendEmail({
+      to: email,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+      tags: ['password-reset'],
+    });
+  } catch (error) {
+    console.error('[auth] failed to send password reset email', { email, error });
+  }
 
   return { ok: true, token: rawToken };
 }
@@ -190,7 +254,8 @@ export async function resetPasswordWithToken(
   nextPassword: string,
   deps?: LifecycleDependencies,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  if (nextPassword.length < 10) return { ok: false, error: 'Password must be at least 10 characters.' };
+  const passwordValidation = validatePasswordStrength(nextPassword);
+  if (!passwordValidation.ok) return passwordValidation;
 
   const d = deps ?? (await resolveDependencies());
   const tokenRecord = await d.findToken(hashToken(rawToken), PASSWORD_RESET_PREFIX);

@@ -15,10 +15,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocaleIndexRouteImport } from './routes/$locale.index'
 import { Route as ApiReportProblemRouteImport } from './routes/api/report-problem'
 import { Route as ApiEmployeesRouteImport } from './routes/api/employees'
+import { Route as LocaleVerifyEmailRouteImport } from './routes/$locale.verify-email'
 import { Route as LocaleUploadsRouteImport } from './routes/$locale.uploads'
 import { Route as LocaleTableRouteImport } from './routes/$locale.table'
 import { Route as LocaleStoryRouteImport } from './routes/$locale.story'
 import { Route as LocaleSettingsRouteImport } from './routes/$locale.settings'
+import { Route as LocaleResetPasswordRouteImport } from './routes/$locale.reset-password'
 import { Route as LocaleReportProblemRouteImport } from './routes/$locale.report-problem'
 import { Route as LocaleRegisterRouteImport } from './routes/$locale.register'
 import { Route as LocaleProfileRouteImport } from './routes/$locale.profile'
@@ -32,6 +34,7 @@ import { Route as LocaleAdminIndexRouteImport } from './routes/$locale/admin/ind
 import { Route as ApiProfileImageRouteImport } from './routes/api/profile/image'
 import { Route as ApiProfileFollowRouteImport } from './routes/api/profile/follow'
 import { Route as ApiProfileDisplayNameRouteImport } from './routes/api/profile/display-name'
+import { Route as ApiNewsletterSubscribeRouteImport } from './routes/api/newsletter/subscribe'
 import { Route as ApiDataEntryRowsRouteImport } from './routes/api/data-entry/rows'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
@@ -81,6 +84,11 @@ const ApiEmployeesRoute = ApiEmployeesRouteImport.update({
   path: '/api/employees',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocaleVerifyEmailRoute = LocaleVerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => LocaleRoute,
+} as any)
 const LocaleUploadsRoute = LocaleUploadsRouteImport.update({
   id: '/uploads',
   path: '/uploads',
@@ -99,6 +107,11 @@ const LocaleStoryRoute = LocaleStoryRouteImport.update({
 const LocaleSettingsRoute = LocaleSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => LocaleRoute,
+} as any)
+const LocaleResetPasswordRoute = LocaleResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => LocaleRoute,
 } as any)
 const LocaleReportProblemRoute = LocaleReportProblemRouteImport.update({
@@ -164,6 +177,11 @@ const ApiProfileFollowRoute = ApiProfileFollowRouteImport.update({
 const ApiProfileDisplayNameRoute = ApiProfileDisplayNameRouteImport.update({
   id: '/api/profile/display-name',
   path: '/api/profile/display-name',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNewsletterSubscribeRoute = ApiNewsletterSubscribeRouteImport.update({
+  id: '/api/newsletter/subscribe',
+  path: '/api/newsletter/subscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDataEntryRowsRoute = ApiDataEntryRowsRouteImport.update({
@@ -274,10 +292,12 @@ export interface FileRoutesByFullPath {
   '/$locale/profile': typeof LocaleProfileRouteWithChildren
   '/$locale/register': typeof LocaleRegisterRoute
   '/$locale/report-problem': typeof LocaleReportProblemRoute
+  '/$locale/reset-password': typeof LocaleResetPasswordRoute
   '/$locale/settings': typeof LocaleSettingsRoute
   '/$locale/story': typeof LocaleStoryRoute
   '/$locale/table': typeof LocaleTableRoute
   '/$locale/uploads': typeof LocaleUploadsRoute
+  '/$locale/verify-email': typeof LocaleVerifyEmailRoute
   '/api/employees': typeof ApiEmployeesRoute
   '/api/report-problem': typeof ApiReportProblemRoute
   '/$locale/': typeof LocaleIndexRoute
@@ -296,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
+  '/api/newsletter/subscribe': typeof ApiNewsletterSubscribeRoute
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/follow': typeof ApiProfileFollowRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
@@ -316,10 +337,12 @@ export interface FileRoutesByTo {
   '/$locale/profile': typeof LocaleProfileRouteWithChildren
   '/$locale/register': typeof LocaleRegisterRoute
   '/$locale/report-problem': typeof LocaleReportProblemRoute
+  '/$locale/reset-password': typeof LocaleResetPasswordRoute
   '/$locale/settings': typeof LocaleSettingsRoute
   '/$locale/story': typeof LocaleStoryRoute
   '/$locale/table': typeof LocaleTableRoute
   '/$locale/uploads': typeof LocaleUploadsRoute
+  '/$locale/verify-email': typeof LocaleVerifyEmailRoute
   '/api/employees': typeof ApiEmployeesRoute
   '/api/report-problem': typeof ApiReportProblemRoute
   '/$locale': typeof LocaleIndexRoute
@@ -338,6 +361,7 @@ export interface FileRoutesByTo {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
+  '/api/newsletter/subscribe': typeof ApiNewsletterSubscribeRoute
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/follow': typeof ApiProfileFollowRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
@@ -360,10 +384,12 @@ export interface FileRoutesById {
   '/$locale/profile': typeof LocaleProfileRouteWithChildren
   '/$locale/register': typeof LocaleRegisterRoute
   '/$locale/report-problem': typeof LocaleReportProblemRoute
+  '/$locale/reset-password': typeof LocaleResetPasswordRoute
   '/$locale/settings': typeof LocaleSettingsRoute
   '/$locale/story': typeof LocaleStoryRoute
   '/$locale/table': typeof LocaleTableRoute
   '/$locale/uploads': typeof LocaleUploadsRoute
+  '/$locale/verify-email': typeof LocaleVerifyEmailRoute
   '/api/employees': typeof ApiEmployeesRoute
   '/api/report-problem': typeof ApiReportProblemRoute
   '/$locale/': typeof LocaleIndexRoute
@@ -382,6 +408,7 @@ export interface FileRoutesById {
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
+  '/api/newsletter/subscribe': typeof ApiNewsletterSubscribeRoute
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/follow': typeof ApiProfileFollowRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
@@ -405,10 +432,12 @@ export interface FileRouteTypes {
     | '/$locale/profile'
     | '/$locale/register'
     | '/$locale/report-problem'
+    | '/$locale/reset-password'
     | '/$locale/settings'
     | '/$locale/story'
     | '/$locale/table'
     | '/$locale/uploads'
+    | '/$locale/verify-email'
     | '/api/employees'
     | '/api/report-problem'
     | '/$locale/'
@@ -427,6 +456,7 @@ export interface FileRouteTypes {
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/data-entry/rows'
+    | '/api/newsletter/subscribe'
     | '/api/profile/display-name'
     | '/api/profile/follow'
     | '/api/profile/image'
@@ -447,10 +477,12 @@ export interface FileRouteTypes {
     | '/$locale/profile'
     | '/$locale/register'
     | '/$locale/report-problem'
+    | '/$locale/reset-password'
     | '/$locale/settings'
     | '/$locale/story'
     | '/$locale/table'
     | '/$locale/uploads'
+    | '/$locale/verify-email'
     | '/api/employees'
     | '/api/report-problem'
     | '/$locale'
@@ -469,6 +501,7 @@ export interface FileRouteTypes {
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/data-entry/rows'
+    | '/api/newsletter/subscribe'
     | '/api/profile/display-name'
     | '/api/profile/follow'
     | '/api/profile/image'
@@ -490,10 +523,12 @@ export interface FileRouteTypes {
     | '/$locale/profile'
     | '/$locale/register'
     | '/$locale/report-problem'
+    | '/$locale/reset-password'
     | '/$locale/settings'
     | '/$locale/story'
     | '/$locale/table'
     | '/$locale/uploads'
+    | '/$locale/verify-email'
     | '/api/employees'
     | '/api/report-problem'
     | '/$locale/'
@@ -512,6 +547,7 @@ export interface FileRouteTypes {
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/data-entry/rows'
+    | '/api/newsletter/subscribe'
     | '/api/profile/display-name'
     | '/api/profile/follow'
     | '/api/profile/image'
@@ -537,6 +573,7 @@ export interface RootRouteChildren {
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiDataEntryRowsRoute: typeof ApiDataEntryRowsRoute
+  ApiNewsletterSubscribeRoute: typeof ApiNewsletterSubscribeRoute
   ApiProfileDisplayNameRoute: typeof ApiProfileDisplayNameRoute
   ApiProfileFollowRoute: typeof ApiProfileFollowRoute
   ApiProfileImageRoute: typeof ApiProfileImageRouteWithChildren
@@ -588,6 +625,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEmployeesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/verify-email': {
+      id: '/$locale/verify-email'
+      path: '/verify-email'
+      fullPath: '/$locale/verify-email'
+      preLoaderRoute: typeof LocaleVerifyEmailRouteImport
+      parentRoute: typeof LocaleRoute
+    }
     '/$locale/uploads': {
       id: '/$locale/uploads'
       path: '/uploads'
@@ -614,6 +658,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/$locale/settings'
       preLoaderRoute: typeof LocaleSettingsRouteImport
+      parentRoute: typeof LocaleRoute
+    }
+    '/$locale/reset-password': {
+      id: '/$locale/reset-password'
+      path: '/reset-password'
+      fullPath: '/$locale/reset-password'
+      preLoaderRoute: typeof LocaleResetPasswordRouteImport
       parentRoute: typeof LocaleRoute
     }
     '/$locale/report-problem': {
@@ -705,6 +756,13 @@ declare module '@tanstack/react-router' {
       path: '/api/profile/display-name'
       fullPath: '/api/profile/display-name'
       preLoaderRoute: typeof ApiProfileDisplayNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/newsletter/subscribe': {
+      id: '/api/newsletter/subscribe'
+      path: '/api/newsletter/subscribe'
+      fullPath: '/api/newsletter/subscribe'
+      preLoaderRoute: typeof ApiNewsletterSubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/data-entry/rows': {
@@ -858,10 +916,12 @@ interface LocaleRouteChildren {
   LocaleProfileRoute: typeof LocaleProfileRouteWithChildren
   LocaleRegisterRoute: typeof LocaleRegisterRoute
   LocaleReportProblemRoute: typeof LocaleReportProblemRoute
+  LocaleResetPasswordRoute: typeof LocaleResetPasswordRoute
   LocaleSettingsRoute: typeof LocaleSettingsRoute
   LocaleStoryRoute: typeof LocaleStoryRoute
   LocaleTableRoute: typeof LocaleTableRoute
   LocaleUploadsRoute: typeof LocaleUploadsRoute
+  LocaleVerifyEmailRoute: typeof LocaleVerifyEmailRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
   LocaleAdminDataStudioRoute: typeof LocaleAdminDataStudioRoute
   LocaleAdminReportsRoute: typeof LocaleAdminReportsRoute
@@ -880,10 +940,12 @@ const LocaleRouteChildren: LocaleRouteChildren = {
   LocaleProfileRoute: LocaleProfileRouteWithChildren,
   LocaleRegisterRoute: LocaleRegisterRoute,
   LocaleReportProblemRoute: LocaleReportProblemRoute,
+  LocaleResetPasswordRoute: LocaleResetPasswordRoute,
   LocaleSettingsRoute: LocaleSettingsRoute,
   LocaleStoryRoute: LocaleStoryRoute,
   LocaleTableRoute: LocaleTableRoute,
   LocaleUploadsRoute: LocaleUploadsRoute,
+  LocaleVerifyEmailRoute: LocaleVerifyEmailRoute,
   LocaleIndexRoute: LocaleIndexRoute,
   LocaleAdminDataStudioRoute: LocaleAdminDataStudioRoute,
   LocaleAdminReportsRoute: LocaleAdminReportsRoute,
@@ -923,6 +985,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiDataEntryRowsRoute: ApiDataEntryRowsRoute,
+  ApiNewsletterSubscribeRoute: ApiNewsletterSubscribeRoute,
   ApiProfileDisplayNameRoute: ApiProfileDisplayNameRoute,
   ApiProfileFollowRoute: ApiProfileFollowRoute,
   ApiProfileImageRoute: ApiProfileImageRouteWithChildren,

@@ -37,6 +37,7 @@ Update an existing app that tracks the template:
 3. For account lifecycle emails (sign-up verification + password reset), configure one of:
 
    - `EMAIL_PROVIDER=console` (default in local development; logs secure links to stdout)
+   - `EMAIL_PROVIDER=mailpit` plus `MAILPIT_BASE_URL` (recommended for local development and e2e)
    - `EMAIL_PROVIDER=resend` plus `RESEND_API_KEY` and `EMAIL_FROM`
 
 4. Ensure `DATABASE_URL` is present for scripts that target a long-lived database. During `pnpm dev`, the wrapper script overrides `DATABASE_URL` with an ephemeral local Postgres instance automatically.
@@ -55,10 +56,10 @@ Update an existing app that tracks the template:
 
 ## Local database (Docker)
 
-1. Start the Postgres container:
+1. Start the Postgres and Mailpit containers:
 
    ```bash
-   docker compose up -d postgres
+   docker compose up -d postgres mailpit
    ```
 
 2. Wait for the healthcheck to pass and verify status:
@@ -82,7 +83,7 @@ Update an existing app that tracks the template:
 3. If you need to use a long-lived local database instead, use the manual flow:
 
    ```bash
-   docker compose up -d postgres
+   docker compose up -d postgres mailpit
    pnpm run db:generate
    pnpm run db:migrate
    pnpm run db:schema:generate
@@ -135,9 +136,11 @@ Start editing by updating the route files in `src/routes/`; the page auto-update
 4. Run end-to-end authentication/profile user-story tests (requires Postgres and `.env`):
 
    ```bash
-   docker compose up -d postgres
+   docker compose up -d postgres mailpit
    pnpm run test:e2e
    ```
+
+   Playwright now exercises email-driven flows against Mailpit, including verification emails, password resets, and newsletter subscription emails.
 
 ## CI/CD
 
@@ -158,7 +161,7 @@ GitHub workflows are split by target branch and call a shared reusable workflow:
 
 Each workflow runs the corresponding local command so local and CI behavior stays aligned.
 
-For `main`, CI uses the same strict e2e preflight as local `checks:main`; missing `DATABASE_URL`, missing auth env (`AUTH_SECRET` + `AUTH_URL`/`NEXTAUTH_URL`), or an unreachable Postgres instance will fail the job before Playwright starts. After preflight succeeds, deterministic bootstrap reuses the runner's reachable database service when available (avoiding port-collision conflicts) or starts Postgres via `docker compose up -d postgres`, then waits for readiness, reapplies migrations, and reseeds baseline users before e2e execution.
+For `main`, CI uses the same strict e2e preflight as local `checks:main`; missing `DATABASE_URL`, missing auth env (`AUTH_SECRET` + `AUTH_URL`/`NEXTAUTH_URL`), or an unreachable Postgres instance will fail the job before Playwright starts. After preflight succeeds, deterministic bootstrap reuses the runner's reachable database service when available (avoiding port-collision conflicts) or starts Postgres and Mailpit via `docker compose`, then waits for readiness, reapplies migrations, and reseeds baseline users before e2e execution.
 
 In CI mode (`CI=true`), `checks:main` also runs bootstrap teardown on exit (`scripts/ci/bootstrap-e2e-db.sh --teardown`) and only removes containers/volumes it started itself. This avoids cross-job contamination on runners while remaining safe for local developer databases.
 
@@ -169,8 +172,9 @@ Set these environment variables in each deploy environment (preview and producti
 - `DATABASE_URL`
 - `AUTH_SECRET`
 - `AUTH_URL` (or `NEXTAUTH_URL` in equivalent Auth.js setups)
-- `EMAIL_PROVIDER` (`console` or `resend`)
+- `EMAIL_PROVIDER` (`console`, `mailpit`, or `resend`)
 - `EMAIL_FROM`
+- `MAILPIT_BASE_URL` (required when `EMAIL_PROVIDER=mailpit`)
 
 If you enable OAuth providers, also set the provider-specific credentials (for example `GITHUB_ID` / `GITHUB_SECRET`, `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, or `DISCORD_CLIENT_ID` / `DISCORD_CLIENT_SECRET`).
 

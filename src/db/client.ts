@@ -24,6 +24,10 @@ export function getDb() {
       connectionString,
     });
 
+  pool.on('error', (error) => {
+    console.warn('[db] idle client error', error.message);
+  });
+
   const db = drizzle(pool, { schema });
 
   if (process.env.NODE_ENV !== "production") {

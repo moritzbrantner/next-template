@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { NewsletterSignup } from '@/components/newsletter/newsletter-signup';
+import type { AppLocale } from '@/i18n/routing';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslations } from '@/src/i18n';
 
@@ -11,6 +13,7 @@ export const Route = createFileRoute('/$locale/communication')({
 
 function CommunicationPage() {
   const t = useTranslations('CommunicationPage');
+  const { locale } = Route.useParams();
 
   return (
     <div className="space-y-8">
@@ -26,6 +29,22 @@ function CommunicationPage() {
           <p className="text-sm leading-6 text-zinc-600 dark:text-zinc-300">{t('intro')}</p>
         </CardContent>
       </Card>
+
+      <NewsletterSignup
+        locale={locale as AppLocale}
+        labels={{
+          eyebrow: t('newsletter.eyebrow'),
+          title: t('newsletter.title'),
+          description: t('newsletter.description'),
+          email: t('newsletter.email'),
+          submit: t('newsletter.submit'),
+          submitting: t('newsletter.submitting'),
+          requiredEmail: t('newsletter.requiredEmail'),
+          invalidEmail: t('newsletter.invalidEmail'),
+          success: t('newsletter.success'),
+          genericError: t('newsletter.genericError'),
+        }}
+      />
 
       <div className="grid gap-4 md:grid-cols-2">
         {sectionKeys.map((key) => (

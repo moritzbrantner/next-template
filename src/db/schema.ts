@@ -97,6 +97,22 @@ export const verificationTokens = pgTable(
   ],
 );
 
+export const newsletterSubscriptions = pgTable(
+  "NewsletterSubscription",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull(),
+    locale: text("locale").notNull().default("en"),
+    source: text("source").notNull().default("communication-page"),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("NewsletterSubscription_email_key").on(table.email),
+    index("NewsletterSubscription_locale_idx").on(table.locale),
+  ],
+);
+
 
 export const securityRateLimitCounters = pgTable("SecurityRateLimitCounter", {
   key: text("key").primaryKey(),

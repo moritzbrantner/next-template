@@ -22,6 +22,10 @@ if [[ "${EMAIL_PROVIDER:-console}" == "resend" ]]; then
   require_env "EMAIL_FROM"
 fi
 
+if [[ "${EMAIL_PROVIDER:-console}" == "mailpit" ]]; then
+  require_env "MAILPIT_BASE_URL"
+fi
+
 if (( ${#missing[@]} > 0 )); then
   printf '❌ Missing required e2e environment values:\n' >&2
   for name in "${missing[@]}"; do

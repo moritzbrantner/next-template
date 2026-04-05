@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 
+import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
 import { RegisterForm } from '@/components/auth/register-form';
 import type { AppLocale } from '@/i18n/routing';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,7 +37,7 @@ function RegisterPage() {
           <CardTitle>{t('title')}</CardTitle>
           <CardDescription>{t('description')}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <RegisterForm
             locale={locale as AppLocale}
             labels={{
@@ -56,6 +57,21 @@ function RegisterPage() {
               genericError: t('form.genericError'),
               loginPrompt: t('form.loginPrompt'),
               loginCta: t('form.loginCta'),
+            }}
+          />
+
+          <ForgotPasswordForm
+            locale={locale as AppLocale}
+            labels={{
+              title: t('form.resetPasswordTitle'),
+              description: t('form.resetPasswordDescription'),
+              email: t('form.resetPasswordEmail'),
+              submit: t('form.resetPasswordSubmit'),
+              submitting: t('form.resetPasswordSubmitting'),
+              requiredEmail: t('form.requiredEmail'),
+              invalidEmail: t('form.invalidEmail'),
+              success: t('form.resetPasswordSuccess'),
+              genericError: t('form.resetPasswordGenericError'),
             }}
           />
         </CardContent>

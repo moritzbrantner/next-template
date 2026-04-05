@@ -1,10 +1,13 @@
 import { expect, test } from '@playwright/test';
 
 import {
+  clearMailpitMessages,
+  extractFirstUrl,
   getSeededUser,
   gotoAndWaitForHydration,
   loginWithCredentials,
   logoutFromProfileMenu,
+  waitForMailpitMessage,
 } from '@/tests/e2e/helpers';
 
 const seededUser = getSeededUser('user@example.com');
@@ -35,12 +38,13 @@ test.describe('authentication', () => {
     const email = `playwright-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
     const password = 'StrongPass123';
 
+    await clearMailpitMessages();
     await gotoAndWaitForHydration(page, '/en/register');
 
     await expect(page.getByRole('heading', { name: 'Start with a secure account and get into the app immediately.' })).toBeVisible();
 
     await page.getByLabel('Display name').fill('Playwright User');
-    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Email', { exact: true }).fill(email);
     await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByLabel('Confirm password').fill(password);
     await page.getByRole('button', { name: 'Create account' }).click();
@@ -48,15 +52,67 @@ test.describe('authentication', () => {
     await expect(page).toHaveURL('/en/profile');
     await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
 
+    const verificationMessage = await waitForMailpitMessage({
+      to: email,
+      subject: 'Verify your email address',
+    });
+    const verificationUrl = extractFirstUrl(verificationMessage.raw);
+
+    await gotoAndWaitForHydration(page, verificationUrl);
+    await expect(page.getByText('Your email is verified. You can continue using your account.')).toBeVisible();
+
+    await gotoAndWaitForHydration(page, '/en/profile');
     await logoutFromProfileMenu(page);
     await expect(page.getByRole('link', { name: 'Register' })).toBeVisible();
+  });
+
+  test('requests a password reset from the register page and signs in with the new password', async ({ page }) => {
+    const email = `reset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+    const password = 'StrongPass123';
+    const nextPassword = 'EvenStronger123';
+
+    await clearMailpitMessages();
+    await gotoAndWaitForHydration(page, '/en/register');
+
+    await page.getByLabel('Display name').fill('Reset User');
+    await page.getByLabel('Email', { exact: true }).fill(email);
+    await page.getByLabel('Password', { exact: true }).fill(password);
+    await page.getByLabel('Confirm password').fill(password);
+    await page.getByRole('button', { name: 'Create account' }).click();
+
+    await expect(page).toHaveURL('/en/profile');
+    await logoutFromProfileMenu(page);
+
+    await clearMailpitMessages();
+    await gotoAndWaitForHydration(page, '/en/register');
+
+    await page.getByLabel('Account email').fill(email);
+    await page.getByRole('button', { name: 'Send reset link' }).click();
+
+    await expect(page.getByRole('status')).toContainText('If that account exists, a reset link is on its way.');
+
+    const resetMessage = await waitForMailpitMessage({
+      to: email,
+      subject: 'Reset your password',
+    });
+    const resetUrl = extractFirstUrl(resetMessage.raw);
+
+    await gotoAndWaitForHydration(page, resetUrl);
+    await page.getByLabel('New password', { exact: true }).fill(nextPassword);
+    await page.getByLabel('Confirm new password', { exact: true }).fill(nextPassword);
+    await page.getByRole('button', { name: 'Update password' }).click();
+
+    await expect(page.getByRole('status')).toContainText('Your password has been updated. You can sign in now.');
+
+    await loginWithCredentials(page, email, nextPassword);
+    await logoutFromProfileMenu(page);
   });
 
   test('rejects duplicate account creation on the registration page', async ({ page }) => {
     await gotoAndWaitForHydration(page, '/en/register');
 
     await page.getByLabel('Display name').fill('Existing User');
-    await page.getByLabel('Email').fill(seededUser.email);
+    await page.getByLabel('Email', { exact: true }).fill(seededUser.email);
     await page.getByLabel('Password', { exact: true }).fill('StrongPass123');
     await page.getByLabel('Confirm password').fill('StrongPass123');
     await page.getByRole('button', { name: 'Create account' }).click();

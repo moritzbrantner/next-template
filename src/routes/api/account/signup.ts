@@ -8,12 +8,13 @@ export const Route = createFileRoute('/api/account/signup')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const body = (await request.json()) as { email?: string; password?: string; name?: string };
+        const body = (await request.json()) as { email?: string; password?: string; name?: string; locale?: string };
 
         const result = await signUpWithCredentials({
           email: body.email ?? '',
           password: body.password ?? '',
           name: body.name,
+          locale: body.locale,
         });
 
         if (!result.ok) {
