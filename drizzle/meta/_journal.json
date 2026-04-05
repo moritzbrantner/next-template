@@ -29,6 +29,13 @@
       "when": 1775299972140,
       "tag": "0003_far_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775393963120,
+      "tag": "0004_charming_solo",
+      "breakpoints": true
     }
   ]
 }

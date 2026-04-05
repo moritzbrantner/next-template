@@ -1,5 +1,4 @@
 import {
-  canAccessAdminArea,
   canAccessDataEntryWorkspace,
   isAdmin,
   type AppRole,
@@ -12,6 +11,7 @@ export type AppPageKey =
   | 'forms'
   | 'story'
   | 'communication'
+  | 'notifications'
   | 'table'
   | 'uploads'
   | 'dataEntry'
@@ -21,7 +21,7 @@ export type AppPageKey =
   | 'login'
   | 'register';
 
-type Visibility = 'public' | 'guest' | 'authenticated' | 'workspace' | 'manager' | 'admin';
+type Visibility = 'public' | 'guest' | 'authenticated' | 'workspace' | 'admin';
 
 export type AppHotkey = readonly [modifier: 'alt', key: string];
 
@@ -68,6 +68,14 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     hotkey: ['alt', 'c'],
   },
   {
+    key: 'notifications',
+    href: '/notifications',
+    translationKey: 'links.notifications',
+    visibility: 'authenticated',
+    navigationCategory: 'workspace',
+    hotkey: ['alt', 'n'],
+  },
+  {
     key: 'forms',
     href: '/forms',
     translationKey: 'links.forms',
@@ -103,7 +111,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     key: 'admin',
     href: '/admin',
     translationKey: 'links.admin',
-    visibility: 'manager',
+    visibility: 'admin',
     navigationCategory: 'admin',
     hotkey: ['alt', 'm'],
   },
@@ -155,10 +163,6 @@ export function canViewAppPage(
 
   if (page.visibility === 'workspace') {
     return isAuthenticated && canAccessDataEntryWorkspace(role);
-  }
-
-  if (page.visibility === 'manager') {
-    return isAuthenticated && canAccessAdminArea(role);
   }
 
   if (page.visibility === 'admin') {

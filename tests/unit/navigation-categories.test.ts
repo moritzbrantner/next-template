@@ -39,6 +39,7 @@ describe('navigation categories', () => {
       {
         key: 'workspace',
         links: [
+          { href: '/notifications', key: 'notifications', translationKey: 'links.notifications', hotkey: ['alt', 'n'] },
           { href: '/forms', key: 'forms', translationKey: 'links.forms', hotkey: ['alt', 'f'] },
           { href: '/table', key: 'table', translationKey: 'links.table', hotkey: ['alt', 't'] },
           { href: '/uploads', key: 'uploads', translationKey: 'links.uploads', hotkey: ['alt', 'u'] },
@@ -60,15 +61,12 @@ describe('navigation categories', () => {
       {
         key: 'workspace',
         links: [
+          { href: '/notifications', key: 'notifications', translationKey: 'links.notifications', hotkey: ['alt', 'n'] },
           { href: '/forms', key: 'forms', translationKey: 'links.forms', hotkey: ['alt', 'f'] },
           { href: '/table', key: 'table', translationKey: 'links.table', hotkey: ['alt', 't'] },
           { href: '/uploads', key: 'uploads', translationKey: 'links.uploads', hotkey: ['alt', 'u'] },
           { href: '/data-entry', key: 'dataEntry', translationKey: 'links.dataEntry', hotkey: ['alt', 'd'] },
         ],
-      },
-      {
-        key: 'admin',
-        links: [{ href: '/admin', key: 'admin', translationKey: 'links.admin', hotkey: ['alt', 'm'] }],
       },
     ]);
   });

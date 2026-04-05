@@ -17,5 +17,11 @@ export const profilePage = {
     success: 'Profile picture updated.',
     empty: 'No image',
     alt: 'Profile picture',
+    cropTitle: 'Crop your picture',
+    cropDescription: 'Drag to reposition and use zoom to fit your avatar before upload.',
+    cropZoom: 'Zoom',
+    cropCancel: 'Cancel crop',
+    cropApply: 'Use crop',
+    ready: 'Cropped image ready to upload.',
   },
 };

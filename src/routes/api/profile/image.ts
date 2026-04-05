@@ -34,7 +34,8 @@ export const Route = createFileRoute('/api/profile/image')({
           });
 
           return Response.json({ ok: true });
-        } catch {
+        } catch (error) {
+          console.error('Profile image upload failed.', error);
           return Response.json({ error: 'Unable to update profile picture right now. Please try again.' }, { status: 500 });
         }
       },

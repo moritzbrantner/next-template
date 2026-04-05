@@ -42,8 +42,6 @@ const appRoles = {
     dashboard: ['view'],
     profile: ['update'],
     workspace: ['access'],
-    admin: ['access'],
-    reports: ['view'],
   }),
   ADMIN: appAccessControl.newRole({
     dashboard: ['view'],

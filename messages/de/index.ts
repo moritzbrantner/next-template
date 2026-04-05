@@ -7,6 +7,7 @@ import { formsPage } from './forms-page';
 import { homePage } from './home-page';
 import { languageSelector } from './language-selector';
 import { navigationBar } from './navigation-bar';
+import { notificationsPage } from './notifications-page';
 import { profilePage } from './profile-page';
 import { settingsPage } from './settings-page';
 import { storyPage } from './story-page';
@@ -25,6 +26,7 @@ const deMessages = {
   DataEntryPage: dataEntryPage,
   FormsPage: formsPage,
   SettingsPage: settingsPage,
+  NotificationsPage: notificationsPage,
   ProfilePage: profilePage,
   StoryPage: storyPage,
   UploadsPage: uploadsPage,

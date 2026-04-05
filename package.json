@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "./scripts/dev-with-test-db.sh",
+    "dev:app": "vite dev",
     "build": "vite build",
     "start": "node ./scripts/serve-prod.mjs",
     "preview": "vite preview",

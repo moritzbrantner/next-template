@@ -36,14 +36,13 @@ test.describe('settings and hotkeys', () => {
     await expect(page.getByText(/\d{4}-\d{2}-\d{2}/)).toBeVisible();
   });
 
-  test('lets manager roles use hotkeys to reach admin pages', async ({ page }) => {
+  test('does not expose admin hotkeys to manager roles', async ({ page }) => {
     await loginWithCredentials(page, managerUser.email, managerUser.password);
 
     await expect(page.getByRole('button', { name: 'Hotkeys' })).toBeVisible();
 
     await page.keyboard.press('Alt+M');
-    await expect(page).toHaveURL('/en/admin');
-    await expect(page.getByRole('heading', { name: 'Admin overview' })).toBeVisible();
+    await expect(page).not.toHaveURL('/en/admin');
 
     await page.keyboard.press('Alt+E');
     await expect(page).toHaveURL('/en/settings');
@@ -56,5 +55,38 @@ test.describe('settings and hotkeys', () => {
     await gotoAndWaitForHydration(page, '/en/admin');
     await expect(page).toHaveURL('/en');
     await expect(page.getByRole('heading', { name: 'One template, multiple production-ready starting points.' })).toBeVisible();
+  });
+
+  test('lets a user change their email and delete their account from settings', async ({ page }) => {
+    const timestamp = Date.now();
+    const email = `settings-${timestamp}@example.com`;
+    const nextEmail = `settings-updated-${timestamp}@example.com`;
+    const password = 'SettingsUser123';
+
+    await gotoAndWaitForHydration(page, '/en/register');
+    await page.getByLabel('Display name').fill('Settings User');
+    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Password', { exact: true }).fill(password);
+    await page.getByLabel('Confirm password').fill(password);
+    await page.getByRole('button', { name: 'Create account' }).click();
+
+    await expect(page).toHaveURL('/en/profile');
+    await gotoAndWaitForHydration(page, '/en/settings');
+    await page.getByRole('tab', { name: 'Account' }).click();
+
+    await page.getByLabel('New email address').fill(nextEmail);
+    await page.getByLabel('Current password').first().fill(password);
+    await page.getByRole('button', { name: 'Update email' }).click();
+
+    await expect(page.getByLabel('Current email address')).toHaveValue(nextEmail);
+
+    await page.getByLabel('Current password').nth(1).fill(password);
+    await page.getByRole('button', { name: 'Delete account' }).click();
+
+    await expect(page).toHaveURL('/en');
+    await expect(page.getByRole('heading', { name: 'One template, multiple production-ready starting points.' })).toBeVisible();
+
+    await gotoAndWaitForHydration(page, '/en/settings');
+    await expect(page).toHaveURL('/en');
   });
 });

@@ -1,15 +1,20 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  requestPasswordReset,
-  resetPasswordWithToken,
-  signUpWithCredentials,
-  verifyEmailByToken,
+  deleteAccountUseCase,
+  updateAccountEmailUseCase,
+} from '@/src/domain/account/use-cases';
+import {
+  requestPasswordReset as requestPasswordResetLifecycle,
+  resetPasswordWithToken as resetPasswordWithTokenLifecycle,
+  signUpWithCredentials as signUpWithCredentialsLifecycle,
+  verifyEmailByToken as verifyEmailByTokenLifecycle,
 } from '@/src/auth/account-lifecycle';
 
 function createDeps() {
   return {
     findUserByEmail: vi.fn(),
+    findUserById: vi.fn(),
     createUser: vi.fn(),
     issueToken: vi.fn(),
     findToken: vi.fn(),
@@ -17,10 +22,13 @@ function createDeps() {
     deleteTokensByIdentifierPrefix: vi.fn(),
     markEmailVerified: vi.fn(),
     updatePassword: vi.fn(),
+    updateEmail: vi.fn(),
+    performAccountDeletion: vi.fn(),
+    deleteProfileImage: vi.fn(),
     updateFailureState: vi.fn(),
     clearFailureState: vi.fn(),
-    findUserById: vi.fn(),
     hashPassword: vi.fn().mockResolvedValue('hashed-password'),
+    verifyPassword: vi.fn(),
   };
 }
 
@@ -29,7 +37,7 @@ describe('account lifecycle', () => {
     const deps = createDeps();
     deps.findUserByEmail.mockResolvedValue(undefined);
 
-    const result = await signUpWithCredentials(
+    const result = await signUpWithCredentialsLifecycle(
       {
         email: '  NewUser@example.com ',
         password: 'VerySecure123',
@@ -53,7 +61,7 @@ describe('account lifecycle', () => {
     const deps = createDeps();
 
     await expect(
-      signUpWithCredentials(
+      signUpWithCredentialsLifecycle(
         {
           email: 'not-an-email',
           password: 'VerySecure123',
@@ -63,7 +71,7 @@ describe('account lifecycle', () => {
     ).resolves.toEqual({ ok: false, error: 'A valid email is required.' });
 
     await expect(
-      signUpWithCredentials(
+      signUpWithCredentialsLifecycle(
         {
           email: 'person@example.com',
           password: 'short',
@@ -73,7 +81,7 @@ describe('account lifecycle', () => {
     ).resolves.toEqual({ ok: false, error: 'Password must be at least 10 characters.' });
 
     await expect(
-      signUpWithCredentials(
+      signUpWithCredentialsLifecycle(
         {
           email: 'person@example.com',
           password: 'verysecure123',
@@ -86,7 +94,7 @@ describe('account lifecycle', () => {
     });
 
     await expect(
-      signUpWithCredentials(
+      signUpWithCredentialsLifecycle(
         {
           email: 'person@example.com',
           password: 'VerySecure123',
@@ -108,7 +116,7 @@ describe('account lifecycle', () => {
     });
 
     await expect(
-      signUpWithCredentials(
+      signUpWithCredentialsLifecycle(
         {
           email: 'person@example.com',
           password: 'VerySecure123',
@@ -129,7 +137,7 @@ describe('account lifecycle', () => {
       expires: new Date(Date.now() + 60_000),
     });
 
-    const okResult = await verifyEmailByToken('raw-token', deps);
+    const okResult = await verifyEmailByTokenLifecycle('raw-token', deps);
     expect(okResult).toEqual({ ok: true });
     expect(deps.markEmailVerified).toHaveBeenCalledWith('user_1');
 
@@ -139,7 +147,7 @@ describe('account lifecycle', () => {
       expires: new Date(Date.now() - 1),
     });
 
-    const expiredResult = await verifyEmailByToken('expired-raw-token', deps);
+    const expiredResult = await verifyEmailByTokenLifecycle('expired-raw-token', deps);
     expect(expiredResult).toEqual({ ok: false, error: 'Verification token has expired.' });
     expect(deps.deleteToken).toHaveBeenCalledWith('expired-token');
   });
@@ -148,12 +156,12 @@ describe('account lifecycle', () => {
     const deps = createDeps();
     deps.findToken.mockResolvedValue(undefined);
 
-    await expect(verifyEmailByToken('missing-token', deps)).resolves.toEqual({
+    await expect(verifyEmailByTokenLifecycle('missing-token', deps)).resolves.toEqual({
       ok: false,
       error: 'Invalid verification token.',
     });
 
-    await expect(resetPasswordWithToken('missing-reset', 'AnotherSecure123', deps)).resolves.toEqual({
+    await expect(resetPasswordWithTokenLifecycle('missing-reset', 'AnotherSecure123', deps)).resolves.toEqual({
       ok: false,
       error: 'Invalid password reset token.',
     });
@@ -168,7 +176,7 @@ describe('account lifecycle', () => {
       lockoutUntil: null,
     });
 
-    const requestResult = await requestPasswordReset('person@example.com', deps);
+    const requestResult = await requestPasswordResetLifecycle('person@example.com', deps);
     expect(requestResult.ok).toBe(true);
     expect(requestResult.token).toBeDefined();
     expect(deps.issueToken).toHaveBeenCalledTimes(1);
@@ -179,7 +187,7 @@ describe('account lifecycle', () => {
       expires: new Date(Date.now() + 60_000),
     });
 
-    const resetResult = await resetPasswordWithToken('raw-reset', 'AnotherSecure123', deps);
+    const resetResult = await resetPasswordWithTokenLifecycle('raw-reset', 'AnotherSecure123', deps);
     expect(resetResult).toEqual({ ok: true });
     expect(deps.hashPassword).toHaveBeenCalledWith('AnotherSecure123');
     expect(deps.updatePassword).toHaveBeenCalledWith('user_2', 'hashed-password');
@@ -190,9 +198,129 @@ describe('account lifecycle', () => {
     const deps = createDeps();
     deps.findUserByEmail.mockResolvedValue(undefined);
 
-    await expect(requestPasswordReset('not-an-email', deps)).resolves.toEqual({ ok: true });
-    await expect(requestPasswordReset('missing@example.com', deps)).resolves.toEqual({ ok: true });
+    await expect(requestPasswordResetLifecycle('not-an-email', deps)).resolves.toEqual({ ok: true });
+    await expect(requestPasswordResetLifecycle('missing@example.com', deps)).resolves.toEqual({ ok: true });
 
     expect(deps.issueToken).not.toHaveBeenCalled();
+  });
+
+  it('updates the account email after confirming the current password', async () => {
+    const deps = createDeps();
+    deps.findUserById.mockResolvedValue({
+      id: 'user_3',
+      email: 'person@example.com',
+      image: null,
+      passwordHash: 'stored-hash',
+    });
+    deps.findUserByEmail.mockResolvedValue(undefined);
+    deps.verifyPassword.mockResolvedValue(true);
+
+    await expect(
+      updateAccountEmailUseCase(
+        'user_3',
+        {
+          email: '  NewEmail@example.com ',
+          currentPassword: 'ValidPassword123',
+        },
+        deps,
+      ),
+    ).resolves.toEqual({
+      ok: true,
+      data: {
+        email: 'newemail@example.com',
+      },
+    });
+
+    expect(deps.verifyPassword).toHaveBeenCalledWith('ValidPassword123', 'stored-hash');
+    expect(deps.updateEmail).toHaveBeenCalledWith('user_3', 'newemail@example.com');
+  });
+
+  it('rejects account email updates when the password is wrong or the email is already used', async () => {
+    const deps = createDeps();
+    deps.findUserById.mockResolvedValue({
+      id: 'user_3',
+      email: 'person@example.com',
+      image: null,
+      passwordHash: 'stored-hash',
+    });
+    deps.verifyPassword.mockResolvedValue(false);
+
+    await expect(
+      updateAccountEmailUseCase(
+        'user_3',
+        {
+          email: 'next@example.com',
+          currentPassword: 'WrongPassword123',
+        },
+        deps,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'Current password is incorrect.',
+      },
+    });
+
+    const duplicateDeps = createDeps();
+    duplicateDeps.findUserById.mockResolvedValue({
+      id: 'user_3',
+      email: 'person@example.com',
+      image: null,
+      passwordHash: 'stored-hash',
+    });
+    duplicateDeps.findUserByEmail.mockResolvedValue({
+      id: 'user_4',
+      email: 'next@example.com',
+      image: null,
+      passwordHash: 'another-hash',
+    });
+    duplicateDeps.verifyPassword.mockResolvedValue(true);
+
+    await expect(
+      updateAccountEmailUseCase(
+        'user_3',
+        {
+          email: 'next@example.com',
+          currentPassword: 'ValidPassword123',
+        },
+        duplicateDeps,
+      ),
+    ).resolves.toEqual({
+      ok: false,
+      error: {
+        code: 'CONFLICT',
+        message: 'An account already exists for this email.',
+      },
+    });
+  });
+
+  it('deletes the account after confirming the current password', async () => {
+    const deps = createDeps();
+    deps.findUserById.mockResolvedValue({
+      id: 'user_5',
+      email: 'person@example.com',
+      image: 'local-profile-images/user_5/avatar.jpg',
+      passwordHash: 'stored-hash',
+    });
+    deps.verifyPassword.mockResolvedValue(true);
+
+    await expect(
+      deleteAccountUseCase(
+        'user_5',
+        {
+          currentPassword: 'ValidPassword123',
+        },
+        deps,
+      ),
+    ).resolves.toEqual({
+      ok: true,
+      data: {
+        deleted: true,
+      },
+    });
+
+    expect(deps.performAccountDeletion).toHaveBeenCalledWith('user_5');
+    expect(deps.deleteProfileImage).toHaveBeenCalledWith('local-profile-images/user_5/avatar.jpg');
   });
 });

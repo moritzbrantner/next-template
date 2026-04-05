@@ -7,6 +7,7 @@ import { formsPage } from './forms-page';
 import { homePage } from './home-page';
 import { languageSelector } from './language-selector';
 import { navigationBar } from './navigation-bar';
+import { notificationsPage } from './notifications-page';
 import { profilePage } from './profile-page';
 import { settingsPage } from './settings-page';
 import { storyPage } from './story-page';
@@ -24,6 +25,7 @@ const enMessages = {
   CommunicationPage: communicationPage,
   DataEntryPage: dataEntryPage,
   FormsPage: formsPage,
+  NotificationsPage: notificationsPage,
   ProfilePage: profilePage,
   SettingsPage: settingsPage,
   StoryPage: storyPage,

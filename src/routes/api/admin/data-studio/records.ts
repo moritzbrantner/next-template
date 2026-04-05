@@ -1,9 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 import dbSchema from '@/db-schema.json';
-import { getAuthSession } from '@/src/auth.server';
+import { requireRole } from '@/lib/authorization';
 import { getDb } from '@/src/db/client';
-import { getAdminAuthorization } from '@/src/domain/authorization/use-cases';
 import { writableTableMap } from '@/src/dynamic-db/config';
 import { normalizeFieldValue, parseDbSchemaDocument } from '@/src/dynamic-db/schema';
 
@@ -11,10 +10,9 @@ export const Route = createFileRoute('/api/admin/data-studio/records')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const session = await getAuthSession();
-        const authorization = getAdminAuthorization(session);
-
-        if (!authorization.ok) {
+        try {
+          await requireRole('ADMIN');
+        } catch {
           return Response.json({ ok: false, message: 'Forbidden.' }, { status: 403 });
         }
 

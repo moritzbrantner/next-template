@@ -39,7 +39,7 @@ Update an existing app that tracks the template:
    - `EMAIL_PROVIDER=console` (default in local development; logs secure links to stdout)
    - `EMAIL_PROVIDER=resend` plus `RESEND_API_KEY` and `EMAIL_FROM`
 
-4. Ensure `DATABASE_URL` is present; account lifecycle tokens and lockout counters are persisted in Postgres.
+4. Ensure `DATABASE_URL` is present for scripts that target a long-lived database. During `pnpm dev`, the wrapper script overrides `DATABASE_URL` with an ephemeral local Postgres instance automatically.
 
 5. Configure profile image object storage (S3-compatible):
 
@@ -69,27 +69,27 @@ Update an existing app that tracks the template:
 
 ## Local startup flow
 
-1. Start DB container:
+1. Copy `.env.example` to `.env` and set the auth-related values you need for local sign-in flows.
 
-   ```bash
-   docker compose up -d postgres
-   ```
-
-2. Run migrations:
-
-   ```bash
-   pnpm run db:generate
-   pnpm run db:migrate
-   pnpm run db:schema:generate
-   ```
-
-   `db:schema:generate` derives `db-schema.json` from the Drizzle table configs used by the admin data studio.
-
-3. Run the TanStack Start app:
+2. Run the app:
 
    ```bash
    pnpm run dev
    ```
+
+   `pnpm dev` starts an isolated Postgres 16 container on `127.0.0.1:${DEV_DB_PORT:-55434}`, applies Drizzle migrations, seeds the baseline test users, and then launches Vite. The database uses `tmpfs`, so all changes are discarded automatically when the dev process exits.
+
+3. If you need to use a long-lived local database instead, use the manual flow:
+
+   ```bash
+   docker compose up -d postgres
+   pnpm run db:generate
+   pnpm run db:migrate
+   pnpm run db:schema:generate
+   pnpm run dev:app
+   ```
+
+   `db:schema:generate` derives `db-schema.json` from the Drizzle table configs used by the admin data studio.
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
@@ -126,6 +126,8 @@ Start editing by updating the route files in `src/routes/`; the page auto-update
    - `admin@example.com` / `admin`
    - `manager@example.com` / `manager`
    - `user@example.com` / `user`
+
+   These same users are seeded automatically for each `pnpm dev` session against the ephemeral database.
 
 
    `checks:main` runs `scripts/ci/assert-e2e-prereqs.sh` and then `scripts/ci/bootstrap-e2e-db.sh` before Playwright. The bootstrap step is idempotent, reuses an already reachable `DATABASE_URL` when present (for example CI service containers), and otherwise starts `docker compose` Postgres. It always re-applies migrations plus baseline seeded users (`pnpm run db:migrate` and `pnpm run db:seed:test-users`) so each run has deterministic auth/e2e fixtures.

@@ -34,9 +34,9 @@ describe("authorization helpers", () => {
     expect(canViewReports("USER")).toBe(false);
     expect(canAccessAdminArea("USER")).toBe(false);
 
-    expect(canViewReports("MANAGER")).toBe(true);
+    expect(canViewReports("MANAGER")).toBe(false);
     expect(canManageUsers("MANAGER")).toBe(false);
-    expect(canAccessAdminArea("MANAGER")).toBe(true);
+    expect(canAccessAdminArea("MANAGER")).toBe(false);
     expect(canViewReports("ADMIN")).toBe(true);
     expect(canManageUsers("ADMIN")).toBe(true);
     expect(canManageSystemSettings("ADMIN")).toBe(true);

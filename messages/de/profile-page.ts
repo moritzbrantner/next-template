@@ -17,5 +17,11 @@ export const profilePage = {
     success: 'Profilbild aktualisiert.',
     empty: 'Kein Bild',
     alt: 'Profilbild',
+    cropTitle: 'Bild zuschneiden',
+    cropDescription: 'Verschiebe das Bild und passe den Zoom an, bevor du es hochlädst.',
+    cropZoom: 'Zoom',
+    cropCancel: 'Zuschneiden abbrechen',
+    cropApply: 'Ausschnitt verwenden',
+    ready: 'Zugeschnittenes Bild bereit zum Hochladen.',
   },
 };

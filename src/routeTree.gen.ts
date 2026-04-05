@@ -20,6 +20,7 @@ import { Route as LocaleStoryRouteImport } from './routes/$locale.story'
 import { Route as LocaleSettingsRouteImport } from './routes/$locale.settings'
 import { Route as LocaleRegisterRouteImport } from './routes/$locale.register'
 import { Route as LocaleProfileRouteImport } from './routes/$locale.profile'
+import { Route as LocaleNotificationsRouteImport } from './routes/$locale.notifications'
 import { Route as LocaleLoginRouteImport } from './routes/$locale.login'
 import { Route as LocaleFormsRouteImport } from './routes/$locale.forms'
 import { Route as LocaleDataEntryRouteImport } from './routes/$locale.data-entry'
@@ -31,10 +32,16 @@ import { Route as ApiProfileDisplayNameRouteImport } from './routes/api/profile/
 import { Route as ApiDataEntryRowsRouteImport } from './routes/api/data-entry/rows'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAnalyticsPageVisitsRouteImport } from './routes/api/analytics/page-visits'
 import { Route as ApiAccountVerifyEmailRouteImport } from './routes/api/account/verify-email'
 import { Route as ApiAccountSignupRouteImport } from './routes/api/account/signup'
 import { Route as ApiAccountResetPasswordRouteImport } from './routes/api/account/reset-password'
 import { Route as ApiAccountForgotPasswordRouteImport } from './routes/api/account/forgot-password'
+import { Route as ApiAccountEmailRouteImport } from './routes/api/account/email'
+import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
+import { Route as LocaleAdminUsersRouteImport } from './routes/$locale.admin.users'
+import { Route as LocaleAdminSystemSettingsRouteImport } from './routes/$locale.admin.system-settings'
+import { Route as LocaleAdminReportsRouteImport } from './routes/$locale.admin.reports'
 import { Route as LocaleAdminDataStudioRouteImport } from './routes/$locale.admin.data-studio'
 import { Route as ApiProfileImageRemoveRouteImport } from './routes/api/profile/image/remove'
 import { Route as ApiAdminReportsAuthorizationRouteImport } from './routes/api/admin/reports/authorization'
@@ -95,6 +102,11 @@ const LocaleProfileRoute = LocaleProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => LocaleRoute,
 } as any)
+const LocaleNotificationsRoute = LocaleNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => LocaleRoute,
+} as any)
 const LocaleLoginRoute = LocaleLoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -150,6 +162,11 @@ const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   path: '/api/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAnalyticsPageVisitsRoute = ApiAnalyticsPageVisitsRouteImport.update({
+  id: '/api/analytics/page-visits',
+  path: '/api/analytics/page-visits',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAccountVerifyEmailRoute = ApiAccountVerifyEmailRouteImport.update({
   id: '/api/account/verify-email',
   path: '/api/account/verify-email',
@@ -171,6 +188,32 @@ const ApiAccountForgotPasswordRoute =
     path: '/api/account/forgot-password',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAccountEmailRoute = ApiAccountEmailRouteImport.update({
+  id: '/api/account/email',
+  path: '/api/account/email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
+  id: '/api/account/delete',
+  path: '/api/account/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocaleAdminUsersRoute = LocaleAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
+const LocaleAdminSystemSettingsRoute =
+  LocaleAdminSystemSettingsRouteImport.update({
+    id: '/system-settings',
+    path: '/system-settings',
+    getParentRoute: () => LocaleAdminRoute,
+  } as any)
+const LocaleAdminReportsRoute = LocaleAdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => LocaleAdminRoute,
+} as any)
 const LocaleAdminDataStudioRoute = LocaleAdminDataStudioRouteImport.update({
   id: '/data-studio',
   path: '/data-studio',
@@ -204,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/$locale/data-entry': typeof LocaleDataEntryRoute
   '/$locale/forms': typeof LocaleFormsRoute
   '/$locale/login': typeof LocaleLoginRoute
+  '/$locale/notifications': typeof LocaleNotificationsRoute
   '/$locale/profile': typeof LocaleProfileRoute
   '/$locale/register': typeof LocaleRegisterRoute
   '/$locale/settings': typeof LocaleSettingsRoute
@@ -213,10 +257,16 @@ export interface FileRoutesByFullPath {
   '/api/employees': typeof ApiEmployeesRoute
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/admin/data-studio': typeof LocaleAdminDataStudioRoute
+  '/$locale/admin/reports': typeof LocaleAdminReportsRoute
+  '/$locale/admin/system-settings': typeof LocaleAdminSystemSettingsRoute
+  '/$locale/admin/users': typeof LocaleAdminUsersRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
+  '/api/account/email': typeof ApiAccountEmailRoute
   '/api/account/forgot-password': typeof ApiAccountForgotPasswordRoute
   '/api/account/reset-password': typeof ApiAccountResetPasswordRoute
   '/api/account/signup': typeof ApiAccountSignupRoute
   '/api/account/verify-email': typeof ApiAccountVerifyEmailRoute
+  '/api/analytics/page-visits': typeof ApiAnalyticsPageVisitsRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
@@ -235,6 +285,7 @@ export interface FileRoutesByTo {
   '/$locale/data-entry': typeof LocaleDataEntryRoute
   '/$locale/forms': typeof LocaleFormsRoute
   '/$locale/login': typeof LocaleLoginRoute
+  '/$locale/notifications': typeof LocaleNotificationsRoute
   '/$locale/profile': typeof LocaleProfileRoute
   '/$locale/register': typeof LocaleRegisterRoute
   '/$locale/settings': typeof LocaleSettingsRoute
@@ -244,10 +295,16 @@ export interface FileRoutesByTo {
   '/api/employees': typeof ApiEmployeesRoute
   '/$locale': typeof LocaleIndexRoute
   '/$locale/admin/data-studio': typeof LocaleAdminDataStudioRoute
+  '/$locale/admin/reports': typeof LocaleAdminReportsRoute
+  '/$locale/admin/system-settings': typeof LocaleAdminSystemSettingsRoute
+  '/$locale/admin/users': typeof LocaleAdminUsersRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
+  '/api/account/email': typeof ApiAccountEmailRoute
   '/api/account/forgot-password': typeof ApiAccountForgotPasswordRoute
   '/api/account/reset-password': typeof ApiAccountResetPasswordRoute
   '/api/account/signup': typeof ApiAccountSignupRoute
   '/api/account/verify-email': typeof ApiAccountVerifyEmailRoute
+  '/api/analytics/page-visits': typeof ApiAnalyticsPageVisitsRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
@@ -268,6 +325,7 @@ export interface FileRoutesById {
   '/$locale/data-entry': typeof LocaleDataEntryRoute
   '/$locale/forms': typeof LocaleFormsRoute
   '/$locale/login': typeof LocaleLoginRoute
+  '/$locale/notifications': typeof LocaleNotificationsRoute
   '/$locale/profile': typeof LocaleProfileRoute
   '/$locale/register': typeof LocaleRegisterRoute
   '/$locale/settings': typeof LocaleSettingsRoute
@@ -277,10 +335,16 @@ export interface FileRoutesById {
   '/api/employees': typeof ApiEmployeesRoute
   '/$locale/': typeof LocaleIndexRoute
   '/$locale/admin/data-studio': typeof LocaleAdminDataStudioRoute
+  '/$locale/admin/reports': typeof LocaleAdminReportsRoute
+  '/$locale/admin/system-settings': typeof LocaleAdminSystemSettingsRoute
+  '/$locale/admin/users': typeof LocaleAdminUsersRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
+  '/api/account/email': typeof ApiAccountEmailRoute
   '/api/account/forgot-password': typeof ApiAccountForgotPasswordRoute
   '/api/account/reset-password': typeof ApiAccountResetPasswordRoute
   '/api/account/signup': typeof ApiAccountSignupRoute
   '/api/account/verify-email': typeof ApiAccountVerifyEmailRoute
+  '/api/analytics/page-visits': typeof ApiAnalyticsPageVisitsRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
@@ -302,6 +366,7 @@ export interface FileRouteTypes {
     | '/$locale/data-entry'
     | '/$locale/forms'
     | '/$locale/login'
+    | '/$locale/notifications'
     | '/$locale/profile'
     | '/$locale/register'
     | '/$locale/settings'
@@ -311,10 +376,16 @@ export interface FileRouteTypes {
     | '/api/employees'
     | '/$locale/'
     | '/$locale/admin/data-studio'
+    | '/$locale/admin/reports'
+    | '/$locale/admin/system-settings'
+    | '/$locale/admin/users'
+    | '/api/account/delete'
+    | '/api/account/email'
     | '/api/account/forgot-password'
     | '/api/account/reset-password'
     | '/api/account/signup'
     | '/api/account/verify-email'
+    | '/api/analytics/page-visits'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/data-entry/rows'
@@ -333,6 +404,7 @@ export interface FileRouteTypes {
     | '/$locale/data-entry'
     | '/$locale/forms'
     | '/$locale/login'
+    | '/$locale/notifications'
     | '/$locale/profile'
     | '/$locale/register'
     | '/$locale/settings'
@@ -342,10 +414,16 @@ export interface FileRouteTypes {
     | '/api/employees'
     | '/$locale'
     | '/$locale/admin/data-studio'
+    | '/$locale/admin/reports'
+    | '/$locale/admin/system-settings'
+    | '/$locale/admin/users'
+    | '/api/account/delete'
+    | '/api/account/email'
     | '/api/account/forgot-password'
     | '/api/account/reset-password'
     | '/api/account/signup'
     | '/api/account/verify-email'
+    | '/api/analytics/page-visits'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/data-entry/rows'
@@ -365,6 +443,7 @@ export interface FileRouteTypes {
     | '/$locale/data-entry'
     | '/$locale/forms'
     | '/$locale/login'
+    | '/$locale/notifications'
     | '/$locale/profile'
     | '/$locale/register'
     | '/$locale/settings'
@@ -374,10 +453,16 @@ export interface FileRouteTypes {
     | '/api/employees'
     | '/$locale/'
     | '/$locale/admin/data-studio'
+    | '/$locale/admin/reports'
+    | '/$locale/admin/system-settings'
+    | '/$locale/admin/users'
+    | '/api/account/delete'
+    | '/api/account/email'
     | '/api/account/forgot-password'
     | '/api/account/reset-password'
     | '/api/account/signup'
     | '/api/account/verify-email'
+    | '/api/analytics/page-visits'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/data-entry/rows'
@@ -393,10 +478,13 @@ export interface RootRouteChildren {
   LocaleRoute: typeof LocaleRouteWithChildren
   AboutRoute: typeof AboutRoute
   ApiEmployeesRoute: typeof ApiEmployeesRoute
+  ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
+  ApiAccountEmailRoute: typeof ApiAccountEmailRoute
   ApiAccountForgotPasswordRoute: typeof ApiAccountForgotPasswordRoute
   ApiAccountResetPasswordRoute: typeof ApiAccountResetPasswordRoute
   ApiAccountSignupRoute: typeof ApiAccountSignupRoute
   ApiAccountVerifyEmailRoute: typeof ApiAccountVerifyEmailRoute
+  ApiAnalyticsPageVisitsRoute: typeof ApiAnalyticsPageVisitsRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiDataEntryRowsRoute: typeof ApiDataEntryRowsRoute
@@ -485,6 +573,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleProfileRouteImport
       parentRoute: typeof LocaleRoute
     }
+    '/$locale/notifications': {
+      id: '/$locale/notifications'
+      path: '/notifications'
+      fullPath: '/$locale/notifications'
+      preLoaderRoute: typeof LocaleNotificationsRouteImport
+      parentRoute: typeof LocaleRoute
+    }
     '/$locale/login': {
       id: '/$locale/login'
       path: '/login'
@@ -562,6 +657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/analytics/page-visits': {
+      id: '/api/analytics/page-visits'
+      path: '/api/analytics/page-visits'
+      fullPath: '/api/analytics/page-visits'
+      preLoaderRoute: typeof ApiAnalyticsPageVisitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/account/verify-email': {
       id: '/api/account/verify-email'
       path: '/api/account/verify-email'
@@ -589,6 +691,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/account/forgot-password'
       preLoaderRoute: typeof ApiAccountForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/account/email': {
+      id: '/api/account/email'
+      path: '/api/account/email'
+      fullPath: '/api/account/email'
+      preLoaderRoute: typeof ApiAccountEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/account/delete': {
+      id: '/api/account/delete'
+      path: '/api/account/delete'
+      fullPath: '/api/account/delete'
+      preLoaderRoute: typeof ApiAccountDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$locale/admin/users': {
+      id: '/$locale/admin/users'
+      path: '/users'
+      fullPath: '/$locale/admin/users'
+      preLoaderRoute: typeof LocaleAdminUsersRouteImport
+      parentRoute: typeof LocaleAdminRoute
+    }
+    '/$locale/admin/system-settings': {
+      id: '/$locale/admin/system-settings'
+      path: '/system-settings'
+      fullPath: '/$locale/admin/system-settings'
+      preLoaderRoute: typeof LocaleAdminSystemSettingsRouteImport
+      parentRoute: typeof LocaleAdminRoute
+    }
+    '/$locale/admin/reports': {
+      id: '/$locale/admin/reports'
+      path: '/reports'
+      fullPath: '/$locale/admin/reports'
+      preLoaderRoute: typeof LocaleAdminReportsRouteImport
+      parentRoute: typeof LocaleAdminRoute
     }
     '/$locale/admin/data-studio': {
       id: '/$locale/admin/data-studio'
@@ -623,10 +760,16 @@ declare module '@tanstack/react-router' {
 
 interface LocaleAdminRouteChildren {
   LocaleAdminDataStudioRoute: typeof LocaleAdminDataStudioRoute
+  LocaleAdminReportsRoute: typeof LocaleAdminReportsRoute
+  LocaleAdminSystemSettingsRoute: typeof LocaleAdminSystemSettingsRoute
+  LocaleAdminUsersRoute: typeof LocaleAdminUsersRoute
 }
 
 const LocaleAdminRouteChildren: LocaleAdminRouteChildren = {
   LocaleAdminDataStudioRoute: LocaleAdminDataStudioRoute,
+  LocaleAdminReportsRoute: LocaleAdminReportsRoute,
+  LocaleAdminSystemSettingsRoute: LocaleAdminSystemSettingsRoute,
+  LocaleAdminUsersRoute: LocaleAdminUsersRoute,
 }
 
 const LocaleAdminRouteWithChildren = LocaleAdminRoute._addFileChildren(
@@ -640,6 +783,7 @@ interface LocaleRouteChildren {
   LocaleDataEntryRoute: typeof LocaleDataEntryRoute
   LocaleFormsRoute: typeof LocaleFormsRoute
   LocaleLoginRoute: typeof LocaleLoginRoute
+  LocaleNotificationsRoute: typeof LocaleNotificationsRoute
   LocaleProfileRoute: typeof LocaleProfileRoute
   LocaleRegisterRoute: typeof LocaleRegisterRoute
   LocaleSettingsRoute: typeof LocaleSettingsRoute
@@ -656,6 +800,7 @@ const LocaleRouteChildren: LocaleRouteChildren = {
   LocaleDataEntryRoute: LocaleDataEntryRoute,
   LocaleFormsRoute: LocaleFormsRoute,
   LocaleLoginRoute: LocaleLoginRoute,
+  LocaleNotificationsRoute: LocaleNotificationsRoute,
   LocaleProfileRoute: LocaleProfileRoute,
   LocaleRegisterRoute: LocaleRegisterRoute,
   LocaleSettingsRoute: LocaleSettingsRoute,
@@ -685,10 +830,13 @@ const rootRouteChildren: RootRouteChildren = {
   LocaleRoute: LocaleRouteWithChildren,
   AboutRoute: AboutRoute,
   ApiEmployeesRoute: ApiEmployeesRoute,
+  ApiAccountDeleteRoute: ApiAccountDeleteRoute,
+  ApiAccountEmailRoute: ApiAccountEmailRoute,
   ApiAccountForgotPasswordRoute: ApiAccountForgotPasswordRoute,
   ApiAccountResetPasswordRoute: ApiAccountResetPasswordRoute,
   ApiAccountSignupRoute: ApiAccountSignupRoute,
   ApiAccountVerifyEmailRoute: ApiAccountVerifyEmailRoute,
+  ApiAnalyticsPageVisitsRoute: ApiAnalyticsPageVisitsRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiDataEntryRowsRoute: ApiDataEntryRowsRoute,

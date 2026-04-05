@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
+import { PageVisitTracker } from '@/components/analytics/page-visit-tracker';
 import type { Theme } from '@/lib/theme';
 import type { AppSession } from '@/src/auth';
 import { loadAppContext } from '@/src/runtime.functions';
@@ -112,6 +113,7 @@ function RootComponent() {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script dangerouslySetInnerHTML={{ __html: settingsScript }} />
         <AppSettingsProvider initialSettings={settings}>
+          <PageVisitTracker />
           <Outlet />
           <TanStackRouterDevtools position="bottom-right" />
           <Scripts />

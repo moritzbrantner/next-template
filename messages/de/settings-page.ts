@@ -6,6 +6,7 @@ export const settingsPage = {
     appearance: 'Darstellung',
     dates: 'Datum',
     workflow: 'Arbeitsfluss',
+    account: 'Konto',
   },
   roles: {
     admin: 'Admin',
@@ -76,6 +77,30 @@ export const settingsPage = {
     hotkeySummary:
       'Nutze `Alt` plus einen Buchstaben zum Seitenwechsel oder drücke `?`, um die vollständige Kürzelliste zu öffnen.',
   },
+  account: {
+    email: {
+      title: 'E-Mail-Adresse',
+      description: 'Ändere die E-Mail-Adresse, mit der du dich bei diesem Konto anmeldest.',
+      currentEmail: 'Aktuelle E-Mail-Adresse',
+      newEmail: 'Neue E-Mail-Adresse',
+      currentPassword: 'Aktuelles Passwort',
+      save: 'E-Mail aktualisieren',
+      saving: 'Wird aktualisiert…',
+      success: 'E-Mail-Adresse aktualisiert.',
+      genericError: 'Deine E-Mail-Adresse konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+    },
+    deletion: {
+      title: 'Konto löschen',
+      badge: 'Gefahrenbereich',
+      description: 'Lösche dein Konto dauerhaft und entferne deinen Zugriff auf diesen Arbeitsbereich.',
+      warning: 'Diese Aktion kann nicht rückgängig gemacht werden. Dein Profil, deine Sitzungen und zugehörige Kontodaten werden entfernt.',
+      currentPassword: 'Aktuelles Passwort',
+      remove: 'Konto löschen',
+      removing: 'Wird gelöscht…',
+      redirecting: 'Konto gelöscht. Weiterleitung…',
+      genericError: 'Dein Konto konnte gerade nicht gelöscht werden. Bitte versuche es erneut.',
+    },
+  },
   profilePictureTitle: 'Profilbild',
   profilePictureDescription: 'Lade ein neues Profilbild hoch oder entferne dein aktuelles Bild.',
   form: {
@@ -87,5 +112,11 @@ export const settingsPage = {
     success: 'Profilbild aktualisiert.',
     empty: 'Kein Bild',
     alt: 'Profilbild',
+    cropTitle: 'Bild zuschneiden',
+    cropDescription: 'Verschiebe das Bild und passe den Zoom an, bevor du es hochlädst.',
+    cropZoom: 'Zoom',
+    cropCancel: 'Zuschneiden abbrechen',
+    cropApply: 'Ausschnitt verwenden',
+    ready: 'Zugeschnittenes Bild bereit zum Hochladen.',
   },
 };

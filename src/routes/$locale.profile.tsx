@@ -51,6 +51,12 @@ function ProfilePage() {
             success: t('form.success'),
             empty: t('form.empty'),
             alt: t('form.alt'),
+            cropTitle: t('form.cropTitle'),
+            cropDescription: t('form.cropDescription'),
+            cropZoom: t('form.cropZoom'),
+            cropCancel: t('form.cropCancel'),
+            cropApply: t('form.cropApply'),
+            ready: t('form.ready'),
           }}
         />
       </CardContent>

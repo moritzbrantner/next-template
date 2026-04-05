@@ -11,6 +11,7 @@ export const navigationBar = {
     forms: 'Form Demo',
     story: 'Story Demo',
     communication: 'Communication',
+    notifications: 'Notifications',
     profile: 'Profile',
     table: 'Table',
     uploads: 'Uploads',

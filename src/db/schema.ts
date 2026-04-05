@@ -100,3 +100,39 @@ export const securityAuditLogs = pgTable(
   },
   (table) => [index("SecurityAuditLog_actorId_idx").on(table.actorId), index("SecurityAuditLog_action_idx").on(table.action)],
 );
+
+export const pageVisits = pgTable(
+  "PageVisit",
+  {
+    id: text("id").primaryKey(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    href: text("href").notNull(),
+    pathname: text("pathname").notNull(),
+    visitedAt: timestamp("visitedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("PageVisit_userId_visitedAt_idx").on(table.userId, table.visitedAt),
+    index("PageVisit_pathname_idx").on(table.pathname),
+    index("PageVisit_visitedAt_idx").on(table.visitedAt),
+  ],
+);
+
+export const pageVisitQueryParameters = pgTable(
+  "PageVisitQueryParameter",
+  {
+    id: text("id").primaryKey(),
+    pageVisitId: text("pageVisitId")
+      .notNull()
+      .references(() => pageVisits.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    key: text("key").notNull(),
+    value: text("value").notNull(),
+    position: integer("position").notNull(),
+  },
+  (table) => [
+    index("PageVisitQueryParameter_pageVisitId_idx").on(table.pageVisitId),
+    index("PageVisitQueryParameter_key_idx").on(table.key),
+    index("PageVisitQueryParameter_key_value_idx").on(table.key, table.value),
+  ],
+);

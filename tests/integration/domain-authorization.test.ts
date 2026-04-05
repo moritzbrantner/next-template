@@ -40,20 +40,16 @@ describe("authorization domain use-cases", () => {
     });
   });
 
-  it("returns allowed actions for manager", () => {
+  it("returns forbidden error for manager session", () => {
     const result = getAdminAuthorization(createSession("MANAGER"));
 
-    expect(result.ok).toBe(true);
-
-    if (!result.ok) {
-      return;
-    }
-
-    expect(result.data.actions).toEqual([
-      { key: "viewReports", allowed: true },
-      { key: "manageUsers", allowed: false },
-      { key: "manageSystemSettings", allowed: false },
-    ]);
+    expect(result).toEqual({
+      ok: false,
+      error: {
+        code: "FORBIDDEN",
+        message: "You do not have permission to access admin actions.",
+      },
+    });
   });
 
   it("returns allowed actions for admin", () => {
@@ -80,7 +76,7 @@ describe("authorization domain use-cases", () => {
     ]);
 
     expect(getAdminActionPermissions("MANAGER")).toEqual([
-      { key: "viewReports", allowed: true },
+      { key: "viewReports", allowed: false },
       { key: "manageUsers", allowed: false },
       { key: "manageSystemSettings", allowed: false },
     ]);

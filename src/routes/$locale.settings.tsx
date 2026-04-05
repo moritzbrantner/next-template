@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { DayPicker } from 'react-day-picker';
 
+import { AccountDeleteForm } from '@/components/account-delete-form';
+import { AccountEmailForm } from '@/components/account-email-form';
 import { ProfileImageForm } from '@/components/profile-image-form';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +26,7 @@ const backgroundSwatches: Record<BackgroundOption, string> = {
   forest: 'from-emerald-200 via-lime-100 to-stone-200',
 };
 
-const tabs = ['appearance', 'dates', 'workflow'] as const;
+const tabs = ['appearance', 'dates', 'workflow', 'account'] as const;
 
 type SettingsTab = (typeof tabs)[number];
 
@@ -94,11 +96,17 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
-      <div className="flex flex-wrap gap-2 rounded-3xl border border-zinc-200 bg-white/70 p-2 dark:border-zinc-800 dark:bg-zinc-950/60">
+      <div
+        role="tablist"
+        aria-label={t('title')}
+        className="flex flex-wrap gap-2 rounded-3xl border border-zinc-200 bg-white/70 p-2 dark:border-zinc-800 dark:bg-zinc-950/60"
+      >
         {tabs.map((tab) => (
           <button
             key={tab}
             type="button"
+            role="tab"
+            aria-selected={activeTab === tab}
             className={[
               'rounded-full px-4 py-2 text-sm font-medium transition-colors',
               activeTab === tab
@@ -276,6 +284,63 @@ function SettingsPage() {
                   success: t('form.success'),
                   empty: t('form.empty'),
                   alt: t('form.alt'),
+                  cropTitle: t('form.cropTitle'),
+                  cropDescription: t('form.cropDescription'),
+                  cropZoom: t('form.cropZoom'),
+                  cropCancel: t('form.cropCancel'),
+                  cropApply: t('form.cropApply'),
+                  ready: t('form.ready'),
+                }}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      {activeTab === 'account' ? (
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('account.email.title')}</CardTitle>
+              <CardDescription>{t('account.email.description')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AccountEmailForm
+                currentEmail={session?.user.email ?? ''}
+                labels={{
+                  currentEmail: t('account.email.currentEmail'),
+                  newEmail: t('account.email.newEmail'),
+                  currentPassword: t('account.email.currentPassword'),
+                  save: t('account.email.save'),
+                  saving: t('account.email.saving'),
+                  success: t('account.email.success'),
+                  genericError: t('account.email.genericError'),
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="border-red-200 dark:border-red-900/60">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <CardTitle>{t('account.deletion.title')}</CardTitle>
+                <Badge variant="outline" className="border-red-300 text-red-700 dark:border-red-700 dark:text-red-300">
+                  {t('account.deletion.badge')}
+                </Badge>
+              </div>
+              <CardDescription>{t('account.deletion.description')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-2xl border border-red-200 bg-red-50/80 p-4 text-sm text-red-900 dark:border-red-900/70 dark:bg-red-950/40 dark:text-red-100">
+                {t('account.deletion.warning')}
+              </div>
+              <AccountDeleteForm
+                labels={{
+                  currentPassword: t('account.deletion.currentPassword'),
+                  remove: t('account.deletion.remove'),
+                  removing: t('account.deletion.removing'),
+                  redirecting: t('account.deletion.redirecting'),
+                  genericError: t('account.deletion.genericError'),
                 }}
               />
             </CardContent>
