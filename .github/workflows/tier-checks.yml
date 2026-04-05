@@ -4,11 +4,9 @@ on:
   workflow_call:
     inputs:
       tier-name:
-        description: Tier label for logging and check-run naming.
         required: true
         type: string
       check-command:
-        description: Local check script to execute (for example checks:nightly).
         required: true
         type: string
 
@@ -16,6 +14,10 @@ jobs:
   tier-checks:
     name: Tier checks (${{ inputs.tier-name }})
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: read
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/next_template?schema=public
       AUTH_SECRET: ci-dummy-auth-secret-not-for-production
@@ -36,6 +38,7 @@ jobs:
           --health-interval=5s
           --health-timeout=5s
           --health-retries=20
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -48,6 +51,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -55,9 +59,20 @@ jobs:
       - name: Verify runtime dependency availability
         run: pnpm ls @aws-sdk/client-s3 --depth 0
 
-      - name: Install Playwright system dependencies
+      # If main is chromium-only:
+      - name: Install Playwright browsers and deps
         if: inputs.check-command == 'checks:main'
-        run: pnpm exec playwright install-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run tier checks
         run: pnpm run ${{ inputs.check-command }}
+
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-${{ inputs.tier-name }}
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
