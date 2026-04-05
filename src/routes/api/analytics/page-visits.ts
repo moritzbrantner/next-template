@@ -7,17 +7,17 @@ export const Route = createFileRoute('/api/analytics/page-visits')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const body = (await request.json().catch(() => null)) as { href?: string } | null;
+
+        if (!body?.href || typeof body.href !== 'string') {
+          return Response.json({ error: 'A tracked page href is required.' }, { status: 400 });
+        }
+
         const session = await getAuthSession();
         const userId = session?.user.id;
 
         if (!userId) {
           return Response.json({ tracked: false }, { status: 202 });
-        }
-
-        const body = (await request.json().catch(() => null)) as { href?: string } | null;
-
-        if (!body?.href || typeof body.href !== 'string') {
-          return Response.json({ error: 'A tracked page href is required.' }, { status: 400 });
         }
 
         try {
@@ -29,7 +29,9 @@ export const Route = createFileRoute('/api/analytics/page-visits')({
             return Response.json({ error: error.message }, { status: 400 });
           }
 
-          return Response.json({ error: 'Unable to record the page visit right now.' }, { status: 500 });
+          console.warn('[analytics] unable to record page visit through api fallback', error);
+
+          return Response.json({ tracked: false }, { status: 202 });
         }
       },
     },

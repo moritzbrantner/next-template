@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeTrackedPageVisit } from '@/src/analytics/page-visits';
+import { normalizeTrackedPageVisit, shouldTrackPageVisit } from '@/src/analytics/page-visits';
 
 describe('page visit tracking', () => {
   it('splits the pathname and query parameters for aggregation', () => {
@@ -25,5 +25,16 @@ describe('page visit tracking', () => {
 
   it('rejects empty href values', () => {
     expect(() => normalizeTrackedPageVisit('')).toThrowError('Page visit href is required.');
+  });
+
+  it('tracks document navigations, including tokenized urls', () => {
+    expect(shouldTrackPageVisit({ href: '/en/about?token=invite-token', cause: 'enter' })).toBe(true);
+    expect(shouldTrackPageVisit({ href: '/en/about?token=invite-token', cause: 'stay' })).toBe(true);
+  });
+
+  it('skips preloads and non-page urls', () => {
+    expect(shouldTrackPageVisit({ href: '/en/about?token=invite-token', cause: 'preload' })).toBe(false);
+    expect(shouldTrackPageVisit({ href: '/api/analytics/page-visits', cause: 'enter' })).toBe(false);
+    expect(shouldTrackPageVisit({ href: '/_serverFn/abc123', cause: 'enter' })).toBe(false);
   });
 });
