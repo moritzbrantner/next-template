@@ -203,7 +203,10 @@ export function GroupedNavigationMenu({ categories }: GroupedNavigationMenuProps
                     >
                       <span>{link.label}</span>
                       {settings.showHotkeyHints ? (
-                        <span className="ml-auto rounded-full border border-zinc-200/80 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                        <span
+                          aria-hidden="true"
+                          className="ml-auto rounded-full border border-zinc-200/80 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
+                        >
                           {link.hotkey}
                         </span>
                       ) : null}

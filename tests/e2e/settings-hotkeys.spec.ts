@@ -18,8 +18,7 @@ test.describe('settings and hotkeys', () => {
     await page.getByRole('button', { name: /Aurora Cool cyan and green gradients\./ }).click();
 
     await page.getByRole('tab', { name: 'Dates' }).click();
-    await page.getByRole('combobox').first().click();
-    await page.getByRole('option', { name: 'ISO 8601' }).click();
+    await page.getByLabel('Date format').selectOption('iso');
     await expect(page.getByText(/\d{4}-\d{2}-\d{2}/)).toBeVisible();
 
     await page.getByRole('tab', { name: 'Workflow' }).click();

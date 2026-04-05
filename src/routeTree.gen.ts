@@ -25,8 +25,8 @@ import { Route as LocaleLoginRouteImport } from './routes/$locale.login'
 import { Route as LocaleFormsRouteImport } from './routes/$locale.forms'
 import { Route as LocaleDataEntryRouteImport } from './routes/$locale.data-entry'
 import { Route as LocaleCommunicationRouteImport } from './routes/$locale.communication'
-import { Route as LocaleAdminRouteImport } from './routes/$locale.admin'
 import { Route as LocaleAboutRouteImport } from './routes/$locale.about'
+import { Route as LocaleAdminIndexRouteImport } from './routes/$locale/admin/index'
 import { Route as ApiProfileImageRouteImport } from './routes/api/profile/image'
 import { Route as ApiProfileDisplayNameRouteImport } from './routes/api/profile/display-name'
 import { Route as ApiDataEntryRowsRouteImport } from './routes/api/data-entry/rows'
@@ -39,10 +39,10 @@ import { Route as ApiAccountResetPasswordRouteImport } from './routes/api/accoun
 import { Route as ApiAccountForgotPasswordRouteImport } from './routes/api/account/forgot-password'
 import { Route as ApiAccountEmailRouteImport } from './routes/api/account/email'
 import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
-import { Route as LocaleAdminUsersRouteImport } from './routes/$locale.admin.users'
-import { Route as LocaleAdminSystemSettingsRouteImport } from './routes/$locale.admin.system-settings'
-import { Route as LocaleAdminReportsRouteImport } from './routes/$locale.admin.reports'
-import { Route as LocaleAdminDataStudioRouteImport } from './routes/$locale.admin.data-studio'
+import { Route as LocaleAdminUsersRouteImport } from './routes/$locale/admin/users'
+import { Route as LocaleAdminSystemSettingsRouteImport } from './routes/$locale/admin/system-settings'
+import { Route as LocaleAdminReportsRouteImport } from './routes/$locale/admin/reports'
+import { Route as LocaleAdminDataStudioRouteImport } from './routes/$locale/admin/data-studio'
 import { Route as ApiProfileImageRemoveRouteImport } from './routes/api/profile/image/remove'
 import { Route as ApiAdminReportsAuthorizationRouteImport } from './routes/api/admin/reports/authorization'
 import { Route as ApiAdminDataStudioRecordsRouteImport } from './routes/api/admin/data-studio/records'
@@ -127,14 +127,14 @@ const LocaleCommunicationRoute = LocaleCommunicationRouteImport.update({
   path: '/communication',
   getParentRoute: () => LocaleRoute,
 } as any)
-const LocaleAdminRoute = LocaleAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => LocaleRoute,
-} as any)
 const LocaleAboutRoute = LocaleAboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => LocaleRoute,
+} as any)
+const LocaleAdminIndexRoute = LocaleAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => LocaleRoute,
 } as any)
 const ApiProfileImageRoute = ApiProfileImageRouteImport.update({
@@ -199,25 +199,25 @@ const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const LocaleAdminUsersRoute = LocaleAdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => LocaleAdminRoute,
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => LocaleRoute,
 } as any)
 const LocaleAdminSystemSettingsRoute =
   LocaleAdminSystemSettingsRouteImport.update({
-    id: '/system-settings',
-    path: '/system-settings',
-    getParentRoute: () => LocaleAdminRoute,
+    id: '/admin/system-settings',
+    path: '/admin/system-settings',
+    getParentRoute: () => LocaleRoute,
   } as any)
 const LocaleAdminReportsRoute = LocaleAdminReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => LocaleAdminRoute,
+  id: '/admin/reports',
+  path: '/admin/reports',
+  getParentRoute: () => LocaleRoute,
 } as any)
 const LocaleAdminDataStudioRoute = LocaleAdminDataStudioRouteImport.update({
-  id: '/data-studio',
-  path: '/data-studio',
-  getParentRoute: () => LocaleAdminRoute,
+  id: '/admin/data-studio',
+  path: '/admin/data-studio',
+  getParentRoute: () => LocaleRoute,
 } as any)
 const ApiProfileImageRemoveRoute = ApiProfileImageRemoveRouteImport.update({
   id: '/remove',
@@ -242,7 +242,6 @@ export interface FileRoutesByFullPath {
   '/$locale': typeof LocaleRouteWithChildren
   '/about': typeof AboutRoute
   '/$locale/about': typeof LocaleAboutRoute
-  '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/communication': typeof LocaleCommunicationRoute
   '/$locale/data-entry': typeof LocaleDataEntryRoute
   '/$locale/forms': typeof LocaleFormsRoute
@@ -272,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
+  '/$locale/admin/': typeof LocaleAdminIndexRoute
   '/api/admin/data-studio/records': typeof ApiAdminDataStudioRecordsRoute
   '/api/admin/reports/authorization': typeof ApiAdminReportsAuthorizationRoute
   '/api/profile/image/remove': typeof ApiProfileImageRemoveRoute
@@ -280,7 +280,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/$locale/about': typeof LocaleAboutRoute
-  '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/communication': typeof LocaleCommunicationRoute
   '/$locale/data-entry': typeof LocaleDataEntryRoute
   '/$locale/forms': typeof LocaleFormsRoute
@@ -310,6 +309,7 @@ export interface FileRoutesByTo {
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
+  '/$locale/admin': typeof LocaleAdminIndexRoute
   '/api/admin/data-studio/records': typeof ApiAdminDataStudioRecordsRoute
   '/api/admin/reports/authorization': typeof ApiAdminReportsAuthorizationRoute
   '/api/profile/image/remove': typeof ApiProfileImageRemoveRoute
@@ -320,7 +320,6 @@ export interface FileRoutesById {
   '/$locale': typeof LocaleRouteWithChildren
   '/about': typeof AboutRoute
   '/$locale/about': typeof LocaleAboutRoute
-  '/$locale/admin': typeof LocaleAdminRouteWithChildren
   '/$locale/communication': typeof LocaleCommunicationRoute
   '/$locale/data-entry': typeof LocaleDataEntryRoute
   '/$locale/forms': typeof LocaleFormsRoute
@@ -350,6 +349,7 @@ export interface FileRoutesById {
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
+  '/$locale/admin/': typeof LocaleAdminIndexRoute
   '/api/admin/data-studio/records': typeof ApiAdminDataStudioRecordsRoute
   '/api/admin/reports/authorization': typeof ApiAdminReportsAuthorizationRoute
   '/api/profile/image/remove': typeof ApiProfileImageRemoveRoute
@@ -361,7 +361,6 @@ export interface FileRouteTypes {
     | '/$locale'
     | '/about'
     | '/$locale/about'
-    | '/$locale/admin'
     | '/$locale/communication'
     | '/$locale/data-entry'
     | '/$locale/forms'
@@ -391,6 +390,7 @@ export interface FileRouteTypes {
     | '/api/data-entry/rows'
     | '/api/profile/display-name'
     | '/api/profile/image'
+    | '/$locale/admin/'
     | '/api/admin/data-studio/records'
     | '/api/admin/reports/authorization'
     | '/api/profile/image/remove'
@@ -399,7 +399,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/$locale/about'
-    | '/$locale/admin'
     | '/$locale/communication'
     | '/$locale/data-entry'
     | '/$locale/forms'
@@ -429,6 +428,7 @@ export interface FileRouteTypes {
     | '/api/data-entry/rows'
     | '/api/profile/display-name'
     | '/api/profile/image'
+    | '/$locale/admin'
     | '/api/admin/data-studio/records'
     | '/api/admin/reports/authorization'
     | '/api/profile/image/remove'
@@ -438,7 +438,6 @@ export interface FileRouteTypes {
     | '/$locale'
     | '/about'
     | '/$locale/about'
-    | '/$locale/admin'
     | '/$locale/communication'
     | '/$locale/data-entry'
     | '/$locale/forms'
@@ -468,6 +467,7 @@ export interface FileRouteTypes {
     | '/api/data-entry/rows'
     | '/api/profile/display-name'
     | '/api/profile/image'
+    | '/$locale/admin/'
     | '/api/admin/data-studio/records'
     | '/api/admin/reports/authorization'
     | '/api/profile/image/remove'
@@ -608,18 +608,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleCommunicationRouteImport
       parentRoute: typeof LocaleRoute
     }
-    '/$locale/admin': {
-      id: '/$locale/admin'
-      path: '/admin'
-      fullPath: '/$locale/admin'
-      preLoaderRoute: typeof LocaleAdminRouteImport
-      parentRoute: typeof LocaleRoute
-    }
     '/$locale/about': {
       id: '/$locale/about'
       path: '/about'
       fullPath: '/$locale/about'
       preLoaderRoute: typeof LocaleAboutRouteImport
+      parentRoute: typeof LocaleRoute
+    }
+    '/$locale/admin/': {
+      id: '/$locale/admin/'
+      path: '/admin'
+      fullPath: '/$locale/admin/'
+      preLoaderRoute: typeof LocaleAdminIndexRouteImport
       parentRoute: typeof LocaleRoute
     }
     '/api/profile/image': {
@@ -708,31 +708,31 @@ declare module '@tanstack/react-router' {
     }
     '/$locale/admin/users': {
       id: '/$locale/admin/users'
-      path: '/users'
+      path: '/admin/users'
       fullPath: '/$locale/admin/users'
       preLoaderRoute: typeof LocaleAdminUsersRouteImport
-      parentRoute: typeof LocaleAdminRoute
+      parentRoute: typeof LocaleRoute
     }
     '/$locale/admin/system-settings': {
       id: '/$locale/admin/system-settings'
-      path: '/system-settings'
+      path: '/admin/system-settings'
       fullPath: '/$locale/admin/system-settings'
       preLoaderRoute: typeof LocaleAdminSystemSettingsRouteImport
-      parentRoute: typeof LocaleAdminRoute
+      parentRoute: typeof LocaleRoute
     }
     '/$locale/admin/reports': {
       id: '/$locale/admin/reports'
-      path: '/reports'
+      path: '/admin/reports'
       fullPath: '/$locale/admin/reports'
       preLoaderRoute: typeof LocaleAdminReportsRouteImport
-      parentRoute: typeof LocaleAdminRoute
+      parentRoute: typeof LocaleRoute
     }
     '/$locale/admin/data-studio': {
       id: '/$locale/admin/data-studio'
-      path: '/data-studio'
+      path: '/admin/data-studio'
       fullPath: '/$locale/admin/data-studio'
       preLoaderRoute: typeof LocaleAdminDataStudioRouteImport
-      parentRoute: typeof LocaleAdminRoute
+      parentRoute: typeof LocaleRoute
     }
     '/api/profile/image/remove': {
       id: '/api/profile/image/remove'
@@ -758,27 +758,8 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface LocaleAdminRouteChildren {
-  LocaleAdminDataStudioRoute: typeof LocaleAdminDataStudioRoute
-  LocaleAdminReportsRoute: typeof LocaleAdminReportsRoute
-  LocaleAdminSystemSettingsRoute: typeof LocaleAdminSystemSettingsRoute
-  LocaleAdminUsersRoute: typeof LocaleAdminUsersRoute
-}
-
-const LocaleAdminRouteChildren: LocaleAdminRouteChildren = {
-  LocaleAdminDataStudioRoute: LocaleAdminDataStudioRoute,
-  LocaleAdminReportsRoute: LocaleAdminReportsRoute,
-  LocaleAdminSystemSettingsRoute: LocaleAdminSystemSettingsRoute,
-  LocaleAdminUsersRoute: LocaleAdminUsersRoute,
-}
-
-const LocaleAdminRouteWithChildren = LocaleAdminRoute._addFileChildren(
-  LocaleAdminRouteChildren,
-)
-
 interface LocaleRouteChildren {
   LocaleAboutRoute: typeof LocaleAboutRoute
-  LocaleAdminRoute: typeof LocaleAdminRouteWithChildren
   LocaleCommunicationRoute: typeof LocaleCommunicationRoute
   LocaleDataEntryRoute: typeof LocaleDataEntryRoute
   LocaleFormsRoute: typeof LocaleFormsRoute
@@ -791,11 +772,15 @@ interface LocaleRouteChildren {
   LocaleTableRoute: typeof LocaleTableRoute
   LocaleUploadsRoute: typeof LocaleUploadsRoute
   LocaleIndexRoute: typeof LocaleIndexRoute
+  LocaleAdminDataStudioRoute: typeof LocaleAdminDataStudioRoute
+  LocaleAdminReportsRoute: typeof LocaleAdminReportsRoute
+  LocaleAdminSystemSettingsRoute: typeof LocaleAdminSystemSettingsRoute
+  LocaleAdminUsersRoute: typeof LocaleAdminUsersRoute
+  LocaleAdminIndexRoute: typeof LocaleAdminIndexRoute
 }
 
 const LocaleRouteChildren: LocaleRouteChildren = {
   LocaleAboutRoute: LocaleAboutRoute,
-  LocaleAdminRoute: LocaleAdminRouteWithChildren,
   LocaleCommunicationRoute: LocaleCommunicationRoute,
   LocaleDataEntryRoute: LocaleDataEntryRoute,
   LocaleFormsRoute: LocaleFormsRoute,
@@ -808,6 +793,11 @@ const LocaleRouteChildren: LocaleRouteChildren = {
   LocaleTableRoute: LocaleTableRoute,
   LocaleUploadsRoute: LocaleUploadsRoute,
   LocaleIndexRoute: LocaleIndexRoute,
+  LocaleAdminDataStudioRoute: LocaleAdminDataStudioRoute,
+  LocaleAdminReportsRoute: LocaleAdminReportsRoute,
+  LocaleAdminSystemSettingsRoute: LocaleAdminSystemSettingsRoute,
+  LocaleAdminUsersRoute: LocaleAdminUsersRoute,
+  LocaleAdminIndexRoute: LocaleAdminIndexRoute,
 }
 
 const LocaleRouteWithChildren =

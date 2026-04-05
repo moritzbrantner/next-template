@@ -8,7 +8,7 @@ import { requireAdminPageAccess } from '@/src/admin/access';
 import { adminWorkspacePageDefinitions } from '@/src/admin/pages';
 import { useTranslations } from '@/src/i18n';
 
-export const Route = createFileRoute('/$locale/admin')({
+export const Route = createFileRoute('/$locale/admin/')({
   beforeLoad: ({ context, params }) => {
     requireAdminPageAccess(context.session, params.locale as AppLocale);
   },
