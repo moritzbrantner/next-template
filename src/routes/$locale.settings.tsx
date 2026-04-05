@@ -1,41 +1,20 @@
 import { useState } from 'react';
 
-import {
-  Badge,
-  Calendar,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Separator,
-  Switch,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@moritzbrantner/ui';
 import { createFileRoute, redirect } from '@tanstack/react-router';
+import { DayPicker } from 'react-day-picker';
 
+import { ProfileImageForm } from '@/components/profile-image-form';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import {
   canAccessAdminArea,
   canManageSystemSettings,
   canManageUsers,
   canViewReports,
 } from '@/lib/authorization';
-import { ProfileImageForm } from '@/components/profile-image-form';
 import { useTranslations } from '@/src/i18n';
-import {
-  backgroundOptions,
-  formatDatePreview,
-  type BackgroundOption,
-} from '@/src/settings/preferences';
+import { backgroundOptions, formatDatePreview, type BackgroundOption } from '@/src/settings/preferences';
 import { useAppSettings } from '@/src/settings/provider';
 
 const backgroundSwatches: Record<BackgroundOption, string> = {
@@ -44,6 +23,10 @@ const backgroundSwatches: Record<BackgroundOption, string> = {
   dusk: 'from-rose-200 via-orange-100 to-indigo-200',
   forest: 'from-emerald-200 via-lime-100 to-stone-200',
 };
+
+const tabs = ['appearance', 'dates', 'workflow'] as const;
+
+type SettingsTab = (typeof tabs)[number];
 
 export const Route = createFileRoute('/$locale/settings')({
   beforeLoad: ({ context, params }) => {
@@ -63,6 +46,7 @@ function SettingsPage() {
   const { locale } = Route.useParams();
   const { settings, updateSettings } = useAppSettings();
   const [previewDate, setPreviewDate] = useState<Date | undefined>(new Date());
+  const [activeTab, setActiveTab] = useState<SettingsTab>('appearance');
 
   const role = session?.user.role ?? 'USER';
   const formattedPreviewDate = formatDatePreview(previewDate ?? new Date(), settings, locale);
@@ -110,144 +94,148 @@ function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="appearance">
-        <TabsList className="w-full justify-start">
-          <TabsTrigger value="appearance">{t('tabs.appearance')}</TabsTrigger>
-          <TabsTrigger value="dates">{t('tabs.dates')}</TabsTrigger>
-          <TabsTrigger value="workflow">{t('tabs.workflow')}</TabsTrigger>
-        </TabsList>
+      <div className="flex flex-wrap gap-2 rounded-3xl border border-zinc-200 bg-white/70 p-2 dark:border-zinc-800 dark:bg-zinc-950/60">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            className={[
+              'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+              activeTab === tab
+                ? 'bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900'
+                : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900',
+            ].join(' ')}
+            onClick={() => setActiveTab(tab)}
+          >
+            {t(`tabs.${tab}`)}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="appearance" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('appearance.title')}</CardTitle>
-              <CardDescription>{t('appearance.description')}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                {backgroundOptions.map((backgroundOption) => {
-                  const isSelected = settings.background === backgroundOption;
+      {activeTab === 'appearance' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('appearance.title')}</CardTitle>
+            <CardDescription>{t('appearance.description')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {backgroundOptions.map((backgroundOption) => {
+                const isSelected = settings.background === backgroundOption;
 
-                  return (
-                    <button
-                      key={backgroundOption}
-                      type="button"
-                      aria-pressed={isSelected}
-                      className={[
-                        'rounded-2xl border p-3 text-left transition-colors',
-                        isSelected
-                          ? 'border-zinc-950 bg-zinc-950 text-white dark:border-white dark:bg-white dark:text-zinc-950'
-                          : 'border-zinc-200 bg-white/70 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:border-zinc-600',
-                      ].join(' ')}
-                      onClick={() => updateSettings({ background: backgroundOption })}
-                    >
-                      <div className={`mb-3 h-20 rounded-xl bg-gradient-to-br ${backgroundSwatches[backgroundOption]}`} />
-                      <p className="font-medium">{t(`appearance.backgrounds.${backgroundOption}.title`)}</p>
-                      <p className="mt-1 text-sm opacity-80">
-                        {t(`appearance.backgrounds.${backgroundOption}.description`)}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <Separator />
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <ToggleRow
-                  title={t('appearance.compactSpacing')}
-                  description={t('appearance.compactSpacingDescription')}
-                  checked={settings.compactSpacing}
-                  onCheckedChange={(checked) => updateSettings({ compactSpacing: checked })}
-                />
-                <ToggleRow
-                  title={t('appearance.reducedMotion')}
-                  description={t('appearance.reducedMotionDescription')}
-                  checked={settings.reducedMotion}
-                  onCheckedChange={(checked) => updateSettings({ reducedMotion: checked })}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="dates" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('dates.title')}</CardTitle>
-              <CardDescription>{t('dates.description')}</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>{t('dates.formatLabel')}</Label>
-                  <Select
-                    value={settings.dateFormat}
-                    onValueChange={(value) =>
-                      updateSettings({
-                        dateFormat: value as 'localized' | 'long' | 'iso',
-                      })
-                    }
+                return (
+                  <button
+                    key={backgroundOption}
+                    type="button"
+                    aria-pressed={isSelected}
+                    className={[
+                      'rounded-2xl border p-3 text-left transition-colors',
+                      isSelected
+                        ? 'border-zinc-950 bg-zinc-950 text-white dark:border-white dark:bg-white dark:text-zinc-950'
+                        : 'border-zinc-200 bg-white/70 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:border-zinc-600',
+                    ].join(' ')}
+                    onClick={() => updateSettings({ background: backgroundOption })}
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="localized">{t('dates.formats.localized')}</SelectItem>
-                      <SelectItem value="long">{t('dates.formats.long')}</SelectItem>
-                      <SelectItem value="iso">{t('dates.formats.iso')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                    <div className={`mb-3 h-20 rounded-xl bg-gradient-to-br ${backgroundSwatches[backgroundOption]}`} />
+                    <p className="font-medium">{t(`appearance.backgrounds.${backgroundOption}.title`)}</p>
+                    <p className="mt-1 text-sm opacity-80">{t(`appearance.backgrounds.${backgroundOption}.description`)}</p>
+                  </button>
+                );
+              })}
+            </div>
 
-                <div className="space-y-2">
-                  <Label>{t('dates.weekStartsLabel')}</Label>
-                  <Select
-                    value={String(settings.weekStartsOn)}
-                    onValueChange={(value) =>
-                      updateSettings({
-                        weekStartsOn: value === '0' ? 0 : 1,
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">{t('dates.weekStarts.monday')}</SelectItem>
-                      <SelectItem value="0">{t('dates.weekStarts.sunday')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="h-px w-full bg-zinc-200 dark:bg-zinc-800" />
 
-                <ToggleRow
-                  title={t('dates.showOutsideDays')}
-                  description={t('dates.showOutsideDaysDescription')}
-                  checked={settings.showOutsideDays}
-                  onCheckedChange={(checked) => updateSettings({ showOutsideDays: checked })}
-                />
+            <div className="grid gap-4 md:grid-cols-2">
+              <ToggleRow
+                title={t('appearance.compactSpacing')}
+                description={t('appearance.compactSpacingDescription')}
+                checked={settings.compactSpacing}
+                onCheckedChange={(checked) => updateSettings({ compactSpacing: checked })}
+              />
+              <ToggleRow
+                title={t('appearance.reducedMotion')}
+                description={t('appearance.reducedMotionDescription')}
+                checked={settings.reducedMotion}
+                onCheckedChange={(checked) => updateSettings({ reducedMotion: checked })}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
-                <div className="rounded-2xl border border-dashed border-zinc-300 p-4 text-sm dark:border-zinc-700">
-                  <p className="font-medium">{t('dates.previewLabel')}</p>
-                  <p className="mt-1 text-zinc-600 dark:text-zinc-300">{formattedPreviewDate}</p>
-                </div>
+      {activeTab === 'dates' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('dates.title')}</CardTitle>
+            <CardDescription>{t('dates.description')}</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)]">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="date-format">{t('dates.formatLabel')}</Label>
+                <select
+                  id="date-format"
+                  value={settings.dateFormat}
+                  className={selectClassName}
+                  onChange={(event) =>
+                    updateSettings({
+                      dateFormat: event.target.value as 'localized' | 'long' | 'iso',
+                    })
+                  }
+                >
+                  <option value="localized">{t('dates.formats.localized')}</option>
+                  <option value="long">{t('dates.formats.long')}</option>
+                  <option value="iso">{t('dates.formats.iso')}</option>
+                </select>
               </div>
 
-              <div className="rounded-3xl border border-zinc-200 bg-white/70 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
-                <Calendar
-                  mode="single"
-                  selected={previewDate}
-                  onSelect={setPreviewDate}
-                  showOutsideDays={settings.showOutsideDays}
-                  weekStartsOn={settings.weekStartsOn}
-                  className="w-full"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="week-starts-on">{t('dates.weekStartsLabel')}</Label>
+                <select
+                  id="week-starts-on"
+                  value={String(settings.weekStartsOn)}
+                  className={selectClassName}
+                  onChange={(event) =>
+                    updateSettings({
+                      weekStartsOn: event.target.value === '0' ? 0 : 1,
+                    })
+                  }
+                >
+                  <option value="1">{t('dates.weekStarts.monday')}</option>
+                  <option value="0">{t('dates.weekStarts.sunday')}</option>
+                </select>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="workflow" className="mt-4 space-y-4">
+              <ToggleRow
+                title={t('dates.showOutsideDays')}
+                description={t('dates.showOutsideDaysDescription')}
+                checked={settings.showOutsideDays}
+                onCheckedChange={(checked) => updateSettings({ showOutsideDays: checked })}
+              />
+
+              <div className="rounded-2xl border border-dashed border-zinc-300 p-4 text-sm dark:border-zinc-700">
+                <p className="font-medium">{t('dates.previewLabel')}</p>
+                <p className="mt-1 text-zinc-600 dark:text-zinc-300">{formattedPreviewDate}</p>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-zinc-200 bg-white/70 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+              <DayPicker
+                mode="single"
+                selected={previewDate}
+                onSelect={setPreviewDate}
+                showOutsideDays={settings.showOutsideDays}
+                weekStartsOn={settings.weekStartsOn}
+                className="mx-auto"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {activeTab === 'workflow' ? (
+        <div className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>{t('workflow.title')}</CardTitle>
@@ -292,8 +280,8 @@ function SettingsPage() {
               />
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      ) : null}
 
       <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('saveState')}</p>
     </section>
@@ -338,7 +326,31 @@ function ToggleRow({
         <p className="font-medium">{title}</p>
         <p className="text-sm text-zinc-600 dark:text-zinc-300">{description}</p>
       </div>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        className={[
+          'relative inline-flex h-7 w-12 shrink-0 rounded-full border transition-colors',
+          checked
+            ? 'border-zinc-900 bg-zinc-900 dark:border-zinc-50 dark:bg-zinc-50'
+            : 'border-zinc-300 bg-zinc-200 dark:border-zinc-700 dark:bg-zinc-800',
+        ].join(' ')}
+        onClick={() => onCheckedChange(!checked)}
+      >
+        <span
+          className={[
+            'mt-0.5 ml-0.5 block size-5 rounded-full bg-white shadow-sm transition-transform dark:bg-zinc-950',
+            checked ? 'translate-x-5' : 'translate-x-0',
+          ].join(' ')}
+        />
+      </button>
     </div>
   );
 }
+
+const selectClassName = [
+  'flex h-10 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm transition-colors',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2',
+  'dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus-visible:ring-zinc-50',
+].join(' ');

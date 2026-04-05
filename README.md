@@ -8,9 +8,8 @@ Syncable TanStack Start application template powered by `Copier`.
 - generic CI, Playwright, Tailwind 4, and package-wiring defaults
 
 ## Current package wiring
-- The template consumes `@moritzbrantner/ui` and `@moritzbrantner/storytelling`.
-- Default dependency values point to the published `0.1.0` GitHub Packages releases for that scope.
-- If you need a different source, override the dependency values during `copier copy` with any valid npm package spec.
+- The application uses local UI primitives under `components/ui` plus public npm dependencies.
+- No GitHub Packages token is required to install dependencies for this repo.
 
 ## Usage
 
@@ -20,10 +19,9 @@ Create a new app:
 copier copy . ../my-next-app
 ```
 
-Before installing dependencies in the generated app, export a GitHub Packages token:
+Install dependencies in the generated app:
 
 ```bash
-export GH_PACKAGES_TOKEN=your-token
 cd ../my-next-app
 pnpm install
 ```
