@@ -2,6 +2,8 @@
 import { pgEnum, pgTable, primaryKey, text, timestamp, integer, index, uniqueIndex, jsonb } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("Role", ["ADMIN", "MANAGER", "USER"]);
+export const notificationStatusEnum = pgEnum("NotificationStatus", ["unread", "read"]);
+export const notificationAudienceEnum = pgEnum("NotificationAudience", ["user", "role", "all"]);
 
 export const users = pgTable(
   "User",
@@ -168,5 +170,30 @@ export const pageVisitQueryParameters = pgTable(
     index("PageVisitQueryParameter_pageVisitId_idx").on(table.pageVisitId),
     index("PageVisitQueryParameter_key_idx").on(table.key),
     index("PageVisitQueryParameter_key_value_idx").on(table.key, table.value),
+  ],
+);
+
+export const notifications = pgTable(
+  "Notification",
+  {
+    id: text("id").primaryKey(),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    actorId: text("actorId").references(() => users.id, { onDelete: "set null", onUpdate: "cascade" }),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    href: text("href"),
+    status: notificationStatusEnum("status").notNull().default("unread"),
+    audience: notificationAudienceEnum("audience").notNull().default("user"),
+    audienceValue: text("audienceValue"),
+    readAt: timestamp("readAt", { withTimezone: false, mode: "date" }),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("Notification_userId_createdAt_idx").on(table.userId, table.createdAt),
+    index("Notification_userId_status_idx").on(table.userId, table.status),
+    index("Notification_actorId_idx").on(table.actorId),
+    index("Notification_audience_idx").on(table.audience, table.audienceValue),
   ],
 );

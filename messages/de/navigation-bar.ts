@@ -29,6 +29,13 @@ export const navigationBar = {
     logout: 'Abmelden',
     openMenu: 'Benutzermenü öffnen',
   },
+  notifications: {
+    button: 'Benachrichtigungen öffnen ({count} ungelesen)',
+    title: 'Benachrichtigungen',
+    subtitle: 'Aktuell {count} ungelesen',
+    empty: 'Noch keine Benachrichtigungen.',
+    viewAll: 'Alle Benachrichtigungen',
+  },
   hotkeys: {
     button: 'Hotkeys',
     title: 'Navigations-Hotkeys',

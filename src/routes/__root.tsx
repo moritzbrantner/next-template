@@ -6,6 +6,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 import type { Theme } from '@/lib/theme';
 import type { AppSession } from '@/src/auth';
+import type { NotificationPreview } from '@/src/domain/notifications/use-cases';
 import { loadAppContext } from '@/src/runtime.functions';
 import { AppSettingsProvider } from '@/src/settings/provider';
 import { defaultAppSettings, type AppSettings } from '@/src/settings/preferences';
@@ -13,6 +14,7 @@ import appCss from '@/src/styles/app.css?url';
 
 type RouterContext = {
   session: AppSession | null;
+  notificationCenter: NotificationPreview | null;
   theme: Theme;
   settings: AppSettings;
 };

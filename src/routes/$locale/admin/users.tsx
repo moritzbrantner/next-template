@@ -1,71 +1,37 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
 
-import type { AppRole } from '@/lib/authorization';
 import type { AppLocale } from '@/i18n/routing';
+import { Link } from '@/i18n/navigation';
+import { AdminNotificationComposer } from '@/components/admin/admin-notification-composer';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { requireAdminPageAccess } from '@/src/admin/access';
+import { getAdminUsersPageDataUseCase } from '@/src/domain/notifications/use-cases';
 import { useTranslations } from '@/src/i18n';
 
-type UserStatusKey = 'active' | 'pending' | 'suspended';
-type UserActionKey = 'primary' | 'secondary' | 'danger';
-
 const userMetricKeys = ['privileged', 'operational', 'member'] as const;
-const workflowKeys = ['invite', 'promote', 'suspend'] as const;
-const userRows: ReadonlyArray<{
-  name: string;
-  email: string;
-  role: AppRole;
-  status: UserStatusKey;
-  lastSeen: string;
-  actions: readonly UserActionKey[];
-}> = [
-  {
-    name: 'Maya Chen',
-    email: 'maya.chen@northstar.test',
-    role: 'ADMIN',
-    status: 'active',
-    lastSeen: '2 min ago',
-    actions: ['primary', 'secondary', 'danger'],
-  },
-  {
-    name: 'Jonas Hartmann',
-    email: 'jonas.hartmann@northstar.test',
-    role: 'MANAGER',
-    status: 'active',
-    lastSeen: '18 min ago',
-    actions: ['primary', 'secondary', 'danger'],
-  },
-  {
-    name: 'Priya Nair',
-    email: 'priya.nair@northstar.test',
-    role: 'USER',
-    status: 'pending',
-    lastSeen: 'Invite sent',
-    actions: ['primary', 'secondary'],
-  },
-  {
-    name: 'Luca Weber',
-    email: 'luca.weber@northstar.test',
-    role: 'USER',
-    status: 'suspended',
-    lastSeen: '3 days ago',
-    actions: ['primary', 'secondary'],
-  },
-] as const;
+const workflowKeys = ['inspect', 'broadcast', 'suspend'] as const;
+
+const loadAdminUsersPage = createServerFn({ method: 'GET' }).handler(async () => {
+  return getAdminUsersPageDataUseCase();
+});
 
 export const Route = createFileRoute('/$locale/admin/users')({
   beforeLoad: ({ context, params }) => {
     requireAdminPageAccess(context.session, params.locale as AppLocale);
   },
+  loader: () => loadAdminUsersPage(),
   component: UsersPage,
 });
 
 function UsersPage() {
   const t = useTranslations('AdminPage');
+  const { locale } = Route.useParams();
+  const data = Route.useLoaderData();
 
   return (
     <AdminPageShell title={t('users.title')} description={t('users.description')}>
@@ -74,7 +40,7 @@ function UsersPage() {
           <Card key={metricKey}>
             <CardHeader>
               <CardDescription>{t(`users.metrics.${metricKey}.label`)}</CardDescription>
-              <CardTitle className="text-2xl">{t(`users.metrics.${metricKey}.value`)}</CardTitle>
+              <CardTitle className="text-2xl">{String(data.metrics[metricKey])}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-zinc-600 dark:text-zinc-300">{t(`users.metrics.${metricKey}.detail`)}</p>
@@ -83,59 +49,83 @@ function UsersPage() {
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('users.tableTitle')}</CardTitle>
-          <CardDescription>{t('users.tableDescription')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('users.columns.user')}</TableHead>
-                <TableHead>{t('users.columns.role')}</TableHead>
-                <TableHead>{t('users.columns.status')}</TableHead>
-                <TableHead>{t('users.columns.lastSeen')}</TableHead>
-                <TableHead className="text-right">{t('users.columns.actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {userRows.map((user) => (
-                <TableRow key={user.email}>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <p className="font-medium">{user.name}</p>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-300">{user.email}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>{user.role}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={user.status === 'active' ? 'secondary' : 'outline'}>{t(`users.status.${user.status}`)}</Badge>
-                  </TableCell>
-                  <TableCell>{user.lastSeen}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      {user.actions.map((actionKey) => (
-                        <Button
-                          key={`${user.email}-${actionKey}`}
-                          type="button"
-                          variant={actionKey === 'primary' ? 'default' : actionKey === 'secondary' ? 'outline' : 'ghost'}
-                          size="sm"
-                          className={actionKey === 'danger' ? 'text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300' : undefined}
-                        >
-                          {t(`users.actions.${user.status}.${actionKey}`)}
-                        </Button>
-                      ))}
-                    </div>
-                  </TableCell>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('users.tableTitle')}</CardTitle>
+            <CardDescription>{t('users.tableDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('users.columns.user')}</TableHead>
+                  <TableHead>{t('users.columns.role')}</TableHead>
+                  <TableHead>{t('users.columns.status')}</TableHead>
+                  <TableHead>{t('users.columns.lastSeen')}</TableHead>
+                  <TableHead>{t('users.columns.notifications')}</TableHead>
+                  <TableHead className="text-right">{t('users.columns.actions')}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {data.users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="font-medium">{user.displayName}</p>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-300">{user.email}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>{user.role}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={user.status === 'active' ? 'secondary' : 'outline'}>{t(`users.status.${user.status}`)}</Badge>
+                    </TableCell>
+                    <TableCell>{formatDateTime(user.lastActivityAt, locale, t('users.lastActivityFallback'))}</TableCell>
+                    <TableCell>
+                      <div className="space-y-1 text-sm">
+                        <p>{t('users.notifications.total', { count: user.totalNotifications })}</p>
+                        <p className="text-zinc-600 dark:text-zinc-300">
+                          {t('users.notifications.unread', { count: user.unreadNotifications })}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end">
+                        <Link
+                          href={`/admin/users/${user.id}`}
+                          locale={locale as AppLocale}
+                          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                        >
+                          {t('users.actions.inspect')}
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[1.75rem]">
+          <CardHeader>
+            <CardTitle>{t('users.notifications.title')}</CardTitle>
+            <CardDescription>{t('users.notifications.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AdminNotificationComposer
+              userOptions={data.users.map((user) => ({
+                id: user.id,
+                displayName: user.displayName,
+                email: user.email,
+                role: user.role,
+              }))}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
@@ -153,4 +143,15 @@ function UsersPage() {
       </Card>
     </AdminPageShell>
   );
+}
+
+function formatDateTime(value: string | null, locale: string, fallback: string) {
+  if (!value) {
+    return fallback;
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
 }

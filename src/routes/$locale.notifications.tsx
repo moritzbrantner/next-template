@@ -1,19 +1,28 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
 
 import { Link } from '@/i18n/navigation';
+import { MarkAllReadButton } from '@/components/notifications/mark-all-read-button';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { getNotificationsPageDataUseCase } from '@/src/domain/notifications/use-cases';
 import { useTranslations } from '@/src/i18n';
 
 const summaryKeys = ['unread', 'today', 'preferences'] as const;
-const notificationKeys = ['security', 'workspace', 'digest'] as const;
 
 const badgeVariants = {
   unread: 'default',
-  upcoming: 'outline',
   read: 'secondary',
 } as const;
+
+const loadNotificationsPage = createServerFn({ method: 'GET' })
+  .inputValidator((input: { userId?: string } | undefined) => ({
+    userId: typeof input?.userId === 'string' ? input.userId : '',
+  }))
+  .handler(async ({ data }) => {
+    return getNotificationsPageDataUseCase(data.userId);
+  });
 
 export const Route = createFileRoute('/$locale/notifications')({
   beforeLoad: ({ context, params }) => {
@@ -24,11 +33,13 @@ export const Route = createFileRoute('/$locale/notifications')({
       });
     }
   },
+  loader: ({ context }) => loadNotificationsPage({ data: { userId: context.session!.user.id } }),
   component: NotificationsPage,
 });
 
 function NotificationsPage() {
   const t = useTranslations('NotificationsPage');
+  const data = Route.useLoaderData();
   const { session } = Route.useRouteContext();
   const userLabel = session?.user.name ?? session?.user.email ?? t('fallbackUser');
 
@@ -59,7 +70,7 @@ function NotificationsPage() {
                 {t(`summary.${key}.label`)}
               </p>
               <p className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-                {t(`summary.${key}.value`)}
+                {key === 'unread' ? String(data.unreadCount) : key === 'today' ? String(data.todayCount) : t('summary.preferences.value')}
               </p>
               <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{t(`summary.${key}.hint`)}</p>
             </div>
@@ -70,38 +81,62 @@ function NotificationsPage() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
         <Card className="rounded-[1.75rem]">
           <CardHeader>
-            <CardTitle>{t('feed.title')}</CardTitle>
-            <CardDescription>{t('feed.description')}</CardDescription>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle>{t('feed.title')}</CardTitle>
+                <CardDescription>{t('feed.description')}</CardDescription>
+              </div>
+              <MarkAllReadButton disabled={data.unreadCount === 0} />
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {notificationKeys.map((key) => {
-              const status = t(`feed.items.${key}.statusKey`) as keyof typeof badgeVariants;
-
-              return (
-                <article
-                  key={key}
-                  className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-900/70"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={badgeVariants[status]}>{t(`feed.items.${key}.status`)}</Badge>
-                        <span className="text-xs font-medium uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
-                          {t(`feed.items.${key}.time`)}
-                        </span>
+            {data.items.length > 0 ? (
+              data.items.map((item) => {
+                const status = item.status as keyof typeof badgeVariants;
+                const content = (
+                  <>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant={badgeVariants[status]}>{t(`feed.status.${item.status}`)}</Badge>
+                          <span className="text-xs font-medium uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+                            {formatNotificationDate(item.createdAt)}
+                          </span>
+                        </div>
+                        <h2 className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{item.title}</h2>
                       </div>
-                      <h2 className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-                        {t(`feed.items.${key}.title`)}
-                      </h2>
                     </div>
-                  </div>
 
-                  <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
-                    {t(`feed.items.${key}.body`)}
-                  </p>
-                </article>
-              );
-            })}
+                    <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{item.body}</p>
+                  </>
+                );
+
+                if (item.href) {
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      className="block rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/70 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
+                    >
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return (
+                  <article
+                    key={item.id}
+                    className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-900/70"
+                  >
+                    {content}
+                  </article>
+                );
+              })
+            ) : (
+              <div className="rounded-2xl border border-dashed border-zinc-200 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+                {t('feed.empty')}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -136,4 +171,11 @@ function NotificationsPage() {
       </div>
     </section>
   );
+}
+
+function formatNotificationDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
 }

@@ -4,6 +4,7 @@ import { getRequest } from '@tanstack/react-start/server';
 import { parseThemeFromCookieHeader } from '@/lib/theme';
 import { recordPageVisit, shouldTrackPageVisit, type PageVisitTrackingCause } from '@/src/analytics/page-visits';
 import { getAuthSession } from '@/src/auth.server';
+import { getNotificationPreviewUseCase } from '@/src/domain/notifications/use-cases';
 import { parseAppSettingsFromCookieHeader } from '@/src/settings/preferences';
 
 type LoadAppContextInput = {
@@ -36,6 +37,7 @@ export const loadAppContext = createServerFn({ method: 'GET' })
 
     return {
       session,
+      notificationCenter: session?.user.id ? await getNotificationPreviewUseCase(session.user.id, 3) : null,
       theme: parseThemeFromCookieHeader(cookieHeader),
       settings: parseAppSettingsFromCookieHeader(cookieHeader),
     };

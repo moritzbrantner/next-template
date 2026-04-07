@@ -34,12 +34,14 @@ import { Route as LocaleAdminIndexRouteImport } from './routes/$locale/admin/ind
 import { Route as ApiProfileImageRouteImport } from './routes/api/profile/image'
 import { Route as ApiProfileFollowRouteImport } from './routes/api/profile/follow'
 import { Route as ApiProfileDisplayNameRouteImport } from './routes/api/profile/display-name'
+import { Route as ApiNotificationsReadRouteImport } from './routes/api/notifications/read'
 import { Route as ApiNewsletterSubscribeRouteImport } from './routes/api/newsletter/subscribe'
 import { Route as ApiExamplesEmployeesRouteImport } from './routes/api/examples/employees'
 import { Route as ApiDataEntryRowsRouteImport } from './routes/api/data-entry/rows'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAnalyticsPageVisitsRouteImport } from './routes/api/analytics/page-visits'
+import { Route as ApiAdminNotificationsRouteImport } from './routes/api/admin/notifications'
 import { Route as ApiAccountVerifyEmailRouteImport } from './routes/api/account/verify-email'
 import { Route as ApiAccountSignupRouteImport } from './routes/api/account/signup'
 import { Route as ApiAccountResetPasswordRouteImport } from './routes/api/account/reset-password'
@@ -58,6 +60,7 @@ import { Route as LocaleAdminDataStudioRouteImport } from './routes/$locale/admi
 import { Route as ApiProfileImageRemoveRouteImport } from './routes/api/profile/image/remove'
 import { Route as ApiAdminReportsAuthorizationRouteImport } from './routes/api/admin/reports/authorization'
 import { Route as ApiAdminDataStudioRecordsRouteImport } from './routes/api/admin/data-studio/records'
+import { Route as LocaleAdminUsersUserIdRouteImport } from './routes/$locale/admin/users.$userId'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -184,6 +187,11 @@ const ApiProfileDisplayNameRoute = ApiProfileDisplayNameRouteImport.update({
   path: '/api/profile/display-name',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiNotificationsReadRoute = ApiNotificationsReadRouteImport.update({
+  id: '/api/notifications/read',
+  path: '/api/notifications/read',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNewsletterSubscribeRoute = ApiNewsletterSubscribeRouteImport.update({
   id: '/api/newsletter/subscribe',
   path: '/api/newsletter/subscribe',
@@ -212,6 +220,11 @@ const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
 const ApiAnalyticsPageVisitsRoute = ApiAnalyticsPageVisitsRouteImport.update({
   id: '/api/analytics/page-visits',
   path: '/api/analytics/page-visits',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminNotificationsRoute = ApiAdminNotificationsRouteImport.update({
+  id: '/api/admin/notifications',
+  path: '/api/admin/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAccountVerifyEmailRoute = ApiAccountVerifyEmailRouteImport.update({
@@ -309,6 +322,11 @@ const ApiAdminDataStudioRecordsRoute =
     path: '/api/admin/data-studio/records',
     getParentRoute: () => rootRouteImport,
   } as any)
+const LocaleAdminUsersUserIdRoute = LocaleAdminUsersUserIdRouteImport.update({
+  id: '/$userId',
+  path: '/$userId',
+  getParentRoute: () => LocaleAdminUsersRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -335,7 +353,7 @@ export interface FileRoutesByFullPath {
   '/$locale/admin/data-studio': typeof LocaleAdminDataStudioRoute
   '/$locale/admin/reports': typeof LocaleAdminReportsRoute
   '/$locale/admin/system-settings': typeof LocaleAdminSystemSettingsRoute
-  '/$locale/admin/users': typeof LocaleAdminUsersRoute
+  '/$locale/admin/users': typeof LocaleAdminUsersRouteWithChildren
   '/$locale/examples/communication': typeof LocaleExamplesCommunicationRoute
   '/$locale/examples/forms': typeof LocaleExamplesFormsRoute
   '/$locale/examples/story': typeof LocaleExamplesStoryRoute
@@ -347,16 +365,19 @@ export interface FileRoutesByFullPath {
   '/api/account/reset-password': typeof ApiAccountResetPasswordRoute
   '/api/account/signup': typeof ApiAccountSignupRoute
   '/api/account/verify-email': typeof ApiAccountVerifyEmailRoute
+  '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/analytics/page-visits': typeof ApiAnalyticsPageVisitsRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
   '/api/examples/employees': typeof ApiExamplesEmployeesRoute
   '/api/newsletter/subscribe': typeof ApiNewsletterSubscribeRoute
+  '/api/notifications/read': typeof ApiNotificationsReadRoute
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/follow': typeof ApiProfileFollowRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
   '/$locale/admin/': typeof LocaleAdminIndexRoute
+  '/$locale/admin/users/$userId': typeof LocaleAdminUsersUserIdRoute
   '/api/admin/data-studio/records': typeof ApiAdminDataStudioRecordsRoute
   '/api/admin/reports/authorization': typeof ApiAdminReportsAuthorizationRoute
   '/api/profile/image/remove': typeof ApiProfileImageRemoveRoute
@@ -385,7 +406,7 @@ export interface FileRoutesByTo {
   '/$locale/admin/data-studio': typeof LocaleAdminDataStudioRoute
   '/$locale/admin/reports': typeof LocaleAdminReportsRoute
   '/$locale/admin/system-settings': typeof LocaleAdminSystemSettingsRoute
-  '/$locale/admin/users': typeof LocaleAdminUsersRoute
+  '/$locale/admin/users': typeof LocaleAdminUsersRouteWithChildren
   '/$locale/examples/communication': typeof LocaleExamplesCommunicationRoute
   '/$locale/examples/forms': typeof LocaleExamplesFormsRoute
   '/$locale/examples/story': typeof LocaleExamplesStoryRoute
@@ -397,16 +418,19 @@ export interface FileRoutesByTo {
   '/api/account/reset-password': typeof ApiAccountResetPasswordRoute
   '/api/account/signup': typeof ApiAccountSignupRoute
   '/api/account/verify-email': typeof ApiAccountVerifyEmailRoute
+  '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/analytics/page-visits': typeof ApiAnalyticsPageVisitsRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
   '/api/examples/employees': typeof ApiExamplesEmployeesRoute
   '/api/newsletter/subscribe': typeof ApiNewsletterSubscribeRoute
+  '/api/notifications/read': typeof ApiNotificationsReadRoute
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/follow': typeof ApiProfileFollowRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
   '/$locale/admin': typeof LocaleAdminIndexRoute
+  '/$locale/admin/users/$userId': typeof LocaleAdminUsersUserIdRoute
   '/api/admin/data-studio/records': typeof ApiAdminDataStudioRecordsRoute
   '/api/admin/reports/authorization': typeof ApiAdminReportsAuthorizationRoute
   '/api/profile/image/remove': typeof ApiProfileImageRemoveRoute
@@ -437,7 +461,7 @@ export interface FileRoutesById {
   '/$locale/admin/data-studio': typeof LocaleAdminDataStudioRoute
   '/$locale/admin/reports': typeof LocaleAdminReportsRoute
   '/$locale/admin/system-settings': typeof LocaleAdminSystemSettingsRoute
-  '/$locale/admin/users': typeof LocaleAdminUsersRoute
+  '/$locale/admin/users': typeof LocaleAdminUsersRouteWithChildren
   '/$locale/examples/communication': typeof LocaleExamplesCommunicationRoute
   '/$locale/examples/forms': typeof LocaleExamplesFormsRoute
   '/$locale/examples/story': typeof LocaleExamplesStoryRoute
@@ -449,16 +473,19 @@ export interface FileRoutesById {
   '/api/account/reset-password': typeof ApiAccountResetPasswordRoute
   '/api/account/signup': typeof ApiAccountSignupRoute
   '/api/account/verify-email': typeof ApiAccountVerifyEmailRoute
+  '/api/admin/notifications': typeof ApiAdminNotificationsRoute
   '/api/analytics/page-visits': typeof ApiAnalyticsPageVisitsRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/data-entry/rows': typeof ApiDataEntryRowsRoute
   '/api/examples/employees': typeof ApiExamplesEmployeesRoute
   '/api/newsletter/subscribe': typeof ApiNewsletterSubscribeRoute
+  '/api/notifications/read': typeof ApiNotificationsReadRoute
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/follow': typeof ApiProfileFollowRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
   '/$locale/admin/': typeof LocaleAdminIndexRoute
+  '/$locale/admin/users/$userId': typeof LocaleAdminUsersUserIdRoute
   '/api/admin/data-studio/records': typeof ApiAdminDataStudioRecordsRoute
   '/api/admin/reports/authorization': typeof ApiAdminReportsAuthorizationRoute
   '/api/profile/image/remove': typeof ApiProfileImageRemoveRoute
@@ -502,16 +529,19 @@ export interface FileRouteTypes {
     | '/api/account/reset-password'
     | '/api/account/signup'
     | '/api/account/verify-email'
+    | '/api/admin/notifications'
     | '/api/analytics/page-visits'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/data-entry/rows'
     | '/api/examples/employees'
     | '/api/newsletter/subscribe'
+    | '/api/notifications/read'
     | '/api/profile/display-name'
     | '/api/profile/follow'
     | '/api/profile/image'
     | '/$locale/admin/'
+    | '/$locale/admin/users/$userId'
     | '/api/admin/data-studio/records'
     | '/api/admin/reports/authorization'
     | '/api/profile/image/remove'
@@ -552,16 +582,19 @@ export interface FileRouteTypes {
     | '/api/account/reset-password'
     | '/api/account/signup'
     | '/api/account/verify-email'
+    | '/api/admin/notifications'
     | '/api/analytics/page-visits'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/data-entry/rows'
     | '/api/examples/employees'
     | '/api/newsletter/subscribe'
+    | '/api/notifications/read'
     | '/api/profile/display-name'
     | '/api/profile/follow'
     | '/api/profile/image'
     | '/$locale/admin'
+    | '/$locale/admin/users/$userId'
     | '/api/admin/data-studio/records'
     | '/api/admin/reports/authorization'
     | '/api/profile/image/remove'
@@ -603,16 +636,19 @@ export interface FileRouteTypes {
     | '/api/account/reset-password'
     | '/api/account/signup'
     | '/api/account/verify-email'
+    | '/api/admin/notifications'
     | '/api/analytics/page-visits'
     | '/api/auth/login'
     | '/api/auth/logout'
     | '/api/data-entry/rows'
     | '/api/examples/employees'
     | '/api/newsletter/subscribe'
+    | '/api/notifications/read'
     | '/api/profile/display-name'
     | '/api/profile/follow'
     | '/api/profile/image'
     | '/$locale/admin/'
+    | '/$locale/admin/users/$userId'
     | '/api/admin/data-studio/records'
     | '/api/admin/reports/authorization'
     | '/api/profile/image/remove'
@@ -630,12 +666,14 @@ export interface RootRouteChildren {
   ApiAccountResetPasswordRoute: typeof ApiAccountResetPasswordRoute
   ApiAccountSignupRoute: typeof ApiAccountSignupRoute
   ApiAccountVerifyEmailRoute: typeof ApiAccountVerifyEmailRoute
+  ApiAdminNotificationsRoute: typeof ApiAdminNotificationsRoute
   ApiAnalyticsPageVisitsRoute: typeof ApiAnalyticsPageVisitsRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiDataEntryRowsRoute: typeof ApiDataEntryRowsRoute
   ApiExamplesEmployeesRoute: typeof ApiExamplesEmployeesRoute
   ApiNewsletterSubscribeRoute: typeof ApiNewsletterSubscribeRoute
+  ApiNotificationsReadRoute: typeof ApiNotificationsReadRoute
   ApiProfileDisplayNameRoute: typeof ApiProfileDisplayNameRoute
   ApiProfileFollowRoute: typeof ApiProfileFollowRoute
   ApiProfileImageRoute: typeof ApiProfileImageRouteWithChildren
@@ -820,6 +858,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProfileDisplayNameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/notifications/read': {
+      id: '/api/notifications/read'
+      path: '/api/notifications/read'
+      fullPath: '/api/notifications/read'
+      preLoaderRoute: typeof ApiNotificationsReadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/newsletter/subscribe': {
       id: '/api/newsletter/subscribe'
       path: '/api/newsletter/subscribe'
@@ -860,6 +905,13 @@ declare module '@tanstack/react-router' {
       path: '/api/analytics/page-visits'
       fullPath: '/api/analytics/page-visits'
       preLoaderRoute: typeof ApiAnalyticsPageVisitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/notifications': {
+      id: '/api/admin/notifications'
+      path: '/api/admin/notifications'
+      fullPath: '/api/admin/notifications'
+      preLoaderRoute: typeof ApiAdminNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/account/verify-email': {
@@ -988,6 +1040,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminDataStudioRecordsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/admin/users/$userId': {
+      id: '/$locale/admin/users/$userId'
+      path: '/$userId'
+      fullPath: '/$locale/admin/users/$userId'
+      preLoaderRoute: typeof LocaleAdminUsersUserIdRouteImport
+      parentRoute: typeof LocaleAdminUsersRoute
+    }
   }
 }
 
@@ -1002,6 +1061,17 @@ const LocaleProfileRouteChildren: LocaleProfileRouteChildren = {
 const LocaleProfileRouteWithChildren = LocaleProfileRoute._addFileChildren(
   LocaleProfileRouteChildren,
 )
+
+interface LocaleAdminUsersRouteChildren {
+  LocaleAdminUsersUserIdRoute: typeof LocaleAdminUsersUserIdRoute
+}
+
+const LocaleAdminUsersRouteChildren: LocaleAdminUsersRouteChildren = {
+  LocaleAdminUsersUserIdRoute: LocaleAdminUsersUserIdRoute,
+}
+
+const LocaleAdminUsersRouteWithChildren =
+  LocaleAdminUsersRoute._addFileChildren(LocaleAdminUsersRouteChildren)
 
 interface LocaleRouteChildren {
   LocaleAboutRoute: typeof LocaleAboutRoute
@@ -1023,7 +1093,7 @@ interface LocaleRouteChildren {
   LocaleAdminDataStudioRoute: typeof LocaleAdminDataStudioRoute
   LocaleAdminReportsRoute: typeof LocaleAdminReportsRoute
   LocaleAdminSystemSettingsRoute: typeof LocaleAdminSystemSettingsRoute
-  LocaleAdminUsersRoute: typeof LocaleAdminUsersRoute
+  LocaleAdminUsersRoute: typeof LocaleAdminUsersRouteWithChildren
   LocaleExamplesCommunicationRoute: typeof LocaleExamplesCommunicationRoute
   LocaleExamplesFormsRoute: typeof LocaleExamplesFormsRoute
   LocaleExamplesStoryRoute: typeof LocaleExamplesStoryRoute
@@ -1051,7 +1121,7 @@ const LocaleRouteChildren: LocaleRouteChildren = {
   LocaleAdminDataStudioRoute: LocaleAdminDataStudioRoute,
   LocaleAdminReportsRoute: LocaleAdminReportsRoute,
   LocaleAdminSystemSettingsRoute: LocaleAdminSystemSettingsRoute,
-  LocaleAdminUsersRoute: LocaleAdminUsersRoute,
+  LocaleAdminUsersRoute: LocaleAdminUsersRouteWithChildren,
   LocaleExamplesCommunicationRoute: LocaleExamplesCommunicationRoute,
   LocaleExamplesFormsRoute: LocaleExamplesFormsRoute,
   LocaleExamplesStoryRoute: LocaleExamplesStoryRoute,
@@ -1086,12 +1156,14 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAccountResetPasswordRoute: ApiAccountResetPasswordRoute,
   ApiAccountSignupRoute: ApiAccountSignupRoute,
   ApiAccountVerifyEmailRoute: ApiAccountVerifyEmailRoute,
+  ApiAdminNotificationsRoute: ApiAdminNotificationsRoute,
   ApiAnalyticsPageVisitsRoute: ApiAnalyticsPageVisitsRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiDataEntryRowsRoute: ApiDataEntryRowsRoute,
   ApiExamplesEmployeesRoute: ApiExamplesEmployeesRoute,
   ApiNewsletterSubscribeRoute: ApiNewsletterSubscribeRoute,
+  ApiNotificationsReadRoute: ApiNotificationsReadRoute,
   ApiProfileDisplayNameRoute: ApiProfileDisplayNameRoute,
   ApiProfileFollowRoute: ApiProfileFollowRoute,
   ApiProfileImageRoute: ApiProfileImageRouteWithChildren,

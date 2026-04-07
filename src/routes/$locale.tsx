@@ -23,12 +23,17 @@ export const Route = createFileRoute('/$locale')({
 });
 
 function LocaleLayout() {
-  const { locale, session, theme } = Route.useRouteContext();
+  const { locale, session, notificationCenter, theme } = Route.useRouteContext();
 
   return (
     <I18nProvider locale={locale as AppLocale}>
       <DocumentLanguage locale={locale as AppLocale} />
-      <NavigationBar initialTheme={theme} locale={locale as AppLocale} session={session} />
+      <NavigationBar
+        initialTheme={theme}
+        locale={locale as AppLocale}
+        session={session}
+        notificationCenter={notificationCenter}
+      />
       <main className="app-shell mx-auto min-h-[calc(100vh-4rem)] w-full max-w-5xl px-4 py-10">
         <Outlet />
       </main>

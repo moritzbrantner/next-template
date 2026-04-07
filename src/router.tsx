@@ -1,5 +1,6 @@
 import type { Theme } from '@/lib/theme';
 import type { AppSession } from '@/src/auth';
+import type { NotificationPreview } from '@/src/domain/notifications/use-cases';
 import { defaultAppSettings, type AppSettings } from '@/src/settings/preferences';
 import { createRouter } from '@tanstack/react-router';
 
@@ -9,6 +10,7 @@ export function getRouter() {
   return createRouter({
     context: {
       session: null as AppSession | null,
+      notificationCenter: null as NotificationPreview | null,
       theme: 'light' as Theme,
       settings: defaultAppSettings as AppSettings,
     },

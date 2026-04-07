@@ -7,12 +7,10 @@ export const notificationsPage = {
   summary: {
     unread: {
       label: 'Ungelesen',
-      value: '3',
       hint: 'Alles Neue seit deiner letzten Sitzung wird hier gebuendelt angezeigt.',
     },
     today: {
       label: 'Heute',
-      value: '2',
       hint: 'Aktuelle Aktivitaeten aus deinem Konto und Arbeitsbereich der letzten Stunden.',
     },
     preferences: {
@@ -23,29 +21,11 @@ export const notificationsPage = {
   },
   feed: {
     title: 'Letzte Aktivitaeten',
-    description: 'Diese Beispielmeldungen zeigen, welche Updates angemeldete Nutzer sehen koennen.',
-    items: {
-      security: {
-        statusKey: 'unread',
-        status: 'Ungelesen',
-        time: 'Vor 2 Min.',
-        title: 'Neue Anmeldung erkannt',
-        body: 'Auf dein Konto wurde ueber eine neue Browser-Sitzung zugegriffen. Wenn du das warst, ist keine Aktion noetig.',
-      },
-      workspace: {
-        statusKey: 'upcoming',
-        status: 'Geplant',
-        time: 'Heute um 16:00',
-        title: 'Arbeitsbereich-Aenderungen geplant',
-        body: 'Ein kleines Paket aus Inhalten und Formular-Updates steht fuer die Veroeffentlichung im gemeinsamen Arbeitsbereich bereit.',
-      },
-      digest: {
-        statusKey: 'read',
-        status: 'Gelesen',
-        time: 'Gestern',
-        title: 'Wochenuebersicht versendet',
-        body: 'Dein letzter Digest wurde mit Profil-Aenderungen, Uploads und aktuellen Kommunikations-Highlights verschickt.',
-      },
+    description: 'Hier stehen deine zuletzt zugestellten In-App-Benachrichtigungen.',
+    empty: 'Noch keine Benachrichtigungen.',
+    status: {
+      unread: 'Ungelesen',
+      read: 'Gelesen',
     },
   },
   actions: {
@@ -53,6 +33,9 @@ export const notificationsPage = {
     description: 'Springe direkt zu den Bereichen, die am haeufigsten mit Kontobenachrichtigungen verknuepft sind.',
     profile: 'Profil oeffnen',
     settings: 'Benachrichtigungen',
+    markAllRead: 'Alle als gelesen markieren',
+    markingAllRead: 'Wird aktualisiert...',
+    markAllReadError: 'Deine Benachrichtigungen konnten gerade nicht aktualisiert werden.',
   },
   preferences: {
     title: 'Zustelloptionen',
