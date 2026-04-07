@@ -25,6 +25,10 @@ test.describe('settings and hotkeys', () => {
     await page.getByRole('switch').click();
     await expect(page.getByRole('button', { name: 'Hotkeys' })).toHaveCount(0);
 
+    await page.getByRole('tab', { name: 'Notifications' }).click();
+    await page.getByRole('switch', { name: 'Enable notifications' }).click();
+    await page.getByLabel('Notification type').fill('digest');
+
     await page.reload();
     await gotoAndWaitForHydration(page, '/en/settings');
 
@@ -33,6 +37,10 @@ test.describe('settings and hotkeys', () => {
 
     await page.getByRole('tab', { name: 'Dates' }).click();
     await expect(page.getByText(/\d{4}-\d{2}-\d{2}/)).toBeVisible();
+
+    await page.getByRole('tab', { name: 'Notifications' }).click();
+    await expect(page.getByRole('switch', { name: 'Enable notifications' })).toHaveAttribute('aria-checked', 'false');
+    await expect(page.getByLabel('Notification type')).toHaveValue('digest');
   });
 
   test('does not expose admin hotkeys to manager roles', async ({ page }) => {

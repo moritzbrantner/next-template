@@ -1,11 +1,12 @@
 export const settingsPage = {
   title: 'Einstellungen',
-  description: 'Passe Erscheinungsbild, Datumsverhalten, Hotkey-Sichtbarkeit und Profilsteuerung an einer Stelle an.',
+  description: 'Passe Erscheinungsbild, Datumsverhalten, Benachrichtigungseinstellungen, Hotkey-Sichtbarkeit und Profilsteuerung an einer Stelle an.',
   saveState: 'Einstellungen werden automatisch gespeichert',
   tabs: {
     appearance: 'Darstellung',
     dates: 'Datum',
     workflow: 'Arbeitsfluss',
+    notifications: 'Benachrichtigungen',
     account: 'Konto',
   },
   roles: {
@@ -76,6 +77,15 @@ export const settingsPage = {
     hotkeyHintsDescription: 'Zeigt den Hotkey-Launcher und Inline-Kürzel in der Navigation an.',
     hotkeySummary:
       'Nutze `Alt` plus einen Buchstaben zum Seitenwechsel oder drücke `?`, um die vollständige Kürzelliste zu öffnen.',
+  },
+  notifications: {
+    title: 'Benachrichtigungseinstellungen',
+    description: 'Lege fest, ob persönliche Benachrichtigungen aktiv sind und wie sie gekennzeichnet werden.',
+    enabled: 'Benachrichtigungen aktivieren',
+    enabledDescription: 'Schaltet deine persönlichen In-App-Benachrichtigungen ein oder aus.',
+    typeLabel: 'Benachrichtigungstyp',
+    typeDescription: 'Verwende einen beliebigen String wie `instant`, `digest` oder ein teamspezifisches Label.',
+    typePlaceholder: 'instant',
   },
   account: {
     email: {

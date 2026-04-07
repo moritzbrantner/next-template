@@ -40,6 +40,7 @@ const themeScript = `
 const settingsScript = `
 (() => {
   const defaultSettings = ${JSON.stringify(defaultAppSettings)};
+  const isRecord = (value) => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
   const parseSettings = (value) => {
     if (!value) return null;
     try {
@@ -57,7 +58,17 @@ const settingsScript = `
     .find((cookie) => cookie.startsWith('app-settings='))
     ?.split('=')[1];
   const storedSettings = window.localStorage.getItem('app-settings');
-  const settings = { ...defaultSettings, ...(parseSettings(cookieSettings) ?? parseSettings(storedSettings) ?? {}) };
+  const parsedSettings = parseSettings(cookieSettings) ?? parseSettings(storedSettings);
+  const settings = isRecord(parsedSettings)
+    ? {
+        ...defaultSettings,
+        ...parsedSettings,
+        notifications: {
+          ...defaultSettings.notifications,
+          ...(isRecord(parsedSettings.notifications) ? parsedSettings.notifications : {}),
+        },
+      }
+    : defaultSettings;
 
   document.documentElement.dataset.background = settings.background;
   document.documentElement.dataset.density = settings.compactSpacing ? 'compact' : 'comfortable';

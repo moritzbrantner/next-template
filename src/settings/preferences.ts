@@ -8,6 +8,11 @@ export type BackgroundOption = (typeof backgroundOptions)[number];
 export const dateFormatOptions = ['localized', 'long', 'iso'] as const;
 export type DateFormatOption = (typeof dateFormatOptions)[number];
 
+export type NotificationSettings = {
+  enabled: boolean;
+  type: string;
+};
+
 export type AppSettings = {
   background: BackgroundOption;
   dateFormat: DateFormatOption;
@@ -16,6 +21,7 @@ export type AppSettings = {
   compactSpacing: boolean;
   reducedMotion: boolean;
   showHotkeyHints: boolean;
+  notifications: NotificationSettings;
 };
 
 export const defaultAppSettings: AppSettings = {
@@ -26,6 +32,10 @@ export const defaultAppSettings: AppSettings = {
   compactSpacing: false,
   reducedMotion: false,
   showHotkeyHints: true,
+  notifications: {
+    enabled: true,
+    type: 'instant',
+  },
 };
 
 function isBackgroundOption(value: unknown): value is BackgroundOption {
@@ -45,6 +55,8 @@ export function normalizeAppSettings(value: unknown): AppSettings {
     return defaultAppSettings;
   }
 
+  const notifications = isRecord(value.notifications) ? value.notifications : null;
+
   return {
     background: isBackgroundOption(value.background) ? value.background : defaultAppSettings.background,
     dateFormat: isDateFormatOption(value.dateFormat) ? value.dateFormat : defaultAppSettings.dateFormat,
@@ -53,6 +65,13 @@ export function normalizeAppSettings(value: unknown): AppSettings {
     compactSpacing: typeof value.compactSpacing === 'boolean' ? value.compactSpacing : defaultAppSettings.compactSpacing,
     reducedMotion: typeof value.reducedMotion === 'boolean' ? value.reducedMotion : defaultAppSettings.reducedMotion,
     showHotkeyHints: typeof value.showHotkeyHints === 'boolean' ? value.showHotkeyHints : defaultAppSettings.showHotkeyHints,
+    notifications: {
+      enabled:
+        typeof notifications?.enabled === 'boolean'
+          ? notifications.enabled
+          : defaultAppSettings.notifications.enabled,
+      type: typeof notifications?.type === 'string' ? notifications.type : defaultAppSettings.notifications.type,
+    },
   };
 }
 

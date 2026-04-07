@@ -8,6 +8,7 @@ import { AccountEmailForm } from '@/components/account-email-form';
 import { ProfileImageForm } from '@/components/profile-image-form';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   canAccessAdminArea,
@@ -26,7 +27,7 @@ const backgroundSwatches: Record<BackgroundOption, string> = {
   forest: 'from-emerald-200 via-lime-100 to-stone-200',
 };
 
-const tabs = ['appearance', 'dates', 'workflow', 'account'] as const;
+const tabs = ['appearance', 'dates', 'workflow', 'notifications', 'account'] as const;
 
 type SettingsTab = (typeof tabs)[number];
 
@@ -52,6 +53,14 @@ function SettingsPage() {
 
   const role = session?.user.role ?? 'USER';
   const formattedPreviewDate = formatDatePreview(previewDate ?? new Date(), settings, locale);
+  const updateNotificationSettings = (nextSettings: Partial<(typeof settings.notifications)>) => {
+    updateSettings({
+      notifications: {
+        ...settings.notifications,
+        ...nextSettings,
+      },
+    });
+  };
 
   return (
     <section className="mx-auto max-w-5xl space-y-6">
@@ -297,6 +306,34 @@ function SettingsPage() {
         </div>
       ) : null}
 
+      {activeTab === 'notifications' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('notifications.title')}</CardTitle>
+            <CardDescription>{t('notifications.description')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <ToggleRow
+              title={t('notifications.enabled')}
+              description={t('notifications.enabledDescription')}
+              checked={settings.notifications.enabled}
+              onCheckedChange={(checked) => updateNotificationSettings({ enabled: checked })}
+            />
+
+            <div className="space-y-2">
+              <Label htmlFor="notification-type">{t('notifications.typeLabel')}</Label>
+              <Input
+                id="notification-type"
+                value={settings.notifications.type}
+                placeholder={t('notifications.typePlaceholder')}
+                onChange={(event) => updateNotificationSettings({ type: event.target.value })}
+              />
+              <p className="text-sm text-zinc-600 dark:text-zinc-300">{t('notifications.typeDescription')}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {activeTab === 'account' ? (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <Card>
@@ -395,6 +432,7 @@ function ToggleRow({
         type="button"
         role="switch"
         aria-checked={checked}
+        aria-label={title}
         className={[
           'relative inline-flex h-7 w-12 shrink-0 rounded-full border transition-colors',
           checked

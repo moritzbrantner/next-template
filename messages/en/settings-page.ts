@@ -1,11 +1,12 @@
 export const settingsPage = {
   title: 'Settings',
-  description: 'Tune appearance, date behavior, hotkey visibility, and profile controls in one place.',
+  description: 'Tune appearance, date behavior, notification preferences, hotkey visibility, and profile controls in one place.',
   saveState: 'Settings save automatically',
   tabs: {
     appearance: 'Appearance',
     dates: 'Dates',
     workflow: 'Workflow',
+    notifications: 'Notifications',
     account: 'Account',
   },
   roles: {
@@ -75,6 +76,15 @@ export const settingsPage = {
     hotkeyHints: 'Show hotkey hints',
     hotkeyHintsDescription: 'Display the hotkeys launcher and inline shortcut badges in navigation.',
     hotkeySummary: 'Use `Alt` plus a letter to jump between pages, or press `?` to open the full shortcut list.',
+  },
+  notifications: {
+    title: 'Notification preferences',
+    description: 'Control whether personal notifications are active and how they should be categorized.',
+    enabled: 'Enable notifications',
+    enabledDescription: 'Turn your personal in-app notifications on or off.',
+    typeLabel: 'Notification type',
+    typeDescription: 'Set any string value such as `instant`, `digest`, or a team-specific label.',
+    typePlaceholder: 'instant',
   },
   account: {
     email: {
