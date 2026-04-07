@@ -2,6 +2,7 @@
   "name": "next-template",
   "version": "0.1.0",
   "private": true,
+  "description": "TanStack Start application with auth, admin examples, and Drizzle/Postgres persistence",
   "type": "module",
   "scripts": {
     "dev": "./scripts/dev-with-test-db.sh",

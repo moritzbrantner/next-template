@@ -1,54 +1,45 @@
 # PRODUCT_BRIEF.md
 
-Use this file to align the team on what this template is, who it serves, and what success means.
+## Product statement
 
-## How to use this file well
+Reusable TanStack Start application template for teams that need a production-shaped web platform with localized routing, account lifecycle flows, admin/workspace patterns, uploads, and example feature slices.
 
-- Keep it concise and strategic.
-- Write in product outcomes, not implementation tasks.
-- Revisit when target audience or positioning changes.
-- Link to supporting docs (`FEATURES.md`, `PLANS.md`, `ARCHITECTURE.md`).
+## Audience
 
-## Product brief template
+- Teams starting a new authenticated web app on TanStack Start
+- Agencies that need a production-ready starter instead of a blank boilerplate
+- Internal platform teams standardizing auth, data, and UI patterns
 
-## 1) Product statement
-A comprehensive Next.js template for building impressive, production-ready websites and app experiences with integrated user management, interactive 3D scenes, video components, robust forms, and modern client state management.
+## Problems solved
 
-## 2) Audience
-- Agencies building premium web experiences.
-- Startups launching fast with production patterns.
-- Product teams needing a polished front-end foundation.
+- Avoids rebuilding auth, profile, email, and admin scaffolding from scratch
+- Gives teams a documented domain-first `src/` architecture instead of ad hoc folder growth
+- Ships runnable examples for forms, storytelling, communication, and uploads without mixing them into the core app surface
 
-## 3) Problems solved
-- Teams start from fragmented boilerplates with inconsistent standards.
-- Advanced interactions (3D/video/forms/state/auth) are costly to integrate from scratch.
-- Performance/accessibility regressions happen when features are added ad hoc.
+## Value proposition
 
-## 4) Value proposition
-- Opinionated architecture + practical defaults.
-- High-impact visuals with maintainable patterns.
-- Ready-to-extend foundation for both marketing and authenticated product surfaces.
+- TanStack Start runtime with realistic persistence, testing, and CI expectations
+- Clear separation between canonical app modules and optional example slices
+- Built-in account lifecycle, profile workflows, localized navigation, and API hardening patterns
 
-## 5) Scope guardrails
+## Scope guardrails
+
 ### In scope
-- Next.js App Router conventions.
-- Auth/user management starter patterns.
-- 3D + video integration examples.
-- Form and validation system.
-- Zustand state conventions.
 
-### Out of scope (initially)
-- Vendor lock-in to a single auth/database provider.
-- Highly domain-specific business modules.
+- TanStack Start app shell and route conventions
+- Credential auth, registration, email verification, password reset, and account management
+- Profile, newsletter, reporting, uploads, and workspace/admin starter modules
+- Explicit example routes under `/examples/*`
 
-## 6) Success metrics
-- Setup-to-first-feature time (target: < 30 minutes).
-- Lighthouse performance score on starter pages.
-- Accessibility baseline (WCAG AA checks passing for starter flows).
-- Developer adoption and template reuse.
+### Out of scope
 
-## 7) Release criteria
-- [ ] Core features documented in `FEATURES.md`.
-- [ ] Architecture decisions captured in `DECISIONS.md`.
-- [ ] Phase plan defined in `PLANS.md`.
-- [ ] README includes usage path for new teams.
+- Domain-specific business logic beyond the starter modules
+- Turnkey production infrastructure provisioning
+- Multiple parallel app architectures in one generated project
+
+## Success metrics
+
+- New project reaches first feature implementation in under 30 minutes
+- Generated app passes nightly/beta/main check tiers without authoring-repo patching
+- Security-sensitive endpoints share rate limiting and audit logging by default
+- Teams extend `src/` without reintroducing deprecated namespace roots

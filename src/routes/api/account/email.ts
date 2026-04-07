@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { getAuthSession, signInSession } from '@/src/auth.server';
+import { secureRoute } from '@/src/api/route-security';
+import { signInSession } from '@/src/auth.server';
 import { updateAccountEmailUseCase, type AccountError } from '@/src/domain/account/use-cases';
 
 function statusForAccountError(error: AccountError) {
@@ -20,12 +21,18 @@ export const Route = createFileRoute('/api/account/email')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const session = await getAuthSession();
-        const userId = session?.user?.id;
+        const guard = await secureRoute({
+          request,
+          action: 'account.updateEmail',
+          requireAuth: true,
+        });
 
-        if (!userId || !session) {
-          return Response.json({ error: 'You must be signed in to update your email address.' }, { status: 401 });
+        if (!guard.ok) {
+          return guard.response;
         }
+
+        const session = guard.session!;
+        const userId = session.user.id;
 
         const formData = await request.formData();
         const rawEmail = formData.get('email');
@@ -37,7 +44,7 @@ export const Route = createFileRoute('/api/account/email')({
           const result = await updateAccountEmailUseCase(userId, { email, currentPassword });
 
           if (!result.ok) {
-            return Response.json({ error: result.error.message }, { status: statusForAccountError(result.error) });
+            return guard.json({ error: result.error.message }, { status: statusForAccountError(result.error) });
           }
 
           await signInSession({
@@ -45,9 +52,12 @@ export const Route = createFileRoute('/api/account/email')({
             email: result.data.email,
           });
 
-          return Response.json({ ok: true });
+          return guard.json({ ok: true });
         } catch {
-          return Response.json({ error: 'Unable to update your email address right now. Please try again.' }, { status: 500 });
+          return guard.json(
+            { error: 'Unable to update your email address right now. Please try again.' },
+            { status: 500 },
+          );
         }
       },
     },

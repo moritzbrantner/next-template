@@ -81,11 +81,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Next Template',
+        title: 'TanStack Platform App',
       },
       {
         name: 'description',
-        content: 'A simple TanStack Start template with localized routing.',
+        content: 'A TanStack Start platform application template.',
       },
     ],
     links: [{ rel: 'stylesheet', href: appCss }],

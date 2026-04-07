@@ -62,7 +62,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
   },
   {
     key: 'story',
-    href: '/story',
+    href: '/examples/story',
     translationKey: 'links.story',
     visibility: 'public',
     navigationCategory: 'discover',
@@ -70,7 +70,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
   },
   {
     key: 'communication',
-    href: '/communication',
+    href: '/examples/communication',
     translationKey: 'links.communication',
     visibility: 'public',
     navigationCategory: 'discover',
@@ -86,7 +86,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
   },
   {
     key: 'forms',
-    href: '/forms',
+    href: '/examples/forms',
     translationKey: 'links.forms',
     visibility: 'public',
     navigationCategory: 'workspace',
@@ -102,7 +102,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
   },
   {
     key: 'uploads',
-    href: '/uploads',
+    href: '/examples/uploads',
     translationKey: 'links.uploads',
     visibility: 'public',
     navigationCategory: 'workspace',

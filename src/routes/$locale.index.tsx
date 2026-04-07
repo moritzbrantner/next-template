@@ -25,16 +25,16 @@ function HomePage() {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/forms" className={buttonVariants({ variant: 'default' })}>
+          <Link href="/examples/forms" className={buttonVariants({ variant: 'default' })}>
             {t('visitForm')}
           </Link>
-          <Link href="/story" className={buttonVariants({ variant: 'ghost' })}>
+          <Link href="/examples/story" className={buttonVariants({ variant: 'ghost' })}>
             {t('visitStory')}
           </Link>
-          <Link href="/communication" className={buttonVariants({ variant: 'ghost' })}>
+          <Link href="/examples/communication" className={buttonVariants({ variant: 'ghost' })}>
             {t('visitCommunication')}
           </Link>
-          <Link href="/uploads" className={buttonVariants({ variant: 'ghost' })}>
+          <Link href="/examples/uploads" className={buttonVariants({ variant: 'ghost' })}>
             {t('visitUploads')}
           </Link>
         </div>

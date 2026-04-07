@@ -1,18 +1,25 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { getAuthSession, signInSession } from '@/src/auth.server';
+import { secureRoute } from '@/src/api/route-security';
+import { signInSession } from '@/src/auth.server';
 import { updateDisplayNameUseCase } from '@/src/domain/profile/use-cases';
 
 export const Route = createFileRoute('/api/profile/display-name')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const session = await getAuthSession();
-        const userId = session?.user?.id;
+        const guard = await secureRoute({
+          request,
+          action: 'profile.updateDisplayName',
+          requireAuth: true,
+        });
 
-        if (!userId || !session) {
-          return Response.json({ error: 'You must be signed in to update your display name.' }, { status: 401 });
+        if (!guard.ok) {
+          return guard.response;
         }
+
+        const session = guard.session!;
+        const userId = session.user.id;
 
         const formData = await request.formData();
         const rawDisplayName = formData.get('displayName');
@@ -22,7 +29,7 @@ export const Route = createFileRoute('/api/profile/display-name')({
           const result = await updateDisplayNameUseCase(userId, displayName);
 
           if (!result.ok) {
-            return Response.json({ error: result.error.message }, { status: 400 });
+            return guard.json({ error: result.error.message }, { status: 400 });
           }
 
           await signInSession({
@@ -30,9 +37,12 @@ export const Route = createFileRoute('/api/profile/display-name')({
             name: result.data.displayName,
           });
 
-          return Response.json({ ok: true });
+          return guard.json({ ok: true });
         } catch {
-          return Response.json({ error: 'Unable to update your display name right now. Please try again.' }, { status: 500 });
+          return guard.json(
+            { error: 'Unable to update your display name right now. Please try again.' },
+            { status: 500 },
+          );
         }
       },
     },

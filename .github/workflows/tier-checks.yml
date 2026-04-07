@@ -56,14 +56,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Verify runtime dependency availability
-        run: pnpm ls @aws-sdk/client-s3 --depth 0
-
-      # If main is chromium-only:
-      - name: Install Playwright browsers and deps
-        if: inputs.check-command == 'checks:main'
-        run: pnpm exec playwright install --with-deps chromium
-
       - name: Run tier checks
         run: pnpm run ${{ inputs.check-command }}
 

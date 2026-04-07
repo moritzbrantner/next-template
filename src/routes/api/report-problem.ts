@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { secureRoute } from '@/src/api/route-security';
+
 const allowedAreas = new Set(['bug', 'performance', 'account', 'billing', 'other']);
 
 function readString(formData: FormData, key: string) {
@@ -28,6 +30,15 @@ export const Route = createFileRoute('/api/report-problem')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const guard = await secureRoute({
+          request,
+          action: 'support.reportProblem',
+        });
+
+        if (!guard.ok) {
+          return guard.response;
+        }
+
         const formData = await request.formData();
 
         const email = readString(formData, 'email');
@@ -43,7 +54,7 @@ export const Route = createFileRoute('/api/report-problem')({
           subject.length < 8 ||
           details.length < 30
         ) {
-          return Response.json(
+          return guard.json(
             {
               error: 'Please complete the form with a valid email, category, subject, and enough detail to investigate.',
             },
@@ -53,7 +64,7 @@ export const Route = createFileRoute('/api/report-problem')({
 
         const referenceId = `PRB-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
 
-        return Response.json(
+        return guard.json(
           {
             referenceId,
           },

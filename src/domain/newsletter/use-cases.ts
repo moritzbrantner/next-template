@@ -53,7 +53,7 @@ export async function subscribeToNewsletter(input: { email: string; locale?: str
     });
   }
 
-  const manageUrl = `${getBaseUrl()}${withLocalePath('/communication', locale)}`;
+  const manageUrl = `${getBaseUrl()}${withLocalePath('/examples/communication', locale)}`;
 
   try {
     const message = createNewsletterWelcomeEmail({ manageUrl });

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { getAuthSession } from '@/src/auth.server';
+import { secureRoute } from '@/src/api/route-security';
 import { followUserUseCase, unfollowUserUseCase } from '@/src/domain/profile/use-cases';
 
 function getTargetUserId(body: unknown) {
@@ -13,18 +13,23 @@ function getTargetUserId(body: unknown) {
 }
 
 async function handleFollowRequest(request: Request, shouldFollow: boolean) {
-  const session = await getAuthSession();
-  const actorUserId = session?.user?.id;
+  const guard = await secureRoute({
+    request,
+    action: shouldFollow ? 'profile.follow' : 'profile.unfollow',
+    requireAuth: true,
+  });
 
-  if (!actorUserId) {
-    return Response.json({ error: 'You must be signed in to follow someone.' }, { status: 401 });
+  if (!guard.ok) {
+    return guard.response;
   }
+
+  const actorUserId = guard.session!.user.id;
 
   const body = await request.json().catch(() => null);
   const targetUserId = getTargetUserId(body);
 
   if (!targetUserId) {
-    return Response.json({ error: 'A valid user id is required.' }, { status: 400 });
+    return guard.json({ error: 'A valid user id is required.' }, { status: 400 });
   }
 
   const result = shouldFollow
@@ -33,10 +38,10 @@ async function handleFollowRequest(request: Request, shouldFollow: boolean) {
 
   if (!result.ok) {
     const status = result.error.code === 'NOT_FOUND' ? 404 : 400;
-    return Response.json({ error: result.error.message }, { status });
+    return guard.json({ error: result.error.message }, { status });
   }
 
-  return Response.json({ ok: true, following: result.data.following });
+  return guard.json({ ok: true, following: result.data.following });
 }
 
 export const Route = createFileRoute('/api/profile/follow')({

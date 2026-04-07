@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { secureRoute } from '@/src/api/route-security';
 import { signInSession } from '@/src/auth.server';
 import { signUpWithCredentials } from '@/src/auth/account-lifecycle';
 import { getDb } from '@/src/db/client';
@@ -8,6 +9,15 @@ export const Route = createFileRoute('/api/account/signup')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const guard = await secureRoute({
+          request,
+          action: 'account.signup',
+        });
+
+        if (!guard.ok) {
+          return guard.response;
+        }
+
         const body = (await request.json()) as { email?: string; password?: string; name?: string; locale?: string };
 
         const result = await signUpWithCredentials({
@@ -18,7 +28,7 @@ export const Route = createFileRoute('/api/account/signup')({
         });
 
         if (!result.ok) {
-          return Response.json({ error: result.error }, { status: 400 });
+          return guard.json({ error: result.error }, { status: 400 });
         }
 
         const user = await getDb().query.users.findFirst({
@@ -26,7 +36,10 @@ export const Route = createFileRoute('/api/account/signup')({
         });
 
         if (!user?.email) {
-          return Response.json({ error: 'Account created, but automatic sign-in failed. Try logging in manually.' }, { status: 500 });
+          return guard.json(
+            { error: 'Account created, but automatic sign-in failed. Try logging in manually.' },
+            { status: 500 },
+          );
         }
 
         await signInSession({
@@ -37,7 +50,7 @@ export const Route = createFileRoute('/api/account/signup')({
           role: user.role,
         });
 
-        return Response.json({ ok: true });
+        return guard.json({ ok: true }, { metadata: { actorId: user.id } });
       },
     },
   },

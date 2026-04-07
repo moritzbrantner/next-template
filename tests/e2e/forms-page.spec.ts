@@ -4,8 +4,8 @@ import { expectStatusMessage, gotoAndWaitForHydration } from '@/tests/e2e/helper
 test('user can navigate to the forms page and submit all fields', async ({ page }) => {
   await gotoAndWaitForHydration(page, '/en');
 
-  await page.getByRole('link', { name: 'Open Form Demo' }).click();
-  await expect(page).toHaveURL('/en/forms');
+  await page.getByRole('link', { name: 'Open Form Example' }).click();
+  await expect(page).toHaveURL('/en/examples/forms');
 
   await page.getByLabel('First name').fill('Jane');
   await page.getByLabel('Last name').fill('Doe');
@@ -24,7 +24,7 @@ test('user can navigate to the forms page and submit all fields', async ({ page 
 });
 
 test('form displays validation errors when required fields are empty', async ({ page }) => {
-  await gotoAndWaitForHydration(page, '/en/forms');
+  await gotoAndWaitForHydration(page, '/en/examples/forms');
 
   await page.getByRole('button', { name: 'Submit profile' }).click();
 

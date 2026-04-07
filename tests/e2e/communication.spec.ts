@@ -7,7 +7,7 @@ test.describe('communication page', () => {
     const email = `newsletter-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
 
     await clearMailpitMessages();
-    await gotoAndWaitForHydration(page, '/en/communication');
+    await gotoAndWaitForHydration(page, '/en/examples/communication');
 
     await page.getByLabel('Email address').fill(email);
     await page.getByRole('button', { name: 'Subscribe' }).click();
@@ -21,6 +21,6 @@ test.describe('communication page', () => {
       subject: 'You are subscribed to the newsletter',
     });
 
-    expect(message.raw).toContain('/en/communication');
+    expect(message.raw).toContain('/en/examples/communication');
   });
 });

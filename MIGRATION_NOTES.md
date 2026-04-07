@@ -1,25 +1,17 @@
-# Migration Notes: Canonical Structure (`src/`)
+# MIGRATION_NOTES.md
 
-This repository now uses **domain-first modules under `src/`** as the single canonical application structure.
+## Canonical namespace migration
 
-## Deprecated directories/modules
+The repository now treats `src/` as the only canonical application namespace.
 
-The following paths are deprecated and should not be used for new code:
+## Removed deprecated roots
 
 - `features/`
 - `stores/`
 - `lib/services/`
+- demo-only auth/profile adapters that depended on hardcoded users
 
-## Migration mapping
+## Result
 
-Use these canonical replacements:
-
-- `features/profile/domain/profile-service.ts` -> `src/profile/demo-profile-service.ts`
-- `features/profile/server/profile-adapter.ts` -> `src/profile/demo-profile-adapter.ts`
-- `features/profile/ui/profile-card.tsx` -> `src/profile/profile-card.tsx`
-- `features/forms/employee-profile-form.ts` -> `src/domain/forms/employee-profile-form.ts`
-- `lib/services/auth.ts` -> `src/auth/current-user.ts`
-
-## Enforcement
-
-ESLint now enforces the canonical direction rules and blocks imports of deprecated modules from `app/**`, `components/**`, `src/**`, and `tests/**`.
+- Runtime code, tests, and docs now reference canonical `src/` modules only.
+- Example capabilities remain available, but under explicit `/examples/*` routes instead of mixed into the primary product surface.

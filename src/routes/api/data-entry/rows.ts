@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { getAuthSession } from '@/src/auth.server';
+import { secureRoute } from '@/src/api/route-security';
 import { getDb } from '@/src/db/client';
 import { profiles, securityAuditLogs, securityRateLimitCounters, users } from '@/src/db/schema';
 import { canWriteTable } from '@/src/domain/data-entry/table-permissions';
@@ -10,25 +10,30 @@ export const Route = createFileRoute('/api/data-entry/rows')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const session = await getAuthSession();
-        const userId = session?.user?.id;
-        const role = session?.user?.role;
+        const guard = await secureRoute({
+          request,
+          action: 'workspace.dataEntry.createRow',
+          requireAuth: true,
+        });
 
-        if (!userId || !role) {
-          return Response.json({ error: 'You must be signed in.' }, { status: 401 });
+        if (!guard.ok) {
+          return guard.response;
         }
+
+        const userId = guard.session!.user.id;
+        const role = guard.session!.user.role;
 
         const formData = await request.formData();
         const rawTable = formData.get('table');
 
         if (typeof rawTable !== 'string' || !isManagedTable(rawTable)) {
-          return Response.json({ error: 'A target table is required.' }, { status: 400 });
+          return guard.json({ error: 'A target table is required.' }, { status: 400 });
         }
 
         const table = rawTable;
 
         if (!canWriteTable(role, table)) {
-          return Response.json({ error: `Your role does not have write access to ${table}.` }, { status: 403 });
+          return guard.json({ error: `Your role does not have write access to ${table}.` }, { status: 403 });
         }
 
         const db = getDb();
@@ -47,7 +52,7 @@ export const Route = createFileRoute('/api/data-entry/rows')({
               timezone,
             });
 
-            return Response.json({ success: 'Profile row created.' });
+            return guard.json({ success: 'Profile row created.' }, { metadata: { table } });
           }
 
           if (table === 'User') {
@@ -57,7 +62,7 @@ export const Route = createFileRoute('/api/data-entry/rows')({
             const normalizedRole = newRole === 'ADMIN' ? 'ADMIN' : 'USER';
 
             if (!email) {
-              return Response.json({ error: 'Email is required for User rows.' }, { status: 400 });
+              return guard.json({ error: 'Email is required for User rows.' }, { status: 400 });
             }
 
             await db.insert(users).values({
@@ -67,7 +72,7 @@ export const Route = createFileRoute('/api/data-entry/rows')({
               role: normalizedRole,
             });
 
-            return Response.json({ success: 'User row created.' });
+            return guard.json({ success: 'User row created.' }, { metadata: { table } });
           }
 
           if (table === 'SecurityAuditLog') {
@@ -77,13 +82,13 @@ export const Route = createFileRoute('/api/data-entry/rows')({
             const metadata = toNullableString(formData.get('metadata'));
 
             if (!action || !outcome || Number.isNaN(statusCode)) {
-              return Response.json({ error: 'Action, outcome, and a numeric status code are required.' }, { status: 400 });
+              return guard.json({ error: 'Action, outcome, and a numeric status code are required.' }, { status: 400 });
             }
 
             const parsedMetadata = parseMetadata(metadata);
 
             if (!parsedMetadata.ok) {
-              return Response.json({ error: parsedMetadata.error }, { status: 400 });
+              return guard.json({ error: parsedMetadata.error }, { status: 400 });
             }
 
             await db.insert(securityAuditLogs).values({
@@ -95,7 +100,7 @@ export const Route = createFileRoute('/api/data-entry/rows')({
               metadata: parsedMetadata.value,
             });
 
-            return Response.json({ success: 'SecurityAuditLog row created.' });
+            return guard.json({ success: 'SecurityAuditLog row created.' }, { metadata: { table } });
           }
 
           if (table === 'SecurityRateLimitCounter') {
@@ -104,13 +109,13 @@ export const Route = createFileRoute('/api/data-entry/rows')({
             const resetAtRaw = toNullableString(formData.get('resetAt'));
 
             if (!key || Number.isNaN(count) || !resetAtRaw) {
-              return Response.json({ error: 'Key, count, and resetAt are required.' }, { status: 400 });
+              return guard.json({ error: 'Key, count, and resetAt are required.' }, { status: 400 });
             }
 
             const resetAt = new Date(resetAtRaw);
 
             if (Number.isNaN(resetAt.getTime())) {
-              return Response.json({ error: 'resetAt must be a valid date.' }, { status: 400 });
+              return guard.json({ error: 'resetAt must be a valid date.' }, { status: 400 });
             }
 
             await db.insert(securityRateLimitCounters).values({
@@ -119,12 +124,12 @@ export const Route = createFileRoute('/api/data-entry/rows')({
               resetAt,
             });
 
-            return Response.json({ success: 'SecurityRateLimitCounter row created.' });
+            return guard.json({ success: 'SecurityRateLimitCounter row created.' }, { metadata: { table } });
           }
 
-          return Response.json({ error: 'Unsupported table.' }, { status: 400 });
+          return guard.json({ error: 'Unsupported table.' }, { status: 400 });
         } catch {
-          return Response.json({ error: 'Unable to insert row. Check values and constraints.' }, { status: 500 });
+          return guard.json({ error: 'Unable to insert row. Check values and constraints.' }, { status: 500 });
         }
       },
     },

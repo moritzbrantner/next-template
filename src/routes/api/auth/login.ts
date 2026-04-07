@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { secureRoute } from '@/src/api/route-security';
 import { signInSession } from '@/src/auth.server';
 import { authorizeCredentials } from '@/src/auth/credentials';
 
@@ -7,6 +8,15 @@ export const Route = createFileRoute('/api/auth/login')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const guard = await secureRoute({
+          request,
+          action: 'auth.login',
+        });
+
+        if (!guard.ok) {
+          return guard.response;
+        }
+
         const body = (await request.json()) as { email?: string; password?: string };
         const user = await authorizeCredentials(
           {
@@ -18,7 +28,7 @@ export const Route = createFileRoute('/api/auth/login')({
         );
 
         if (!user?.email) {
-          return Response.json({ error: 'Email or password is incorrect.' }, { status: 401 });
+          return guard.json({ error: 'Email or password is incorrect.' }, { status: 401 });
         }
 
         await signInSession({
@@ -29,7 +39,7 @@ export const Route = createFileRoute('/api/auth/login')({
           role: user.role,
         });
 
-        return Response.json({ ok: true });
+        return guard.json({ ok: true }, { metadata: { actorId: user.id } });
       },
     },
   },

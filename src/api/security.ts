@@ -13,7 +13,7 @@ export type AuditRecord = {
   metadata?: Record<string, unknown>;
 };
 
-type RateLimitResult =
+export type RateLimitResult =
   | { ok: true; remaining: number; resetAt: number }
   | { ok: false; retryAfterSeconds: number; resetAt: number };
 

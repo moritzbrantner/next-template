@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { getAuthSession, signOutSession } from '@/src/auth.server';
+import { secureRoute } from '@/src/api/route-security';
+import { signOutSession } from '@/src/auth.server';
 import { deleteAccountUseCase, type AccountError } from '@/src/domain/account/use-cases';
 
 function statusForAccountError(error: AccountError) {
@@ -18,12 +19,17 @@ export const Route = createFileRoute('/api/account/delete')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const session = await getAuthSession();
-        const userId = session?.user?.id;
+        const guard = await secureRoute({
+          request,
+          action: 'account.delete',
+          requireAuth: true,
+        });
 
-        if (!userId) {
-          return Response.json({ error: 'You must be signed in to delete your account.' }, { status: 401 });
+        if (!guard.ok) {
+          return guard.response;
         }
+
+        const userId = guard.session!.user.id;
 
         const formData = await request.formData();
         const rawCurrentPassword = formData.get('currentPassword');
@@ -33,13 +39,16 @@ export const Route = createFileRoute('/api/account/delete')({
           const result = await deleteAccountUseCase(userId, { currentPassword });
 
           if (!result.ok) {
-            return Response.json({ error: result.error.message }, { status: statusForAccountError(result.error) });
+            return guard.json({ error: result.error.message }, { status: statusForAccountError(result.error) });
           }
 
           await signOutSession();
-          return Response.json({ ok: true });
+          return guard.json({ ok: true });
         } catch {
-          return Response.json({ error: 'Unable to delete your account right now. Please try again.' }, { status: 500 });
+          return guard.json(
+            { error: 'Unable to delete your account right now. Please try again.' },
+            { status: 500 },
+          );
         }
       },
     },

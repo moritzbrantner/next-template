@@ -1,23 +1,30 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { getAuthSession, signInSession } from '@/src/auth.server';
+import { secureRoute } from '@/src/api/route-security';
+import { signInSession } from '@/src/auth.server';
 import { removeProfileImageUseCase } from '@/src/domain/profile/use-cases';
 
 export const Route = createFileRoute('/api/profile/image/remove')({
   server: {
     handlers: {
-      POST: async () => {
-        const session = await getAuthSession();
-        const userId = session?.user?.id;
+      POST: async ({ request }) => {
+        const guard = await secureRoute({
+          request,
+          action: 'profile.removeImage',
+          requireAuth: true,
+        });
 
-        if (!userId || !session) {
-          return Response.json({ error: 'You must be signed in to update your profile picture.' }, { status: 401 });
+        if (!guard.ok) {
+          return guard.response;
         }
+
+        const session = guard.session!;
+        const userId = session.user.id;
 
         const result = await removeProfileImageUseCase(userId);
 
         if (!result.ok) {
-          return Response.json({ error: result.error.message }, { status: 400 });
+          return guard.json({ error: result.error.message }, { status: 400 });
         }
 
         await signInSession({
@@ -25,7 +32,7 @@ export const Route = createFileRoute('/api/profile/image/remove')({
           image: null,
         });
 
-        return Response.json({ ok: true });
+        return guard.json({ ok: true });
       },
     },
   },

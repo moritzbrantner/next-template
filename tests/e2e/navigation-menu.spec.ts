@@ -11,10 +11,10 @@ test('navbar groups destinations into categories and reveals submenu links on cl
 
   await page.getByRole('button', { name: 'Discover' }).click();
   await expect(discoverSubmenu.getByRole('link', { name: 'About' })).toBeVisible();
-  await expect(discoverSubmenu.getByRole('link', { name: 'Story Demo', exact: true })).toBeVisible();
+  await expect(discoverSubmenu.getByRole('link', { name: 'Story Example', exact: true })).toBeVisible();
 
-  await discoverSubmenu.getByRole('link', { name: 'Story Demo', exact: true }).click();
+  await discoverSubmenu.getByRole('link', { name: 'Story Example', exact: true }).click();
 
-  await expect(page).toHaveURL('/en/story');
+  await expect(page).toHaveURL('/en/examples/story');
   await expect(page.getByRole('heading', { name: 'Story Scroll Demo' })).toBeVisible();
 });
