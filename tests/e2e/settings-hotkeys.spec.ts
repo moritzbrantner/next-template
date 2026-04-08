@@ -46,11 +46,20 @@ test.describe('settings and hotkeys', () => {
   test('does not expose admin hotkeys to manager roles', async ({ page }) => {
     await loginWithCredentials(page, managerUser.email, managerUser.password);
 
-    await expect(page.getByRole('button', { name: 'Hotkeys' })).toBeVisible();
+    const hotkeysButton = page.getByRole('button', { name: 'Hotkeys' });
+    await expect(hotkeysButton).toBeVisible();
 
+    await hotkeysButton.click();
+    const hotkeysDialog = page.getByRole('dialog', { name: 'Navigation hotkeys' });
+    await expect(hotkeysDialog.getByRole('button', { name: 'Admin' })).toHaveCount(0);
+    await expect(hotkeysDialog.getByRole('button', { name: 'Settings' })).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await hotkeysButton.focus();
     await page.keyboard.press('Alt+M');
-    await expect(page).not.toHaveURL('/en/admin');
+    await expect(page).toHaveURL('/en/profile');
 
+    await hotkeysButton.focus();
     await page.keyboard.press('Alt+E');
     await expect(page).toHaveURL('/en/settings');
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
