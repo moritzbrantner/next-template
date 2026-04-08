@@ -30,10 +30,8 @@ export function getDb() {
 
   const db = drizzle(pool, { schema });
 
-  if (process.env.NODE_ENV !== "production") {
-    globalForDb.pool = pool;
-    globalForDb.db = db;
-  }
+  globalForDb.pool = pool;
+  globalForDb.db = db;
 
   return db;
 }
