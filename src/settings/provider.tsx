@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, startTransition, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, startTransition, useContext, useLayoutEffect, useState, type ReactNode } from 'react';
 
 import {
   APP_SETTINGS_STORAGE_KEY,
@@ -9,9 +9,13 @@ import {
   type AppSettings,
 } from '@/src/settings/preferences';
 
+type AppSettingsUpdater =
+  | Partial<AppSettings>
+  | ((currentSettings: AppSettings) => Partial<AppSettings>);
+
 type AppSettingsContextValue = {
   settings: AppSettings;
-  updateSettings: (nextSettings: Partial<AppSettings>) => void;
+  updateSettings: (nextSettings: AppSettingsUpdater) => void;
 };
 
 const AppSettingsContext = createContext<AppSettingsContextValue | null>(null);
@@ -25,7 +29,7 @@ export function AppSettingsProvider({
 }) {
   const [settings, setSettings] = useState<AppSettings>(initialSettings);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     applyAppSettingsToDocument(settings);
     window.localStorage.setItem(APP_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
     document.cookie = buildAppSettingsCookie(settings);
@@ -39,7 +43,7 @@ export function AppSettingsProvider({
           startTransition(() => {
             setSettings((currentSettings) => ({
               ...currentSettings,
-              ...nextSettings,
+              ...(typeof nextSettings === 'function' ? nextSettings(currentSettings) : nextSettings),
             }));
           });
         },

@@ -54,12 +54,12 @@ function SettingsPage() {
   const role = session?.user.role ?? 'USER';
   const formattedPreviewDate = formatDatePreview(previewDate ?? new Date(), settings, locale);
   const updateNotificationSettings = (nextSettings: Partial<(typeof settings.notifications)>) => {
-    updateSettings({
+    updateSettings((currentSettings) => ({
       notifications: {
-        ...settings.notifications,
+        ...currentSettings.notifications,
         ...nextSettings,
       },
-    });
+    }));
   };
 
   return (

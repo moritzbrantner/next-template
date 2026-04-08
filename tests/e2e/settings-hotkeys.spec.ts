@@ -72,7 +72,7 @@ test.describe('settings and hotkeys', () => {
 
     await gotoAndWaitForHydration(page, '/en/register');
     await page.getByLabel('Display name').fill('Settings User');
-    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Email', { exact: true }).fill(email);
     await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByLabel('Confirm password').fill(password);
     await page.getByRole('button', { name: 'Create account' }).click();
