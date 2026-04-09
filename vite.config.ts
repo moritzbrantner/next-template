@@ -3,19 +3,14 @@ import { defineConfig } from 'vite';
 import viteReact from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-function normalizeBasePath(value: string | undefined) {
-  if (!value || value === '/') {
-    return '/';
-  }
-
-  return `/${value.replace(/^\/+|\/+$/g, '')}/`;
-}
+import { normalizePublicBasePath, normalizeRouterBasePath } from './src/runtime/base-path';
 
 const isGithubPagesBuild = process.env.GITHUB_PAGES === 'true';
-const githubPagesBasePath = normalizeBasePath(
+const githubPagesBasePath = normalizePublicBasePath(
   process.env.GITHUB_PAGES_BASE_PATH ??
     (isGithubPagesBuild ? process.env.GITHUB_REPOSITORY?.split('/')[1] : undefined),
 );
+const githubPagesRouterBasePath = normalizeRouterBasePath(githubPagesBasePath);
 
 export default defineConfig({
   base: isGithubPagesBuild ? githubPagesBasePath : '/',
@@ -30,6 +25,9 @@ export default defineConfig({
     tanstackStart(
       isGithubPagesBuild
         ? {
+            router: {
+              basepath: githubPagesRouterBasePath,
+            },
             spa: {
               enabled: true,
               prerender: {
