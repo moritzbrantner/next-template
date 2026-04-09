@@ -7,6 +7,7 @@ export const Route = createFileRoute('/')({
     throw redirect({
       to: '/$locale',
       params: { locale: routing.defaultLocale },
+      replace: true,
     });
   },
 });
