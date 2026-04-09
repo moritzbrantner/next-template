@@ -48,12 +48,30 @@ jobs:
           AUTH_URL: https://example.invalid
           NEXTAUTH_URL: https://example.invalid
           GITHUB_PAGES: 'true'
+          VITE_GITHUB_PAGES: 'true'
           GITHUB_PAGES_BASE_PATH: /${{ github.event.repository.name }}/
         run: pnpm run build
 
       - name: Add GitHub Pages fallbacks
         run: |
-          cp dist/client/index.html dist/client/404.html
+          base_path="/${{ github.event.repository.name }}"
+          cat > dist/client/index.html <<EOF
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta http-equiv="refresh" content="0; url=${base_path}/en/" />
+              <title>Redirecting...</title>
+              <script>
+                window.location.replace('${base_path}/en/');
+              </script>
+            </head>
+            <body>
+              <p><a href="${base_path}/en/">Continue to the app</a></p>
+            </body>
+          </html>
+          EOF
+          cp dist/client/_shell.html dist/client/404.html
           touch dist/client/.nojekyll
 
       - name: Upload GitHub Pages artifact

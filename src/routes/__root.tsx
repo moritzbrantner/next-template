@@ -4,12 +4,18 @@ import { useEffect } from 'react';
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
-import type { Theme } from '@/lib/theme';
+import { THEME_STORAGE_KEY, isTheme, parseThemeFromCookieHeader, type Theme } from '@/lib/theme';
 import type { AppSession } from '@/src/auth';
 import type { NotificationPreview } from '@/src/domain/notifications/use-cases';
 import { loadAppContext } from '@/src/runtime.functions';
 import { AppSettingsProvider } from '@/src/settings/provider';
-import { defaultAppSettings, type AppSettings } from '@/src/settings/preferences';
+import {
+  APP_SETTINGS_STORAGE_KEY,
+  defaultAppSettings,
+  parseAppSettings,
+  parseAppSettingsFromCookieHeader,
+  type AppSettings,
+} from '@/src/settings/preferences';
 import appCss from '@/src/styles/app.css?url';
 
 type RouterContext = {
@@ -77,8 +83,39 @@ const settingsScript = `
 })();
 `;
 
+const isGithubPagesBuild = import.meta.env.VITE_GITHUB_PAGES === 'true';
+
+function loadStaticAppContext(): RouterContext {
+  if (typeof document === 'undefined' || typeof window === 'undefined') {
+    return {
+      session: null,
+      notificationCenter: null,
+      theme: 'light',
+      settings: defaultAppSettings,
+    };
+  }
+
+  const cookieTheme = parseThemeFromCookieHeader(document.cookie);
+  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  const theme = cookieTheme !== 'light' || !isTheme(storedTheme) ? cookieTheme : storedTheme;
+  const cookieSettings = parseAppSettingsFromCookieHeader(document.cookie);
+  const storedSettings = parseAppSettings(window.localStorage.getItem(APP_SETTINGS_STORAGE_KEY));
+  const hasStoredSettings = window.localStorage.getItem(APP_SETTINGS_STORAGE_KEY) !== null;
+
+  return {
+    session: null,
+    notificationCenter: null,
+    theme,
+    settings: hasStoredSettings ? storedSettings : cookieSettings,
+  };
+}
+
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ location, cause }) => {
+    if (isGithubPagesBuild) {
+      return loadStaticAppContext();
+    }
+
     return loadAppContext({
       data: {
         href: location.href,
