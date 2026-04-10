@@ -1,5 +1,6 @@
 'use client';
 
+import NextImage from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 
@@ -112,7 +113,7 @@ export function ProfileImageCropper({ file, labels, onCancel, onApply }: Profile
 
   useEffect(() => {
     const url = URL.createObjectURL(file);
-    const image = new Image();
+    const image = new window.Image();
 
     image.onload = () => {
       imageRef.current = image;
@@ -257,18 +258,27 @@ export function ProfileImageCropper({ file, labels, onCancel, onApply }: Profile
           onPointerCancel={handlePointerUp}
         >
           {previewUrl && renderedDimensions ? (
-            <img
-              src={previewUrl}
-              alt=""
-              draggable={false}
-              className="pointer-events-none absolute max-w-none select-none"
+            <div
+              className="absolute"
               style={{
                 width: renderedDimensions.width,
                 height: renderedDimensions.height,
                 left: `calc(50% - ${renderedDimensions.width / 2}px + ${offsetX}px)`,
                 top: `calc(50% - ${renderedDimensions.height / 2}px + ${offsetY}px)`,
               }}
-            />
+            >
+              <div className="relative h-full w-full">
+                <NextImage
+                  src={previewUrl}
+                  alt=""
+                  fill
+                  unoptimized
+                  draggable={false}
+                  sizes={`${Math.ceil(renderedDimensions.width)}px`}
+                  className="pointer-events-none select-none object-fill"
+                />
+              </div>
+            </div>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-zinc-400">Loading…</div>
           )}

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
@@ -80,9 +81,9 @@ export function ProfileFollowPanel({
 
         <div className="flex flex-col gap-6 px-6 pb-6 md:flex-row md:items-end md:justify-between">
           <div className="-mt-12 flex items-end gap-4">
-            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-zinc-100 text-3xl font-semibold text-zinc-700 shadow-sm dark:border-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
+            <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-zinc-100 text-3xl font-semibold text-zinc-700 shadow-sm dark:border-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
               {imageUrl ? (
-                <img src={imageUrl} alt={displayName} className="h-full w-full object-cover" />
+                <Image src={imageUrl} alt={displayName} fill sizes="96px" unoptimized className="object-cover" />
               ) : (
                 <span>{displayName.charAt(0).toUpperCase() || 'U'}</span>
               )}

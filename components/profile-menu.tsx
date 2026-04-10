@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
@@ -43,18 +44,14 @@ export function ProfileMenu({
     >
       <button
         type="button"
-        className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800"
+        className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800"
         aria-label={labels.openMenu}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((current) => !current)}
       >
         {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={displayName}
-            className="h-full w-full object-cover"
-          />
+          <Image src={imageUrl} alt={displayName} fill sizes="36px" unoptimized className="object-cover" />
         ) : (
           <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-100">
             {displayName.charAt(0).toUpperCase() || 'U'}

@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
 import { Link } from '@/i18n/navigation';
@@ -47,7 +48,14 @@ export default async function AdminUserDetailPage({
             <CardContent className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
               <div className="flex items-start justify-center">
                 {user.imageUrl ? (
-                  <img src={user.imageUrl} alt={user.displayName} className="h-24 w-24 rounded-full border border-zinc-200 object-cover dark:border-zinc-800" />
+                  <Image
+                    src={user.imageUrl}
+                    alt={user.displayName}
+                    width={96}
+                    height={96}
+                    unoptimized
+                    className="h-24 w-24 rounded-full border border-zinc-200 object-cover dark:border-zinc-800"
+                  />
                 ) : (
                   <div className="flex h-24 w-24 items-center justify-center rounded-full border border-dashed border-zinc-300 text-2xl font-semibold dark:border-zinc-700">
                     {user.displayName.charAt(0).toUpperCase()}

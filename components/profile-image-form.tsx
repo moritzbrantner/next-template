@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 
 import { ProfileImageCropper } from '@/components/profile-image-cropper';
@@ -131,7 +132,7 @@ export function ProfileImageForm({ currentImage, labels }: ProfileImageFormProps
       <div className="flex items-center gap-4">
         <div className="relative h-24 w-24 overflow-hidden rounded-full border border-zinc-300 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900">
           {imageToRender ? (
-            <img src={imageToRender} alt={labels.alt} className="h-full w-full object-cover" />
+            <Image src={imageToRender} alt={labels.alt} fill sizes="96px" unoptimized className="object-cover" />
           ) : (
             <div className="flex h-full items-center justify-center text-xs text-zinc-500">{labels.empty}</div>
           )}
