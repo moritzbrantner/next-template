@@ -5,11 +5,11 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://moritzbrantner.github.io/next-template/en/</loc>
+    <loc>https://moritzbrantner.github.io/next-template/en</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://moritzbrantner.github.io/next-template/de/</loc>
+    <loc>https://moritzbrantner.github.io/next-template/de</loc>
     <changefreq>weekly</changefreq>
   </url>
 </urlset>

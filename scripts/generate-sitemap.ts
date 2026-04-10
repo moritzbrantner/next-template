@@ -3,8 +3,8 @@ import { writeFileSync, mkdirSync } from 'node:fs'
 const base = 'https://moritzbrantner.github.io/next-template'
 const routes = [
   '/',
-  '/en/',
-  '/de/',
+  '/en',
+  '/de',
 ]
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>

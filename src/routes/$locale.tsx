@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router';
-
-import { NavigationBar } from '@/components/navigation-bar';
 import { hasLocale, routing, type AppLocale } from '@/i18n/routing';
 import { I18nProvider } from '@/src/i18n';
 
@@ -23,20 +21,12 @@ export const Route = createFileRoute('/$locale')({
 });
 
 function LocaleLayout() {
-  const { locale, session, notificationCenter, theme } = Route.useRouteContext();
+  const { locale } = Route.useRouteContext();
 
   return (
     <I18nProvider locale={locale as AppLocale}>
       <DocumentLanguage locale={locale as AppLocale} />
-      <NavigationBar
-        initialTheme={theme}
-        locale={locale as AppLocale}
-        session={session}
-        notificationCenter={notificationCenter}
-      />
-      <main className="app-shell mx-auto min-h-[calc(100vh-4rem)] w-full max-w-5xl px-4 py-10">
-        <Outlet />
-      </main>
+      <Outlet />
     </I18nProvider>
   );
 }

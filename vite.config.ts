@@ -50,7 +50,7 @@ export default defineConfig({
 
             sitemap: {
               enabled: true,
-              host: "https://moritzbrantner.github.io",
+              host: `https://moritzbrantner.github.io${githubPagesBasePath === "/" ? "" : githubPagesBasePath}`,
             },
 
             // important: explicit locale pages
@@ -60,16 +60,46 @@ export default defineConfig({
                 prerender: { enabled: true },
               },
               {
-                path: "/en/",
+                path: "/en",
                 prerender: { enabled: true },
               },
               {
-                path: "/de/",
+                path: "/de",
                 prerender: { enabled: true },
               },
             ],
           }
-        : undefined,
+        : {
+            spa: {
+              enabled: true,
+              prerender: {
+                outputPath: "/_shell.html",
+                crawlLinks: true,
+              },
+            },
+
+            prerender: {
+              enabled: true,
+              crawlLinks: true,
+              failOnError: false,
+            },
+
+            // important: explicit locale pages
+            pages: [
+              {
+                path: "/",
+                prerender: { enabled: true },
+              },
+              {
+                path: "/en",
+                prerender: { enabled: true },
+              },
+              {
+                path: "/de",
+                prerender: { enabled: true },
+              },
+            ],
+          },
     ),
     viteReact(),
   ],

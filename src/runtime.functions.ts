@@ -1,15 +1,22 @@
 import { createServerFn } from '@tanstack/react-start';
-import { getRequest } from '@tanstack/react-start/server';
 
-import { parseThemeFromCookieHeader } from '@/lib/theme';
 import { recordPageVisit, shouldTrackPageVisit, type PageVisitTrackingCause } from '@/src/analytics/page-visits';
 import { getAuthSession } from '@/src/auth.server';
-import { getNotificationPreviewUseCase } from '@/src/domain/notifications/use-cases';
-import { parseAppSettingsFromCookieHeader } from '@/src/settings/preferences';
+import { getNotificationPreviewUseCase, type NotificationPreview } from '@/src/domain/notifications/use-cases';
 
 type LoadAppContextInput = {
   href?: string;
   cause?: PageVisitTrackingCause;
+};
+
+export type AppRouteContext = {
+  session: Awaited<ReturnType<typeof getAuthSession>>;
+  notificationCenter: NotificationPreview | null;
+};
+
+export const emptyAppContext: AppRouteContext = {
+  session: null,
+  notificationCenter: null,
 };
 
 function validateLoadAppContextInput(input: LoadAppContextInput | undefined): LoadAppContextInput {
@@ -22,8 +29,6 @@ function validateLoadAppContextInput(input: LoadAppContextInput | undefined): Lo
 export const loadAppContext = createServerFn({ method: 'GET' })
   .inputValidator(validateLoadAppContextInput)
   .handler(async ({ data }) => {
-    const request = getRequest();
-    const cookieHeader = request.headers.get('cookie');
     const session = await getAuthSession();
 
     if (session?.user.id && shouldTrackPageVisit(data)) {
@@ -38,7 +43,5 @@ export const loadAppContext = createServerFn({ method: 'GET' })
     return {
       session,
       notificationCenter: session?.user.id ? await getNotificationPreviewUseCase(session.user.id, 3) : null,
-      theme: parseThemeFromCookieHeader(cookieHeader),
-      settings: parseAppSettingsFromCookieHeader(cookieHeader),
     };
   });

@@ -12,26 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as LocaleRouteImport } from './routes/$locale'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as LocaleIndexRouteImport } from './routes/$locale.index'
 import { Route as ApiReportProblemRouteImport } from './routes/api/report-problem'
 import { Route as ApiEmployeesRouteImport } from './routes/api/employees'
-import { Route as LocaleVerifyEmailRouteImport } from './routes/$locale.verify-email'
-import { Route as LocaleUploadsRouteImport } from './routes/$locale.uploads'
-import { Route as LocaleTableRouteImport } from './routes/$locale.table'
-import { Route as LocaleStoryRouteImport } from './routes/$locale.story'
-import { Route as LocaleSettingsRouteImport } from './routes/$locale.settings'
-import { Route as LocaleResetPasswordRouteImport } from './routes/$locale.reset-password'
-import { Route as LocaleReportProblemRouteImport } from './routes/$locale.report-problem'
-import { Route as LocaleRemocnRouteImport } from './routes/$locale.remocn'
-import { Route as LocaleRegisterRouteImport } from './routes/$locale.register'
-import { Route as LocaleProfileRouteImport } from './routes/$locale.profile'
-import { Route as LocaleNotificationsRouteImport } from './routes/$locale.notifications'
-import { Route as LocaleLoginRouteImport } from './routes/$locale.login'
-import { Route as LocaleFormsRouteImport } from './routes/$locale.forms'
-import { Route as LocaleDataEntryRouteImport } from './routes/$locale.data-entry'
-import { Route as LocaleCommunicationRouteImport } from './routes/$locale.communication'
-import { Route as LocaleAboutRouteImport } from './routes/$locale.about'
-import { Route as LocaleAdminIndexRouteImport } from './routes/$locale/admin/index'
+import { Route as LocalePublicRouteImport } from './routes/$locale/_public'
+import { Route as LocaleAppRouteImport } from './routes/$locale/_app'
+import { Route as LocalePublicIndexRouteImport } from './routes/$locale/_public/index'
 import { Route as ApiProfileImageRouteImport } from './routes/api/profile/image'
 import { Route as ApiProfileFollowRouteImport } from './routes/api/profile/follow'
 import { Route as ApiProfileDisplayNameRouteImport } from './routes/api/profile/display-name'
@@ -49,19 +34,36 @@ import { Route as ApiAccountResetPasswordRouteImport } from './routes/api/accoun
 import { Route as ApiAccountForgotPasswordRouteImport } from './routes/api/account/forgot-password'
 import { Route as ApiAccountEmailRouteImport } from './routes/api/account/email'
 import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
-import { Route as LocaleProfileUserIdRouteImport } from './routes/$locale.profile.$userId'
-import { Route as LocaleExamplesUploadsRouteImport } from './routes/$locale.examples.uploads'
-import { Route as LocaleExamplesStoryRouteImport } from './routes/$locale.examples.story'
-import { Route as LocaleExamplesFormsRouteImport } from './routes/$locale.examples.forms'
-import { Route as LocaleExamplesCommunicationRouteImport } from './routes/$locale.examples.communication'
-import { Route as LocaleAdminUsersRouteImport } from './routes/$locale/admin/users'
-import { Route as LocaleAdminSystemSettingsRouteImport } from './routes/$locale/admin/system-settings'
-import { Route as LocaleAdminReportsRouteImport } from './routes/$locale/admin/reports'
-import { Route as LocaleAdminDataStudioRouteImport } from './routes/$locale/admin/data-studio'
+import { Route as LocalePublicVerifyEmailRouteImport } from './routes/$locale/_public/verify-email'
+import { Route as LocalePublicUploadsRouteImport } from './routes/$locale/_public/uploads'
+import { Route as LocalePublicTableRouteImport } from './routes/$locale/_public/table'
+import { Route as LocalePublicStoryRouteImport } from './routes/$locale/_public/story'
+import { Route as LocalePublicResetPasswordRouteImport } from './routes/$locale/_public/reset-password'
+import { Route as LocalePublicReportProblemRouteImport } from './routes/$locale/_public/report-problem'
+import { Route as LocalePublicRemocnRouteImport } from './routes/$locale/_public/remocn'
+import { Route as LocalePublicFormsRouteImport } from './routes/$locale/_public/forms'
+import { Route as LocalePublicCommunicationRouteImport } from './routes/$locale/_public/communication'
+import { Route as LocalePublicAboutRouteImport } from './routes/$locale/_public/about'
+import { Route as LocaleAppSettingsRouteImport } from './routes/$locale/_app/settings'
+import { Route as LocaleAppRegisterRouteImport } from './routes/$locale/_app/register'
+import { Route as LocaleAppProfileRouteImport } from './routes/$locale/_app/profile'
+import { Route as LocaleAppNotificationsRouteImport } from './routes/$locale/_app/notifications'
+import { Route as LocaleAppLoginRouteImport } from './routes/$locale/_app/login'
+import { Route as LocaleAppDataEntryRouteImport } from './routes/$locale/_app/data-entry'
+import { Route as LocaleAppAdminIndexRouteImport } from './routes/$locale/_app/admin/index'
 import { Route as ApiProfileImageRemoveRouteImport } from './routes/api/profile/image/remove'
 import { Route as ApiAdminReportsAuthorizationRouteImport } from './routes/api/admin/reports/authorization'
 import { Route as ApiAdminDataStudioRecordsRouteImport } from './routes/api/admin/data-studio/records'
-import { Route as LocaleAdminUsersUserIdRouteImport } from './routes/$locale/admin/users.$userId'
+import { Route as LocalePublicProfileUserIdRouteImport } from './routes/$locale/_public/profile.$userId'
+import { Route as LocalePublicExamplesUploadsRouteImport } from './routes/$locale/_public/examples.uploads'
+import { Route as LocalePublicExamplesStoryRouteImport } from './routes/$locale/_public/examples.story'
+import { Route as LocalePublicExamplesFormsRouteImport } from './routes/$locale/_public/examples.forms'
+import { Route as LocalePublicExamplesCommunicationRouteImport } from './routes/$locale/_public/examples.communication'
+import { Route as LocaleAppAdminUsersRouteImport } from './routes/$locale/_app/admin/users'
+import { Route as LocaleAppAdminSystemSettingsRouteImport } from './routes/$locale/_app/admin/system-settings'
+import { Route as LocaleAppAdminReportsRouteImport } from './routes/$locale/_app/admin/reports'
+import { Route as LocaleAppAdminDataStudioRouteImport } from './routes/$locale/_app/admin/data-studio'
+import { Route as LocaleAppAdminUsersUserIdRouteImport } from './routes/$locale/_app/admin/users.$userId'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -78,11 +80,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LocaleIndexRoute = LocaleIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocaleRoute,
-} as any)
 const ApiReportProblemRoute = ApiReportProblemRouteImport.update({
   id: '/api/report-problem',
   path: '/api/report-problem',
@@ -93,90 +90,18 @@ const ApiEmployeesRoute = ApiEmployeesRouteImport.update({
   path: '/api/employees',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LocaleVerifyEmailRoute = LocaleVerifyEmailRouteImport.update({
-  id: '/verify-email',
-  path: '/verify-email',
+const LocalePublicRoute = LocalePublicRouteImport.update({
+  id: '/_public',
   getParentRoute: () => LocaleRoute,
 } as any)
-const LocaleUploadsRoute = LocaleUploadsRouteImport.update({
-  id: '/uploads',
-  path: '/uploads',
+const LocaleAppRoute = LocaleAppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => LocaleRoute,
 } as any)
-const LocaleTableRoute = LocaleTableRouteImport.update({
-  id: '/table',
-  path: '/table',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleStoryRoute = LocaleStoryRouteImport.update({
-  id: '/story',
-  path: '/story',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleSettingsRoute = LocaleSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleResetPasswordRoute = LocaleResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleReportProblemRoute = LocaleReportProblemRouteImport.update({
-  id: '/report-problem',
-  path: '/report-problem',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleRemocnRoute = LocaleRemocnRouteImport.update({
-  id: '/remocn',
-  path: '/remocn',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleRegisterRoute = LocaleRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleProfileRoute = LocaleProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleNotificationsRoute = LocaleNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleLoginRoute = LocaleLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleFormsRoute = LocaleFormsRouteImport.update({
-  id: '/forms',
-  path: '/forms',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleDataEntryRoute = LocaleDataEntryRouteImport.update({
-  id: '/data-entry',
-  path: '/data-entry',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleCommunicationRoute = LocaleCommunicationRouteImport.update({
-  id: '/communication',
-  path: '/communication',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleAboutRoute = LocaleAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleAdminIndexRoute = LocaleAdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => LocaleRoute,
+const LocalePublicIndexRoute = LocalePublicIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocalePublicRoute,
 } as any)
 const ApiProfileImageRoute = ApiProfileImageRouteImport.update({
   id: '/api/profile/image',
@@ -264,52 +189,93 @@ const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
   path: '/api/account/delete',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LocaleProfileUserIdRoute = LocaleProfileUserIdRouteImport.update({
-  id: '/$userId',
-  path: '/$userId',
-  getParentRoute: () => LocaleProfileRoute,
+const LocalePublicVerifyEmailRoute = LocalePublicVerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => LocalePublicRoute,
 } as any)
-const LocaleExamplesUploadsRoute = LocaleExamplesUploadsRouteImport.update({
-  id: '/examples/uploads',
-  path: '/examples/uploads',
-  getParentRoute: () => LocaleRoute,
+const LocalePublicUploadsRoute = LocalePublicUploadsRouteImport.update({
+  id: '/uploads',
+  path: '/uploads',
+  getParentRoute: () => LocalePublicRoute,
 } as any)
-const LocaleExamplesStoryRoute = LocaleExamplesStoryRouteImport.update({
-  id: '/examples/story',
-  path: '/examples/story',
-  getParentRoute: () => LocaleRoute,
+const LocalePublicTableRoute = LocalePublicTableRouteImport.update({
+  id: '/table',
+  path: '/table',
+  getParentRoute: () => LocalePublicRoute,
 } as any)
-const LocaleExamplesFormsRoute = LocaleExamplesFormsRouteImport.update({
-  id: '/examples/forms',
-  path: '/examples/forms',
-  getParentRoute: () => LocaleRoute,
+const LocalePublicStoryRoute = LocalePublicStoryRouteImport.update({
+  id: '/story',
+  path: '/story',
+  getParentRoute: () => LocalePublicRoute,
 } as any)
-const LocaleExamplesCommunicationRoute =
-  LocaleExamplesCommunicationRouteImport.update({
-    id: '/examples/communication',
-    path: '/examples/communication',
-    getParentRoute: () => LocaleRoute,
+const LocalePublicResetPasswordRoute =
+  LocalePublicResetPasswordRouteImport.update({
+    id: '/reset-password',
+    path: '/reset-password',
+    getParentRoute: () => LocalePublicRoute,
   } as any)
-const LocaleAdminUsersRoute = LocaleAdminUsersRouteImport.update({
-  id: '/admin/users',
-  path: '/admin/users',
-  getParentRoute: () => LocaleRoute,
-} as any)
-const LocaleAdminSystemSettingsRoute =
-  LocaleAdminSystemSettingsRouteImport.update({
-    id: '/admin/system-settings',
-    path: '/admin/system-settings',
-    getParentRoute: () => LocaleRoute,
+const LocalePublicReportProblemRoute =
+  LocalePublicReportProblemRouteImport.update({
+    id: '/report-problem',
+    path: '/report-problem',
+    getParentRoute: () => LocalePublicRoute,
   } as any)
-const LocaleAdminReportsRoute = LocaleAdminReportsRouteImport.update({
-  id: '/admin/reports',
-  path: '/admin/reports',
-  getParentRoute: () => LocaleRoute,
+const LocalePublicRemocnRoute = LocalePublicRemocnRouteImport.update({
+  id: '/remocn',
+  path: '/remocn',
+  getParentRoute: () => LocalePublicRoute,
 } as any)
-const LocaleAdminDataStudioRoute = LocaleAdminDataStudioRouteImport.update({
-  id: '/admin/data-studio',
-  path: '/admin/data-studio',
-  getParentRoute: () => LocaleRoute,
+const LocalePublicFormsRoute = LocalePublicFormsRouteImport.update({
+  id: '/forms',
+  path: '/forms',
+  getParentRoute: () => LocalePublicRoute,
+} as any)
+const LocalePublicCommunicationRoute =
+  LocalePublicCommunicationRouteImport.update({
+    id: '/communication',
+    path: '/communication',
+    getParentRoute: () => LocalePublicRoute,
+  } as any)
+const LocalePublicAboutRoute = LocalePublicAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => LocalePublicRoute,
+} as any)
+const LocaleAppSettingsRoute = LocaleAppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => LocaleAppRoute,
+} as any)
+const LocaleAppRegisterRoute = LocaleAppRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => LocaleAppRoute,
+} as any)
+const LocaleAppProfileRoute = LocaleAppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => LocaleAppRoute,
+} as any)
+const LocaleAppNotificationsRoute = LocaleAppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => LocaleAppRoute,
+} as any)
+const LocaleAppLoginRoute = LocaleAppLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => LocaleAppRoute,
+} as any)
+const LocaleAppDataEntryRoute = LocaleAppDataEntryRouteImport.update({
+  id: '/data-entry',
+  path: '/data-entry',
+  getParentRoute: () => LocaleAppRoute,
+} as any)
+const LocaleAppAdminIndexRoute = LocaleAppAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => LocaleAppRoute,
 } as any)
 const ApiProfileImageRemoveRoute = ApiProfileImageRemoveRouteImport.update({
   id: '/remove',
@@ -328,44 +294,87 @@ const ApiAdminDataStudioRecordsRoute =
     path: '/api/admin/data-studio/records',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LocaleAdminUsersUserIdRoute = LocaleAdminUsersUserIdRouteImport.update({
-  id: '/$userId',
-  path: '/$userId',
-  getParentRoute: () => LocaleAdminUsersRoute,
+const LocalePublicProfileUserIdRoute =
+  LocalePublicProfileUserIdRouteImport.update({
+    id: '/profile/$userId',
+    path: '/profile/$userId',
+    getParentRoute: () => LocalePublicRoute,
+  } as any)
+const LocalePublicExamplesUploadsRoute =
+  LocalePublicExamplesUploadsRouteImport.update({
+    id: '/examples/uploads',
+    path: '/examples/uploads',
+    getParentRoute: () => LocalePublicRoute,
+  } as any)
+const LocalePublicExamplesStoryRoute =
+  LocalePublicExamplesStoryRouteImport.update({
+    id: '/examples/story',
+    path: '/examples/story',
+    getParentRoute: () => LocalePublicRoute,
+  } as any)
+const LocalePublicExamplesFormsRoute =
+  LocalePublicExamplesFormsRouteImport.update({
+    id: '/examples/forms',
+    path: '/examples/forms',
+    getParentRoute: () => LocalePublicRoute,
+  } as any)
+const LocalePublicExamplesCommunicationRoute =
+  LocalePublicExamplesCommunicationRouteImport.update({
+    id: '/examples/communication',
+    path: '/examples/communication',
+    getParentRoute: () => LocalePublicRoute,
+  } as any)
+const LocaleAppAdminUsersRoute = LocaleAppAdminUsersRouteImport.update({
+  id: '/admin/users',
+  path: '/admin/users',
+  getParentRoute: () => LocaleAppRoute,
 } as any)
+const LocaleAppAdminSystemSettingsRoute =
+  LocaleAppAdminSystemSettingsRouteImport.update({
+    id: '/admin/system-settings',
+    path: '/admin/system-settings',
+    getParentRoute: () => LocaleAppRoute,
+  } as any)
+const LocaleAppAdminReportsRoute = LocaleAppAdminReportsRouteImport.update({
+  id: '/admin/reports',
+  path: '/admin/reports',
+  getParentRoute: () => LocaleAppRoute,
+} as any)
+const LocaleAppAdminDataStudioRoute =
+  LocaleAppAdminDataStudioRouteImport.update({
+    id: '/admin/data-studio',
+    path: '/admin/data-studio',
+    getParentRoute: () => LocaleAppRoute,
+  } as any)
+const LocaleAppAdminUsersUserIdRoute =
+  LocaleAppAdminUsersUserIdRouteImport.update({
+    id: '/$userId',
+    path: '/$userId',
+    getParentRoute: () => LocaleAppAdminUsersRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$locale': typeof LocaleRouteWithChildren
+  '/$locale': typeof LocalePublicRouteWithChildren
   '/about': typeof AboutRoute
-  '/$locale/about': typeof LocaleAboutRoute
-  '/$locale/communication': typeof LocaleCommunicationRoute
-  '/$locale/data-entry': typeof LocaleDataEntryRoute
-  '/$locale/forms': typeof LocaleFormsRoute
-  '/$locale/login': typeof LocaleLoginRoute
-  '/$locale/notifications': typeof LocaleNotificationsRoute
-  '/$locale/profile': typeof LocaleProfileRouteWithChildren
-  '/$locale/register': typeof LocaleRegisterRoute
-  '/$locale/remocn': typeof LocaleRemocnRoute
-  '/$locale/report-problem': typeof LocaleReportProblemRoute
-  '/$locale/reset-password': typeof LocaleResetPasswordRoute
-  '/$locale/settings': typeof LocaleSettingsRoute
-  '/$locale/story': typeof LocaleStoryRoute
-  '/$locale/table': typeof LocaleTableRoute
-  '/$locale/uploads': typeof LocaleUploadsRoute
-  '/$locale/verify-email': typeof LocaleVerifyEmailRoute
   '/api/employees': typeof ApiEmployeesRoute
   '/api/report-problem': typeof ApiReportProblemRoute
-  '/$locale/': typeof LocaleIndexRoute
-  '/$locale/admin/data-studio': typeof LocaleAdminDataStudioRoute
-  '/$locale/admin/reports': typeof LocaleAdminReportsRoute
-  '/$locale/admin/system-settings': typeof LocaleAdminSystemSettingsRoute
-  '/$locale/admin/users': typeof LocaleAdminUsersRouteWithChildren
-  '/$locale/examples/communication': typeof LocaleExamplesCommunicationRoute
-  '/$locale/examples/forms': typeof LocaleExamplesFormsRoute
-  '/$locale/examples/story': typeof LocaleExamplesStoryRoute
-  '/$locale/examples/uploads': typeof LocaleExamplesUploadsRoute
-  '/$locale/profile/$userId': typeof LocaleProfileUserIdRoute
+  '/$locale/data-entry': typeof LocaleAppDataEntryRoute
+  '/$locale/login': typeof LocaleAppLoginRoute
+  '/$locale/notifications': typeof LocaleAppNotificationsRoute
+  '/$locale/profile': typeof LocaleAppProfileRoute
+  '/$locale/register': typeof LocaleAppRegisterRoute
+  '/$locale/settings': typeof LocaleAppSettingsRoute
+  '/$locale/about': typeof LocalePublicAboutRoute
+  '/$locale/communication': typeof LocalePublicCommunicationRoute
+  '/$locale/forms': typeof LocalePublicFormsRoute
+  '/$locale/remocn': typeof LocalePublicRemocnRoute
+  '/$locale/report-problem': typeof LocalePublicReportProblemRoute
+  '/$locale/reset-password': typeof LocalePublicResetPasswordRoute
+  '/$locale/story': typeof LocalePublicStoryRoute
+  '/$locale/table': typeof LocalePublicTableRoute
+  '/$locale/uploads': typeof LocalePublicUploadsRoute
+  '/$locale/verify-email': typeof LocalePublicVerifyEmailRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/email': typeof ApiAccountEmailRoute
   '/api/account/forgot-password': typeof ApiAccountForgotPasswordRoute
@@ -383,43 +392,44 @@ export interface FileRoutesByFullPath {
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/follow': typeof ApiProfileFollowRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
-  '/$locale/admin/': typeof LocaleAdminIndexRoute
-  '/$locale/admin/users/$userId': typeof LocaleAdminUsersUserIdRoute
+  '/$locale/': typeof LocalePublicIndexRoute
+  '/$locale/admin/data-studio': typeof LocaleAppAdminDataStudioRoute
+  '/$locale/admin/reports': typeof LocaleAppAdminReportsRoute
+  '/$locale/admin/system-settings': typeof LocaleAppAdminSystemSettingsRoute
+  '/$locale/admin/users': typeof LocaleAppAdminUsersRouteWithChildren
+  '/$locale/examples/communication': typeof LocalePublicExamplesCommunicationRoute
+  '/$locale/examples/forms': typeof LocalePublicExamplesFormsRoute
+  '/$locale/examples/story': typeof LocalePublicExamplesStoryRoute
+  '/$locale/examples/uploads': typeof LocalePublicExamplesUploadsRoute
+  '/$locale/profile/$userId': typeof LocalePublicProfileUserIdRoute
   '/api/admin/data-studio/records': typeof ApiAdminDataStudioRecordsRoute
   '/api/admin/reports/authorization': typeof ApiAdminReportsAuthorizationRoute
   '/api/profile/image/remove': typeof ApiProfileImageRemoveRoute
+  '/$locale/admin/': typeof LocaleAppAdminIndexRoute
+  '/$locale/admin/users/$userId': typeof LocaleAppAdminUsersUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$locale': typeof LocalePublicIndexRoute
   '/about': typeof AboutRoute
-  '/$locale/about': typeof LocaleAboutRoute
-  '/$locale/communication': typeof LocaleCommunicationRoute
-  '/$locale/data-entry': typeof LocaleDataEntryRoute
-  '/$locale/forms': typeof LocaleFormsRoute
-  '/$locale/login': typeof LocaleLoginRoute
-  '/$locale/notifications': typeof LocaleNotificationsRoute
-  '/$locale/profile': typeof LocaleProfileRouteWithChildren
-  '/$locale/register': typeof LocaleRegisterRoute
-  '/$locale/remocn': typeof LocaleRemocnRoute
-  '/$locale/report-problem': typeof LocaleReportProblemRoute
-  '/$locale/reset-password': typeof LocaleResetPasswordRoute
-  '/$locale/settings': typeof LocaleSettingsRoute
-  '/$locale/story': typeof LocaleStoryRoute
-  '/$locale/table': typeof LocaleTableRoute
-  '/$locale/uploads': typeof LocaleUploadsRoute
-  '/$locale/verify-email': typeof LocaleVerifyEmailRoute
   '/api/employees': typeof ApiEmployeesRoute
   '/api/report-problem': typeof ApiReportProblemRoute
-  '/$locale': typeof LocaleIndexRoute
-  '/$locale/admin/data-studio': typeof LocaleAdminDataStudioRoute
-  '/$locale/admin/reports': typeof LocaleAdminReportsRoute
-  '/$locale/admin/system-settings': typeof LocaleAdminSystemSettingsRoute
-  '/$locale/admin/users': typeof LocaleAdminUsersRouteWithChildren
-  '/$locale/examples/communication': typeof LocaleExamplesCommunicationRoute
-  '/$locale/examples/forms': typeof LocaleExamplesFormsRoute
-  '/$locale/examples/story': typeof LocaleExamplesStoryRoute
-  '/$locale/examples/uploads': typeof LocaleExamplesUploadsRoute
-  '/$locale/profile/$userId': typeof LocaleProfileUserIdRoute
+  '/$locale/data-entry': typeof LocaleAppDataEntryRoute
+  '/$locale/login': typeof LocaleAppLoginRoute
+  '/$locale/notifications': typeof LocaleAppNotificationsRoute
+  '/$locale/profile': typeof LocaleAppProfileRoute
+  '/$locale/register': typeof LocaleAppRegisterRoute
+  '/$locale/settings': typeof LocaleAppSettingsRoute
+  '/$locale/about': typeof LocalePublicAboutRoute
+  '/$locale/communication': typeof LocalePublicCommunicationRoute
+  '/$locale/forms': typeof LocalePublicFormsRoute
+  '/$locale/remocn': typeof LocalePublicRemocnRoute
+  '/$locale/report-problem': typeof LocalePublicReportProblemRoute
+  '/$locale/reset-password': typeof LocalePublicResetPasswordRoute
+  '/$locale/story': typeof LocalePublicStoryRoute
+  '/$locale/table': typeof LocalePublicTableRoute
+  '/$locale/uploads': typeof LocalePublicUploadsRoute
+  '/$locale/verify-email': typeof LocalePublicVerifyEmailRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/email': typeof ApiAccountEmailRoute
   '/api/account/forgot-password': typeof ApiAccountForgotPasswordRoute
@@ -437,45 +447,46 @@ export interface FileRoutesByTo {
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/follow': typeof ApiProfileFollowRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
-  '/$locale/admin': typeof LocaleAdminIndexRoute
-  '/$locale/admin/users/$userId': typeof LocaleAdminUsersUserIdRoute
+  '/$locale/admin/data-studio': typeof LocaleAppAdminDataStudioRoute
+  '/$locale/admin/reports': typeof LocaleAppAdminReportsRoute
+  '/$locale/admin/system-settings': typeof LocaleAppAdminSystemSettingsRoute
+  '/$locale/admin/users': typeof LocaleAppAdminUsersRouteWithChildren
+  '/$locale/examples/communication': typeof LocalePublicExamplesCommunicationRoute
+  '/$locale/examples/forms': typeof LocalePublicExamplesFormsRoute
+  '/$locale/examples/story': typeof LocalePublicExamplesStoryRoute
+  '/$locale/examples/uploads': typeof LocalePublicExamplesUploadsRoute
+  '/$locale/profile/$userId': typeof LocalePublicProfileUserIdRoute
   '/api/admin/data-studio/records': typeof ApiAdminDataStudioRecordsRoute
   '/api/admin/reports/authorization': typeof ApiAdminReportsAuthorizationRoute
   '/api/profile/image/remove': typeof ApiProfileImageRemoveRoute
+  '/$locale/admin': typeof LocaleAppAdminIndexRoute
+  '/$locale/admin/users/$userId': typeof LocaleAppAdminUsersUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$locale': typeof LocaleRouteWithChildren
   '/about': typeof AboutRoute
-  '/$locale/about': typeof LocaleAboutRoute
-  '/$locale/communication': typeof LocaleCommunicationRoute
-  '/$locale/data-entry': typeof LocaleDataEntryRoute
-  '/$locale/forms': typeof LocaleFormsRoute
-  '/$locale/login': typeof LocaleLoginRoute
-  '/$locale/notifications': typeof LocaleNotificationsRoute
-  '/$locale/profile': typeof LocaleProfileRouteWithChildren
-  '/$locale/register': typeof LocaleRegisterRoute
-  '/$locale/remocn': typeof LocaleRemocnRoute
-  '/$locale/report-problem': typeof LocaleReportProblemRoute
-  '/$locale/reset-password': typeof LocaleResetPasswordRoute
-  '/$locale/settings': typeof LocaleSettingsRoute
-  '/$locale/story': typeof LocaleStoryRoute
-  '/$locale/table': typeof LocaleTableRoute
-  '/$locale/uploads': typeof LocaleUploadsRoute
-  '/$locale/verify-email': typeof LocaleVerifyEmailRoute
+  '/$locale/_app': typeof LocaleAppRouteWithChildren
+  '/$locale/_public': typeof LocalePublicRouteWithChildren
   '/api/employees': typeof ApiEmployeesRoute
   '/api/report-problem': typeof ApiReportProblemRoute
-  '/$locale/': typeof LocaleIndexRoute
-  '/$locale/admin/data-studio': typeof LocaleAdminDataStudioRoute
-  '/$locale/admin/reports': typeof LocaleAdminReportsRoute
-  '/$locale/admin/system-settings': typeof LocaleAdminSystemSettingsRoute
-  '/$locale/admin/users': typeof LocaleAdminUsersRouteWithChildren
-  '/$locale/examples/communication': typeof LocaleExamplesCommunicationRoute
-  '/$locale/examples/forms': typeof LocaleExamplesFormsRoute
-  '/$locale/examples/story': typeof LocaleExamplesStoryRoute
-  '/$locale/examples/uploads': typeof LocaleExamplesUploadsRoute
-  '/$locale/profile/$userId': typeof LocaleProfileUserIdRoute
+  '/$locale/_app/data-entry': typeof LocaleAppDataEntryRoute
+  '/$locale/_app/login': typeof LocaleAppLoginRoute
+  '/$locale/_app/notifications': typeof LocaleAppNotificationsRoute
+  '/$locale/_app/profile': typeof LocaleAppProfileRoute
+  '/$locale/_app/register': typeof LocaleAppRegisterRoute
+  '/$locale/_app/settings': typeof LocaleAppSettingsRoute
+  '/$locale/_public/about': typeof LocalePublicAboutRoute
+  '/$locale/_public/communication': typeof LocalePublicCommunicationRoute
+  '/$locale/_public/forms': typeof LocalePublicFormsRoute
+  '/$locale/_public/remocn': typeof LocalePublicRemocnRoute
+  '/$locale/_public/report-problem': typeof LocalePublicReportProblemRoute
+  '/$locale/_public/reset-password': typeof LocalePublicResetPasswordRoute
+  '/$locale/_public/story': typeof LocalePublicStoryRoute
+  '/$locale/_public/table': typeof LocalePublicTableRoute
+  '/$locale/_public/uploads': typeof LocalePublicUploadsRoute
+  '/$locale/_public/verify-email': typeof LocalePublicVerifyEmailRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/email': typeof ApiAccountEmailRoute
   '/api/account/forgot-password': typeof ApiAccountForgotPasswordRoute
@@ -493,11 +504,21 @@ export interface FileRoutesById {
   '/api/profile/display-name': typeof ApiProfileDisplayNameRoute
   '/api/profile/follow': typeof ApiProfileFollowRoute
   '/api/profile/image': typeof ApiProfileImageRouteWithChildren
-  '/$locale/admin/': typeof LocaleAdminIndexRoute
-  '/$locale/admin/users/$userId': typeof LocaleAdminUsersUserIdRoute
+  '/$locale/_public/': typeof LocalePublicIndexRoute
+  '/$locale/_app/admin/data-studio': typeof LocaleAppAdminDataStudioRoute
+  '/$locale/_app/admin/reports': typeof LocaleAppAdminReportsRoute
+  '/$locale/_app/admin/system-settings': typeof LocaleAppAdminSystemSettingsRoute
+  '/$locale/_app/admin/users': typeof LocaleAppAdminUsersRouteWithChildren
+  '/$locale/_public/examples/communication': typeof LocalePublicExamplesCommunicationRoute
+  '/$locale/_public/examples/forms': typeof LocalePublicExamplesFormsRoute
+  '/$locale/_public/examples/story': typeof LocalePublicExamplesStoryRoute
+  '/$locale/_public/examples/uploads': typeof LocalePublicExamplesUploadsRoute
+  '/$locale/_public/profile/$userId': typeof LocalePublicProfileUserIdRoute
   '/api/admin/data-studio/records': typeof ApiAdminDataStudioRecordsRoute
   '/api/admin/reports/authorization': typeof ApiAdminReportsAuthorizationRoute
   '/api/profile/image/remove': typeof ApiProfileImageRemoveRoute
+  '/$locale/_app/admin/': typeof LocaleAppAdminIndexRoute
+  '/$locale/_app/admin/users/$userId': typeof LocaleAppAdminUsersUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -505,24 +526,41 @@ export interface FileRouteTypes {
     | '/'
     | '/$locale'
     | '/about'
-    | '/$locale/about'
-    | '/$locale/communication'
+    | '/api/employees'
+    | '/api/report-problem'
     | '/$locale/data-entry'
-    | '/$locale/forms'
     | '/$locale/login'
     | '/$locale/notifications'
     | '/$locale/profile'
     | '/$locale/register'
+    | '/$locale/settings'
+    | '/$locale/about'
+    | '/$locale/communication'
+    | '/$locale/forms'
     | '/$locale/remocn'
     | '/$locale/report-problem'
     | '/$locale/reset-password'
-    | '/$locale/settings'
     | '/$locale/story'
     | '/$locale/table'
     | '/$locale/uploads'
     | '/$locale/verify-email'
-    | '/api/employees'
-    | '/api/report-problem'
+    | '/api/account/delete'
+    | '/api/account/email'
+    | '/api/account/forgot-password'
+    | '/api/account/reset-password'
+    | '/api/account/signup'
+    | '/api/account/verify-email'
+    | '/api/admin/notifications'
+    | '/api/analytics/page-visits'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/data-entry/rows'
+    | '/api/examples/employees'
+    | '/api/newsletter/subscribe'
+    | '/api/notifications/read'
+    | '/api/profile/display-name'
+    | '/api/profile/follow'
+    | '/api/profile/image'
     | '/$locale/'
     | '/$locale/admin/data-studio'
     | '/$locale/admin/reports'
@@ -533,6 +571,34 @@ export interface FileRouteTypes {
     | '/$locale/examples/story'
     | '/$locale/examples/uploads'
     | '/$locale/profile/$userId'
+    | '/api/admin/data-studio/records'
+    | '/api/admin/reports/authorization'
+    | '/api/profile/image/remove'
+    | '/$locale/admin/'
+    | '/$locale/admin/users/$userId'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/$locale'
+    | '/about'
+    | '/api/employees'
+    | '/api/report-problem'
+    | '/$locale/data-entry'
+    | '/$locale/login'
+    | '/$locale/notifications'
+    | '/$locale/profile'
+    | '/$locale/register'
+    | '/$locale/settings'
+    | '/$locale/about'
+    | '/$locale/communication'
+    | '/$locale/forms'
+    | '/$locale/remocn'
+    | '/$locale/report-problem'
+    | '/$locale/reset-password'
+    | '/$locale/story'
+    | '/$locale/table'
+    | '/$locale/uploads'
+    | '/$locale/verify-email'
     | '/api/account/delete'
     | '/api/account/email'
     | '/api/account/forgot-password'
@@ -550,34 +616,6 @@ export interface FileRouteTypes {
     | '/api/profile/display-name'
     | '/api/profile/follow'
     | '/api/profile/image'
-    | '/$locale/admin/'
-    | '/$locale/admin/users/$userId'
-    | '/api/admin/data-studio/records'
-    | '/api/admin/reports/authorization'
-    | '/api/profile/image/remove'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/about'
-    | '/$locale/about'
-    | '/$locale/communication'
-    | '/$locale/data-entry'
-    | '/$locale/forms'
-    | '/$locale/login'
-    | '/$locale/notifications'
-    | '/$locale/profile'
-    | '/$locale/register'
-    | '/$locale/remocn'
-    | '/$locale/report-problem'
-    | '/$locale/reset-password'
-    | '/$locale/settings'
-    | '/$locale/story'
-    | '/$locale/table'
-    | '/$locale/uploads'
-    | '/$locale/verify-email'
-    | '/api/employees'
-    | '/api/report-problem'
-    | '/$locale'
     | '/$locale/admin/data-studio'
     | '/$locale/admin/reports'
     | '/$locale/admin/system-settings'
@@ -587,61 +625,36 @@ export interface FileRouteTypes {
     | '/$locale/examples/story'
     | '/$locale/examples/uploads'
     | '/$locale/profile/$userId'
-    | '/api/account/delete'
-    | '/api/account/email'
-    | '/api/account/forgot-password'
-    | '/api/account/reset-password'
-    | '/api/account/signup'
-    | '/api/account/verify-email'
-    | '/api/admin/notifications'
-    | '/api/analytics/page-visits'
-    | '/api/auth/login'
-    | '/api/auth/logout'
-    | '/api/data-entry/rows'
-    | '/api/examples/employees'
-    | '/api/newsletter/subscribe'
-    | '/api/notifications/read'
-    | '/api/profile/display-name'
-    | '/api/profile/follow'
-    | '/api/profile/image'
-    | '/$locale/admin'
-    | '/$locale/admin/users/$userId'
     | '/api/admin/data-studio/records'
     | '/api/admin/reports/authorization'
     | '/api/profile/image/remove'
+    | '/$locale/admin'
+    | '/$locale/admin/users/$userId'
   id:
     | '__root__'
     | '/'
     | '/$locale'
     | '/about'
-    | '/$locale/about'
-    | '/$locale/communication'
-    | '/$locale/data-entry'
-    | '/$locale/forms'
-    | '/$locale/login'
-    | '/$locale/notifications'
-    | '/$locale/profile'
-    | '/$locale/register'
-    | '/$locale/remocn'
-    | '/$locale/report-problem'
-    | '/$locale/reset-password'
-    | '/$locale/settings'
-    | '/$locale/story'
-    | '/$locale/table'
-    | '/$locale/uploads'
-    | '/$locale/verify-email'
+    | '/$locale/_app'
+    | '/$locale/_public'
     | '/api/employees'
     | '/api/report-problem'
-    | '/$locale/'
-    | '/$locale/admin/data-studio'
-    | '/$locale/admin/reports'
-    | '/$locale/admin/system-settings'
-    | '/$locale/admin/users'
-    | '/$locale/examples/communication'
-    | '/$locale/examples/forms'
-    | '/$locale/examples/story'
-    | '/$locale/examples/uploads'
-    | '/$locale/profile/$userId'
+    | '/$locale/_app/data-entry'
+    | '/$locale/_app/login'
+    | '/$locale/_app/notifications'
+    | '/$locale/_app/profile'
+    | '/$locale/_app/register'
+    | '/$locale/_app/settings'
+    | '/$locale/_public/about'
+    | '/$locale/_public/communication'
+    | '/$locale/_public/forms'
+    | '/$locale/_public/remocn'
+    | '/$locale/_public/report-problem'
+    | '/$locale/_public/reset-password'
+    | '/$locale/_public/story'
+    | '/$locale/_public/table'
+    | '/$locale/_public/uploads'
+    | '/$locale/_public/verify-email'
     | '/api/account/delete'
     | '/api/account/email'
     | '/api/account/forgot-password'
@@ -659,11 +672,21 @@ export interface FileRouteTypes {
     | '/api/profile/display-name'
     | '/api/profile/follow'
     | '/api/profile/image'
-    | '/$locale/admin/'
-    | '/$locale/admin/users/$userId'
+    | '/$locale/_public/'
+    | '/$locale/_app/admin/data-studio'
+    | '/$locale/_app/admin/reports'
+    | '/$locale/_app/admin/system-settings'
+    | '/$locale/_app/admin/users'
+    | '/$locale/_public/examples/communication'
+    | '/$locale/_public/examples/forms'
+    | '/$locale/_public/examples/story'
+    | '/$locale/_public/examples/uploads'
+    | '/$locale/_public/profile/$userId'
     | '/api/admin/data-studio/records'
     | '/api/admin/reports/authorization'
     | '/api/profile/image/remove'
+    | '/$locale/_app/admin/'
+    | '/$locale/_app/admin/users/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -716,13 +739,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$locale/': {
-      id: '/$locale/'
-      path: '/'
-      fullPath: '/$locale/'
-      preLoaderRoute: typeof LocaleIndexRouteImport
-      parentRoute: typeof LocaleRoute
-    }
     '/api/report-problem': {
       id: '/api/report-problem'
       path: '/api/report-problem'
@@ -737,124 +753,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEmployeesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$locale/verify-email': {
-      id: '/$locale/verify-email'
-      path: '/verify-email'
-      fullPath: '/$locale/verify-email'
-      preLoaderRoute: typeof LocaleVerifyEmailRouteImport
+    '/$locale/_public': {
+      id: '/$locale/_public'
+      path: ''
+      fullPath: '/$locale'
+      preLoaderRoute: typeof LocalePublicRouteImport
       parentRoute: typeof LocaleRoute
     }
-    '/$locale/uploads': {
-      id: '/$locale/uploads'
-      path: '/uploads'
-      fullPath: '/$locale/uploads'
-      preLoaderRoute: typeof LocaleUploadsRouteImport
+    '/$locale/_app': {
+      id: '/$locale/_app'
+      path: ''
+      fullPath: '/$locale'
+      preLoaderRoute: typeof LocaleAppRouteImport
       parentRoute: typeof LocaleRoute
     }
-    '/$locale/table': {
-      id: '/$locale/table'
-      path: '/table'
-      fullPath: '/$locale/table'
-      preLoaderRoute: typeof LocaleTableRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/story': {
-      id: '/$locale/story'
-      path: '/story'
-      fullPath: '/$locale/story'
-      preLoaderRoute: typeof LocaleStoryRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/settings': {
-      id: '/$locale/settings'
-      path: '/settings'
-      fullPath: '/$locale/settings'
-      preLoaderRoute: typeof LocaleSettingsRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/reset-password': {
-      id: '/$locale/reset-password'
-      path: '/reset-password'
-      fullPath: '/$locale/reset-password'
-      preLoaderRoute: typeof LocaleResetPasswordRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/report-problem': {
-      id: '/$locale/report-problem'
-      path: '/report-problem'
-      fullPath: '/$locale/report-problem'
-      preLoaderRoute: typeof LocaleReportProblemRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/remocn': {
-      id: '/$locale/remocn'
-      path: '/remocn'
-      fullPath: '/$locale/remocn'
-      preLoaderRoute: typeof LocaleRemocnRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/register': {
-      id: '/$locale/register'
-      path: '/register'
-      fullPath: '/$locale/register'
-      preLoaderRoute: typeof LocaleRegisterRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/profile': {
-      id: '/$locale/profile'
-      path: '/profile'
-      fullPath: '/$locale/profile'
-      preLoaderRoute: typeof LocaleProfileRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/notifications': {
-      id: '/$locale/notifications'
-      path: '/notifications'
-      fullPath: '/$locale/notifications'
-      preLoaderRoute: typeof LocaleNotificationsRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/login': {
-      id: '/$locale/login'
-      path: '/login'
-      fullPath: '/$locale/login'
-      preLoaderRoute: typeof LocaleLoginRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/forms': {
-      id: '/$locale/forms'
-      path: '/forms'
-      fullPath: '/$locale/forms'
-      preLoaderRoute: typeof LocaleFormsRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/data-entry': {
-      id: '/$locale/data-entry'
-      path: '/data-entry'
-      fullPath: '/$locale/data-entry'
-      preLoaderRoute: typeof LocaleDataEntryRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/communication': {
-      id: '/$locale/communication'
-      path: '/communication'
-      fullPath: '/$locale/communication'
-      preLoaderRoute: typeof LocaleCommunicationRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/about': {
-      id: '/$locale/about'
-      path: '/about'
-      fullPath: '/$locale/about'
-      preLoaderRoute: typeof LocaleAboutRouteImport
-      parentRoute: typeof LocaleRoute
-    }
-    '/$locale/admin/': {
-      id: '/$locale/admin/'
-      path: '/admin'
-      fullPath: '/$locale/admin/'
-      preLoaderRoute: typeof LocaleAdminIndexRouteImport
-      parentRoute: typeof LocaleRoute
+    '/$locale/_public/': {
+      id: '/$locale/_public/'
+      path: '/'
+      fullPath: '/$locale/'
+      preLoaderRoute: typeof LocalePublicIndexRouteImport
+      parentRoute: typeof LocalePublicRoute
     }
     '/api/profile/image': {
       id: '/api/profile/image'
@@ -975,68 +893,124 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAccountDeleteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$locale/profile/$userId': {
-      id: '/$locale/profile/$userId'
-      path: '/$userId'
-      fullPath: '/$locale/profile/$userId'
-      preLoaderRoute: typeof LocaleProfileUserIdRouteImport
-      parentRoute: typeof LocaleProfileRoute
+    '/$locale/_public/verify-email': {
+      id: '/$locale/_public/verify-email'
+      path: '/verify-email'
+      fullPath: '/$locale/verify-email'
+      preLoaderRoute: typeof LocalePublicVerifyEmailRouteImport
+      parentRoute: typeof LocalePublicRoute
     }
-    '/$locale/examples/uploads': {
-      id: '/$locale/examples/uploads'
-      path: '/examples/uploads'
-      fullPath: '/$locale/examples/uploads'
-      preLoaderRoute: typeof LocaleExamplesUploadsRouteImport
-      parentRoute: typeof LocaleRoute
+    '/$locale/_public/uploads': {
+      id: '/$locale/_public/uploads'
+      path: '/uploads'
+      fullPath: '/$locale/uploads'
+      preLoaderRoute: typeof LocalePublicUploadsRouteImport
+      parentRoute: typeof LocalePublicRoute
     }
-    '/$locale/examples/story': {
-      id: '/$locale/examples/story'
-      path: '/examples/story'
-      fullPath: '/$locale/examples/story'
-      preLoaderRoute: typeof LocaleExamplesStoryRouteImport
-      parentRoute: typeof LocaleRoute
+    '/$locale/_public/table': {
+      id: '/$locale/_public/table'
+      path: '/table'
+      fullPath: '/$locale/table'
+      preLoaderRoute: typeof LocalePublicTableRouteImport
+      parentRoute: typeof LocalePublicRoute
     }
-    '/$locale/examples/forms': {
-      id: '/$locale/examples/forms'
-      path: '/examples/forms'
-      fullPath: '/$locale/examples/forms'
-      preLoaderRoute: typeof LocaleExamplesFormsRouteImport
-      parentRoute: typeof LocaleRoute
+    '/$locale/_public/story': {
+      id: '/$locale/_public/story'
+      path: '/story'
+      fullPath: '/$locale/story'
+      preLoaderRoute: typeof LocalePublicStoryRouteImport
+      parentRoute: typeof LocalePublicRoute
     }
-    '/$locale/examples/communication': {
-      id: '/$locale/examples/communication'
-      path: '/examples/communication'
-      fullPath: '/$locale/examples/communication'
-      preLoaderRoute: typeof LocaleExamplesCommunicationRouteImport
-      parentRoute: typeof LocaleRoute
+    '/$locale/_public/reset-password': {
+      id: '/$locale/_public/reset-password'
+      path: '/reset-password'
+      fullPath: '/$locale/reset-password'
+      preLoaderRoute: typeof LocalePublicResetPasswordRouteImport
+      parentRoute: typeof LocalePublicRoute
     }
-    '/$locale/admin/users': {
-      id: '/$locale/admin/users'
-      path: '/admin/users'
-      fullPath: '/$locale/admin/users'
-      preLoaderRoute: typeof LocaleAdminUsersRouteImport
-      parentRoute: typeof LocaleRoute
+    '/$locale/_public/report-problem': {
+      id: '/$locale/_public/report-problem'
+      path: '/report-problem'
+      fullPath: '/$locale/report-problem'
+      preLoaderRoute: typeof LocalePublicReportProblemRouteImport
+      parentRoute: typeof LocalePublicRoute
     }
-    '/$locale/admin/system-settings': {
-      id: '/$locale/admin/system-settings'
-      path: '/admin/system-settings'
-      fullPath: '/$locale/admin/system-settings'
-      preLoaderRoute: typeof LocaleAdminSystemSettingsRouteImport
-      parentRoute: typeof LocaleRoute
+    '/$locale/_public/remocn': {
+      id: '/$locale/_public/remocn'
+      path: '/remocn'
+      fullPath: '/$locale/remocn'
+      preLoaderRoute: typeof LocalePublicRemocnRouteImport
+      parentRoute: typeof LocalePublicRoute
     }
-    '/$locale/admin/reports': {
-      id: '/$locale/admin/reports'
-      path: '/admin/reports'
-      fullPath: '/$locale/admin/reports'
-      preLoaderRoute: typeof LocaleAdminReportsRouteImport
-      parentRoute: typeof LocaleRoute
+    '/$locale/_public/forms': {
+      id: '/$locale/_public/forms'
+      path: '/forms'
+      fullPath: '/$locale/forms'
+      preLoaderRoute: typeof LocalePublicFormsRouteImport
+      parentRoute: typeof LocalePublicRoute
     }
-    '/$locale/admin/data-studio': {
-      id: '/$locale/admin/data-studio'
-      path: '/admin/data-studio'
-      fullPath: '/$locale/admin/data-studio'
-      preLoaderRoute: typeof LocaleAdminDataStudioRouteImport
-      parentRoute: typeof LocaleRoute
+    '/$locale/_public/communication': {
+      id: '/$locale/_public/communication'
+      path: '/communication'
+      fullPath: '/$locale/communication'
+      preLoaderRoute: typeof LocalePublicCommunicationRouteImport
+      parentRoute: typeof LocalePublicRoute
+    }
+    '/$locale/_public/about': {
+      id: '/$locale/_public/about'
+      path: '/about'
+      fullPath: '/$locale/about'
+      preLoaderRoute: typeof LocalePublicAboutRouteImport
+      parentRoute: typeof LocalePublicRoute
+    }
+    '/$locale/_app/settings': {
+      id: '/$locale/_app/settings'
+      path: '/settings'
+      fullPath: '/$locale/settings'
+      preLoaderRoute: typeof LocaleAppSettingsRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/register': {
+      id: '/$locale/_app/register'
+      path: '/register'
+      fullPath: '/$locale/register'
+      preLoaderRoute: typeof LocaleAppRegisterRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/profile': {
+      id: '/$locale/_app/profile'
+      path: '/profile'
+      fullPath: '/$locale/profile'
+      preLoaderRoute: typeof LocaleAppProfileRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/notifications': {
+      id: '/$locale/_app/notifications'
+      path: '/notifications'
+      fullPath: '/$locale/notifications'
+      preLoaderRoute: typeof LocaleAppNotificationsRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/login': {
+      id: '/$locale/_app/login'
+      path: '/login'
+      fullPath: '/$locale/login'
+      preLoaderRoute: typeof LocaleAppLoginRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/data-entry': {
+      id: '/$locale/_app/data-entry'
+      path: '/data-entry'
+      fullPath: '/$locale/data-entry'
+      preLoaderRoute: typeof LocaleAppDataEntryRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/admin/': {
+      id: '/$locale/_app/admin/'
+      path: '/admin'
+      fullPath: '/$locale/admin/'
+      preLoaderRoute: typeof LocaleAppAdminIndexRouteImport
+      parentRoute: typeof LocaleAppRoute
     }
     '/api/profile/image/remove': {
       id: '/api/profile/image/remove'
@@ -1059,95 +1033,173 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminDataStudioRecordsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$locale/admin/users/$userId': {
-      id: '/$locale/admin/users/$userId'
+    '/$locale/_public/profile/$userId': {
+      id: '/$locale/_public/profile/$userId'
+      path: '/profile/$userId'
+      fullPath: '/$locale/profile/$userId'
+      preLoaderRoute: typeof LocalePublicProfileUserIdRouteImport
+      parentRoute: typeof LocalePublicRoute
+    }
+    '/$locale/_public/examples/uploads': {
+      id: '/$locale/_public/examples/uploads'
+      path: '/examples/uploads'
+      fullPath: '/$locale/examples/uploads'
+      preLoaderRoute: typeof LocalePublicExamplesUploadsRouteImport
+      parentRoute: typeof LocalePublicRoute
+    }
+    '/$locale/_public/examples/story': {
+      id: '/$locale/_public/examples/story'
+      path: '/examples/story'
+      fullPath: '/$locale/examples/story'
+      preLoaderRoute: typeof LocalePublicExamplesStoryRouteImport
+      parentRoute: typeof LocalePublicRoute
+    }
+    '/$locale/_public/examples/forms': {
+      id: '/$locale/_public/examples/forms'
+      path: '/examples/forms'
+      fullPath: '/$locale/examples/forms'
+      preLoaderRoute: typeof LocalePublicExamplesFormsRouteImport
+      parentRoute: typeof LocalePublicRoute
+    }
+    '/$locale/_public/examples/communication': {
+      id: '/$locale/_public/examples/communication'
+      path: '/examples/communication'
+      fullPath: '/$locale/examples/communication'
+      preLoaderRoute: typeof LocalePublicExamplesCommunicationRouteImport
+      parentRoute: typeof LocalePublicRoute
+    }
+    '/$locale/_app/admin/users': {
+      id: '/$locale/_app/admin/users'
+      path: '/admin/users'
+      fullPath: '/$locale/admin/users'
+      preLoaderRoute: typeof LocaleAppAdminUsersRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/admin/system-settings': {
+      id: '/$locale/_app/admin/system-settings'
+      path: '/admin/system-settings'
+      fullPath: '/$locale/admin/system-settings'
+      preLoaderRoute: typeof LocaleAppAdminSystemSettingsRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/admin/reports': {
+      id: '/$locale/_app/admin/reports'
+      path: '/admin/reports'
+      fullPath: '/$locale/admin/reports'
+      preLoaderRoute: typeof LocaleAppAdminReportsRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/admin/data-studio': {
+      id: '/$locale/_app/admin/data-studio'
+      path: '/admin/data-studio'
+      fullPath: '/$locale/admin/data-studio'
+      preLoaderRoute: typeof LocaleAppAdminDataStudioRouteImport
+      parentRoute: typeof LocaleAppRoute
+    }
+    '/$locale/_app/admin/users/$userId': {
+      id: '/$locale/_app/admin/users/$userId'
       path: '/$userId'
       fullPath: '/$locale/admin/users/$userId'
-      preLoaderRoute: typeof LocaleAdminUsersUserIdRouteImport
-      parentRoute: typeof LocaleAdminUsersRoute
+      preLoaderRoute: typeof LocaleAppAdminUsersUserIdRouteImport
+      parentRoute: typeof LocaleAppAdminUsersRoute
     }
   }
 }
 
-interface LocaleProfileRouteChildren {
-  LocaleProfileUserIdRoute: typeof LocaleProfileUserIdRoute
+interface LocaleAppAdminUsersRouteChildren {
+  LocaleAppAdminUsersUserIdRoute: typeof LocaleAppAdminUsersUserIdRoute
 }
 
-const LocaleProfileRouteChildren: LocaleProfileRouteChildren = {
-  LocaleProfileUserIdRoute: LocaleProfileUserIdRoute,
+const LocaleAppAdminUsersRouteChildren: LocaleAppAdminUsersRouteChildren = {
+  LocaleAppAdminUsersUserIdRoute: LocaleAppAdminUsersUserIdRoute,
 }
 
-const LocaleProfileRouteWithChildren = LocaleProfileRoute._addFileChildren(
-  LocaleProfileRouteChildren,
+const LocaleAppAdminUsersRouteWithChildren =
+  LocaleAppAdminUsersRoute._addFileChildren(LocaleAppAdminUsersRouteChildren)
+
+interface LocaleAppRouteChildren {
+  LocaleAppDataEntryRoute: typeof LocaleAppDataEntryRoute
+  LocaleAppLoginRoute: typeof LocaleAppLoginRoute
+  LocaleAppNotificationsRoute: typeof LocaleAppNotificationsRoute
+  LocaleAppProfileRoute: typeof LocaleAppProfileRoute
+  LocaleAppRegisterRoute: typeof LocaleAppRegisterRoute
+  LocaleAppSettingsRoute: typeof LocaleAppSettingsRoute
+  LocaleAppAdminDataStudioRoute: typeof LocaleAppAdminDataStudioRoute
+  LocaleAppAdminReportsRoute: typeof LocaleAppAdminReportsRoute
+  LocaleAppAdminSystemSettingsRoute: typeof LocaleAppAdminSystemSettingsRoute
+  LocaleAppAdminUsersRoute: typeof LocaleAppAdminUsersRouteWithChildren
+  LocaleAppAdminIndexRoute: typeof LocaleAppAdminIndexRoute
+}
+
+const LocaleAppRouteChildren: LocaleAppRouteChildren = {
+  LocaleAppDataEntryRoute: LocaleAppDataEntryRoute,
+  LocaleAppLoginRoute: LocaleAppLoginRoute,
+  LocaleAppNotificationsRoute: LocaleAppNotificationsRoute,
+  LocaleAppProfileRoute: LocaleAppProfileRoute,
+  LocaleAppRegisterRoute: LocaleAppRegisterRoute,
+  LocaleAppSettingsRoute: LocaleAppSettingsRoute,
+  LocaleAppAdminDataStudioRoute: LocaleAppAdminDataStudioRoute,
+  LocaleAppAdminReportsRoute: LocaleAppAdminReportsRoute,
+  LocaleAppAdminSystemSettingsRoute: LocaleAppAdminSystemSettingsRoute,
+  LocaleAppAdminUsersRoute: LocaleAppAdminUsersRouteWithChildren,
+  LocaleAppAdminIndexRoute: LocaleAppAdminIndexRoute,
+}
+
+const LocaleAppRouteWithChildren = LocaleAppRoute._addFileChildren(
+  LocaleAppRouteChildren,
 )
 
-interface LocaleAdminUsersRouteChildren {
-  LocaleAdminUsersUserIdRoute: typeof LocaleAdminUsersUserIdRoute
+interface LocalePublicRouteChildren {
+  LocalePublicAboutRoute: typeof LocalePublicAboutRoute
+  LocalePublicCommunicationRoute: typeof LocalePublicCommunicationRoute
+  LocalePublicFormsRoute: typeof LocalePublicFormsRoute
+  LocalePublicRemocnRoute: typeof LocalePublicRemocnRoute
+  LocalePublicReportProblemRoute: typeof LocalePublicReportProblemRoute
+  LocalePublicResetPasswordRoute: typeof LocalePublicResetPasswordRoute
+  LocalePublicStoryRoute: typeof LocalePublicStoryRoute
+  LocalePublicTableRoute: typeof LocalePublicTableRoute
+  LocalePublicUploadsRoute: typeof LocalePublicUploadsRoute
+  LocalePublicVerifyEmailRoute: typeof LocalePublicVerifyEmailRoute
+  LocalePublicIndexRoute: typeof LocalePublicIndexRoute
+  LocalePublicExamplesCommunicationRoute: typeof LocalePublicExamplesCommunicationRoute
+  LocalePublicExamplesFormsRoute: typeof LocalePublicExamplesFormsRoute
+  LocalePublicExamplesStoryRoute: typeof LocalePublicExamplesStoryRoute
+  LocalePublicExamplesUploadsRoute: typeof LocalePublicExamplesUploadsRoute
+  LocalePublicProfileUserIdRoute: typeof LocalePublicProfileUserIdRoute
 }
 
-const LocaleAdminUsersRouteChildren: LocaleAdminUsersRouteChildren = {
-  LocaleAdminUsersUserIdRoute: LocaleAdminUsersUserIdRoute,
+const LocalePublicRouteChildren: LocalePublicRouteChildren = {
+  LocalePublicAboutRoute: LocalePublicAboutRoute,
+  LocalePublicCommunicationRoute: LocalePublicCommunicationRoute,
+  LocalePublicFormsRoute: LocalePublicFormsRoute,
+  LocalePublicRemocnRoute: LocalePublicRemocnRoute,
+  LocalePublicReportProblemRoute: LocalePublicReportProblemRoute,
+  LocalePublicResetPasswordRoute: LocalePublicResetPasswordRoute,
+  LocalePublicStoryRoute: LocalePublicStoryRoute,
+  LocalePublicTableRoute: LocalePublicTableRoute,
+  LocalePublicUploadsRoute: LocalePublicUploadsRoute,
+  LocalePublicVerifyEmailRoute: LocalePublicVerifyEmailRoute,
+  LocalePublicIndexRoute: LocalePublicIndexRoute,
+  LocalePublicExamplesCommunicationRoute:
+    LocalePublicExamplesCommunicationRoute,
+  LocalePublicExamplesFormsRoute: LocalePublicExamplesFormsRoute,
+  LocalePublicExamplesStoryRoute: LocalePublicExamplesStoryRoute,
+  LocalePublicExamplesUploadsRoute: LocalePublicExamplesUploadsRoute,
+  LocalePublicProfileUserIdRoute: LocalePublicProfileUserIdRoute,
 }
 
-const LocaleAdminUsersRouteWithChildren =
-  LocaleAdminUsersRoute._addFileChildren(LocaleAdminUsersRouteChildren)
+const LocalePublicRouteWithChildren = LocalePublicRoute._addFileChildren(
+  LocalePublicRouteChildren,
+)
 
 interface LocaleRouteChildren {
-  LocaleAboutRoute: typeof LocaleAboutRoute
-  LocaleCommunicationRoute: typeof LocaleCommunicationRoute
-  LocaleDataEntryRoute: typeof LocaleDataEntryRoute
-  LocaleFormsRoute: typeof LocaleFormsRoute
-  LocaleLoginRoute: typeof LocaleLoginRoute
-  LocaleNotificationsRoute: typeof LocaleNotificationsRoute
-  LocaleProfileRoute: typeof LocaleProfileRouteWithChildren
-  LocaleRegisterRoute: typeof LocaleRegisterRoute
-  LocaleRemocnRoute: typeof LocaleRemocnRoute
-  LocaleReportProblemRoute: typeof LocaleReportProblemRoute
-  LocaleResetPasswordRoute: typeof LocaleResetPasswordRoute
-  LocaleSettingsRoute: typeof LocaleSettingsRoute
-  LocaleStoryRoute: typeof LocaleStoryRoute
-  LocaleTableRoute: typeof LocaleTableRoute
-  LocaleUploadsRoute: typeof LocaleUploadsRoute
-  LocaleVerifyEmailRoute: typeof LocaleVerifyEmailRoute
-  LocaleIndexRoute: typeof LocaleIndexRoute
-  LocaleAdminDataStudioRoute: typeof LocaleAdminDataStudioRoute
-  LocaleAdminReportsRoute: typeof LocaleAdminReportsRoute
-  LocaleAdminSystemSettingsRoute: typeof LocaleAdminSystemSettingsRoute
-  LocaleAdminUsersRoute: typeof LocaleAdminUsersRouteWithChildren
-  LocaleExamplesCommunicationRoute: typeof LocaleExamplesCommunicationRoute
-  LocaleExamplesFormsRoute: typeof LocaleExamplesFormsRoute
-  LocaleExamplesStoryRoute: typeof LocaleExamplesStoryRoute
-  LocaleExamplesUploadsRoute: typeof LocaleExamplesUploadsRoute
-  LocaleAdminIndexRoute: typeof LocaleAdminIndexRoute
+  LocaleAppRoute: typeof LocaleAppRouteWithChildren
+  LocalePublicRoute: typeof LocalePublicRouteWithChildren
 }
 
 const LocaleRouteChildren: LocaleRouteChildren = {
-  LocaleAboutRoute: LocaleAboutRoute,
-  LocaleCommunicationRoute: LocaleCommunicationRoute,
-  LocaleDataEntryRoute: LocaleDataEntryRoute,
-  LocaleFormsRoute: LocaleFormsRoute,
-  LocaleLoginRoute: LocaleLoginRoute,
-  LocaleNotificationsRoute: LocaleNotificationsRoute,
-  LocaleProfileRoute: LocaleProfileRouteWithChildren,
-  LocaleRegisterRoute: LocaleRegisterRoute,
-  LocaleRemocnRoute: LocaleRemocnRoute,
-  LocaleReportProblemRoute: LocaleReportProblemRoute,
-  LocaleResetPasswordRoute: LocaleResetPasswordRoute,
-  LocaleSettingsRoute: LocaleSettingsRoute,
-  LocaleStoryRoute: LocaleStoryRoute,
-  LocaleTableRoute: LocaleTableRoute,
-  LocaleUploadsRoute: LocaleUploadsRoute,
-  LocaleVerifyEmailRoute: LocaleVerifyEmailRoute,
-  LocaleIndexRoute: LocaleIndexRoute,
-  LocaleAdminDataStudioRoute: LocaleAdminDataStudioRoute,
-  LocaleAdminReportsRoute: LocaleAdminReportsRoute,
-  LocaleAdminSystemSettingsRoute: LocaleAdminSystemSettingsRoute,
-  LocaleAdminUsersRoute: LocaleAdminUsersRouteWithChildren,
-  LocaleExamplesCommunicationRoute: LocaleExamplesCommunicationRoute,
-  LocaleExamplesFormsRoute: LocaleExamplesFormsRoute,
-  LocaleExamplesStoryRoute: LocaleExamplesStoryRoute,
-  LocaleExamplesUploadsRoute: LocaleExamplesUploadsRoute,
-  LocaleAdminIndexRoute: LocaleAdminIndexRoute,
+  LocaleAppRoute: LocaleAppRouteWithChildren,
+  LocalePublicRoute: LocalePublicRouteWithChildren,
 }
 
 const LocaleRouteWithChildren =
