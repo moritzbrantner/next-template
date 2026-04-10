@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "./scripts/dev-with-test-db.sh",
     "dev:app": "vite dev",
+    "prebuild": "node scripts/generate-sitemap.ts",
     "build": "vite build",
     "start": "node ./scripts/serve-prod.mjs",
     "preview": "vite preview",
