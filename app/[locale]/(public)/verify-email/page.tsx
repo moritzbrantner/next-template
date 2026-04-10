@@ -1,47 +1,18 @@
-'use client';
+import { Suspense } from 'react';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-
-import { Link } from '@/i18n/navigation';
+import { VerifyEmailPageContent } from '@/components/auth/verify-email-page-content';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLocale, useTranslations } from '@/src/i18n';
+import { createTranslator } from '@/src/i18n/messages';
+import { resolveLocale } from '@/src/server/page-guards';
 
-export default function VerifyEmailPage() {
-  const t = useTranslations('AuthPages.verifyEmail');
-  const locale = useLocale();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token') ?? '';
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error');
-
-  useEffect(() => {
-    if (!token) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function verify() {
-      try {
-        const response = await fetch(`/api/account/verify-email?token=${encodeURIComponent(token)}`);
-        if (cancelled) {
-          return;
-        }
-
-        setStatus(response.ok ? 'success' : 'error');
-      } catch {
-        if (!cancelled) {
-          setStatus('error');
-        }
-      }
-    }
-
-    void verify();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
+export default async function VerifyEmailPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  const t = createTranslator(locale, 'AuthPages.verifyEmail');
 
   return (
     <div className="mx-auto grid min-h-[calc(100vh-10rem)] max-w-3xl items-center">
@@ -51,31 +22,19 @@ export default function VerifyEmailPage() {
           <CardTitle>{t('title')}</CardTitle>
           <CardDescription>{t('description')}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {status === 'loading' ? <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('verifying')}</p> : null}
-          {status === 'success' ? (
-            <p role="status" className="text-sm text-emerald-700 dark:text-emerald-400">
-              {t('success')}
-            </p>
-          ) : null}
-          {status === 'error' ? <p className="text-sm text-red-600 dark:text-red-400">{t('error')}</p> : null}
-
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/login"
+        <CardContent>
+          <Suspense fallback={<p className="text-sm text-zinc-600 dark:text-zinc-400">{t('verifying')}</p>}>
+            <VerifyEmailPageContent
               locale={locale}
-              className="inline-flex rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900"
-            >
-              {t('loginCta')}
-            </Link>
-            <Link
-              href="/register"
-              locale={locale}
-              className="inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-900 dark:border-zinc-700 dark:text-zinc-50"
-            >
-              {t('registerCta')}
-            </Link>
-          </div>
+              labels={{
+                verifying: t('verifying'),
+                success: t('success'),
+                error: t('error'),
+                loginCta: t('loginCta'),
+                registerCta: t('registerCta'),
+              }}
+            />
+          </Suspense>
         </CardContent>
       </Card>
     </div>

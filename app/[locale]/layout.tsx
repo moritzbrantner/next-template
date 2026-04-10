@@ -1,7 +1,12 @@
+import { routing } from '@/i18n/routing';
 import { I18nProvider } from '@/src/i18n';
 import { resolveLocale } from '@/src/server/page-guards';
 
 import { DocumentLanguage } from './document-language';
+
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
 
 export default async function LocaleLayout({
   children,

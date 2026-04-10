@@ -1,6 +1,7 @@
 import { recordPageVisit, shouldTrackPageVisit, type PageVisitTrackingCause } from '@/src/analytics/page-visits';
 import { getAuthSession } from '@/src/auth.server';
 import { getNotificationPreviewUseCase, type NotificationPreview } from '@/src/domain/notifications/use-cases';
+import { isGithubPagesBuild } from '@/src/runtime/build-target';
 
 type LoadAppContextInput = {
   href?: string;
@@ -25,6 +26,10 @@ function validateLoadAppContextInput(input: LoadAppContextInput | undefined): Lo
 }
 
 export async function loadAppContext(input?: LoadAppContextInput): Promise<AppRouteContext> {
+  if (isGithubPagesBuild) {
+    return emptyAppContext;
+  }
+
   const data = validateLoadAppContextInput(input);
   const session = await getAuthSession();
 

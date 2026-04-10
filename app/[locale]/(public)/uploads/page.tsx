@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 
+import { StaticRedirectPage } from '@/components/static-redirect-page';
 import { withLocalePath } from '@/i18n/routing';
+import { isGithubPagesBuild } from '@/src/runtime/build-target';
 import { resolveLocale } from '@/src/server/page-guards';
 
 export default async function UploadsRedirectPage({
@@ -10,6 +12,10 @@ export default async function UploadsRedirectPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+
+  if (isGithubPagesBuild) {
+    return <StaticRedirectPage href="../examples/uploads/" />;
+  }
 
   redirect(withLocalePath('/examples/uploads', locale));
 }

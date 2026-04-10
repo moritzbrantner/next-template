@@ -1,19 +1,31 @@
-import { ResetPasswordForm } from '@/components/auth/reset-password-form';
+import { Suspense } from 'react';
+
+import { ResetPasswordPageContent } from '@/components/auth/reset-password-page-content';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createTranslator } from '@/src/i18n/messages';
 import { resolveLocale } from '@/src/server/page-guards';
 
 export default async function ResetPasswordPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ token?: string }>;
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  const { token = '' } = await searchParams;
   const t = createTranslator(locale, 'AuthPages.resetPassword');
+  const labels = {
+    password: t('form.password'),
+    confirmPassword: t('form.confirmPassword'),
+    submit: t('form.submit'),
+    submitting: t('form.submitting'),
+    requiredPassword: t('form.requiredPassword'),
+    weakPassword: t('form.weakPassword'),
+    requiredConfirmPassword: t('form.requiredConfirmPassword'),
+    passwordMismatch: t('form.passwordMismatch'),
+    genericError: t('form.genericError'),
+    success: t('success'),
+    loginCta: t('loginCta'),
+  };
 
   return (
     <div className="mx-auto grid min-h-[calc(100vh-10rem)] max-w-3xl items-center">
@@ -24,27 +36,13 @@ export default async function ResetPasswordPage({
           <CardDescription>{t('description')}</CardDescription>
         </CardHeader>
         <CardContent>
-          {token ? (
-            <ResetPasswordForm
+          <Suspense fallback={<p className="text-sm text-zinc-600 dark:text-zinc-400">{t('description')}</p>}>
+            <ResetPasswordPageContent
               locale={locale}
-              token={token}
-              labels={{
-                password: t('form.password'),
-                confirmPassword: t('form.confirmPassword'),
-                submit: t('form.submit'),
-                submitting: t('form.submitting'),
-                requiredPassword: t('form.requiredPassword'),
-                weakPassword: t('form.weakPassword'),
-                requiredConfirmPassword: t('form.requiredConfirmPassword'),
-                passwordMismatch: t('form.passwordMismatch'),
-                genericError: t('form.genericError'),
-                success: t('success'),
-                loginCta: t('loginCta'),
-              }}
+              missingTokenLabel={t('missingToken')}
+              labels={labels}
             />
-          ) : (
-            <p className="text-sm text-red-600 dark:text-red-400">{t('missingToken')}</p>
-          )}
+          </Suspense>
         </CardContent>
       </Card>
     </div>

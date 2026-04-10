@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { canAccessDataEntryWorkspace, isAdmin } from '@/lib/authorization';
 import { type AppLocale, hasLocale, withLocalePath } from '@/i18n/routing';
 import { getAuthSession } from '@/src/auth.server';
+import { isGithubPagesBuild } from '@/src/runtime/build-target';
 
 export function resolveLocale(locale: string): AppLocale {
   if (!hasLocale(locale)) {
@@ -17,6 +18,10 @@ export function redirectToLocaleHome(locale: AppLocale): never {
 }
 
 export async function requireGuest(locale: AppLocale) {
+  if (isGithubPagesBuild) {
+    return null;
+  }
+
   const session = await getAuthSession();
 
   if (session?.user?.id) {

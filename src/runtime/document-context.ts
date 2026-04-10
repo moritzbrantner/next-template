@@ -6,6 +6,7 @@ import {
   parseAppSettingsFromCookieHeader,
   type AppSettings,
 } from '@/src/settings/preferences';
+import { isGithubPagesBuild } from '@/src/runtime/build-target';
 
 export type DocumentRouteContext = {
   theme: Theme;
@@ -71,6 +72,10 @@ export const settingsScript = `
 `;
 
 async function getCookieHeader() {
+  if (isGithubPagesBuild) {
+    return '';
+  }
+
   const cookieStore = await cookies();
   return cookieStore
     .getAll()
@@ -79,6 +84,13 @@ async function getCookieHeader() {
 }
 
 export async function loadDocumentContext(): Promise<DocumentRouteContext> {
+  if (isGithubPagesBuild) {
+    return {
+      theme: 'light',
+      settings: defaultAppSettings,
+    };
+  }
+
   const cookieHeader = await getCookieHeader();
 
   return {

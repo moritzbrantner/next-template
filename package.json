@@ -9,6 +9,7 @@
     "dev:app": "next dev",
     "prebuild": "node scripts/generate-sitemap.ts",
     "build": "next build",
+    "build:gh-pages": "pnpm run prebuild && node scripts/build-gh-pages.mjs",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
