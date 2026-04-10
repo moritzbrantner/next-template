@@ -1,6 +1,6 @@
-import js from '@eslint/js';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
 
 const DEPRECATED_IMPORT_PATTERNS = [
   '@features/*',
@@ -11,24 +11,11 @@ const DEPRECATED_IMPORT_PATTERNS = [
   '@/lib/services/*',
 ];
 
-export default tseslint.config(
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
   {
-    ignores: ['.next/**', 'dist/**', 'out/**', 'build/**', 'coverage/**', 'src/routeTree.gen.ts'],
-  },
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
-  {
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-    },
-  },
-  {
-    files: ['components/**/*.{ts,tsx}', 'src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}', 'scripts/**/*.{ts,tsx}'],
+    files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}', 'scripts/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
@@ -44,7 +31,7 @@ export default tseslint.config(
       'no-restricted-imports': [
         'error',
         {
-          patterns: ['@/components/*'],
+          patterns: ['@/app/*', '@/components/*'],
         },
       ],
     },
@@ -55,7 +42,7 @@ export default tseslint.config(
       'no-restricted-imports': [
         'error',
         {
-          patterns: ['@/components/*', '@/src/domain/*', '@/src/profile/*'],
+          patterns: ['@/app/*', '@/components/*', '@/src/domain/*', '@/src/profile/*'],
         },
       ],
     },
@@ -66,9 +53,33 @@ export default tseslint.config(
       'no-restricted-imports': [
         'error',
         {
-          patterns: ['@/components/*', '@/src/*', '@features/*', '@/features/*', '@stores/*', '@/stores/*'],
+          patterns: [
+            '@/app/*',
+            '@/components/*',
+            '@/src/*',
+            '@features/*',
+            '@/features/*',
+            '@stores/*',
+            '@/stores/*',
+            '@services/*',
+            '@/lib/services/*',
+          ],
         },
       ],
     },
   },
-);
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'dist/**',
+    'coverage/**',
+    'next-env.d.ts',
+    'src/routes/**',
+    'src/routeTree.gen.ts',
+    'src/router.tsx',
+    'components/router-devtools.tsx',
+  ]),
+]);
+
+export default eslintConfig;

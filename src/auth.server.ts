@@ -1,4 +1,6 @@
-import { getRequest, useSession } from '@tanstack/react-start/server';
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
+import { cookies } from 'next/headers';
 
 import type { AppSession, AppSessionUser } from '@/src/auth';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
@@ -11,30 +13,83 @@ type SessionPayload = {
   user?: AppSessionUser;
 };
 
-async function getSessionStore() {
-  const request = getRequest();
-  const requestUrl = request ? new URL(request.url) : null;
-  const isSecureRequest = requestUrl?.protocol === 'https:' || process.env.AUTH_URL?.startsWith('https://');
+function base64UrlEncode(value: string) {
+  return Buffer.from(value, 'utf8').toString('base64url');
+}
 
-  return useSession<SessionPayload>({
+function base64UrlDecode(value: string) {
+  return Buffer.from(value, 'base64url').toString('utf8');
+}
+
+function sign(value: string) {
+  return createHmac('sha256', SESSION_SECRET).update(value).digest('base64url');
+}
+
+function serializeSession(payload: SessionPayload) {
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const signature = sign(encodedPayload);
+  return `${encodedPayload}.${signature}`;
+}
+
+function parseSession(value: string | undefined): SessionPayload | null {
+  if (!value) {
+    return null;
+  }
+
+  const [encodedPayload, providedSignature] = value.split('.');
+  if (!encodedPayload || !providedSignature) {
+    return null;
+  }
+
+  const expectedSignature = sign(encodedPayload);
+  const providedBuffer = Buffer.from(providedSignature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+
+  if (
+    providedBuffer.length !== expectedBuffer.length ||
+    !timingSafeEqual(providedBuffer, expectedBuffer)
+  ) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(base64UrlDecode(encodedPayload)) as SessionPayload;
+  } catch {
+    return null;
+  }
+}
+
+async function getCookieStore() {
+  return cookies();
+}
+
+async function writeSessionCookie(payload: SessionPayload | null) {
+  const cookieStore = await getCookieStore();
+
+  if (!payload?.user) {
+    cookieStore.delete(SESSION_COOKIE_NAME);
+    return;
+  }
+
+  cookieStore.set({
     name: SESSION_COOKIE_NAME,
-    password: SESSION_SECRET,
-    cookie: {
-      secure: Boolean(isSecureRequest),
-      sameSite: 'lax',
-      httpOnly: true,
-      maxAge: SESSION_MAX_AGE_SECONDS,
-    },
+    value: serializeSession(payload),
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: SESSION_MAX_AGE_SECONDS,
   });
 }
 
 export async function getAuthSession(): Promise<AppSession | null> {
-  const session = await getSessionStore();
-  return session.data.user ? { user: session.data.user } : null;
+  const cookieStore = await getCookieStore();
+  const payload = parseSession(cookieStore.get(SESSION_COOKIE_NAME)?.value);
+
+  return payload?.user ? { user: payload.user } : null;
 }
 
 export async function signInSession(user: Pick<AppSessionUser, 'id' | 'email' | 'name' | 'image' | 'role'>): Promise<AppSession> {
-  const session = await getSessionStore();
   const normalizedUser: AppSessionUser = {
     id: user.id,
     email: user.email,
@@ -43,11 +98,10 @@ export async function signInSession(user: Pick<AppSessionUser, 'id' | 'email' | 
     role: user.role,
   };
 
-  await session.update({ user: normalizedUser });
+  await writeSessionCookie({ user: normalizedUser });
   return { user: normalizedUser };
 }
 
 export async function signOutSession() {
-  const session = await getSessionStore();
-  await session.clear();
+  await writeSessionCookie(null);
 }

@@ -13,7 +13,13 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
+      "@/app/*": ["./app/*"],
       "@/components/*": ["./components/*"],
       "@/src/*": ["./src/*"],
       "@/lib/*": ["./lib/*"],
@@ -26,12 +32,23 @@
     }
   },
   "include": [
+    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
     "**/*.mts",
     "tests/e2e/global-teardown.ts",
-    "tests/e2e/global-setup.ts",
-    "vite.config.ts"
+    "tests/e2e/global-setup.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".tanstack",
+    "src/routes/**",
+    "src/router.tsx",
+    "src/routeTree.gen.ts",
+    "components/router-devtools.tsx",
+    "vite.config.ts",
+    "app.manifest.ts"
+  ]
 }

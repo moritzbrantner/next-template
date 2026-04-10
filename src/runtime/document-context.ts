@@ -1,11 +1,8 @@
-import { createServerFn } from '@tanstack/react-start';
-import { getRequest } from '@tanstack/react-start/server';
+import { cookies } from 'next/headers';
 
-import { THEME_STORAGE_KEY, isTheme, parseThemeFromCookieHeader, type Theme } from '@/lib/theme';
+import { parseThemeFromCookieHeader, type Theme } from '@/lib/theme';
 import {
-  APP_SETTINGS_STORAGE_KEY,
   defaultAppSettings,
-  parseAppSettings,
   parseAppSettingsFromCookieHeader,
   type AppSettings,
 } from '@/src/settings/preferences';
@@ -14,8 +11,6 @@ export type DocumentRouteContext = {
   theme: Theme;
   settings: AppSettings;
 };
-
-export const isGithubPagesBuild = import.meta.env.VITE_GITHUB_PAGES === 'true';
 
 export const themeScript = `
 (() => {
@@ -75,33 +70,19 @@ export const settingsScript = `
 })();
 `;
 
-export const loadDocumentContext = createServerFn({ method: 'GET' }).handler((): DocumentRouteContext => {
-  const request = getRequest();
-  const cookieHeader = request.headers.get('cookie');
+async function getCookieHeader() {
+  const cookieStore = await cookies();
+  return cookieStore
+    .getAll()
+    .map(({ name, value }) => `${name}=${value}`)
+    .join('; ');
+}
+
+export async function loadDocumentContext(): Promise<DocumentRouteContext> {
+  const cookieHeader = await getCookieHeader();
 
   return {
     theme: parseThemeFromCookieHeader(cookieHeader),
     settings: parseAppSettingsFromCookieHeader(cookieHeader),
-  };
-});
-
-export function loadStaticDocumentContext(): DocumentRouteContext {
-  if (typeof document === 'undefined' || typeof window === 'undefined') {
-    return {
-      theme: 'light',
-      settings: defaultAppSettings,
-    };
-  }
-
-  const cookieTheme = parseThemeFromCookieHeader(document.cookie);
-  const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  const theme = cookieTheme !== 'light' || !isTheme(storedTheme) ? cookieTheme : storedTheme;
-  const cookieSettings = parseAppSettingsFromCookieHeader(document.cookie);
-  const storedSettings = parseAppSettings(window.localStorage.getItem(APP_SETTINGS_STORAGE_KEY));
-  const hasStoredSettings = window.localStorage.getItem(APP_SETTINGS_STORAGE_KEY) !== null;
-
-  return {
-    theme,
-    settings: hasStoredSettings ? storedSettings : cookieSettings,
   };
 }

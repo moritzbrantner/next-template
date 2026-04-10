@@ -1,3 +1,5 @@
+'use client';
+
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import type { Theme } from '@/lib/theme';

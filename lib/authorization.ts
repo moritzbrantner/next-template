@@ -1,11 +1,6 @@
 import { createAccessControl } from 'better-auth/plugins/access';
 
-import type { AppSession } from '@/src/auth';
-import { getAuthSession } from '@/src/auth.server';
-
 export type AppRole = 'ADMIN' | 'MANAGER' | 'USER';
-
-type RoleInput = AppRole | AppRole[];
 
 type BusinessAction =
   | 'viewDashboard'
@@ -80,10 +75,6 @@ const actionPermissions: Record<BusinessAction, PermissionRequest> = {
   },
 };
 
-function normalizeRoles(roleOrRoles: RoleInput): readonly AppRole[] {
-  return Array.isArray(roleOrRoles) ? roleOrRoles : [roleOrRoles];
-}
-
 export function hasRole(currentRole: AppRole | null | undefined, minimumRole: AppRole): boolean {
   if (!currentRole) {
     return false;
@@ -132,37 +123,11 @@ export function canManageSystemSettings(role: AppRole | null | undefined): boole
   return canPerform(role, 'manageSystemSettings');
 }
 
-function createAuthError(message: string, status: 401 | 403): Error & { status: 401 | 403 } {
-  const error = new Error(message) as Error & { status: 401 | 403 };
-  error.name = 'AuthorizationError';
-  error.status = status;
-
-  return error;
-}
-
-export async function requireAuth(): Promise<AppSession> {
-  const session = await getAuthSession();
-
-  if (!session?.user?.id) {
-    throw createAuthError('Authentication required.', 401);
-  }
-
-  return session;
-}
-
-export async function requireRole(roleOrRoles: RoleInput): Promise<AppSession> {
-  const session = await requireAuth();
-  const allowedRoles = normalizeRoles(roleOrRoles);
-
-  if (!session.user.role || !allowedRoles.includes(session.user.role)) {
-    throw createAuthError('You do not have permission to perform this action.', 403);
-  }
-
-  return session;
-}
-
 export function forbidUnless(condition: unknown, message = 'Forbidden'): asserts condition {
   if (!condition) {
-    throw createAuthError(message, 403);
+    const error = new Error(message) as Error & { status: 403 };
+    error.name = 'AuthorizationError';
+    error.status = 403;
+    throw error;
   }
 }
