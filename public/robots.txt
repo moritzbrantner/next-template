@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://moritzbrantner.github.io/next-template/sitemap.xml

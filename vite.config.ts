@@ -33,27 +33,43 @@ export default defineConfig({
             router: {
               basepath: githubPagesRouterBasePath,
             },
+
             spa: {
               enabled: true,
               prerender: {
                 outputPath: "/_shell.html",
+                crawlLinks: true,
               },
             },
+
             prerender: {
               enabled: true,
               crawlLinks: true,
+              failOnError: false,
             },
+
             sitemap: {
               enabled: true,
-              host: 'https://moritzbrantner.github.io/next-template',
+              host: "https://moritzbrantner.github.io",
             },
+
+            // important: explicit locale pages
+            pages: [
+              {
+                path: "/",
+                prerender: { enabled: true },
+              },
+              {
+                path: "/en/",
+                prerender: { enabled: true },
+              },
+              {
+                path: "/de/",
+                prerender: { enabled: true },
+              },
+            ],
           }
-        : {
-            prerender: {
-              enabled: true,
-              crawlLinks: true,
-            },
-          },
+        : undefined,
     ),
     viteReact(),
   ],
