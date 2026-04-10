@@ -1,19 +1,24 @@
-import { tanstackStart } from '@tanstack/react-start/plugin/vite';
-import { defineConfig } from 'vite';
-import viteReact from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { defineConfig } from "vite";
+import viteReact from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
-import { normalizePublicBasePath, normalizeRouterBasePath } from './src/runtime/base-path';
+import {
+  normalizePublicBasePath,
+  normalizeRouterBasePath,
+} from "./src/runtime/base-path";
 
-const isGithubPagesBuild = process.env.GITHUB_PAGES === 'true';
+const isGithubPagesBuild = process.env.GITHUB_PAGES === "true";
 const githubPagesBasePath = normalizePublicBasePath(
   process.env.GITHUB_PAGES_BASE_PATH ??
-    (isGithubPagesBuild ? process.env.GITHUB_REPOSITORY?.split('/')[1] : undefined),
+    (isGithubPagesBuild
+      ? process.env.GITHUB_REPOSITORY?.split("/")[1]
+      : undefined),
 );
 const githubPagesRouterBasePath = normalizeRouterBasePath(githubPagesBasePath);
 
 export default defineConfig({
-  base: isGithubPagesBuild ? githubPagesBasePath : '/',
+  base: isGithubPagesBuild ? githubPagesBasePath : "/",
   server: {
     port: 3000,
   },
@@ -31,11 +36,27 @@ export default defineConfig({
             spa: {
               enabled: true,
               prerender: {
-                outputPath: '/_shell.html',
+                outputPath: "/_shell.html",
               },
             },
+            prerender: {
+              enabled: true,
+              crawlLinks: true,
+            },
+            sitemap: {
+              enabled: true,
+              host: 'https://moritzbrantner.github.io/next-template',
+            },
           }
-        : undefined,
+        : {
+            prerender: {
+              enabled: true,
+              crawlLinks: true,
+            },
+            sitemap: {
+              enabled: true,
+            },
+          },
     ),
     viteReact(),
   ],
