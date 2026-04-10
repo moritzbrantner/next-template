@@ -56,7 +56,12 @@ test.describe('settings and hotkeys', () => {
     await page.keyboard.press('Escape');
 
     await hotkeysButton.focus();
-    await page.keyboard.press('Alt+M');
+    await page.keyboard.press('Alt+E');
+    await expect(page).toHaveURL('/en/settings');
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+
+    await hotkeysButton.focus();
+    await page.keyboard.press('Alt+P');
     await expect(page).toHaveURL('/en/profile');
 
     await hotkeysButton.focus();

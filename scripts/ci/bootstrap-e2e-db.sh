@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 APP_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
+COMPOSE_FILE_PATH="${APP_ROOT}/docker-compose.yml"
 MARKER_FILE="${TMPDIR:-/tmp}/next-template-e2e-db-bootstrap.started"
 
 export POSTGRES_PORT="${POSTGRES_PORT:-55433}"
@@ -49,6 +50,10 @@ docker_compose_available() {
   docker compose version >/dev/null 2>&1
 }
 
+docker_compose() {
+  docker compose -f "$COMPOSE_FILE_PATH" --project-directory "$APP_ROOT" "$@"
+}
+
 can_reach_mailpit() {
   node --eval '
     (async () => {
@@ -72,8 +77,8 @@ teardown() {
     if docker_available && docker_compose_available; then
       (
         cd "$APP_ROOT"
-        docker compose stop "${STARTED_SERVICES[@]}"
-        docker compose rm -f "${STARTED_SERVICES[@]}"
+        docker_compose stop "${STARTED_SERVICES[@]}"
+        docker_compose rm -f "${STARTED_SERVICES[@]}"
       )
       echo "✅ Compose cleanup complete."
     else
@@ -94,8 +99,8 @@ cleanup_on_error() {
     if docker_available && docker_compose_available; then
       (
         cd "$APP_ROOT"
-        docker compose stop "${STARTED_SERVICES[@]}"
-        docker compose rm -f "${STARTED_SERVICES[@]}"
+        docker_compose stop "${STARTED_SERVICES[@]}"
+        docker_compose rm -f "${STARTED_SERVICES[@]}"
       ) || true
     fi
     rm -f "$MARKER_FILE"
@@ -138,7 +143,7 @@ if (( ${#STARTED_SERVICES[@]} > 0 )); then
   for service in "${STARTED_SERVICES[@]}"; do
     if ! (
       cd "$APP_ROOT"
-      docker compose config --services | grep -Fxq "$service"
+      docker_compose config --services | grep -Fxq "$service"
     ); then
       echo "❌ docker compose service '$service' is not defined in $APP_ROOT." >&2
       exit 1
@@ -148,7 +153,7 @@ if (( ${#STARTED_SERVICES[@]} > 0 )); then
   echo "ℹ️ Starting compose services for e2e bootstrap: ${STARTED_SERVICES[*]}"
   (
     cd "$APP_ROOT"
-    docker compose up -d "${STARTED_SERVICES[@]}"
+    docker_compose up -d "${STARTED_SERVICES[@]}"
   )
   BOOTSTRAP_STARTED=1
   printf '%s\n' "${STARTED_SERVICES[@]}" >"$MARKER_FILE"
