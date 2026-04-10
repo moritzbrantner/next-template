@@ -52,21 +52,24 @@ jobs:
           set -euo pipefail
 
           base_path="/${{ github.event.repository.name }}"
+          shell_src="dist/client/_shell.html"
 
-          if [[ -f dist/client/_shell.html ]]; then
-            shell_src="dist/client/_shell.html"
-          elif [[ -f dist/client/index.html ]]; then
-            shell_src="dist/client/index.html"
-          else
-            echo "No SPA shell found in dist/client" >&2
-            ls -R dist/client >&2 || true
+          if [[ ! -f "$shell_src" ]]; then
+            echo "Expected SPA shell at $shell_src" >&2
+            find dist/client -maxdepth 3 -type f | sort >&2 || true
             exit 1
           fi
 
-          # 404.html must be the real app shell for deep links on GitHub Pages
+          mkdir -p dist/client/en dist/client/de
+
+          # Real files for direct hits and crawlers
+          cp "$shell_src" dist/client/en/index.html
+          cp "$shell_src" dist/client/de/index.html
+
+          # 404 fallback for unknown routes
           cp "$shell_src" dist/client/404.html
 
-          # Root index redirects to the default locale
+          # Root redirects to default locale
           cat > dist/client/index.html <<EOF
           <!doctype html>
           <html lang="en">
@@ -83,6 +86,11 @@ jobs:
             </body>
           </html>
           EOF
+
+          touch dist/client/.nojekyll
+
+          echo "Built files:"
+          find dist/client -maxdepth 3 -type f | sort
 
           touch dist/client/.nojekyll
       - name: Upload GitHub Pages artifact
