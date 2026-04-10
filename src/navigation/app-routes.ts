@@ -8,6 +8,7 @@ import type { NavigationCategoryKey } from '@/src/navigation/navigation-categori
 export type AppPageKey =
   | 'home'
   | 'about'
+  | 'remocn'
   | 'reportProblem'
   | 'forms'
   | 'story'
@@ -51,6 +52,14 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'discover',
     hotkey: ['alt', 'a'],
+  },
+  {
+    key: 'remocn',
+    href: '/remocn',
+    translationKey: 'links.remocn',
+    visibility: 'public',
+    navigationCategory: 'discover',
+    hotkey: ['alt', 'v'],
   },
   {
     key: 'reportProblem',

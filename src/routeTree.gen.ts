@@ -22,6 +22,7 @@ import { Route as LocaleStoryRouteImport } from './routes/$locale.story'
 import { Route as LocaleSettingsRouteImport } from './routes/$locale.settings'
 import { Route as LocaleResetPasswordRouteImport } from './routes/$locale.reset-password'
 import { Route as LocaleReportProblemRouteImport } from './routes/$locale.report-problem'
+import { Route as LocaleRemocnRouteImport } from './routes/$locale.remocn'
 import { Route as LocaleRegisterRouteImport } from './routes/$locale.register'
 import { Route as LocaleProfileRouteImport } from './routes/$locale.profile'
 import { Route as LocaleNotificationsRouteImport } from './routes/$locale.notifications'
@@ -125,6 +126,11 @@ const LocaleResetPasswordRoute = LocaleResetPasswordRouteImport.update({
 const LocaleReportProblemRoute = LocaleReportProblemRouteImport.update({
   id: '/report-problem',
   path: '/report-problem',
+  getParentRoute: () => LocaleRoute,
+} as any)
+const LocaleRemocnRoute = LocaleRemocnRouteImport.update({
+  id: '/remocn',
+  path: '/remocn',
   getParentRoute: () => LocaleRoute,
 } as any)
 const LocaleRegisterRoute = LocaleRegisterRouteImport.update({
@@ -340,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/$locale/notifications': typeof LocaleNotificationsRoute
   '/$locale/profile': typeof LocaleProfileRouteWithChildren
   '/$locale/register': typeof LocaleRegisterRoute
+  '/$locale/remocn': typeof LocaleRemocnRoute
   '/$locale/report-problem': typeof LocaleReportProblemRoute
   '/$locale/reset-password': typeof LocaleResetPasswordRoute
   '/$locale/settings': typeof LocaleSettingsRoute
@@ -393,6 +400,7 @@ export interface FileRoutesByTo {
   '/$locale/notifications': typeof LocaleNotificationsRoute
   '/$locale/profile': typeof LocaleProfileRouteWithChildren
   '/$locale/register': typeof LocaleRegisterRoute
+  '/$locale/remocn': typeof LocaleRemocnRoute
   '/$locale/report-problem': typeof LocaleReportProblemRoute
   '/$locale/reset-password': typeof LocaleResetPasswordRoute
   '/$locale/settings': typeof LocaleSettingsRoute
@@ -448,6 +456,7 @@ export interface FileRoutesById {
   '/$locale/notifications': typeof LocaleNotificationsRoute
   '/$locale/profile': typeof LocaleProfileRouteWithChildren
   '/$locale/register': typeof LocaleRegisterRoute
+  '/$locale/remocn': typeof LocaleRemocnRoute
   '/$locale/report-problem': typeof LocaleReportProblemRoute
   '/$locale/reset-password': typeof LocaleResetPasswordRoute
   '/$locale/settings': typeof LocaleSettingsRoute
@@ -504,6 +513,7 @@ export interface FileRouteTypes {
     | '/$locale/notifications'
     | '/$locale/profile'
     | '/$locale/register'
+    | '/$locale/remocn'
     | '/$locale/report-problem'
     | '/$locale/reset-password'
     | '/$locale/settings'
@@ -557,6 +567,7 @@ export interface FileRouteTypes {
     | '/$locale/notifications'
     | '/$locale/profile'
     | '/$locale/register'
+    | '/$locale/remocn'
     | '/$locale/report-problem'
     | '/$locale/reset-password'
     | '/$locale/settings'
@@ -611,6 +622,7 @@ export interface FileRouteTypes {
     | '/$locale/notifications'
     | '/$locale/profile'
     | '/$locale/register'
+    | '/$locale/remocn'
     | '/$locale/report-problem'
     | '/$locale/reset-password'
     | '/$locale/settings'
@@ -772,6 +784,13 @@ declare module '@tanstack/react-router' {
       path: '/report-problem'
       fullPath: '/$locale/report-problem'
       preLoaderRoute: typeof LocaleReportProblemRouteImport
+      parentRoute: typeof LocaleRoute
+    }
+    '/$locale/remocn': {
+      id: '/$locale/remocn'
+      path: '/remocn'
+      fullPath: '/$locale/remocn'
+      preLoaderRoute: typeof LocaleRemocnRouteImport
       parentRoute: typeof LocaleRoute
     }
     '/$locale/register': {
@@ -1082,6 +1101,7 @@ interface LocaleRouteChildren {
   LocaleNotificationsRoute: typeof LocaleNotificationsRoute
   LocaleProfileRoute: typeof LocaleProfileRouteWithChildren
   LocaleRegisterRoute: typeof LocaleRegisterRoute
+  LocaleRemocnRoute: typeof LocaleRemocnRoute
   LocaleReportProblemRoute: typeof LocaleReportProblemRoute
   LocaleResetPasswordRoute: typeof LocaleResetPasswordRoute
   LocaleSettingsRoute: typeof LocaleSettingsRoute
@@ -1110,6 +1130,7 @@ const LocaleRouteChildren: LocaleRouteChildren = {
   LocaleNotificationsRoute: LocaleNotificationsRoute,
   LocaleProfileRoute: LocaleProfileRouteWithChildren,
   LocaleRegisterRoute: LocaleRegisterRoute,
+  LocaleRemocnRoute: LocaleRemocnRoute,
   LocaleReportProblemRoute: LocaleReportProblemRoute,
   LocaleResetPasswordRoute: LocaleResetPasswordRoute,
   LocaleSettingsRoute: LocaleSettingsRoute,
