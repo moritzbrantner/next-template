@@ -10,7 +10,9 @@ function createDeps(overrides: Partial<BlogUseCaseDeps> = {}): BlogUseCaseDeps {
   return {
     findUserById: vi.fn(),
     listPostsByUserId: vi.fn().mockResolvedValue([]),
+    listFollowerIdsByUserId: vi.fn().mockResolvedValue([]),
     createPost: vi.fn(),
+    createNotifications: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -75,6 +77,7 @@ describe('blog post use cases', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       }),
+      listFollowerIdsByUserId: vi.fn().mockResolvedValue(['user_2', 'user_3']),
     });
 
     const result = await createBlogPostUseCase(
@@ -99,6 +102,68 @@ describe('blog post use cases', () => {
       title: 'Trimmed title',
       content: 'This body has enough content to pass the minimum validation.',
     });
+    expect(deps.createNotifications).toHaveBeenCalledWith([
+      {
+        userId: 'user_2',
+        actorId: 'user_1',
+        title: 'Author published a new blog post',
+        body: 'Trimmed title',
+        href: '/profile/user_1/blog#post-post_2',
+      },
+      {
+        userId: 'user_3',
+        actorId: 'user_1',
+        title: 'Author published a new blog post',
+        body: 'Trimmed title',
+        href: '/profile/user_1/blog#post-post_2',
+      },
+    ]);
+  });
+
+  it('does not fail post creation when follower notifications cannot be delivered', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      const deps = createDeps({
+        findUserById: vi.fn().mockResolvedValue({
+          id: 'user_1',
+          email: 'author@example.com',
+          name: 'Author',
+          image: null,
+        }),
+        listFollowerIdsByUserId: vi.fn().mockResolvedValue(['user_2']),
+        createPost: vi.fn().mockResolvedValue({
+          id: 'post_3',
+          userId: 'user_1',
+          title: 'Resilient title',
+          content: 'This body has enough content to pass the minimum validation.',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }),
+        createNotifications: vi.fn().mockRejectedValue(new Error('database unavailable')),
+      });
+
+      const result = await createBlogPostUseCase(
+        'user_1',
+        {
+          title: 'Resilient title',
+          content: 'This body has enough content to pass the minimum validation.',
+        },
+        deps,
+      );
+
+      expect(result).toEqual({
+        ok: true,
+        data: {
+          id: 'post_3',
+          title: 'Resilient title',
+          content: 'This body has enough content to pass the minimum validation.',
+        },
+      });
+      expect(deps.createNotifications).toHaveBeenCalledTimes(1);
+      expect(consoleError).toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   it('rejects posts that are too short', async () => {

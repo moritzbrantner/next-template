@@ -75,7 +75,7 @@ export default async function PublicUserBlogPage({
             const wasUpdated = post.updatedAt.getTime() !== post.createdAt.getTime();
 
             return (
-              <Card key={post.id}>
+              <Card key={post.id} id={`post-${post.id}`} className="scroll-mt-24">
                 <CardHeader>
                   <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
                     <span>{t('posts.publishedAt', { date: createdLabel })}</span>

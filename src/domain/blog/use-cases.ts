@@ -1,5 +1,7 @@
+import { eq } from 'drizzle-orm';
+
 import { getDb } from '@/src/db/client';
-import { blogPosts } from '@/src/db/schema';
+import { blogPosts, notifications, userFollows } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
 
@@ -53,7 +55,17 @@ export type BlogError = {
 export type BlogUseCaseDeps = {
   findUserById: (userId: string) => Promise<BlogAuthorRecord | undefined>;
   listPostsByUserId: (userId: string) => Promise<BlogPostRecord[]>;
+  listFollowerIdsByUserId: (userId: string) => Promise<string[]>;
   createPost: (input: { userId: string; title: string; content: string }) => Promise<BlogPostRecord>;
+  createNotifications: (
+    input: Array<{
+      userId: string;
+      actorId: string;
+      title: string;
+      body: string;
+      href: string;
+    }>,
+  ) => Promise<void>;
 };
 
 function getBlogUseCaseDeps(): BlogUseCaseDeps {
@@ -67,6 +79,14 @@ function getBlogUseCaseDeps(): BlogUseCaseDeps {
         where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
         orderBy: (table, { desc: innerDesc }) => [innerDesc(table.createdAt)],
       }),
+    listFollowerIdsByUserId: async (userId) => {
+      const followers = await getDb()
+        .select({ userId: userFollows.followerId })
+        .from(userFollows)
+        .where(eq(userFollows.followingId, userId));
+
+      return followers.map((follower) => follower.userId);
+    },
     createPost: async ({ userId, title, content }) => {
       const [createdPost] = await getDb()
         .insert(blogPosts)
@@ -79,6 +99,26 @@ function getBlogUseCaseDeps(): BlogUseCaseDeps {
         .returning();
 
       return createdPost;
+    },
+    createNotifications: async (input) => {
+      if (input.length === 0) {
+        return;
+      }
+
+      const now = new Date();
+
+      await getDb().insert(notifications).values(
+        input.map((notification) => ({
+          id: crypto.randomUUID(),
+          userId: notification.userId,
+          actorId: notification.actorId,
+          title: notification.title,
+          body: notification.body,
+          href: notification.href,
+          audience: 'user' as const,
+          createdAt: now,
+        })),
+      );
     },
   };
 }
@@ -101,6 +141,26 @@ function normalizeBlogPost(post: BlogPostRecord): BlogPostSummary {
     content: post.content,
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
+  };
+}
+
+function buildBlogPostHref(userId: string, postId: string) {
+  return `/profile/${userId}/blog#post-${postId}`;
+}
+
+function buildFollowerNotification(input: {
+  authorUserId: string;
+  authorDisplayName: string;
+  followerUserId: string;
+  postId: string;
+  postTitle: string;
+}) {
+  return {
+    userId: input.followerUserId,
+    actorId: input.authorUserId,
+    title: `${input.authorDisplayName} published a new blog post`,
+    body: input.postTitle,
+    href: buildBlogPostHref(input.authorUserId, input.postId),
   };
 }
 
@@ -172,11 +232,32 @@ export async function createBlogPostUseCase(
     });
   }
 
+  const authorDisplayName = resolveProfileDisplayName(user);
   const post = await deps.createPost({
     userId,
     title,
     content,
   });
+
+  const followerIds = [...new Set(await deps.listFollowerIdsByUserId(userId))].filter((followerId) => followerId !== userId);
+
+  if (followerIds.length > 0) {
+    try {
+      await deps.createNotifications(
+        followerIds.map((followerUserId) =>
+          buildFollowerNotification({
+            authorUserId: userId,
+            authorDisplayName,
+            followerUserId,
+            postId: post.id,
+            postTitle: post.title,
+          }),
+        ),
+      );
+    } catch (error) {
+      console.error('Failed to deliver follower notifications for blog post.', error);
+    }
+  }
 
   return success({
     id: post.id,
