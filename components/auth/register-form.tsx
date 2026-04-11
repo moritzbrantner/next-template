@@ -87,6 +87,7 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
       return;
     }
 
+    setPending(false);
     router.push('/profile', locale);
     router.refresh();
   });

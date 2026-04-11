@@ -9,6 +9,53 @@ MARKER_FILE="${TMPDIR:-/tmp}/next-template-e2e-db-bootstrap.started"
 export POSTGRES_PORT="${POSTGRES_PORT:-55433}"
 export DB_BOOTSTRAP_TIMEOUT_SECONDS="${DB_BOOTSTRAP_TIMEOUT_SECONDS:-90}"
 export MAILPIT_BASE_URL="${MAILPIT_BASE_URL:-http://127.0.0.1:8025}"
+PNPM_BINARY="pnpm"
+
+resolve_node_binary() {
+  local first_candidate=""
+  local candidate=""
+
+  while IFS= read -r candidate; do
+    [[ -z "$candidate" ]] && continue
+
+    if [[ -z "$first_candidate" ]]; then
+      first_candidate="$candidate"
+    fi
+
+    if [[ "$candidate" == /tmp/bun-node-*"/node" ]]; then
+      continue
+    fi
+
+    printf '%s\n' "$candidate"
+    return 0
+  done < <(which -a node 2>/dev/null || true)
+
+  if [[ -n "$first_candidate" ]]; then
+    printf '%s\n' "$first_candidate"
+    return 0
+  fi
+
+  return 1
+}
+
+configure_node_toolchain() {
+  local node_binary=""
+  local node_dir=""
+
+  node_binary="$(resolve_node_binary || true)"
+  if [[ -z "$node_binary" ]]; then
+    return
+  fi
+
+  node_dir="$(dirname "$node_binary")"
+  export PATH="${node_dir}:${PATH}"
+
+  if [[ -x "${node_dir}/pnpm" ]]; then
+    PNPM_BINARY="${node_dir}/pnpm"
+  fi
+}
+
+configure_node_toolchain
 
 if [[ -z "${DATABASE_URL:-}" ]]; then
   export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:${POSTGRES_PORT}/next_template?schema=public"
@@ -216,13 +263,13 @@ node --eval '
 echo "ℹ️ Applying migrations..."
 (
   cd "$APP_ROOT"
-  pnpm run db:migrate
+  "$PNPM_BINARY" run db:migrate
 )
 
 echo "ℹ️ Seeding baseline e2e users..."
 (
   cd "$APP_ROOT"
-  pnpm run db:seed:test-users
+  "$PNPM_BINARY" run db:seed:test-users
 )
 
 echo "✅ E2E DB bootstrap complete."

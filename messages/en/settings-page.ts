@@ -85,6 +85,11 @@ export const settingsPage = {
     typeLabel: 'Notification type',
     typeDescription: 'Set any string value such as `instant`, `digest`, or a team-specific label.',
     typePlaceholder: 'instant',
+    types: {
+      instant: 'Instant',
+      digest: 'Digest',
+      silent: 'Silent',
+    },
   },
   account: {
     email: {

@@ -1,7 +1,6 @@
 import { expect, test } from '@playwright/test';
 
 import {
-  clearMailpitMessages,
   extractFirstUrl,
   getSeededUser,
   gotoAndWaitForHydration,
@@ -38,7 +37,6 @@ test.describe('authentication', () => {
     const email = `playwright-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
     const password = 'StrongPass123';
 
-    await clearMailpitMessages();
     await gotoAndWaitForHydration(page, '/en/register');
 
     await expect(page.getByRole('heading', { name: 'Start with a secure account and get into the app immediately.' })).toBeVisible();
@@ -71,7 +69,6 @@ test.describe('authentication', () => {
     const password = 'StrongPass123';
     const nextPassword = 'EvenStronger123';
 
-    await clearMailpitMessages();
     await gotoAndWaitForHydration(page, '/en/register');
 
     await page.getByLabel('Display name').fill('Reset User');
@@ -83,7 +80,6 @@ test.describe('authentication', () => {
     await expect(page).toHaveURL('/en/profile');
     await logoutFromProfileMenu(page);
 
-    await clearMailpitMessages();
     await gotoAndWaitForHydration(page, '/en/register');
 
     await page.getByLabel('Account email').fill(email);

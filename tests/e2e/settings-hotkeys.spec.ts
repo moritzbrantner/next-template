@@ -27,7 +27,7 @@ test.describe('settings and hotkeys', () => {
 
     await page.getByRole('tab', { name: 'Notifications' }).click();
     await page.getByRole('switch', { name: 'Enable notifications' }).click();
-    await page.getByLabel('Notification type').fill('digest');
+    await page.getByLabel('Notification type').selectOption('digest');
 
     await page.reload();
     await gotoAndWaitForHydration(page, '/en/settings');

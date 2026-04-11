@@ -176,15 +176,17 @@ export async function signUpWithCredentials(input: SignupInput, deps?: Lifecycle
       name: input.name,
     });
 
-    await sendEmail({
+    void sendEmail({
       to: email,
       subject: message.subject,
       html: message.html,
       text: message.text,
       tags: ['account-verification'],
+    }).catch((error) => {
+      console.error('[auth] failed to send verification email', { email, error });
     });
   } catch (error) {
-    console.error('[auth] failed to send verification email', { email, error });
+    console.error('[auth] failed to build verification email', { email, error });
   }
 
   return { ok: true, userId, verificationToken: rawToken };

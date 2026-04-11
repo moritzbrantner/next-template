@@ -86,6 +86,11 @@ export const settingsPage = {
     typeLabel: 'Benachrichtigungstyp',
     typeDescription: 'Verwende einen beliebigen String wie `instant`, `digest` oder ein teamspezifisches Label.',
     typePlaceholder: 'instant',
+    types: {
+      instant: 'Sofort',
+      digest: 'Sammlung',
+      silent: 'Still',
+    },
   },
   account: {
     email: {

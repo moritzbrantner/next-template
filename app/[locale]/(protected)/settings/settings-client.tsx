@@ -328,7 +328,15 @@ function ToggleRow({
         <p className="font-medium">{title}</p>
         <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{description}</p>
       </div>
-      <input type="checkbox" checked={checked} onChange={(event) => onCheckedChange(event.target.checked)} className="mt-1 h-4 w-4" />
+      <input
+        type="checkbox"
+        role="switch"
+        aria-checked={checked}
+        aria-label={title}
+        checked={checked}
+        onChange={(event) => onCheckedChange(event.target.checked)}
+        className="mt-1 h-4 w-4"
+      />
     </label>
   );
 }
