@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 
 import { ProfileFollowPanel } from '@/components/profile-follow-panel';
-import { CardDescription } from '@/components/ui/card';
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from '@/i18n/navigation';
 import { getAuthSession } from '@/src/auth.server';
 import { getProfileViewUseCase } from '@/src/domain/profile/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
@@ -15,6 +17,7 @@ export default async function PublicProfilePage({
   const { locale: rawLocale, userId } = await params;
   const locale = resolveLocale(rawLocale);
   const t = createTranslator(locale, 'ProfilePage');
+  const blogT = createTranslator(locale, 'BlogPage');
   const session = await getAuthSession();
   const viewerUserId = session?.user.id ?? null;
   const result = await getProfileViewUseCase(userId, viewerUserId);
@@ -51,6 +54,27 @@ export default async function PublicProfilePage({
           error: t('view.error'),
         }}
       />
+
+      <Card className="mx-auto max-w-3xl">
+        <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1.5">
+            <CardTitle>{blogT('profileCard.title')}</CardTitle>
+            <CardDescription>{blogT('profileCard.description', { name: profile.displayName })}</CardDescription>
+          </div>
+
+          <Link
+            href={`/profile/${profile.userId}/blog`}
+            locale={locale}
+            className={buttonVariants({ variant: 'default' })}
+          >
+            {blogT('profileCard.open')}
+          </Link>
+        </CardHeader>
+
+        <CardContent>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{blogT('profileCard.caption')}</p>
+        </CardContent>
+      </Card>
     </section>
   );
 }

@@ -1,6 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { buttonVariants } from '@/components/ui/button';
 import { ProfileDisplayNameForm } from '@/components/profile-display-name-form';
 import { ProfileImageForm } from '@/components/profile-image-form';
+import { Link } from '@/i18n/navigation';
 import { createTranslator } from '@/src/i18n/messages';
 import { requireAuth, resolveLocale } from '@/src/server/page-guards';
 
@@ -13,6 +15,7 @@ export default async function ProfilePage({
   const locale = resolveLocale(rawLocale);
   const session = await requireAuth(locale);
   const t = createTranslator(locale, 'ProfilePage');
+  const blogT = createTranslator(locale, 'BlogPage');
 
   return (
     <Card className="mx-auto max-w-2xl">
@@ -52,6 +55,30 @@ export default async function ProfilePage({
             ready: t('form.ready'),
           }}
         />
+
+        <div className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold tracking-tight">{blogT('editor.cardTitle')}</h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{blogT('editor.cardDescription')}</p>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/profile/blog"
+              locale={locale}
+              className={buttonVariants({ variant: 'default' })}
+            >
+              {blogT('editor.openComposer')}
+            </Link>
+            <Link
+              href={`/profile/${session.user.id}/blog`}
+              locale={locale}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              {blogT('editor.viewPublicBlog')}
+            </Link>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

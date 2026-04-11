@@ -1,5 +1,6 @@
 import { aboutPage } from './about-page';
 import { adminPage } from './admin-page';
+import { blogPage } from './blog-page';
 import { authPages } from './auth-pages';
 import { communicationPage } from './communication-page';
 import { dataEntryPage } from './data-entry-page';
@@ -24,6 +25,7 @@ const enMessages = {
   HomePage: homePage,
   AboutPage: aboutPage,
   AdminPage: adminPage,
+  BlogPage: blogPage,
   CommunicationPage: communicationPage,
   DataEntryPage: dataEntryPage,
   FormsPage: formsPage,

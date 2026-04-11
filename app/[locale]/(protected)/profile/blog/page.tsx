@@ -1,0 +1,120 @@
+import { notFound } from 'next/navigation';
+
+import { BlogPostComposer } from '@/components/blog-post-composer';
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from '@/i18n/navigation';
+import { createTranslator } from '@/src/i18n/messages';
+import { getUserBlogUseCase } from '@/src/domain/blog/use-cases';
+import { requireAuth, resolveLocale } from '@/src/server/page-guards';
+
+function formatBlogDate(locale: string, date: Date) {
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
+}
+
+export default async function ProfileBlogPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+  const session = await requireAuth(locale);
+  const t = createTranslator(locale, 'BlogPage');
+  const result = await getUserBlogUseCase(session.user.id);
+
+  if (!result.ok) {
+    notFound();
+  }
+
+  const blog = result.data;
+
+  return (
+    <section className="mx-auto max-w-3xl space-y-6">
+      <Card>
+        <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1.5">
+            <CardTitle>{t('editor.title')}</CardTitle>
+            <CardDescription>{t('editor.description')}</CardDescription>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/profile"
+              locale={locale}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              {t('editor.backToProfile')}
+            </Link>
+            <Link
+              href={`/profile/${session.user.id}/blog`}
+              locale={locale}
+              className={buttonVariants({ variant: 'default' })}
+            >
+              {t('editor.viewPublicBlog')}
+            </Link>
+          </div>
+        </CardHeader>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('composer.title')}</CardTitle>
+          <CardDescription>{t('composer.description')}</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          <BlogPostComposer
+            labels={{
+              title: t('composer.form.title'),
+              titlePlaceholder: t('composer.form.titlePlaceholder'),
+              content: t('composer.form.content'),
+              contentPlaceholder: t('composer.form.contentPlaceholder'),
+              publish: t('composer.form.publish'),
+              publishing: t('composer.form.publishing'),
+              success: t('composer.form.success'),
+              error: t('composer.form.error'),
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('posts.title')}</CardTitle>
+          <CardDescription>{t('posts.description')}</CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {blog.posts.length ? (
+            blog.posts.map((post) => {
+              const createdLabel = formatBlogDate(locale, post.createdAt);
+              const updatedLabel = formatBlogDate(locale, post.updatedAt);
+              const wasUpdated = post.updatedAt.getTime() !== post.createdAt.getTime();
+
+              return (
+                <article key={post.id} className="rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800">
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
+                      <span>{t('posts.publishedAt', { date: createdLabel })}</span>
+                      {wasUpdated ? <span>{t('posts.updatedAt', { date: updatedLabel })}</span> : null}
+                    </div>
+                    <h2 className="text-xl font-semibold tracking-tight">{post.title}</h2>
+                    <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-700 dark:text-zinc-300">
+                      {post.content}
+                    </p>
+                  </div>
+                </article>
+              );
+            })
+          ) : (
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('posts.empty')}</p>
+          )}
+        </CardContent>
+      </Card>
+    </section>
+  );
+}

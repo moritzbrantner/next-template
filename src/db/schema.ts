@@ -55,6 +55,22 @@ export const userFollows = pgTable(
   ],
 );
 
+export const blogPosts = pgTable(
+  "BlogPost",
+  {
+    id: text("id").primaryKey(),
+    userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    title: text("title").notNull(),
+    content: text("content").notNull(),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("BlogPost_userId_createdAt_idx").on(table.userId, table.createdAt),
+    index("BlogPost_userId_updatedAt_idx").on(table.userId, table.updatedAt),
+  ],
+);
+
 export const accounts = pgTable(
   "Account",
   {

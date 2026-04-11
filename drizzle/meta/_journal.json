@@ -57,6 +57,13 @@
       "when": 1775583640766,
       "tag": "0007_busy_wind_dancer",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1775940759311,
+      "tag": "0008_certain_cyclops",
+      "breakpoints": true
     }
   ]
 }
