@@ -50,7 +50,7 @@ describe('profile image storage', () => {
     expect(buildProfileImageUrl(uploaded.key)).toBe(uploaded.url);
 
     // should be null or undefined
-    await expect(access(localFilePath)).resolves.not.toThrow();
+    await expect(access(localFilePath)).resolves.toBeFalsy();
 
     await deleteProfileImage(uploaded.key);
 
