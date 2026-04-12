@@ -8,6 +8,7 @@ type NavigationLinkDefinition = {
   key: string;
   translationKey: string;
   hotkey: AppHotkey;
+  prefetch?: boolean;
 };
 
 type NavigationCategoryDefinition = {
@@ -42,6 +43,7 @@ export function buildNavigationCategories({
           key: page.key,
           translationKey: page.translationKey,
           hotkey: page.hotkey,
+          prefetch: page.prefetch,
         })),
     },
     {
@@ -53,6 +55,7 @@ export function buildNavigationCategories({
           key: page.key,
           translationKey: page.translationKey,
           hotkey: page.hotkey,
+          prefetch: page.prefetch,
         })),
     },
     {
@@ -64,6 +67,7 @@ export function buildNavigationCategories({
           key: page.key,
           translationKey: page.translationKey,
           hotkey: page.hotkey,
+          prefetch: page.prefetch,
         })),
     },
   ];

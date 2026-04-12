@@ -37,6 +37,7 @@ export type AppPageDefinition = {
   visibility: Visibility;
   navigationCategory?: NavigationCategoryKey;
   hotkey: AppHotkey;
+  prefetch?: boolean;
 };
 
 export const appPageDefinitions: readonly AppPageDefinition[] = [
@@ -79,6 +80,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'discover',
     hotkey: ['alt', 'v'],
+    prefetch: false,
   },
   {
     key: 'reportProblem',
@@ -95,6 +97,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'discover',
     hotkey: ['alt', 's'],
+    prefetch: false,
   },
   {
     key: 'communication',
@@ -103,6 +106,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'discover',
     hotkey: ['alt', 'c'],
+    prefetch: false,
   },
   {
     key: 'people',
@@ -127,6 +131,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'workspace',
     hotkey: ['alt', 'f'],
+    prefetch: false,
   },
   {
     key: 'table',
@@ -143,6 +148,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'workspace',
     hotkey: ['alt', 'u'],
+    prefetch: false,
   },
   {
     key: 'dataEntry',

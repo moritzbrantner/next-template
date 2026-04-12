@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from '@/i18n/navigation';
+import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
 import { getUserBlogUseCase } from '@/src/domain/blog/use-cases';
 import { resolveLocale } from '@/src/server/page-guards';
@@ -56,13 +56,13 @@ export default async function PublicUserBlogPage({
               </div>
             </div>
 
-            <Link
+            <LocalizedLink
               href={`/profile/${blog.userId}`}
               locale={locale}
               className={buttonVariants({ variant: 'outline' })}
             >
               {t('publicPage.backToProfile')}
-            </Link>
+            </LocalizedLink>
           </div>
         </CardContent>
       </Card>

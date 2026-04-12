@@ -40,7 +40,7 @@ export function ConsentBanner() {
   }
 
   return (
-    <section className="rounded-[1.5rem] border border-zinc-200 bg-white/90 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/90">
+    <section className="fixed inset-x-4 bottom-4 z-40 mx-auto max-w-3xl rounded-[1.5rem] border border-zinc-200 bg-white/95 p-4 shadow-[0_24px_80px_-32px_rgba(0,0,0,0.45)] backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="font-semibold">Privacy controls</p>

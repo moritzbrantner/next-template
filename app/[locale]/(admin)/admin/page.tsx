@@ -1,6 +1,6 @@
-import { Link } from '@/i18n/navigation';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LocalizedLink } from '@/i18n/server-link';
 import { adminWorkspacePageDefinitions } from '@/src/admin/pages';
 import { createTranslator } from '@/src/i18n/messages';
 import { resolveLocale } from '@/src/server/page-guards';
@@ -24,9 +24,9 @@ export default async function AdminPage({
               <CardDescription>{t(`${page.key}.description`)}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Link href={page.href} locale={locale} className="inline-block text-sm font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
+              <LocalizedLink href={page.href} locale={locale} className="inline-block text-sm font-semibold text-emerald-600 hover:underline dark:text-emerald-400">
                 {t('overview.openWorkspace')}
-              </Link>
+              </LocalizedLink>
             </CardContent>
           </Card>
         ))}

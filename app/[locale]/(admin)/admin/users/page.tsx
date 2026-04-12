@@ -1,10 +1,10 @@
-import { Link } from '@/i18n/navigation';
 import { AdminNotificationComposer } from '@/components/admin/admin-notification-composer';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { LocalizedLink } from '@/i18n/server-link';
 import { getAdminUsersPageDataUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { resolveLocale } from '@/src/server/page-guards';
@@ -76,9 +76,9 @@ export default async function UsersPage({
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end">
-                        <Link href={`/admin/users/${user.id}`} locale={locale} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+                        <LocalizedLink href={`/admin/users/${user.id}`} locale={locale} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
                           {t('users.actions.inspect')}
-                        </Link>
+                        </LocalizedLink>
                       </div>
                     </TableCell>
                   </TableRow>

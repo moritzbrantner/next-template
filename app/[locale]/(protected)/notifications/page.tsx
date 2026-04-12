@@ -1,8 +1,8 @@
-import { Link } from '@/i18n/navigation';
 import { MarkAllReadButton } from '@/components/notifications/mark-all-read-button';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LocalizedLink } from '@/i18n/server-link';
 import { getNotificationsPageDataUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { requireAuth, resolveLocale } from '@/src/server/page-guards';
@@ -86,9 +86,9 @@ export default async function NotificationsPage({
 
               if (item.href) {
                 return (
-                  <Link key={item.id} href={item.href} className="block rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/70 dark:hover:border-zinc-700 dark:hover:bg-zinc-900">
+                  <LocalizedLink key={item.id} href={item.href} locale={locale} className="block rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/70 dark:hover:border-zinc-700 dark:hover:bg-zinc-900">
                     {content}
-                  </Link>
+                  </LocalizedLink>
                 );
               }
 
@@ -112,8 +112,8 @@ export default async function NotificationsPage({
               <CardDescription>{t('actions.description')}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-3">
-              <Link href="/profile" className={buttonVariants({ variant: 'default' })}>{t('actions.profile')}</Link>
-              <Link href="/settings" className={buttonVariants({ variant: 'outline' })}>{t('actions.settings')}</Link>
+              <LocalizedLink href="/profile" locale={locale} className={buttonVariants({ variant: 'default' })}>{t('actions.profile')}</LocalizedLink>
+              <LocalizedLink href="/settings" locale={locale} className={buttonVariants({ variant: 'outline' })}>{t('actions.settings')}</LocalizedLink>
             </CardContent>
           </Card>
 

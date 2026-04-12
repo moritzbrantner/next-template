@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { Link } from '@/i18n/navigation';
+import { LocalizedLink } from '@/i18n/server-link';
 import { listChangelogEntries } from '@/src/content/index';
 import { resolveLocale } from '@/src/server/page-guards';
 
@@ -41,7 +41,7 @@ export default async function ChangelogIndexPage({
           <article key={entry.id} className="rounded-[1.75rem] border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
             <p className="text-sm text-zinc-500">{new Date(entry.publishedAt).toLocaleDateString(locale)}</p>
             <h2 className="mt-2 text-2xl font-semibold">
-              <Link href={`/changelog/${entry.slug}`}>{entry.title}</Link>
+              <LocalizedLink href={`/changelog/${entry.slug}`} locale={locale}>{entry.title}</LocalizedLink>
             </h2>
             <p className="mt-2 text-zinc-600 dark:text-zinc-300">{entry.description}</p>
           </article>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { Link } from '@/i18n/navigation';
+import { LocalizedLink } from '@/i18n/server-link';
 import { listBlogPosts } from '@/src/content/index';
 import { resolveLocale } from '@/src/server/page-guards';
 import { getPublicSiteConfig } from '@/src/site-config/service';
@@ -47,7 +47,7 @@ export default async function BlogIndexPage({
           <article key={post.id} className="rounded-[1.75rem] border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
             <p className="text-sm text-zinc-500">{new Date(post.publishedAt).toLocaleDateString(locale)}</p>
             <h2 className="mt-2 text-2xl font-semibold">
-              <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+              <LocalizedLink href={`/blog/${post.slug}`} locale={locale}>{post.title}</LocalizedLink>
             </h2>
             <p className="mt-2 text-zinc-600 dark:text-zinc-300">{post.description}</p>
           </article>

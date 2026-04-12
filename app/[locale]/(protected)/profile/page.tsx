@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { buttonVariants } from '@/components/ui/button';
 import { ProfileDisplayNameForm } from '@/components/profile-display-name-form';
 import { ProfileImageForm } from '@/components/profile-image-form';
-import { Link } from '@/i18n/navigation';
+import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
 import { requireAuth, resolveLocale } from '@/src/server/page-guards';
 
@@ -63,20 +63,20 @@ export default async function ProfilePage({
           </div>
 
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link
+            <LocalizedLink
               href="/profile/blog"
               locale={locale}
               className={buttonVariants({ variant: 'default' })}
             >
               {blogT('editor.openComposer')}
-            </Link>
-            <Link
+            </LocalizedLink>
+            <LocalizedLink
               href={`/profile/${session.user.id}/blog`}
               locale={locale}
               className={buttonVariants({ variant: 'outline' })}
             >
               {blogT('editor.viewPublicBlog')}
-            </Link>
+            </LocalizedLink>
           </div>
         </div>
       </CardContent>

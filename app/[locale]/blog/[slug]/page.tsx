@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { Link } from '@/i18n/navigation';
+import { LocalizedLink } from '@/i18n/server-link';
 import { routing } from '@/i18n/routing';
 import { getAdjacentEntries, getContentEntry, listBlogPosts, renderContentEntry } from '@/src/content/index';
 import { resolveLocale } from '@/src/server/page-guards';
@@ -65,9 +65,9 @@ export default async function BlogDetailPage({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <Link href="/blog" className="text-sm font-medium text-zinc-500">
+        <LocalizedLink href="/blog" locale={locale} className="text-sm font-medium text-zinc-500">
           Back to blog
-        </Link>
+        </LocalizedLink>
         <p className="text-sm text-zinc-500">{new Date(entry.publishedAt).toLocaleDateString(locale)}</p>
         <h1 className="text-4xl font-semibold tracking-tight">{entry.title}</h1>
         <p className="max-w-3xl text-zinc-600 dark:text-zinc-300">{entry.description}</p>
@@ -80,11 +80,11 @@ export default async function BlogDetailPage({
       <footer className="grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl border p-4 dark:border-zinc-800">
           <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">Previous</p>
-          {adjacent.previous ? <Link href={`/blog/${adjacent.previous.slug}`}>{adjacent.previous.title}</Link> : <p className="text-sm text-zinc-500">No older post.</p>}
+          {adjacent.previous ? <LocalizedLink href={`/blog/${adjacent.previous.slug}`} locale={locale}>{adjacent.previous.title}</LocalizedLink> : <p className="text-sm text-zinc-500">No older post.</p>}
         </div>
         <div className="rounded-2xl border p-4 dark:border-zinc-800">
           <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">Next</p>
-          {adjacent.next ? <Link href={`/blog/${adjacent.next.slug}`}>{adjacent.next.title}</Link> : <p className="text-sm text-zinc-500">No newer post.</p>}
+          {adjacent.next ? <LocalizedLink href={`/blog/${adjacent.next.slug}`} locale={locale}>{adjacent.next.title}</LocalizedLink> : <p className="text-sm text-zinc-500">No newer post.</p>}
         </div>
       </footer>
     </article>

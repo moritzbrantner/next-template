@@ -35,6 +35,7 @@ export function NavigationBar({ locale, session, notificationCenter, siteName }:
       href: link.href,
       label: t(link.translationKey),
       hotkey: formatAppHotkey(link.hotkey),
+      prefetch: link.prefetch,
     })),
   }));
 

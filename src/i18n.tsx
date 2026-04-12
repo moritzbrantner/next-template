@@ -2,7 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from 'react';
 
-import { type Messages, getMessages } from '@/src/i18n/messages';
+import { type Messages } from '@/src/i18n/messages';
 import { type AppLocale } from '@/i18n/routing';
 
 type I18nContextValue = {
@@ -15,11 +15,13 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 export function I18nProvider({
   children,
   locale,
+  messages,
 }: {
   children: ReactNode;
   locale: AppLocale;
+  messages: Messages;
 }) {
-  return <I18nContext.Provider value={{ locale, messages: getMessages(locale) }}>{children}</I18nContext.Provider>;
+  return <I18nContext.Provider value={{ locale, messages }}>{children}</I18nContext.Provider>;
 }
 
 export function useLocale() {

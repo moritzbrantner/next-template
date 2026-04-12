@@ -1,12 +1,12 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
-import { Link } from '@/i18n/navigation';
 import { AdminNotificationComposer } from '@/components/admin/admin-notification-composer';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LocalizedLink } from '@/i18n/server-link';
 import { getAdminUserDetailUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { resolveLocale } from '@/src/server/page-guards';
@@ -27,9 +27,9 @@ export default async function AdminUserDetailPage({
 
   return (
     <AdminPageShell title={t('users.detail.title')} description={t('users.detail.description', { name: user.displayName })}>
-      <Link href="/admin/users" locale={locale} className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'w-fit' })}>
+      <LocalizedLink href="/admin/users" locale={locale} className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'w-fit' })}>
         {t('users.detail.back')}
-      </Link>
+      </LocalizedLink>
 
       <div className="grid gap-4 md:grid-cols-4">
         <SummaryCard label={t('users.detail.summary.role')} value={user.role} />

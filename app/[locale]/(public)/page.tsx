@@ -1,5 +1,5 @@
-import { Link } from '@/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
+import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
 import { resolveLocale } from '@/src/server/page-guards';
 
@@ -26,18 +26,18 @@ export default async function HomePage({
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href="/examples/forms" className={buttonVariants({ variant: 'default' })}>
+          <LocalizedLink href="/examples/forms" locale={locale} prefetch={false} className={buttonVariants({ variant: 'default' })}>
             {t('visitForm')}
-          </Link>
-          <Link href="/examples/story" className={buttonVariants({ variant: 'ghost' })}>
+          </LocalizedLink>
+          <LocalizedLink href="/examples/story" locale={locale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
             {t('visitStory')}
-          </Link>
-          <Link href="/examples/communication" className={buttonVariants({ variant: 'ghost' })}>
+          </LocalizedLink>
+          <LocalizedLink href="/examples/communication" locale={locale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
             {t('visitCommunication')}
-          </Link>
-          <Link href="/examples/uploads" className={buttonVariants({ variant: 'ghost' })}>
+          </LocalizedLink>
+          <LocalizedLink href="/examples/uploads" locale={locale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
             {t('visitUploads')}
-          </Link>
+          </LocalizedLink>
         </div>
       </div>
 

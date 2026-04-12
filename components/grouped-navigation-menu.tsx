@@ -14,6 +14,7 @@ type GroupedNavigationMenuProps = {
       href: string;
       label: string;
       hotkey: string;
+      prefetch?: boolean;
     }>;
   }>;
 };
@@ -142,6 +143,7 @@ export function GroupedNavigationMenu({ categories }: GroupedNavigationMenuProps
                 <li key={link.href}>
                   <Link
                     href={link.href}
+                    prefetch={link.prefetch}
                     aria-current={isCurrentPage ? 'page' : undefined}
                     className={[
                       'flex min-h-16 items-center rounded-2xl px-4 py-3 text-sm font-medium transition-colors',

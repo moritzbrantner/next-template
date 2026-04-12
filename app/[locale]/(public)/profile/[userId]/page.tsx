@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { ProfileFollowPanel } from '@/components/profile-follow-panel';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from '@/i18n/navigation';
+import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
 import { getProfileViewUseCase } from '@/src/domain/profile/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
@@ -62,13 +62,13 @@ export default async function PublicProfilePage({
             <CardDescription>{blogT('profileCard.description', { name: profile.displayName })}</CardDescription>
           </div>
 
-          <Link
+          <LocalizedLink
             href={`/profile/${profile.userId}/blog`}
             locale={locale}
             className={buttonVariants({ variant: 'default' })}
           >
             {blogT('profileCard.open')}
-          </Link>
+          </LocalizedLink>
         </CardHeader>
 
         <CardContent>
