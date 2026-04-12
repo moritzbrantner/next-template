@@ -43,6 +43,13 @@ jobs:
           GITHUB_PAGES_BASE_PATH: /${{ github.event.repository.name }}
         run: pnpm run build:gh-pages
 
+      - name: Verify Unlighthouse summary output
+        run: |
+          set -euo pipefail
+          test -f .generated/unlighthouse/ci-result.json
+          test -f out/en/unlighthouse/index.html
+          test -f out/de/unlighthouse/index.html
+
       - name: Prepare GitHub Pages artifact
         run: |
           set -euo pipefail

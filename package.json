@@ -9,7 +9,7 @@
     "dev:app": "next dev",
     "build": "next build",
     "build:gh-pages": "node scripts/build-gh-pages.mjs",
-    "build:staging": "node scripts/build-staging.mjs",
+    "build:staging": "pnpm run build:gh-pages",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

@@ -64,15 +64,15 @@ pnpm run checks:main
 - `checks:beta`: nightly checks plus integration tests
 - `checks:main`: beta checks plus database check, production build, and e2e setup/tests
 
-## Staging build with Unlighthouse
+## GitHub Pages build with Unlighthouse
 
 ```bash
-pnpm run build:staging
+pnpm run build:gh-pages
 ```
 
-This builds the app with `NEXT_DEPLOY_TARGET=staging`, starts the built server locally on `127.0.0.1:3100`, runs `unlighthouse-ci`, and writes the JSON report to `.generated/unlighthouse/ci-result.json`.
+This GitHub Pages build now runs in two passes. It first exports the static site with `NEXT_DEPLOY_TARGET=gh-pages`, serves that export locally, runs `unlighthouse-ci` against the exported files, writes `.generated/unlighthouse/ci-result.json`, and then exports the site again so `/en/unlighthouse` and `/de/unlighthouse` are baked into the final static artifact.
 
-The localized report summary page reads that generated file at `/en/unlighthouse` and `/de/unlighthouse`. The generated report directory is ignored by git.
+The GitHub Actions Pages workflow uses this build path, so the published Pages site includes a static Unlighthouse summary page. `pnpm run build:staging` is now an alias to the same flow. The generated report directory is ignored by git.
 
 ## Seeded users
 

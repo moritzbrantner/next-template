@@ -1,9 +1,9 @@
 export const unlighthousePage = {
   eyebrow: 'Qualitaets-Snapshot fuer Staging',
   title: 'Unlighthouse-Bericht',
-  description: 'Diese Seite fasst die neueste `ci-result.json` aus dem Staging-Build zusammen.',
+  description: 'Diese Seite fasst die neueste `ci-result.json` aus dem GitHub-Pages-Build zusammen.',
   emptyTitle: 'Noch kein Bericht vorhanden',
-  emptyDescription: 'Fuehre `pnpm run build:staging` aus, um `.generated/unlighthouse/ci-result.json` zu erzeugen.',
+  emptyDescription: 'Fuehre `pnpm run build:gh-pages` aus oder starte den GitHub-Pages-Workflow, um `.generated/unlighthouse/ci-result.json` zu erzeugen.',
   summary: {
     routes: 'Gepruefte Routen',
     score: 'Durchschnittlicher Score',

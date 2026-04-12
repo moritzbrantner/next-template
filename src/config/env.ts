@@ -20,7 +20,7 @@ const booleanStringSchema = z
 
 const rawEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  NEXT_DEPLOY_TARGET: z.enum(['gh-pages', 'staging']).optional(),
+  NEXT_DEPLOY_TARGET: z.enum(['gh-pages']).optional(),
   GITHUB_PAGES_BASE_PATH: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   AUTH_SECRET: z.string().optional(),
@@ -46,7 +46,7 @@ export type AppEnv = {
   nodeEnv: 'development' | 'test' | 'production';
   isProduction: boolean;
   isTest: boolean;
-  deploymentTarget: 'default' | 'gh-pages' | 'staging';
+  deploymentTarget: 'default' | 'gh-pages';
   githubPagesBasePath?: string;
   database: {
     url: string | null;
@@ -105,12 +105,7 @@ export function getEnv(): AppEnv {
   }
 
   const raw = rawEnvSchema.parse(process.env);
-  const deploymentTarget =
-    raw.NEXT_DEPLOY_TARGET === 'gh-pages'
-      ? 'gh-pages'
-      : raw.NEXT_DEPLOY_TARGET === 'staging'
-        ? 'staging'
-        : 'default';
+  const deploymentTarget = raw.NEXT_DEPLOY_TARGET === 'gh-pages' ? 'gh-pages' : 'default';
   const databaseUrl = trimOptional(raw.DATABASE_URL);
 
   if (deploymentTarget !== 'gh-pages' && !databaseUrl) {

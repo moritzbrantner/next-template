@@ -46,12 +46,4 @@ describe('env parsing', () => {
 
     expect(getEnv().auth.secret).toBe('local-build-secret-local-build-secret');
   });
-
-  it('parses staging as a distinct deployment target', () => {
-    process.env.DATABASE_URL = 'postgres://example.com/app';
-    process.env.AUTH_SECRET = 'test-secret';
-    process.env.NEXT_DEPLOY_TARGET = 'staging';
-
-    expect(getEnv().deploymentTarget).toBe('staging');
-  });
 });
