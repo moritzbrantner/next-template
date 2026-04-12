@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { appPageDefinitions, getVisibleAppPages } from '@/src/navigation/app-routes';
+import {
+  appPageDefinitions,
+  getVisibleAppPages,
+  type AppPageKey,
+} from '@/src/navigation/app-routes';
+
+type VisibilityCase = {
+  label: string;
+  input: {
+    isAuthenticated: boolean;
+    role: 'USER' | 'MANAGER' | 'ADMIN' | null;
+  };
+  visibleKeys: readonly AppPageKey[];
+  hiddenKeys: readonly AppPageKey[];
+};
 
 describe('app routes', () => {
   it('assigns a unique hotkey to every route', () => {
@@ -47,7 +61,9 @@ describe('app routes', () => {
       visibleKeys: ['people', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
       hiddenKeys: ['login', 'register'],
     },
-  ])('exposes the right hotkey destinations for $label', ({ input, visibleKeys, hiddenKeys }) => {
+  ] satisfies readonly VisibilityCase[])(
+    'exposes the right hotkey destinations for $label',
+    ({ input, visibleKeys, hiddenKeys }) => {
     const visiblePageKeys = new Set(getVisibleAppPages(input).map((page) => page.key));
 
     for (const key of visibleKeys) {
@@ -57,5 +73,6 @@ describe('app routes', () => {
     for (const key of hiddenKeys) {
       expect(visiblePageKeys.has(key)).toBe(false);
     }
-  });
+    },
+  );
 });
