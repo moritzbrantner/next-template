@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import { Link, useRouter } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
@@ -45,9 +45,9 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const {
+    control,
     register,
     handleSubmit,
-    watch,
     setError,
     formState: { errors },
   } = useForm<RegisterFormValues>({
@@ -59,7 +59,10 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
     },
   });
 
-  const password = watch('password');
+  const password = useWatch({
+    control,
+    name: 'password',
+  });
 
   const onSubmit = handleSubmit(async (values) => {
     setPending(true);

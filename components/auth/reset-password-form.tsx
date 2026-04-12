@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
@@ -39,9 +39,9 @@ export function ResetPasswordForm({ locale, token, labels }: ResetPasswordFormPr
   const [pending, setPending] = useState(false);
   const [success, setSuccess] = useState(false);
   const {
+    control,
     register,
     handleSubmit,
-    watch,
     setError,
     formState: { errors },
   } = useForm<ResetPasswordFormValues>({
@@ -51,7 +51,10 @@ export function ResetPasswordForm({ locale, token, labels }: ResetPasswordFormPr
     },
   });
 
-  const password = watch('password');
+  const password = useWatch({
+    control,
+    name: 'password',
+  });
 
   const onSubmit = handleSubmit(async (values) => {
     setPending(true);
