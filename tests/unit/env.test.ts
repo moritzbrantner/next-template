@@ -39,8 +39,10 @@ describe('env parsing', () => {
   it('allows production gh-pages builds without an auth secret', () => {
     delete process.env.DATABASE_URL;
     delete process.env.AUTH_SECRET;
-    process.env.NODE_ENV = 'production';
-    process.env.NEXT_DEPLOY_TARGET = 'gh-pages';
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      NEXT_DEPLOY_TARGET: 'gh-pages',
+    });
 
     expect(getEnv().auth.secret).toBe('local-build-secret-local-build-secret');
   });
