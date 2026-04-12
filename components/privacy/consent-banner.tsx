@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 
 import { CONSENT_COOKIE_NAME, defaultConsentState, type ConsentState } from '@/src/privacy/contracts';
+
+const CONSENT_CHANGE_EVENT = 'consentchange';
 
 async function saveConsent(state: ConsentState) {
   await fetch('/api/privacy/consent', {
@@ -12,21 +14,28 @@ async function saveConsent(state: ConsentState) {
     },
     body: JSON.stringify(state),
   });
+
+  window.dispatchEvent(new Event(CONSENT_CHANGE_EVENT));
 }
 
 function hasStoredConsent() {
   return document.cookie.split('; ').some((cookie) => cookie.startsWith(`${CONSENT_COOKIE_NAME}=`));
 }
 
+function subscribeToConsent(onStoreChange: () => void) {
+  window.addEventListener(CONSENT_CHANGE_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener(CONSENT_CHANGE_EVENT, onStoreChange);
+  };
+}
+
 export function ConsentBanner() {
-  const [isVisible, setIsVisible] = useState(false);
+  const hasConsent = useSyncExternalStore(subscribeToConsent, hasStoredConsent, () => true);
+  const [isDismissed, setIsDismissed] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    setIsVisible(!hasStoredConsent());
-  }, []);
-
-  if (!isVisible) {
+  if (hasConsent || isDismissed) {
     return null;
   }
 
@@ -49,7 +58,7 @@ export function ConsentBanner() {
               setIsSaving(true);
               await saveConsent({ necessary: true, analytics: false, marketing: false });
               setIsSaving(false);
-              setIsVisible(false);
+              setIsDismissed(true);
             }}
           >
             Necessary only
@@ -62,7 +71,7 @@ export function ConsentBanner() {
               setIsSaving(true);
               await saveConsent({ ...defaultConsentState, necessary: true, analytics: true, marketing: true });
               setIsSaving(false);
-              setIsVisible(false);
+              setIsDismissed(true);
             }}
           >
             Accept all
