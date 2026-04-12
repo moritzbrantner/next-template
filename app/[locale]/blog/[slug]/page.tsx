@@ -2,8 +2,22 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { Link } from '@/i18n/navigation';
-import { getAdjacentEntries, getContentEntry, renderContentEntry } from '@/src/content/index';
+import { routing } from '@/i18n/routing';
+import { getAdjacentEntries, getContentEntry, listBlogPosts, renderContentEntry } from '@/src/content/index';
 import { resolveLocale } from '@/src/server/page-guards';
+
+export async function generateStaticParams() {
+  const entries = await Promise.all(
+    routing.locales.map(async (locale) => (
+      await listBlogPosts(locale)
+    ).map((entry) => ({
+      locale,
+      slug: entry.slug,
+    }))),
+  );
+
+  return entries.flat();
+}
 
 export async function generateMetadata({
   params,

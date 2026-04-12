@@ -4,6 +4,8 @@ import { routing } from '@/i18n/routing';
 import { listBlogPosts, listChangelogEntries } from '@/src/content/index';
 import { getPublicSiteConfig } from '@/src/site-config/service';
 
+export const dynamic = 'force-static';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteConfig = await getPublicSiteConfig();
   const staticRoutes = ['', '/about', '/blog', '/changelog'];

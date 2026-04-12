@@ -113,7 +113,9 @@ export function getEnv(): AppEnv {
   }
 
   const siteUrl = deriveSiteUrl(raw);
-  const authSecret = trimOptional(raw.AUTH_SECRET) ?? (raw.NODE_ENV === 'production' ? undefined : LOCAL_AUTH_SECRET);
+  const authSecret =
+    trimOptional(raw.AUTH_SECRET) ??
+    (raw.NODE_ENV === 'production' && deploymentTarget !== 'gh-pages' ? undefined : LOCAL_AUTH_SECRET);
 
   if (!authSecret) {
     throw new Error('Invalid environment configuration: AUTH_SECRET is required in production.');

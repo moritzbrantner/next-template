@@ -1,5 +1,7 @@
 import { cookies } from 'next/headers';
 
+import { isGithubPagesBuild } from '@/src/runtime/build-target';
+
 export const CONSENT_COOKIE_NAME = 'site-consent';
 export const REDACTED_QUERY_VALUE = '[REDACTED]';
 export const TRACKED_QUERY_ALLOWLIST = new Set(['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'ref']);
@@ -40,6 +42,13 @@ export function parseConsentCookie(value?: string | null): ConsentState {
 }
 
 export async function getConsentState() {
+  if (isGithubPagesBuild) {
+    return {
+      hasExplicitChoice: false,
+      state: defaultConsentState,
+    };
+  }
+
   const cookieStore = await cookies();
   const cookie = cookieStore.get(CONSENT_COOKIE_NAME);
 
