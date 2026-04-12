@@ -7,6 +7,7 @@ import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { readProblemDetail } from '@/src/http/problem-client';
 
 type ForgotPasswordFormValues = {
   email: string;
@@ -57,10 +58,22 @@ export function ForgotPasswordForm({ locale, labels }: ForgotPasswordFormProps) 
     });
 
     if (!response.ok) {
-      setError('root', {
-        type: 'server',
-        message: labels.genericError,
-      });
+      const problem = await readProblemDetail(response, labels.genericError);
+
+      if (problem.fieldErrors.email?.[0]) {
+        setError('email', {
+          type: 'server',
+          message: problem.fieldErrors.email[0],
+        });
+      }
+
+      if (problem.formMessage || Object.keys(problem.fieldErrors).length === 0) {
+        setError('root', {
+          type: 'server',
+          message: problem.formMessage ?? problem.message,
+        });
+      }
+
       setPending(false);
       return;
     }

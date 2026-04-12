@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
+import { readProblemDetail } from '@/src/http/problem-client';
 
 type ProfileFollowPanelProps = {
   locale: AppLocale;
@@ -58,10 +59,9 @@ export function ProfileFollowPanel({
         body: JSON.stringify({ userId: profileUserId }),
       });
 
-      const body = (await response.json().catch(() => null)) as { error?: string } | null;
-
       if (!response.ok) {
-        setError(body?.error ?? labels.error);
+        const problem = await readProblemDetail(response, labels.error);
+        setError(problem.message);
         return;
       }
 

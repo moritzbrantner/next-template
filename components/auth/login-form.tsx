@@ -8,6 +8,7 @@ import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { readProblemDetail } from '@/src/http/problem-client';
 
 type LoginFormValues = {
   email: string;
@@ -60,10 +61,29 @@ export function LoginForm({ locale, labels }: LoginFormProps) {
     });
 
     if (!response.ok) {
-      setError('root', {
-        type: 'server',
-        message: labels.invalidCredentials,
-      });
+      const problem = await readProblemDetail(response, labels.invalidCredentials);
+
+      if (problem.fieldErrors.email?.[0]) {
+        setError('email', {
+          type: 'server',
+          message: problem.fieldErrors.email[0],
+        });
+      }
+
+      if (problem.fieldErrors.password?.[0]) {
+        setError('password', {
+          type: 'server',
+          message: problem.fieldErrors.password[0],
+        });
+      }
+
+      if (problem.formMessage || Object.keys(problem.fieldErrors).length === 0) {
+        setError('root', {
+          type: 'server',
+          message: problem.formMessage ?? problem.message,
+        });
+      }
+
       setPending(false);
       return;
     }

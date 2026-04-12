@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { readProblemDetail } from '@/src/http/problem-client';
 import type { TablePermissionView } from '@/src/domain/data-entry/use-cases';
 
 type DataEntryLabels = {
@@ -43,13 +44,15 @@ export function TableEntryForm({ table, labels }: TableEntryFormProps) {
       method: 'POST',
       body: new FormData(event.currentTarget),
     });
-    const body = (await response.json().catch(() => null)) as { error?: string; success?: string } | null;
 
     if (!response.ok) {
-      setState({ error: body?.error ?? 'Unable to insert row. Check values and constraints.' });
+      const problem = await readProblemDetail(response, 'Unable to insert row. Check values and constraints.');
+      setState({ error: problem.message });
       setPending(false);
       return;
     }
+
+    const body = (await response.json().catch(() => null)) as { success?: string } | null;
 
     setState({ success: body?.success ?? 'Row created.' });
     setPending(false);

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
 
 type SubmissionState =
@@ -36,11 +37,21 @@ export function ReportProblemForm() {
       method: 'POST',
       body: new FormData(form),
     });
-    const body = (await response.json().catch(() => null)) as { error?: string; referenceId?: string } | null;
 
-    if (!response.ok || !body?.referenceId) {
+    if (!response.ok) {
+      const problem = await readProblemDetail(response, t('errors.generic'));
       setSubmissionState({
-        error: body?.error ?? t('errors.generic'),
+        error: problem.message,
+      });
+      setPending(false);
+      return;
+    }
+
+    const body = (await response.json().catch(() => null)) as { referenceId?: string } | null;
+
+    if (!body?.referenceId) {
+      setSubmissionState({
+        error: t('errors.generic'),
       });
       setPending(false);
       return;

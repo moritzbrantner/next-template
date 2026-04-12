@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 
+import { readProblemDetail } from '@/src/http/problem-client';
 import type { DbSchemaTable } from '@/src/dynamic-db/schema';
 
 type SchemaTableFormProps = {
@@ -33,13 +34,15 @@ export function SchemaTableForm({ table }: SchemaTableFormProps) {
       method: 'POST',
       body: new FormData(event.currentTarget),
     });
-    const body = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
 
     if (!response.ok) {
-      setState({ ok: false, message: body?.message ?? 'Unable to save record.' });
+      const problem = await readProblemDetail(response, 'Unable to save record.');
+      setState({ ok: false, message: problem.message });
       setIsPending(false);
       return;
     }
+
+    const body = (await response.json().catch(() => null)) as { ok?: boolean; message?: string } | null;
 
     setState({ ok: body?.ok ?? true, message: body?.message ?? `${table.label} record created successfully.` });
     setIsPending(false);

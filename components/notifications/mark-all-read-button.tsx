@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
+import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
 
 type MarkAllReadButtonProps = {
@@ -23,10 +24,10 @@ export function MarkAllReadButton({ disabled = false }: MarkAllReadButtonProps) 
     const response = await fetch('/api/notifications/read', {
       method: 'POST',
     });
-    const body = (await response.json().catch(() => null)) as { error?: string } | null;
 
     if (!response.ok) {
-      setError(body?.error ?? t('actions.markAllReadError'));
+      const problem = await readProblemDetail(response, t('actions.markAllReadError'));
+      setError(problem.message);
       setPending(false);
       return;
     }

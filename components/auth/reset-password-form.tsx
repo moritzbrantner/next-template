@@ -8,6 +8,7 @@ import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { readProblemDetail } from '@/src/http/problem-client';
 
 type ResetPasswordFormValues = {
   password: string;
@@ -67,13 +68,30 @@ export function ResetPasswordForm({ locale, token, labels }: ResetPasswordFormPr
       }),
     });
 
-    const body = (await response.json().catch(() => null)) as { detail?: string; error?: string } | null;
-
     if (!response.ok) {
-      setError('root', {
-        type: 'server',
-        message: body?.detail ?? body?.error ?? labels.genericError,
-      });
+      const problem = await readProblemDetail(response, labels.genericError);
+
+      if (problem.fieldErrors.password?.[0]) {
+        setError('password', {
+          type: 'server',
+          message: problem.fieldErrors.password[0],
+        });
+      }
+
+      if (problem.fieldErrors.confirmPassword?.[0]) {
+        setError('confirmPassword', {
+          type: 'server',
+          message: problem.fieldErrors.confirmPassword[0],
+        });
+      }
+
+      if (problem.formMessage || Object.keys(problem.fieldErrors).length === 0) {
+        setError('root', {
+          type: 'server',
+          message: problem.formMessage ?? problem.message,
+        });
+      }
+
       setPending(false);
       return;
     }

@@ -6,6 +6,7 @@ import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { ProfileImageCropper } from '@/components/profile-image-cropper';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/i18n/navigation';
+import { readProblemDetail } from '@/src/http/problem-client';
 import { imageConstraints } from '@/src/profile/image-validation';
 
 type ProfileImageFormProps = {
@@ -60,10 +61,10 @@ export function ProfileImageForm({ currentImage, labels }: ProfileImageFormProps
       method: 'POST',
       body: formData,
     });
-    const body = (await response.json().catch(() => null)) as { error?: string } | null;
 
     if (!response.ok) {
-      setState({ error: body?.error ?? 'Unable to update profile picture right now. Please try again.' });
+      const problem = await readProblemDetail(response, 'Unable to update profile picture right now. Please try again.');
+      setState({ error: problem.message });
       setPending(false);
       return;
     }
@@ -88,7 +89,8 @@ export function ProfileImageForm({ currentImage, labels }: ProfileImageFormProps
     });
 
     if (!response.ok) {
-      setState({ error: 'Unable to update profile picture right now. Please try again.' });
+      const problem = await readProblemDetail(response, 'Unable to update profile picture right now. Please try again.');
+      setState({ error: problem.message });
       setPending(false);
       return;
     }

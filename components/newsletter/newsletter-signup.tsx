@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { readProblemDetail } from '@/src/http/problem-client';
 
 type NewsletterSignupValues = {
   email: string;
@@ -60,13 +61,23 @@ export function NewsletterSignup({ locale, labels }: NewsletterSignupProps) {
       }),
     });
 
-    const body = (await response.json().catch(() => null)) as { error?: string } | null;
-
     if (!response.ok) {
-      setError('root', {
-        type: 'server',
-        message: body?.error ?? labels.genericError,
-      });
+      const problem = await readProblemDetail(response, labels.genericError);
+
+      if (problem.fieldErrors.email?.[0]) {
+        setError('email', {
+          type: 'server',
+          message: problem.fieldErrors.email[0],
+        });
+      }
+
+      if (problem.formMessage || Object.keys(problem.fieldErrors).length === 0) {
+        setError('root', {
+          type: 'server',
+          message: problem.formMessage ?? problem.message,
+        });
+      }
+
       setPending(false);
       return;
     }

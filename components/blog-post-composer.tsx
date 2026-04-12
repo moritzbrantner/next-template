@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { readProblemDetail } from '@/src/http/problem-client';
 
 type BlogPostComposerProps = {
   labels: {
@@ -39,10 +40,10 @@ export function BlogPostComposer({ labels }: BlogPostComposerProps) {
         method: 'POST',
         body: formData,
       });
-      const body = (await response.json().catch(() => null)) as { error?: string } | null;
 
       if (!response.ok) {
-        setState({ error: body?.error ?? labels.error });
+        const problem = await readProblemDetail(response, labels.error);
+        setState({ error: problem.message });
         setPending(false);
         return;
       }

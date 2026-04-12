@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
+import { readProblemDetail } from '@/src/http/problem-client';
 
 type ProfileDisplayNameFormProps = {
   currentDisplayName: string;
@@ -31,10 +32,10 @@ export function ProfileDisplayNameForm({ currentDisplayName, labels }: ProfileDi
       method: 'POST',
       body: formData,
     });
-    const body = (await response.json().catch(() => null)) as { error?: string } | null;
 
     if (!response.ok) {
-      setState({ error: body?.error ?? 'Unable to update your display name right now. Please try again.' });
+      const problem = await readProblemDetail(response, 'Unable to update your display name right now. Please try again.');
+      setState({ error: problem.message });
       setPending(false);
       return;
     }

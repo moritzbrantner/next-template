@@ -6,6 +6,7 @@ import { useRouter } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { readProblemDetail } from '@/src/http/problem-client';
 
 type AccountEmailFormProps = {
   currentEmail: string;
@@ -37,10 +38,10 @@ export function AccountEmailForm({ currentEmail, labels }: AccountEmailFormProps
       method: 'POST',
       body: formData,
     });
-    const body = (await response.json().catch(() => null)) as { error?: string } | null;
 
     if (!response.ok) {
-      setState({ error: body?.error ?? labels.genericError });
+      const problem = await readProblemDetail(response, labels.genericError);
+      setState({ error: problem.message });
       setPending(false);
       return;
     }

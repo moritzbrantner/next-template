@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
 
 type NotificationAudience = 'user' | 'role' | 'all';
@@ -64,13 +65,15 @@ export function AdminNotificationComposer({
       method: 'POST',
       body: formData,
     });
-    const body = (await response.json().catch(() => null)) as { error?: string; recipientCount?: number } | null;
 
     if (!response.ok) {
-      setState({ error: body?.error ?? t('users.notifications.genericError') });
+      const problem = await readProblemDetail(response, t('users.notifications.genericError'));
+      setState({ error: problem.message });
       setPending(false);
       return;
     }
+
+    const body = (await response.json().catch(() => null)) as { recipientCount?: number } | null;
 
     event.currentTarget.reset();
 
