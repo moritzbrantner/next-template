@@ -22,7 +22,7 @@ test.describe('settings and hotkeys', () => {
     await expect(page.getByText(/\d{4}-\d{2}-\d{2}/)).toBeVisible();
 
     await page.getByRole('tab', { name: 'Workflow' }).click();
-    await page.getByRole('switch').click();
+    await page.getByRole('switch', { name: 'Show hotkey hints' }).click();
     await expect(page.getByRole('button', { name: 'Hotkeys' })).toHaveCount(0);
 
     await page.getByRole('tab', { name: 'Notifications' }).click();
