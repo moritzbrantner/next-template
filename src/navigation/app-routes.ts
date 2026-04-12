@@ -16,6 +16,7 @@ export type AppPageKey =
   | 'story'
   | 'communication'
   | 'notifications'
+  | 'people'
   | 'table'
   | 'uploads'
   | 'dataEntry'
@@ -102,6 +103,14 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'discover',
     hotkey: ['alt', 'c'],
+  },
+  {
+    key: 'people',
+    href: '/people',
+    translationKey: 'links.people',
+    visibility: 'authenticated',
+    navigationCategory: 'discover',
+    hotkey: ['alt', 'j'],
   },
   {
     key: 'notifications',

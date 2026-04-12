@@ -1,4 +1,4 @@
-import { and, count, eq } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, isNull, ne, or } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
 import { userFollows, users } from '@/src/db/schema';
@@ -8,6 +8,7 @@ import { ImageValidationError, validateImageUpload } from '@/src/profile/image-v
 
 const DISPLAY_NAME_MIN_LENGTH = 2;
 const DISPLAY_NAME_MAX_LENGTH = 60;
+const SEARCH_QUERY_MAX_LENGTH = 80;
 
 export type ProfileError = {
   code: 'VALIDATION_ERROR' | 'NOT_FOUND' | 'FORBIDDEN' | 'CONFLICT';
@@ -32,11 +33,22 @@ export type UpdateProfileImagePayload = {
   imageUrl: string;
 };
 
+export type ProfileDirectoryEntry = {
+  userId: string;
+  displayName: string;
+  imageUrl: string | null;
+};
+
+export type ProfileSearchVisibilityPayload = {
+  isSearchable: boolean;
+};
+
 type ProfileUserRecord = {
   id: string;
   email: string | null;
   name: string | null;
   image: string | null;
+  isSearchable: boolean;
 };
 
 export type ProfileUseCaseDeps = {
@@ -45,6 +57,9 @@ export type ProfileUseCaseDeps = {
   hasFollowRelationship: (followerId: string, followingId: string) => Promise<boolean>;
   createFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
   deleteFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
+  listFollowingUsers: (followerId: string) => Promise<ProfileUserRecord[]>;
+  searchUsersToFollow: (viewerUserId: string, query: string) => Promise<ProfileUserRecord[]>;
+  updateUserSearchVisibility: (userId: string, isSearchable: boolean) => Promise<void>;
 };
 
 function getProfileUseCaseDeps(): ProfileUseCaseDeps {
@@ -83,6 +98,55 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .delete(userFollows)
         .where(and(eq(userFollows.followerId, followerId), eq(userFollows.followingId, followingId)));
     },
+    listFollowingUsers: async (followerId) => {
+      const rows = await getDb()
+        .select({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          image: users.image,
+          isSearchable: users.isSearchable,
+        })
+        .from(userFollows)
+        .innerJoin(users, eq(userFollows.followingId, users.id))
+        .where(eq(userFollows.followerId, followerId))
+        .orderBy(asc(users.name), asc(users.email));
+
+      return rows;
+    },
+    searchUsersToFollow: async (viewerUserId, query) => {
+      const rows = await getDb()
+        .select({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          image: users.image,
+          isSearchable: users.isSearchable,
+        })
+        .from(users)
+        .leftJoin(
+          userFollows,
+          and(eq(userFollows.followingId, users.id), eq(userFollows.followerId, viewerUserId)),
+        )
+        .where(
+          and(
+            eq(users.isSearchable, true),
+            ne(users.id, viewerUserId),
+            isNull(userFollows.followingId),
+            or(ilike(users.name, `%${query}%`), ilike(users.email, `%${query}%`)),
+          ),
+        )
+        .orderBy(asc(users.name), asc(users.email))
+        .limit(12);
+
+      return rows;
+    },
+    updateUserSearchVisibility: async (userId, isSearchable) => {
+      await getDb()
+        .update(users)
+        .set({ isSearchable, updatedAt: new Date() })
+        .where(eq(users.id, userId));
+    },
   };
 }
 
@@ -95,6 +159,14 @@ function resolveProfileDisplayName(user: Pick<ProfileUserRecord, 'name' | 'email
 
   const emailPrefix = user.email?.split('@')[0]?.trim();
   return emailPrefix || 'User';
+}
+
+function toProfileDirectoryEntry(user: ProfileUserRecord): ProfileDirectoryEntry {
+  return {
+    userId: user.id,
+    displayName: resolveProfileDisplayName(user),
+    imageUrl: buildProfileImageUrl(user.image) ?? null,
+  };
 }
 
 export async function getProfileViewUseCase(
@@ -172,6 +244,99 @@ export function unfollowUserUseCase(
   deps?: ProfileUseCaseDeps,
 ) {
   return updateFollowRelationship(actorUserId, targetUserId, false, deps);
+}
+
+export async function listFollowingProfilesUseCase(
+  userId: string,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<{ profiles: ProfileDirectoryEntry[] }, ProfileError>> {
+  const user = await deps.findUserById(userId);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const profiles = await deps.listFollowingUsers(userId);
+
+  return success({
+    profiles: profiles.map(toProfileDirectoryEntry),
+  });
+}
+
+export async function searchUsersToFollowUseCase(
+  userId: string,
+  rawQuery: string,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<{ profiles: ProfileDirectoryEntry[] }, ProfileError>> {
+  const user = await deps.findUserById(userId);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const query = rawQuery.trim();
+
+  if (!query) {
+    return success({ profiles: [] });
+  }
+
+  if (query.length > SEARCH_QUERY_MAX_LENGTH) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: `Search must be ${SEARCH_QUERY_MAX_LENGTH} characters or fewer.`,
+    });
+  }
+
+  const profiles = await deps.searchUsersToFollow(userId, query);
+
+  return success({
+    profiles: profiles.map(toProfileDirectoryEntry),
+  });
+}
+
+export async function getProfileSearchVisibilityUseCase(
+  userId: string,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileSearchVisibilityPayload, ProfileError>> {
+  const user = await deps.findUserById(userId);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  return success({
+    isSearchable: user.isSearchable,
+  });
+}
+
+export async function updateProfileSearchVisibilityUseCase(
+  userId: string,
+  isSearchable: boolean,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileSearchVisibilityPayload, ProfileError>> {
+  const user = await deps.findUserById(userId);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  await deps.updateUserSearchVisibility(userId, isSearchable);
+
+  return success({
+    isSearchable,
+  });
 }
 
 export async function updateDisplayNameUseCase(

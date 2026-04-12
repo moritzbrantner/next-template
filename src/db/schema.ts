@@ -1,5 +1,5 @@
 
-import { pgEnum, pgTable, primaryKey, text, timestamp, integer, index, uniqueIndex, jsonb } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, primaryKey, text, timestamp, integer, index, uniqueIndex, jsonb, boolean } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("Role", ["ADMIN", "MANAGER", "USER"]);
 export const notificationStatusEnum = pgEnum("NotificationStatus", ["unread", "read"]);
@@ -16,13 +16,19 @@ export const users = pgTable(
     image: text("image"),
     emailVerified: timestamp("emailVerified", { withTimezone: false, mode: "date" }),
     role: roleEnum("role").notNull().default("USER"),
+    isSearchable: boolean("isSearchable").notNull().default(true),
     passwordHash: text("passwordHash"),
     failedSignInAttempts: integer("failedSignInAttempts").notNull().default(0),
     lockoutUntil: timestamp("lockoutUntil", { withTimezone: false, mode: "date" }),
     createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
   },
-  (table) => [uniqueIndex("User_email_key").on(table.email), index("User_email_idx").on(table.email), index("User_role_idx").on(table.role)],
+  (table) => [
+    uniqueIndex("User_email_key").on(table.email),
+    index("User_email_idx").on(table.email),
+    index("User_role_idx").on(table.role),
+    index("User_isSearchable_idx").on(table.isSearchable),
+  ],
 );
 
 export const profiles = pgTable(

@@ -12,6 +12,7 @@ export const navigationBar = {
     changelog: 'Changelog',
     remocn: 'remocn',
     reportProblem: 'Report a problem',
+    people: 'People',
     forms: 'Form Demo',
     story: 'Story Demo',
     communication: 'Communication',

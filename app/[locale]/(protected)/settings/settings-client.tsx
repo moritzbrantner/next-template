@@ -7,6 +7,7 @@ import { AccountDeleteForm } from '@/components/account-delete-form';
 import { AccountEmailForm } from '@/components/account-email-form';
 import { ConsentSettingsCard } from '@/components/privacy/consent-settings-card';
 import { ProfileImageForm } from '@/components/profile-image-form';
+import { ProfileSearchVisibilityForm } from '@/components/profile-search-visibility-form';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -39,10 +40,12 @@ export function SettingsClient({
   locale,
   session,
   consent,
+  initialSearchVisibility,
 }: {
   locale: string;
   session: AppSession;
   consent: ConsentState;
+  initialSearchVisibility: boolean;
 }) {
   const t = useTranslations('SettingsPage');
   const { settings, updateSettings } = useAppSettings();
@@ -224,6 +227,26 @@ export function SettingsClient({
                   cropCancel: t('form.cropCancel'),
                   cropApply: t('form.cropApply'),
                   ready: t('form.ready'),
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-col gap-2">
+              <CardTitle>{t('profileDiscovery.title')}</CardTitle>
+              <CardDescription>{t('profileDiscovery.description')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProfileSearchVisibilityForm
+                initialIsSearchable={initialSearchVisibility}
+                labels={{
+                  title: t('profileDiscovery.toggleTitle'),
+                  description: t('profileDiscovery.toggleDescription'),
+                  saving: t('profileDiscovery.saving'),
+                  successEnabled: t('profileDiscovery.successEnabled'),
+                  successDisabled: t('profileDiscovery.successDisabled'),
+                  error: t('profileDiscovery.error'),
                 }}
               />
             </CardContent>

@@ -118,6 +118,16 @@ export const settingsPage = {
   },
   profilePictureTitle: 'Profilbild',
   profilePictureDescription: 'Lade ein neues Profilbild hoch oder entferne dein aktuelles Bild.',
+  profileDiscovery: {
+    title: 'Profilsichtbarkeit',
+    description: 'Steuere, ob dein Profil in der Benutzersuche für neue Follower erscheint.',
+    toggleTitle: 'In der Suche anzeigen',
+    toggleDescription: 'Wenn aktiviert, können andere angemeldete Benutzer dein Profil auf der Personen-Seite finden.',
+    saving: 'Suchsichtbarkeit wird gespeichert…',
+    successEnabled: 'Dein Profil kann jetzt in der Suche gefunden werden.',
+    successDisabled: 'Dein Profil wurde aus den Suchergebnissen entfernt.',
+    error: 'Die Suchsichtbarkeit konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+  },
   form: {
     chooseImage: 'Profilbild auswählen',
     hint: 'Verwende für beste Ergebnisse ein quadratisches PNG- oder JPEG-Bild.',

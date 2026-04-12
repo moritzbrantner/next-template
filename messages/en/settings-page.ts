@@ -117,6 +117,16 @@ export const settingsPage = {
   },
   profilePictureTitle: 'Profile picture',
   profilePictureDescription: 'Upload a new profile picture or remove your current one.',
+  profileDiscovery: {
+    title: 'Profile discovery',
+    description: 'Control whether your profile appears in user search for new followers.',
+    toggleTitle: 'Allow profile search',
+    toggleDescription: 'When enabled, other signed-in users can find your profile from the People page.',
+    saving: 'Saving search visibility…',
+    successEnabled: 'Your profile can now be found in search.',
+    successDisabled: 'Your profile has been removed from search results.',
+    error: 'Unable to update search visibility right now. Please try again.',
+  },
   form: {
     chooseImage: 'Choose a profile picture',
     hint: 'Use a square PNG or JPEG image for best results.',

@@ -42,6 +42,7 @@ describe('navigation categories', () => {
           { href: '/report-problem', key: 'reportProblem', translationKey: 'links.reportProblem', hotkey: ['alt', 'b'] },          
           { href: '/examples/story', key: 'story', translationKey: 'links.story', hotkey: ['alt', 's'] },
           { href: '/examples/communication', key: 'communication', translationKey: 'links.communication', hotkey: ['alt', 'c'] },
+          { href: '/people', key: 'people', translationKey: 'links.people', hotkey: ['alt', 'j'] },
         ],
       },
       {
@@ -68,6 +69,7 @@ describe('navigation categories', () => {
           { href: '/report-problem', key: 'reportProblem', translationKey: 'links.reportProblem', hotkey: ['alt', 'b'] },
           { href: '/examples/story', key: 'story', translationKey: 'links.story', hotkey: ['alt', 's'] },
           { href: '/examples/communication', key: 'communication', translationKey: 'links.communication', hotkey: ['alt', 'c'] },
+          { href: '/people', key: 'people', translationKey: 'links.people', hotkey: ['alt', 'j'] },
         ],
       },
       {

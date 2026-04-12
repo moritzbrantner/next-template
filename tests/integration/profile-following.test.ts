@@ -3,7 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   followUserUseCase,
   getProfileViewUseCase,
+  getProfileSearchVisibilityUseCase,
+  listFollowingProfilesUseCase,
+  searchUsersToFollowUseCase,
   unfollowUserUseCase,
+  updateProfileSearchVisibilityUseCase,
   type ProfileUseCaseDeps,
 } from '@/src/domain/profile/use-cases';
 
@@ -14,6 +18,9 @@ function createDeps(overrides: Partial<ProfileUseCaseDeps> = {}): ProfileUseCase
     hasFollowRelationship: vi.fn().mockResolvedValue(false),
     createFollowRelationship: vi.fn().mockResolvedValue(undefined),
     deleteFollowRelationship: vi.fn().mockResolvedValue(undefined),
+    listFollowingUsers: vi.fn().mockResolvedValue([]),
+    searchUsersToFollow: vi.fn().mockResolvedValue([]),
+    updateUserSearchVisibility: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -26,6 +33,7 @@ describe('profile follow use cases', () => {
         email: 'person@example.com',
         name: 'Person',
         image: 'local-profile-images/user_2/avatar.jpg',
+        isSearchable: true,
       }),
       countFollowers: vi.fn().mockResolvedValue(14),
       hasFollowRelationship: vi.fn().mockResolvedValue(true),
@@ -53,6 +61,7 @@ describe('profile follow use cases', () => {
         email: 'person@example.com',
         name: null,
         image: null,
+        isSearchable: true,
       }),
       countFollowers: vi.fn().mockResolvedValue(3),
     });
@@ -80,6 +89,7 @@ describe('profile follow use cases', () => {
         email: 'person@example.com',
         name: 'Person',
         image: null,
+        isSearchable: true,
       }),
     });
 
@@ -113,5 +123,117 @@ describe('profile follow use cases', () => {
 
     expect(deps.findUserById).not.toHaveBeenCalled();
     expect(deps.createFollowRelationship).not.toHaveBeenCalled();
+  });
+
+  it('lists the profiles a user already follows', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'viewer@example.com',
+        name: 'Viewer',
+        image: null,
+        isSearchable: true,
+      }),
+      listFollowingUsers: vi.fn().mockResolvedValue([
+        {
+          id: 'user_2',
+          email: 'alpha@example.com',
+          name: 'Alpha',
+          image: null,
+          isSearchable: true,
+        },
+        {
+          id: 'user_3',
+          email: 'bravo@example.com',
+          name: null,
+          image: 'local-profile-images/user_3/avatar.jpg',
+          isSearchable: false,
+        },
+      ]),
+    });
+
+    const result = await listFollowingProfilesUseCase('user_1', deps);
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        profiles: [
+          {
+            userId: 'user_2',
+            displayName: 'Alpha',
+            imageUrl: null,
+          },
+          {
+            userId: 'user_3',
+            displayName: 'bravo',
+            imageUrl: '/local-profile-images/user_3/avatar.jpg',
+          },
+        ],
+      },
+    });
+  });
+
+  it('searches discoverable users to follow', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'viewer@example.com',
+        name: 'Viewer',
+        image: null,
+        isSearchable: true,
+      }),
+      searchUsersToFollow: vi.fn().mockResolvedValue([
+        {
+          id: 'user_4',
+          email: 'casey@example.com',
+          name: 'Casey',
+          image: null,
+          isSearchable: true,
+        },
+      ]),
+    });
+
+    const result = await searchUsersToFollowUseCase('user_1', 'case', deps);
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        profiles: [
+          {
+            userId: 'user_4',
+            displayName: 'Casey',
+            imageUrl: null,
+          },
+        ],
+      },
+    });
+    expect(deps.searchUsersToFollow).toHaveBeenCalledWith('user_1', 'case');
+  });
+
+  it('reads and updates whether a profile can be searched', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'viewer@example.com',
+        name: 'Viewer',
+        image: null,
+        isSearchable: false,
+      }),
+    });
+
+    await expect(getProfileSearchVisibilityUseCase('user_1', deps)).resolves.toEqual({
+      ok: true,
+      data: {
+        isSearchable: false,
+      },
+    });
+
+    await expect(updateProfileSearchVisibilityUseCase('user_1', true, deps)).resolves.toEqual({
+      ok: true,
+      data: {
+        isSearchable: true,
+      },
+    });
+    expect(deps.updateUserSearchVisibility).toHaveBeenCalledWith('user_1', true);
   });
 });

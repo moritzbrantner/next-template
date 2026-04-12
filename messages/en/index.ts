@@ -9,6 +9,7 @@ import { homePage } from './home-page';
 import { languageSelector } from './language-selector';
 import { navigationBar } from './navigation-bar';
 import { notificationsPage } from './notifications-page';
+import { peoplePage } from './people-page';
 import { profilePage } from './profile-page';
 import { remocnPage } from './remocn-page';
 import { reportProblemPage } from './report-problem-page';
@@ -30,6 +31,7 @@ const enMessages = {
   DataEntryPage: dataEntryPage,
   FormsPage: formsPage,
   NotificationsPage: notificationsPage,
+  PeoplePage: peoplePage,
   ProfilePage: profilePage,
   RemocnPage: remocnPage,
   ReportProblemPage: reportProblemPage,
