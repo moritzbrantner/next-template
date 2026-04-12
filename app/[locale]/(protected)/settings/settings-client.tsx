@@ -19,7 +19,7 @@ import {
 } from '@/lib/authorization';
 import type { AppSession } from '@/src/auth';
 import { useTranslations } from '@/src/i18n';
-import type { ConsentState } from '@/src/privacy/consent';
+import type { ConsentState } from '@/src/privacy/contracts';
 import { backgroundOptions, formatDatePreview, type BackgroundOption } from '@/src/settings/preferences';
 import { useAppSettings } from '@/src/settings/provider';
 

@@ -2,7 +2,6 @@
 
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
-import type { Theme } from '@/lib/theme';
 import { formatAppHotkey } from '@/src/navigation/app-routes';
 import { buildNavigationCategories } from '@/src/navigation/navigation-categories';
 import type { NotificationPreview } from '@/src/domain/notifications/use-cases';
@@ -18,14 +17,13 @@ import { ProfileMenu } from '@/components/profile-menu';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 type NavigationBarProps = {
-  initialTheme: Theme;
   locale: AppLocale;
   session: AppSession | null;
   notificationCenter: NotificationPreview | null;
   siteName: string;
 };
 
-export function NavigationBar({ initialTheme, locale, session, notificationCenter, siteName }: NavigationBarProps) {
+export function NavigationBar({ locale, session, notificationCenter, siteName }: NavigationBarProps) {
   const t = useTranslations('NavigationBar');
   const navigationCategories = buildNavigationCategories({
     isAuthenticated: Boolean(session?.user?.id),
@@ -77,7 +75,7 @@ export function NavigationBar({ initialTheme, locale, session, notificationCente
           )}
           <NavigationHotkeys session={session} />
           <LanguageSelector />
-          <ThemeToggle initialTheme={initialTheme} />
+          <ThemeToggle />
         </div>
       </nav>
     </header>

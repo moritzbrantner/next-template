@@ -1,9 +1,7 @@
 import { LocaleShell } from '@/components/locale-shell';
-import { loadDocumentContext } from '@/src/runtime/document-context';
 import { loadAppContext } from '@/src/runtime.functions';
 import { redirectToLocaleHome, resolveLocale } from '@/src/server/page-guards';
 import { isAdmin } from '@/lib/authorization';
-import { getConsentState } from '@/src/privacy/consent';
 import { getActiveAnnouncements, getPublicSiteConfig } from '@/src/site-config/service';
 
 export default async function AdminLocaleLayout({
@@ -15,12 +13,10 @@ export default async function AdminLocaleLayout({
 }>) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  const { theme } = await loadDocumentContext();
-  const [appContext, siteConfig, announcements, consent] = await Promise.all([
+  const [appContext, siteConfig, announcements] = await Promise.all([
     loadAppContext(),
     getPublicSiteConfig(),
     getActiveAnnouncements(locale),
-    getConsentState(),
   ]);
 
   if (!appContext.session?.user?.id || !isAdmin(appContext.session.user.role)) {
@@ -30,12 +26,10 @@ export default async function AdminLocaleLayout({
   return (
     <LocaleShell
       locale={locale}
-      theme={theme}
       session={appContext.session}
       notificationCenter={appContext.notificationCenter}
       siteName={siteConfig.siteName}
       announcements={announcements}
-      consent={consent}
     >
       {children}
     </LocaleShell>

@@ -1,3 +1,4 @@
+import { revalidateTag, unstable_cache } from 'next/cache';
 import { eq, inArray } from 'drizzle-orm';
 
 import { getEnv } from '@/src/config/env';
@@ -26,6 +27,8 @@ type FeatureFlagRows = Awaited<ReturnType<ReturnType<typeof getDb>['query']['fea
 type SiteAnnouncementRows = Awaited<ReturnType<ReturnType<typeof getDb>['query']['siteAnnouncements']['findMany']>>;
 
 const CACHE_TTL_MS = 60_000;
+const SITE_CONFIG_TAG = 'site-config';
+const ACTIVE_ANNOUNCEMENTS_TAG = 'site-announcements';
 
 const siteConfigDefaults: Record<SiteSettingKey, string> = {
   'site.name': 'Next Template',
@@ -176,6 +179,7 @@ export async function upsertSiteSetting(key: SiteSettingKey, value: string) {
     });
 
   invalidateSiteConfigCache();
+  revalidateTag(SITE_CONFIG_TAG, 'max');
 }
 
 export async function listFeatureFlags() {
@@ -224,9 +228,10 @@ export async function upsertFeatureFlag(key: FeatureFlagKey, enabled: boolean, d
     });
 
   invalidateSiteConfigCache();
+  revalidateTag(SITE_CONFIG_TAG, 'max');
 }
 
-export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
+async function loadPublicSiteConfig(): Promise<PublicSiteConfig> {
   if (siteConfigCache && siteConfigCache.expiresAt > Date.now()) {
     return siteConfigCache.value;
   }
@@ -285,6 +290,15 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   return value;
 }
 
+const getCachedPublicSiteConfig = unstable_cache(loadPublicSiteConfig, ['public-site-config'], {
+  revalidate: CACHE_TTL_MS / 1000,
+  tags: [SITE_CONFIG_TAG],
+});
+
+export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
+  return getCachedPublicSiteConfig();
+}
+
 export async function listAnnouncements(locale?: AppLocale): Promise<SiteAnnouncementRecord[]> {
   let rows: SiteAnnouncementRows;
 
@@ -322,7 +336,7 @@ export async function listAnnouncements(locale?: AppLocale): Promise<SiteAnnounc
   }));
 }
 
-export async function getActiveAnnouncements(locale: AppLocale) {
+async function loadActiveAnnouncements(locale: AppLocale) {
   const now = new Date();
 
   let rows: SiteAnnouncementRows;
@@ -357,6 +371,15 @@ export async function getActiveAnnouncements(locale: AppLocale) {
     body: row.body,
     href: row.href,
   }));
+}
+
+const getCachedActiveAnnouncements = unstable_cache(loadActiveAnnouncements, ['active-announcements'], {
+  revalidate: CACHE_TTL_MS / 1000,
+  tags: [ACTIVE_ANNOUNCEMENTS_TAG],
+});
+
+export async function getActiveAnnouncements(locale: AppLocale) {
+  return getCachedActiveAnnouncements(locale);
 }
 
 export async function getAnnouncementById(id: string) {
@@ -436,9 +459,11 @@ export async function saveAnnouncement(input: {
       },
     });
 
+  revalidateTag(ACTIVE_ANNOUNCEMENTS_TAG, 'max');
   return id;
 }
 
 export async function deleteAnnouncement(id: string) {
   await getDb().delete(siteAnnouncements).where(eq(siteAnnouncements.id, id));
+  revalidateTag(ACTIVE_ANNOUNCEMENTS_TAG, 'max');
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import type { ConsentState } from '@/src/privacy/consent';
+import { CONSENT_COOKIE_NAME, defaultConsentState, type ConsentState } from '@/src/privacy/contracts';
 
 async function saveConsent(state: ConsentState) {
   await fetch('/api/privacy/consent', {
@@ -14,15 +14,17 @@ async function saveConsent(state: ConsentState) {
   });
 }
 
-export function ConsentBanner({
-  initialConsent,
-  visible,
-}: {
-  initialConsent: ConsentState;
-  visible: boolean;
-}) {
-  const [isVisible, setIsVisible] = useState(visible);
+function hasStoredConsent() {
+  return document.cookie.split('; ').some((cookie) => cookie.startsWith(`${CONSENT_COOKIE_NAME}=`));
+}
+
+export function ConsentBanner() {
+  const [isVisible, setIsVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(!hasStoredConsent());
+  }, []);
 
   if (!isVisible) {
     return null;
@@ -58,7 +60,7 @@ export function ConsentBanner({
             className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-950"
             onClick={async () => {
               setIsSaving(true);
-              await saveConsent({ ...initialConsent, necessary: true, analytics: true, marketing: true });
+              await saveConsent({ ...defaultConsentState, necessary: true, analytics: true, marketing: true });
               setIsSaving(false);
               setIsVisible(false);
             }}

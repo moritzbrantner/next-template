@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import type { ConsentState } from '@/src/privacy/consent';
+import type { ConsentState } from '@/src/privacy/contracts';
 
 async function persistConsent(state: ConsentState) {
   await fetch('/api/privacy/consent', {

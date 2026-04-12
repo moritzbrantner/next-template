@@ -43,13 +43,9 @@ function persistTheme(theme: Theme) {
   window.dispatchEvent(new Event('themechange'));
 }
 
-type ThemeToggleProps = {
-  initialTheme: Theme;
-};
-
-export function ThemeToggle({ initialTheme }: ThemeToggleProps) {
+export function ThemeToggle() {
   const t = useTranslations('ThemeToggle');
-  const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, () => initialTheme);
+  const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, () => 'light');
 
   const nextTheme = theme === 'dark' ? 'light' : 'dark';
   const nextThemeLabel = nextTheme === 'dark' ? t('darkTheme') : t('lightTheme');

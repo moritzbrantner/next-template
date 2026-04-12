@@ -1,45 +1,17 @@
 import { cookies } from 'next/headers';
 
 import { isGithubPagesBuild } from '@/src/runtime/build-target';
+import {
+  CONSENT_COOKIE_NAME,
+  defaultConsentState,
+  parseConsentCookie,
+  serializeConsentState,
+  type ConsentState,
+} from '@/src/privacy/contracts';
 
-export const CONSENT_COOKIE_NAME = 'site-consent';
 export const REDACTED_QUERY_VALUE = '[REDACTED]';
 export const TRACKED_QUERY_ALLOWLIST = new Set(['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'ref']);
 export const ALWAYS_REDACT_QUERY_KEYS = [/token/i, /^code$/i, /^state$/i, /email/i, /invite/i, /secret/i, /password/i];
-
-export type ConsentState = {
-  necessary: true;
-  analytics: boolean;
-  marketing: boolean;
-};
-
-export const defaultConsentState: ConsentState = {
-  necessary: true,
-  analytics: false,
-  marketing: false,
-};
-
-export function serializeConsentState(state: ConsentState) {
-  return encodeURIComponent(JSON.stringify(state));
-}
-
-export function parseConsentCookie(value?: string | null): ConsentState {
-  if (!value) {
-    return defaultConsentState;
-  }
-
-  try {
-    const parsed = JSON.parse(decodeURIComponent(value)) as Partial<ConsentState>;
-
-    return {
-      necessary: true,
-      analytics: parsed.analytics === true,
-      marketing: parsed.marketing === true,
-    };
-  } catch {
-    return defaultConsentState;
-  }
-}
 
 export async function getConsentState() {
   if (isGithubPagesBuild) {
