@@ -1,6 +1,7 @@
 import { recordPageVisit, shouldTrackPageVisit, type PageVisitTrackingCause } from '@/src/analytics/page-visits';
 import { getAuthSession } from '@/src/auth.server';
 import { getNotificationPreviewUseCase, type NotificationPreview } from '@/src/domain/notifications/use-cases';
+import { getConsentState } from '@/src/privacy/consent';
 import { isGithubPagesBuild } from '@/src/runtime/build-target';
 
 type LoadAppContextInput = {
@@ -32,8 +33,9 @@ export async function loadAppContext(input?: LoadAppContextInput): Promise<AppRo
 
   const data = validateLoadAppContextInput(input);
   const session = await getAuthSession();
+  const consent = await getConsentState();
 
-  if (session?.user.id && shouldTrackPageVisit(data)) {
+  if (session?.user.id && consent.state.analytics && shouldTrackPageVisit(data)) {
     void recordPageVisit({
       userId: session.user.id,
       href: data.href!,

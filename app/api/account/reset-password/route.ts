@@ -1,22 +1,22 @@
-import { secureRoute } from '@/src/api/route-security';
+import * as z from 'zod';
+
 import { resetPasswordWithToken } from '@/src/auth/account-lifecycle';
+import { problem, ProblemError } from '@/src/http/errors';
+import { createApiRoute } from '@/src/http/route';
 
-export async function POST(request: Request) {
-  const guard = await secureRoute({
-    request,
-    action: 'account.resetPassword',
-  });
+export const POST = createApiRoute({
+  action: 'account.resetPassword',
+  bodySchema: z.object({
+    token: z.string().min(1),
+    password: z.string().min(1),
+  }),
+  async handler({ body }) {
+    const result = await resetPasswordWithToken(body.token, body.password);
 
-  if (!guard.ok) {
-    return guard.response;
-  }
+    if (!result.ok) {
+      throw new ProblemError(problem('/problems/password-reset', 'Unable to reset password', 400, result.error));
+    }
 
-  const body = (await request.json()) as { token?: string; password?: string };
-  const result = await resetPasswordWithToken(body.token ?? '', body.password ?? '');
-
-  if (!result.ok) {
-    return guard.json({ error: result.error }, { status: 400 });
-  }
-
-  return guard.json({ ok: true });
-}
+    return { ok: true };
+  },
+});

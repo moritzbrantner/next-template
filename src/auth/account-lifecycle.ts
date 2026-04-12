@@ -2,10 +2,12 @@ import { eq, like } from 'drizzle-orm';
 
 import { hashPassword } from '@/lib/password';
 import { withLocalePath, type AppLocale, hasLocale, routing } from '@/i18n/routing';
+import { getEnv } from '@/src/config/env';
 import { createPasswordResetEmail, createVerificationEmail } from '@/src/email/templates';
-import { sendEmail } from '@/src/email/service';
 import { getDb } from '@/src/db/client';
 import { users, verificationTokens } from '@/src/db/schema';
+import { enqueueJob } from '@/src/jobs/service';
+import { getLogger } from '@/src/observability/logger';
 
 const EMAIL_VERIFICATION_PREFIX = 'email-verification:';
 const PASSWORD_RESET_PREFIX = 'password-reset:';
@@ -27,7 +29,7 @@ function createRawToken(): string {
 }
 
 function getBaseUrl(): string {
-  return process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
+  return getEnv().auth.url;
 }
 
 function normalizeLocale(locale?: string): AppLocale {
@@ -165,10 +167,10 @@ export async function signUpWithCredentials(input: SignupInput, deps?: Lifecycle
     expires: new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS),
   });
 
-  console.info('[auth] email verification token issued', {
+  getLogger({ subsystem: 'auth' }).info({
     email,
     verificationUrl,
-  });
+  }, 'Email verification token issued');
 
   try {
     const message = createVerificationEmail({
@@ -176,17 +178,17 @@ export async function signUpWithCredentials(input: SignupInput, deps?: Lifecycle
       name: input.name,
     });
 
-    void sendEmail({
+    void enqueueJob('sendEmail', {
       to: email,
       subject: message.subject,
       html: message.html,
       text: message.text,
       tags: ['account-verification'],
     }).catch((error) => {
-      console.error('[auth] failed to send verification email', { email, error });
+      getLogger({ subsystem: 'auth' }).error({ email, err: error }, 'Failed to send verification email');
     });
   } catch (error) {
-    console.error('[auth] failed to build verification email', { email, error });
+    getLogger({ subsystem: 'auth' }).error({ email, err: error }, 'Failed to build verification email');
   }
 
   return { ok: true, userId, verificationToken: rawToken };
@@ -229,15 +231,15 @@ export async function requestPasswordReset(
     expires: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
   });
 
-  console.info('[auth] password reset token issued', {
+  getLogger({ subsystem: 'auth' }).info({
     email,
     resetUrl,
-  });
+  }, 'Password reset token issued');
 
   try {
     const message = createPasswordResetEmail({ resetUrl });
 
-    await sendEmail({
+    await enqueueJob('sendEmail', {
       to: email,
       subject: message.subject,
       html: message.html,
@@ -245,7 +247,7 @@ export async function requestPasswordReset(
       tags: ['password-reset'],
     });
   } catch (error) {
-    console.error('[auth] failed to send password reset email', { email, error });
+    getLogger({ subsystem: 'auth' }).error({ email, err: error }, 'Failed to send password reset email');
   }
 
   return { ok: true, token: rawToken };

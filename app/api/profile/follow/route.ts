@@ -1,50 +1,44 @@
-import { secureRoute } from '@/src/api/route-security';
+import * as z from 'zod';
+
 import { followUserUseCase, unfollowUserUseCase } from '@/src/domain/profile/use-cases';
+import { problem, ProblemError } from '@/src/http/errors';
+import { createApiRoute } from '@/src/http/route';
 
-function getTargetUserId(body: unknown) {
-  if (!body || typeof body !== 'object') {
-    return '';
-  }
+const followBodySchema = z.object({
+  userId: z.string().min(1),
+});
 
-  const userId = (body as { userId?: unknown }).userId;
-  return typeof userId === 'string' ? userId : '';
+function mapFollowProblem(code: 'NOT_FOUND' | 'VALIDATION_ERROR' | 'FORBIDDEN' | 'CONFLICT', detail: string) {
+  const status = code === 'NOT_FOUND' ? 404 : code === 'FORBIDDEN' ? 403 : code === 'CONFLICT' ? 409 : 400;
+  return new ProblemError(problem('/problems/profile-follow', 'Unable to update follow state', status, detail));
 }
 
-async function handleFollowRequest(request: Request, shouldFollow: boolean) {
-  const guard = await secureRoute({
-    request,
-    action: shouldFollow ? 'profile.follow' : 'profile.unfollow',
-    requireAuth: true,
-  });
+export const POST = createApiRoute({
+  action: 'profile.follow',
+  auth: true,
+  bodySchema: followBodySchema,
+  async handler({ actorId, body }) {
+    const result = await followUserUseCase(actorId!, body.userId);
 
-  if (!guard.ok) {
-    return guard.response;
-  }
+    if (!result.ok) {
+      throw mapFollowProblem(result.error.code, result.error.message);
+    }
 
-  const actorUserId = guard.session!.user.id;
-  const body = await request.json().catch(() => null);
-  const targetUserId = getTargetUserId(body);
+    return { ok: true, following: result.data.following };
+  },
+});
 
-  if (!targetUserId) {
-    return guard.json({ error: 'A valid user id is required.' }, { status: 400 });
-  }
+export const DELETE = createApiRoute({
+  action: 'profile.unfollow',
+  auth: true,
+  bodySchema: followBodySchema,
+  async handler({ actorId, body }) {
+    const result = await unfollowUserUseCase(actorId!, body.userId);
 
-  const result = shouldFollow
-    ? await followUserUseCase(actorUserId, targetUserId)
-    : await unfollowUserUseCase(actorUserId, targetUserId);
+    if (!result.ok) {
+      throw mapFollowProblem(result.error.code, result.error.message);
+    }
 
-  if (!result.ok) {
-    const status = result.error.code === 'NOT_FOUND' ? 404 : 400;
-    return guard.json({ error: result.error.message }, { status });
-  }
-
-  return guard.json({ ok: true, following: result.data.following });
-}
-
-export async function POST(request: Request) {
-  return handleFollowRequest(request, true);
-}
-
-export async function DELETE(request: Request) {
-  return handleFollowRequest(request, false);
-}
+    return { ok: true, following: result.data.following };
+  },
+});

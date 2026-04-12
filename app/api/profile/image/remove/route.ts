@@ -1,30 +1,23 @@
-import { secureRoute } from '@/src/api/route-security';
 import { signInSession } from '@/src/auth.server';
 import { removeProfileImageUseCase } from '@/src/domain/profile/use-cases';
+import { problem, ProblemError } from '@/src/http/errors';
+import { createApiRoute } from '@/src/http/route';
 
-export async function POST(request: Request) {
-  const guard = await secureRoute({
-    request,
-    action: 'profile.removeImage',
-    requireAuth: true,
-  });
+export const POST = createApiRoute({
+  action: 'profile.removeImage',
+  auth: true,
+  async handler({ actorId, session }) {
+    const result = await removeProfileImageUseCase(actorId!);
 
-  if (!guard.ok) {
-    return guard.response;
-  }
+    if (!result.ok) {
+      throw new ProblemError(problem('/problems/profile-image-remove', 'Unable to remove profile image', 400, result.error.message));
+    }
 
-  const session = guard.session!;
-  const userId = session.user.id;
-  const result = await removeProfileImageUseCase(userId);
+    await signInSession({
+      ...session!.user,
+      image: null,
+    });
 
-  if (!result.ok) {
-    return guard.json({ error: result.error.message }, { status: 400 });
-  }
-
-  await signInSession({
-    ...session.user,
-    image: null,
-  });
-
-  return guard.json({ ok: true });
-}
+    return { ok: true };
+  },
+});

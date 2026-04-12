@@ -1,17 +1,35 @@
+import { revalidatePath } from 'next/cache';
+
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createTranslator } from '@/src/i18n/messages';
+import type { FeatureFlagKey, SiteSettingKey } from '@/src/site-config/contracts';
+import { listFeatureFlags, listSiteSettings, upsertFeatureFlag, upsertSiteSetting } from '@/src/site-config/service';
 import { resolveLocale } from '@/src/server/page-guards';
 
-const settingGroupKeys = ['sessions', 'notifications', 'storage'] as const;
-const settingsByGroup = {
-  sessions: ['sessionLifetime', 'idleTimeout', 'mfaPolicy'],
-  notifications: ['digestCadence', 'incidentRouting', 'maintenanceWindow'],
-  storage: ['uploadLimit', 'retentionWindow', 'auditExports'],
-} as const;
-const checklistKeys = ['review', 'announce', 'verify'] as const;
+async function saveSetting(formData: FormData) {
+  'use server';
+
+  const key = String(formData.get('key')) as SiteSettingKey;
+  const value = String(formData.get('value') ?? '');
+  const locale = String(formData.get('locale') ?? 'en');
+
+  await upsertSiteSetting(key, value);
+  revalidatePath(`/${locale}/admin/system-settings`);
+}
+
+async function saveFlag(formData: FormData) {
+  'use server';
+
+  const key = String(formData.get('key')) as FeatureFlagKey;
+  const enabled = formData.get('enabled') === 'on';
+  const description = String(formData.get('description') ?? '');
+  const locale = String(formData.get('locale') ?? 'en');
+
+  await upsertFeatureFlag(key, enabled, description);
+  revalidatePath(`/${locale}/admin/system-settings`);
+}
 
 export default async function SystemSettingsPage({
   params,
@@ -21,51 +39,68 @@ export default async function SystemSettingsPage({
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   const t = createTranslator(locale, 'AdminPage');
+  const [settings, flags] = await Promise.all([listSiteSettings(), listFeatureFlags()]);
 
   return (
     <AdminPageShell title={t('systemSettings.title')} description={t('systemSettings.description')}>
-      <div className="grid gap-4 md:grid-cols-3">
-        {settingGroupKeys.map((groupKey) => (
-          <Card key={groupKey}>
-            <CardHeader>
-              <CardTitle>{t(`systemSettings.groups.${groupKey}.title`)}</CardTitle>
-              <CardDescription>{t(`systemSettings.groups.${groupKey}.description`)}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {settingsByGroup[groupKey].map((settingKey) => (
-                <div key={settingKey} className="rounded-2xl border p-4 dark:border-zinc-800">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium">{t(`systemSettings.settings.${settingKey}.label`)}</p>
-                    <Badge variant="outline">{t(`systemSettings.settings.${settingKey}.scope`)}</Badge>
-                  </div>
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{t(`systemSettings.settings.${settingKey}.value`)}</p>
-                  <div className="mt-3 flex gap-2">
-                    <Button type="button" variant="outline" size="sm">{t('systemSettings.actions.edit')}</Button>
-                    <Button type="button" variant="ghost" size="sm">{t('systemSettings.actions.audit')}</Button>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Site settings</CardTitle>
+          <CardDescription>These values drive metadata, branding, and support contact surfaces.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {settings.map((setting) => (
+            <form key={setting.key} action={saveSetting} className="grid gap-3 rounded-2xl border p-4 dark:border-zinc-800 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)_auto]">
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="key" value={setting.key} />
+              <div>
+                <p className="font-medium">{setting.key}</p>
+                <Badge variant="outline">site setting</Badge>
+              </div>
+              <input
+                type="text"
+                name="value"
+                defaultValue={setting.value}
+                className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              />
+              <button type="submit" className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-950">
+                Save
+              </button>
+            </form>
+          ))}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('systemSettings.checklistTitle')}</CardTitle>
-          <CardDescription>{t('systemSettings.checklistDescription')}</CardDescription>
+          <CardTitle>Feature flags</CardTitle>
+          <CardDescription>Flags gate public product surfaces without changing canonical MDX content.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ol className="space-y-3">
-            {checklistKeys.map((checklistKey, index) => (
-              <li key={checklistKey} className="flex gap-3 rounded-2xl border p-4 dark:border-zinc-800">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-sm font-semibold text-white dark:bg-zinc-50 dark:text-zinc-900">
-                  {index + 1}
-                </span>
-                <p className="text-sm text-zinc-700 dark:text-zinc-200">{t(`systemSettings.checklist.${checklistKey}`)}</p>
-              </li>
-            ))}
-          </ol>
+        <CardContent className="space-y-4">
+          {flags.map((flag) => (
+            <form key={flag.key} action={saveFlag} className="grid gap-3 rounded-2xl border p-4 dark:border-zinc-800 md:grid-cols-[minmax(0,220px)_auto_minmax(0,1fr)_auto]">
+              <input type="hidden" name="locale" value={locale} />
+              <input type="hidden" name="key" value={flag.key} />
+              <div>
+                <p className="font-medium">{flag.key}</p>
+                <Badge variant="outline">feature flag</Badge>
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="enabled" defaultChecked={flag.enabled} />
+                Enabled
+              </label>
+              <input
+                type="text"
+                name="description"
+                defaultValue={flag.description ?? ''}
+                placeholder="Optional operator note"
+                className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+              />
+              <button type="submit" className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-950">
+                Save
+              </button>
+            </form>
+          ))}
         </CardContent>
       </Card>
     </AdminPageShell>

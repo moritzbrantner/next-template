@@ -1,8 +1,9 @@
 import { eq } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
-import { blogPosts, notifications, userFollows } from '@/src/db/schema';
+import { blogPosts, userFollows } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
+import { enqueueJob } from '@/src/jobs/service';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
 
 const BLOG_POST_TITLE_MIN_LENGTH = 4;
@@ -105,20 +106,15 @@ function getBlogUseCaseDeps(): BlogUseCaseDeps {
         return;
       }
 
-      const now = new Date();
-
-      await getDb().insert(notifications).values(
-        input.map((notification) => ({
-          id: crypto.randomUUID(),
-          userId: notification.userId,
-          actorId: notification.actorId,
-          title: notification.title,
-          body: notification.body,
-          href: notification.href,
-          audience: 'user' as const,
-          createdAt: now,
-        })),
-      );
+      await enqueueJob('fanoutNotification', {
+        actorId: input[0]!.actorId,
+        audience: 'user',
+        audienceValue: input[0]!.userId,
+        title: input[0]!.title,
+        body: input[0]!.body,
+        href: input[0]!.href,
+        recipientUserIds: input.map((notification) => notification.userId),
+      });
     },
   };
 }

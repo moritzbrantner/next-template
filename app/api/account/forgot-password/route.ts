@@ -1,17 +1,16 @@
-import { secureRoute } from '@/src/api/route-security';
+import * as z from 'zod';
+
 import { requestPasswordReset } from '@/src/auth/account-lifecycle';
+import { createApiRoute } from '@/src/http/route';
 
-export async function POST(request: Request) {
-  const guard = await secureRoute({
-    request,
-    action: 'account.forgotPassword',
-  });
-
-  if (!guard.ok) {
-    return guard.response;
-  }
-
-  const body = (await request.json()) as { email?: string; locale?: string };
-  await requestPasswordReset(body.email ?? '', { locale: body.locale });
-  return guard.json({ ok: true });
-}
+export const POST = createApiRoute({
+  action: 'account.forgotPassword',
+  bodySchema: z.object({
+    email: z.string().min(1),
+    locale: z.string().optional(),
+  }),
+  async handler({ body }) {
+    await requestPasswordReset(body.email, { locale: body.locale });
+    return { ok: true };
+  },
+});

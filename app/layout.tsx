@@ -3,13 +3,27 @@ import type { Metadata } from 'next';
 import { AppHydrationMarker } from '@/components/app-hydration-marker';
 import { AppSettingsProvider } from '@/src/settings/provider';
 import { loadDocumentContext, settingsScript, themeScript } from '@/src/runtime/document-context';
+import { getPublicSiteConfig } from '@/src/site-config/service';
 
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Next Template',
-  description: 'Next.js application with auth, admin examples, and Drizzle/Postgres persistence.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const siteConfig = await getPublicSiteConfig();
+
+  return {
+    metadataBase: new URL(siteConfig.siteUrl),
+    title: {
+      default: siteConfig.seo.defaultTitle,
+      template: `%s${siteConfig.seo.titleSuffix}`,
+    },
+    description: siteConfig.seo.defaultDescription,
+    openGraph: {
+      title: siteConfig.seo.defaultTitle,
+      description: siteConfig.seo.defaultDescription,
+      images: siteConfig.seo.defaultOgImage ? [siteConfig.seo.defaultOgImage] : undefined,
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

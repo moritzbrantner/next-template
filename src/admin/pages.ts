@@ -1,5 +1,6 @@
 export const adminPageDefinitions = [
   { key: 'overview', href: '/admin' },
+  { key: 'content', href: '/admin/content' },
   { key: 'reports', href: '/admin/reports' },
   { key: 'users', href: '/admin/users' },
   { key: 'systemSettings', href: '/admin/system-settings' },

@@ -1,14 +1,15 @@
 # next-template
 
-TanStack Start application with localized routing, credential auth, account lifecycle flows, admin/workspace examples, Drizzle/Postgres persistence, and tiered checks.
+Next.js App Router template with localized routing, credential auth, account lifecycle flows, MDX + Postgres content foundations, admin/workspace examples, Drizzle/Postgres persistence, and tiered checks.
 
 ## Stack
 
 - TanStack Start + TanStack Router
-- React 19 + Vite 8
+- Next.js App Router + React 19
 - Drizzle ORM + PostgreSQL
 - Vitest + Playwright
 - Tailwind CSS 4
+- MDX with repo-managed content roots and DB-backed operational content
 
 ## Local setup
 
@@ -22,9 +23,9 @@ cp .env.e2e.example .env.e2e
 2. Set at least:
 
 - `AUTH_SECRET`
-- `AUTH_URL`
+- `SITE_URL` or `AUTH_URL`
 - `DATABASE_URL` for long-lived database flows
-- email provider variables if you want transactional email beyond console output
+- `INTERNAL_CRON_SECRET` if you want the internal cron jobs endpoint
 
 3. Start local development:
 
@@ -43,6 +44,12 @@ pnpm run db:migrate
 pnpm run db:schema:generate
 pnpm run db:seed:test-users
 pnpm run dev:app
+```
+
+Run the outbox worker in another shell if you want queued email and announcement jobs processed locally:
+
+```bash
+pnpm run jobs:work
 ```
 
 ## Checks
@@ -68,3 +75,5 @@ pnpm run checks:main
 - Product and architecture docs live beside the app root.
 - Example/demo experiences are exposed under localized `/examples/*` routes.
 - High-risk HTTP endpoints are protected by shared rate limiting and audit logging.
+- Repo-managed site content lives under `content/pages`, `content/blog`, and `content/changelog`.
+- Operational content such as announcements, settings, flags, analytics retention, and jobs live in Postgres.

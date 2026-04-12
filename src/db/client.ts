@@ -1,7 +1,9 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
+import { getEnv } from "@/src/config/env";
 import * as schema from "@/src/db/schema";
+import { getLogger } from "@/src/observability/logger";
 
 const globalForDb = globalThis as unknown as {
   pool?: Pool;
@@ -13,7 +15,7 @@ export function getDb() {
     return globalForDb.db;
   }
 
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = getEnv().database.url;
   if (!connectionString) {
     throw new Error("DATABASE_URL is not set");
   }
@@ -24,8 +26,8 @@ export function getDb() {
       connectionString,
     });
 
-  pool.on('error', (error) => {
-    console.warn('[db] idle client error', error.message);
+  pool.on("error", (error) => {
+    getLogger({ subsystem: "db" }).warn({ err: error }, "Idle client error");
   });
 
   const db = drizzle(pool, { schema });

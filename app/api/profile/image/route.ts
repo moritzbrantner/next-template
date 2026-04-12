@@ -1,42 +1,34 @@
-import { secureRoute } from '@/src/api/route-security';
+import * as z from 'zod';
+
 import { signInSession } from '@/src/auth.server';
 import { updateProfileImageUseCase } from '@/src/domain/profile/use-cases';
+import { getLogger } from '@/src/observability/logger';
+import { problem, ProblemError } from '@/src/http/errors';
+import { createApiRoute } from '@/src/http/route';
 
-export async function POST(request: Request) {
-  const guard = await secureRoute({
-    request,
-    action: 'profile.updateImage',
-    requireAuth: true,
-  });
+export const POST = createApiRoute({
+  action: 'profile.updateImage',
+  auth: true,
+  bodySchema: z.object({
+    image: z.instanceof(File),
+  }),
+  async handler({ body, session, actorId }) {
+    try {
+      const result = await updateProfileImageUseCase(actorId!, body.image);
 
-  if (!guard.ok) {
-    return guard.response;
-  }
+      if (!result.ok) {
+        throw new ProblemError(problem('/problems/profile-image', 'Unable to update profile image', 400, result.error.message));
+      }
 
-  const session = guard.session!;
-  const userId = session.user.id;
-  const formData = await request.formData();
-  const file = formData.get('image');
+      await signInSession({
+        ...session!.user,
+        image: result.data.imageUrl,
+      });
 
-  if (!(file instanceof File)) {
-    return guard.json({ error: 'Please select an image file.' }, { status: 400 });
-  }
-
-  try {
-    const result = await updateProfileImageUseCase(userId, file);
-
-    if (!result.ok) {
-      return guard.json({ error: result.error.message }, { status: 400 });
+      return { ok: true };
+    } catch (error) {
+      getLogger({ subsystem: 'profile' }).error({ err: error }, 'Profile image upload failed');
+      throw error;
     }
-
-    await signInSession({
-      ...session.user,
-      image: result.data.imageUrl,
-    });
-
-    return guard.json({ ok: true });
-  } catch (error) {
-    console.error('Profile image upload failed.', error);
-    return guard.json({ error: 'Unable to update profile picture right now. Please try again.' }, { status: 500 });
-  }
-}
+  },
+});

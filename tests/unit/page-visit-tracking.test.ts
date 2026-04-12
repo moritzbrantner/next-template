@@ -4,13 +4,13 @@ import { normalizeTrackedPageVisit, shouldTrackPageVisit } from '@/src/analytics
 
 describe('page visit tracking', () => {
   it('splits the pathname and query parameters for aggregation', () => {
-    expect(normalizeTrackedPageVisit('/en/profile?tab=security&filter=active&filter=recent')).toEqual({
-      href: '/en/profile?tab=security&filter=active&filter=recent',
+    expect(normalizeTrackedPageVisit('/en/profile?utm_source=launch&filter=active&token=secret')).toEqual({
+      href: '/en/profile?utm_source=launch&filter=active&token=secret',
       pathname: '/en/profile',
       queryParameters: [
-        { key: 'tab', value: 'security', position: 0 },
-        { key: 'filter', value: 'active', position: 1 },
-        { key: 'filter', value: 'recent', position: 2 },
+        { key: 'utm_source', value: 'launch', position: 0 },
+        { key: 'filter', value: '[REDACTED]', position: 1 },
+        { key: 'token', value: '[REDACTED]', position: 2 },
       ],
     });
   });

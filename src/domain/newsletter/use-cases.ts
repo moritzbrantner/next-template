@@ -1,10 +1,12 @@
 import { eq } from 'drizzle-orm';
 
 import { withLocalePath, type AppLocale, hasLocale, routing } from '@/i18n/routing';
+import { getEnv } from '@/src/config/env';
 import { sendEmail } from '@/src/email/service';
 import { createNewsletterWelcomeEmail } from '@/src/email/templates';
 import { getDb } from '@/src/db/client';
 import { newsletterSubscriptions } from '@/src/db/schema';
+import { getLogger } from '@/src/observability/logger';
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -15,7 +17,7 @@ function normalizeLocale(locale?: string): AppLocale {
 }
 
 function getBaseUrl() {
-  return process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
+  return getEnv().auth.url;
 }
 
 export async function subscribeToNewsletter(input: { email: string; locale?: string; source?: string }) {
@@ -66,7 +68,7 @@ export async function subscribeToNewsletter(input: { email: string; locale?: str
       tags: ['newsletter'],
     });
   } catch (error) {
-    console.error('[newsletter] failed to send welcome email', { email, error });
+    getLogger({ subsystem: 'newsletter' }).error({ email, err: error }, 'Failed to send welcome email');
   }
 
   return { ok: true as const };

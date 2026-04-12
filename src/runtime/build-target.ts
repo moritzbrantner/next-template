@@ -1,1 +1,3 @@
-export const isGithubPagesBuild = process.env.NEXT_DEPLOY_TARGET === 'gh-pages';
+import { getEnv } from '@/src/config/env';
+
+export const isGithubPagesBuild = getEnv().deploymentTarget === 'gh-pages';

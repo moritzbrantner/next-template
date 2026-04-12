@@ -8,6 +8,8 @@ export const navigationBar = {
   links: {
     home: 'Home',
     about: 'About',
+    blog: 'Blog',
+    changelog: 'Changelog',
     remocn: 'remocn',
     reportProblem: 'Report a problem',
     forms: 'Form Demo',

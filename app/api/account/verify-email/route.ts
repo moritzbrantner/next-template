@@ -1,18 +1,21 @@
+import * as z from 'zod';
+
 import { verifyEmailByToken } from '@/src/auth/account-lifecycle';
+import { problem, ProblemError } from '@/src/http/errors';
+import { createApiRoute } from '@/src/http/route';
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const token = url.searchParams.get('token');
+export const GET = createApiRoute({
+  action: 'account.verifyEmail',
+  querySchema: z.object({
+    token: z.string().min(1),
+  }),
+  async handler({ query }) {
+    const result = await verifyEmailByToken(query.token);
 
-  if (!token) {
-    return Response.json({ error: 'Missing token.' }, { status: 400 });
-  }
+    if (!result.ok) {
+      throw new ProblemError(problem('/problems/email-verification', 'Unable to verify email', 400, result.error));
+    }
 
-  const result = await verifyEmailByToken(token);
-
-  if (!result.ok) {
-    return Response.json({ error: result.error }, { status: 400 });
-  }
-
-  return Response.json({ ok: true });
-}
+    return { ok: true };
+  },
+});

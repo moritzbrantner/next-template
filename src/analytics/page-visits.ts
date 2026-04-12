@@ -1,5 +1,6 @@
 import { getDb } from '@/src/db/client';
 import { pageVisitQueryParameters, pageVisits } from '@/src/db/schema';
+import { sanitizeTrackedQueryParameters } from '@/src/privacy/consent';
 
 const TRACKED_PAGE_BASE_URL = 'https://page-visit.local';
 const NON_TRACKABLE_PAGE_PATH_PREFIXES = ['/api', '/_build', '/_serverFn'] as const;
@@ -42,11 +43,7 @@ export function normalizeTrackedPageVisit(href: string): NormalizedPageVisit {
   return {
     href: normalizedHref,
     pathname: url.pathname,
-    queryParameters: Array.from(url.searchParams.entries()).map(([key, value], position) => ({
-      key,
-      value,
-      position,
-    })),
+    queryParameters: sanitizeTrackedQueryParameters(url.searchParams),
   };
 }
 

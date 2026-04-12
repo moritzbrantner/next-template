@@ -7,6 +7,8 @@ import type { NavigationCategoryKey } from '@/src/navigation/navigation-categori
 
 export type AppPageKey =
   | 'home'
+  | 'blog'
+  | 'changelog'
   | 'about'
   | 'remocn'
   | 'reportProblem'
@@ -52,6 +54,22 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'discover',
     hotkey: ['alt', 'a'],
+  },
+  {
+    key: 'blog',
+    href: '/blog',
+    translationKey: 'links.blog',
+    visibility: 'public',
+    navigationCategory: 'discover',
+    hotkey: ['alt', 'g'],
+  },
+  {
+    key: 'changelog',
+    href: '/changelog',
+    translationKey: 'links.changelog',
+    visibility: 'public',
+    navigationCategory: 'discover',
+    hotkey: ['alt', 'k'],
   },
   {
     key: 'remocn',

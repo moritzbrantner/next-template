@@ -4,6 +4,8 @@ import { pgEnum, pgTable, primaryKey, text, timestamp, integer, index, uniqueInd
 export const roleEnum = pgEnum("Role", ["ADMIN", "MANAGER", "USER"]);
 export const notificationStatusEnum = pgEnum("NotificationStatus", ["unread", "read"]);
 export const notificationAudienceEnum = pgEnum("NotificationAudience", ["user", "role", "all"]);
+export const siteAnnouncementStatusEnum = pgEnum("SiteAnnouncementStatus", ["draft", "scheduled", "published", "archived"]);
+export const jobOutboxStatusEnum = pgEnum("JobOutboxStatus", ["pending", "running", "retrying", "completed", "failed"]);
 
 export const users = pgTable(
   "User",
@@ -211,5 +213,65 @@ export const notifications = pgTable(
     index("Notification_userId_status_idx").on(table.userId, table.status),
     index("Notification_actorId_idx").on(table.actorId),
     index("Notification_audience_idx").on(table.audience, table.audienceValue),
+  ],
+);
+
+export const siteSettings = pgTable(
+  "SiteSetting",
+  {
+    key: text("key").primaryKey(),
+    value: text("value").notNull(),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+);
+
+export const featureFlags = pgTable(
+  "FeatureFlag",
+  {
+    key: text("key").primaryKey(),
+    enabled: integer("enabled").notNull().default(0),
+    description: text("description"),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [index("FeatureFlag_enabled_idx").on(table.enabled)],
+);
+
+export const siteAnnouncements = pgTable(
+  "SiteAnnouncement",
+  {
+    id: text("id").primaryKey(),
+    locale: text("locale").notNull(),
+    title: text("title").notNull(),
+    body: text("body").notNull(),
+    href: text("href"),
+    status: siteAnnouncementStatusEnum("status").notNull().default("draft"),
+    publishAt: timestamp("publishAt", { withTimezone: false, mode: "date" }),
+    unpublishAt: timestamp("unpublishAt", { withTimezone: false, mode: "date" }),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("SiteAnnouncement_locale_status_idx").on(table.locale, table.status),
+    index("SiteAnnouncement_publishAt_idx").on(table.publishAt),
+  ],
+);
+
+export const jobOutbox = pgTable(
+  "JobOutbox",
+  {
+    id: text("id").primaryKey(),
+    jobName: text("jobName").notNull(),
+    payload: jsonb("payload").notNull(),
+    status: jobOutboxStatusEnum("status").notNull().default("pending"),
+    runAt: timestamp("runAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    attempts: integer("attempts").notNull().default(0),
+    lastError: text("lastError"),
+    lockedAt: timestamp("lockedAt", { withTimezone: false, mode: "date" }),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("JobOutbox_status_runAt_idx").on(table.status, table.runAt),
+    index("JobOutbox_jobName_idx").on(table.jobName),
   ],
 );

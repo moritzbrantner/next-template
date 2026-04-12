@@ -2,6 +2,7 @@ export const adminPage = {
   accessBadge: 'Nur ADMIN',
   navigation: {
     overview: 'Übersicht',
+    content: 'Inhalte',
     reports: 'Berichte',
     users: 'Benutzer',
     systemSettings: 'Systemeinstellungen',
@@ -12,6 +13,10 @@ export const adminPage = {
     description:
       'Nutze diese Bereiche für privilegierte Berichte, Benutzeroperationen, Plattform-Konfiguration und schema-gesteuerte Werkzeuge.',
     openWorkspace: 'Bereich öffnen',
+  },
+  content: {
+    title: 'Content-Betrieb',
+    description: 'Verwalte lokalisierte Ankuendigungen und operative Inhalte, die datenbankgestuetzt bleiben sollen.',
   },
   reports: {
     title: 'Berichte',

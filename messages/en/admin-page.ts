@@ -2,6 +2,7 @@ export const adminPage = {
   accessBadge: 'ADMIN only',
   navigation: {
     overview: 'Overview',
+    content: 'Content',
     reports: 'Reports',
     users: 'Users',
     systemSettings: 'System settings',
@@ -11,6 +12,10 @@ export const adminPage = {
     title: 'Admin overview',
     description: 'Use these workspaces for privileged reporting, user operations, platform configuration, and schema-driven tools.',
     openWorkspace: 'Open workspace',
+  },
+  content: {
+    title: 'Content operations',
+    description: 'Manage localized announcements and operational content that should stay database-backed.',
   },
   reports: {
     title: 'Reports',

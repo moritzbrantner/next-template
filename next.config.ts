@@ -1,5 +1,9 @@
 import type { NextConfig } from 'next';
+import createMDX from '@next/mdx';
+import remarkGfm from 'remark-gfm';
+import rehypeSlug from 'rehype-slug';
 
+import { getEnv } from './src/config/env';
 import { normalizeRouterBasePath } from './src/runtime/base-path';
 
 const allowedDevOrigins = [
@@ -11,7 +15,8 @@ const allowedDevOrigins = [
   'localhost',
 ] as const;
 
-const githubPagesBasePath = normalizeRouterBasePath(process.env.GITHUB_PAGES_BASE_PATH);
+const env = getEnv();
+const githubPagesBasePath = normalizeRouterBasePath(env.githubPagesBasePath);
 
 export const normalNextConfig: NextConfig = {
   allowedDevOrigins: [
@@ -43,8 +48,18 @@ export const githubPagesNextConfig: NextConfig = {
 };
 
 const nextConfig =
-  process.env.NEXT_DEPLOY_TARGET === 'gh-pages'
+  env.deploymentTarget === 'gh-pages'
     ? githubPagesNextConfig
     : normalNextConfig;
 
-export default nextConfig;
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [rehypeSlug],
+  },
+});
+
+export default withMDX({
+  ...nextConfig,
+  pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
+});

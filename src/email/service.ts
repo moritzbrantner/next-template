@@ -1,3 +1,6 @@
+import { getEnv } from '@/src/config/env';
+import { getLogger } from '@/src/observability/logger';
+
 export type SendEmailRequest = {
   to: string;
   subject: string;
@@ -8,14 +11,12 @@ export type SendEmailRequest = {
   tags?: string[];
 };
 
-const DEFAULT_MAILPIT_BASE_URL = 'http://127.0.0.1:8025';
-
 function getEmailProvider() {
-  return process.env.EMAIL_PROVIDER?.toLowerCase() ?? 'console';
+  return getEnv().email.provider;
 }
 
 function getEmailFromAddress() {
-  return process.env.EMAIL_FROM ?? 'no-reply@example.com';
+  return getEnv().email.from;
 }
 
 function htmlToText(html: string) {
@@ -27,17 +28,17 @@ export async function sendEmail(request: SendEmailRequest): Promise<void> {
   const from = request.from ?? getEmailFromAddress();
 
   if (provider === 'console') {
-    console.info('[email] simulated send', {
+    getLogger({ subsystem: 'email' }).info({
       from,
       to: request.to,
       subject: request.subject,
       html: request.html,
-    });
+    }, 'Simulated email send');
     return;
   }
 
   if (provider === 'mailpit') {
-    const response = await fetch(`${process.env.MAILPIT_BASE_URL ?? DEFAULT_MAILPIT_BASE_URL}/api/v1/send`, {
+    const response = await fetch(`${getEnv().email.mailpitBaseUrl}/api/v1/send`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

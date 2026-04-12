@@ -3,11 +3,12 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
 
 import type { AppSession, AppSessionUser } from '@/src/auth';
+import { getEnv } from '@/src/config/env';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
 
 const SESSION_COOKIE_NAME = 'app-session';
 const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
-const SESSION_SECRET = process.env.AUTH_SECRET ?? 'local-build-secret-local-build-secret';
+const SESSION_SECRET = getEnv().auth.secret;
 
 type SessionPayload = {
   user?: AppSessionUser;
@@ -76,7 +77,7 @@ async function writeSessionCookie(payload: SessionPayload | null) {
     value: serializeSession(payload),
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: getEnv().isProduction,
     path: '/',
     maxAge: SESSION_MAX_AGE_SECONDS,
   });

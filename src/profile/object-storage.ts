@@ -1,6 +1,7 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { getEnv } from '@/src/config/env';
 import type { ValidatedImageUpload } from '@/src/profile/image-validation';
 
 export type StoredProfileImage = {
@@ -23,7 +24,20 @@ function loadS3Module() {
 }
 
 function requireEnv(name: string) {
-  const value = process.env[name];
+  const env = getEnv();
+  const value = (() => {
+    switch (name) {
+      case 'PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID':
+        return env.storage.accessKeyId;
+      case 'PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY':
+        return env.storage.secretAccessKey;
+      case 'PROFILE_IMAGE_STORAGE_BUCKET':
+        return env.storage.bucket;
+      default:
+        return undefined;
+    }
+  })();
+
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
@@ -35,9 +49,9 @@ async function getClient() {
   const { S3Client } = await loadS3Module();
 
   return new S3Client({
-    region: process.env.PROFILE_IMAGE_STORAGE_REGION ?? 'auto',
-    endpoint: process.env.PROFILE_IMAGE_STORAGE_ENDPOINT,
-    forcePathStyle: process.env.PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE === 'true',
+    region: getEnv().storage.region,
+    endpoint: getEnv().storage.endpoint,
+    forcePathStyle: getEnv().storage.forcePathStyle,
     credentials: {
       accessKeyId: requireEnv('PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID'),
       secretAccessKey: requireEnv('PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY'),
@@ -50,7 +64,7 @@ function getBucket() {
 }
 
 function getPublicBaseUrl() {
-  const raw = process.env.PROFILE_IMAGE_PUBLIC_BASE_URL;
+  const raw = getEnv().storage.publicBaseUrl;
   if (!raw) {
     return null;
   }
@@ -59,12 +73,7 @@ function getPublicBaseUrl() {
 }
 
 function isObjectStorageConfigured() {
-  return Boolean(
-    process.env.PROFILE_IMAGE_STORAGE_BUCKET &&
-      process.env.PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID &&
-      process.env.PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY &&
-      process.env.PROFILE_IMAGE_PUBLIC_BASE_URL,
-  );
+  return getEnv().storage.configured;
 }
 
 function isLocalProfileImageKey(keyOrUrl: string) {

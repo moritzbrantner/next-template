@@ -1,38 +1,28 @@
-import { secureRoute } from '@/src/api/route-security';
+import * as z from 'zod';
+
 import { signInSession } from '@/src/auth.server';
 import { updateDisplayNameUseCase } from '@/src/domain/profile/use-cases';
+import { problem, ProblemError } from '@/src/http/errors';
+import { createApiRoute } from '@/src/http/route';
 
-export async function POST(request: Request) {
-  const guard = await secureRoute({
-    request,
-    action: 'profile.updateDisplayName',
-    requireAuth: true,
-  });
-
-  if (!guard.ok) {
-    return guard.response;
-  }
-
-  const session = guard.session!;
-  const userId = session.user.id;
-  const formData = await request.formData();
-  const rawDisplayName = formData.get('displayName');
-  const displayName = typeof rawDisplayName === 'string' ? rawDisplayName : '';
-
-  try {
-    const result = await updateDisplayNameUseCase(userId, displayName);
+export const POST = createApiRoute({
+  action: 'profile.updateDisplayName',
+  auth: true,
+  bodySchema: z.object({
+    displayName: z.string(),
+  }),
+  async handler({ body, session, actorId }) {
+    const result = await updateDisplayNameUseCase(actorId!, body.displayName);
 
     if (!result.ok) {
-      return guard.json({ error: result.error.message }, { status: 400 });
+      throw new ProblemError(problem('/problems/profile-display-name', 'Unable to update display name', 400, result.error.message));
     }
 
     await signInSession({
-      ...session.user,
+      ...session!.user,
       name: result.data.displayName,
     });
 
-    return guard.json({ ok: true });
-  } catch {
-    return guard.json({ error: 'Unable to update your display name right now. Please try again.' }, { status: 500 });
-  }
-}
+    return { ok: true };
+  },
+});

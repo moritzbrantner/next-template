@@ -1,26 +1,23 @@
-import { secureRoute } from '@/src/api/route-security';
+import * as z from 'zod';
+
 import { subscribeToNewsletter } from '@/src/domain/newsletter/use-cases';
+import { problem, ProblemError } from '@/src/http/errors';
+import { createApiRoute } from '@/src/http/route';
 
-export async function POST(request: Request) {
-  const guard = await secureRoute({
-    request,
-    action: 'newsletter.subscribe',
-  });
+export const POST = createApiRoute({
+  action: 'newsletter.subscribe',
+  bodySchema: z.object({
+    email: z.string().min(1),
+    locale: z.string().optional(),
+    source: z.string().optional(),
+  }),
+  async handler({ body }) {
+    const result = await subscribeToNewsletter(body);
 
-  if (!guard.ok) {
-    return guard.response;
-  }
+    if (!result.ok) {
+      throw new ProblemError(problem('/problems/newsletter-subscription', 'Unable to subscribe', 400, result.error));
+    }
 
-  const body = (await request.json()) as { email?: string; locale?: string; source?: string };
-  const result = await subscribeToNewsletter({
-    email: body.email ?? '',
-    locale: body.locale,
-    source: body.source,
-  });
-
-  if (!result.ok) {
-    return guard.json({ error: result.error }, { status: 400 });
-  }
-
-  return guard.json({ ok: true });
-}
+    return { ok: true };
+  },
+});

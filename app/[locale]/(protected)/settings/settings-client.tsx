@@ -5,6 +5,7 @@ import { DayPicker } from 'react-day-picker';
 
 import { AccountDeleteForm } from '@/components/account-delete-form';
 import { AccountEmailForm } from '@/components/account-email-form';
+import { ConsentSettingsCard } from '@/components/privacy/consent-settings-card';
 import { ProfileImageForm } from '@/components/profile-image-form';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import {
 } from '@/lib/authorization';
 import type { AppSession } from '@/src/auth';
 import { useTranslations } from '@/src/i18n';
+import type { ConsentState } from '@/src/privacy/consent';
 import { backgroundOptions, formatDatePreview, type BackgroundOption } from '@/src/settings/preferences';
 import { useAppSettings } from '@/src/settings/provider';
 
@@ -33,7 +35,15 @@ type SettingsTab = (typeof tabs)[number];
 const selectClassName =
   'w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900';
 
-export function SettingsClient({ locale, session }: { locale: string; session: AppSession }) {
+export function SettingsClient({
+  locale,
+  session,
+  consent,
+}: {
+  locale: string;
+  session: AppSession;
+  consent: ConsentState;
+}) {
   const t = useTranslations('SettingsPage');
   const { settings, updateSettings } = useAppSettings();
   const [previewDate, setPreviewDate] = useState<Date | undefined>(new Date());
@@ -238,6 +248,8 @@ export function SettingsClient({ locale, session }: { locale: string; session: A
                 <option value="silent">{t('notifications.types.silent')}</option>
               </select>
             </div>
+
+            <ConsentSettingsCard initialConsent={consent} />
           </CardContent>
         </Card>
       ) : null}
