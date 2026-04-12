@@ -76,12 +76,12 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
       }),
     });
 
-    const body = (await response.json().catch(() => null)) as { error?: string } | null;
+    const body = (await response.json().catch(() => null)) as { detail?: string; error?: string } | null;
 
     if (!response.ok) {
       setError('root', {
         type: 'server',
-        message: body?.error ?? labels.genericError,
+        message: body?.detail ?? body?.error ?? labels.genericError,
       });
       setPending(false);
       return;

@@ -3,6 +3,8 @@ import { expect, type Page } from '@playwright/test';
 import { TEST_USERS } from '@/src/testing/test-users';
 
 const DEFAULT_MAILPIT_BASE_URL = 'http://127.0.0.1:8025';
+const DEFAULT_E2E_BASE_URL = 'http://127.0.0.1:3006';
+const DEFAULT_INTERNAL_CRON_SECRET = 'e2e-internal-cron-secret';
 
 export async function waitForAppHydration(page: Page) {
   await page.waitForFunction(() => document.documentElement.dataset.appHydrated === 'true');
@@ -45,6 +47,14 @@ export async function logoutFromProfileMenu(page: Page) {
 
 function getMailpitBaseURL() {
   return process.env.MAILPIT_BASE_URL ?? DEFAULT_MAILPIT_BASE_URL;
+}
+
+function getE2EBaseURL() {
+  return process.env.E2E_BASE_URL ?? DEFAULT_E2E_BASE_URL;
+}
+
+function getInternalCronSecret() {
+  return DEFAULT_INTERNAL_CRON_SECRET;
 }
 
 function getMessageList(payload: unknown) {
@@ -107,6 +117,19 @@ async function getMailpitMessageRaw(messageId: string) {
   return response.text();
 }
 
+async function runQueuedJobs() {
+  const response = await fetch(`${getE2EBaseURL()}/api/internal/jobs/run`, {
+    method: 'POST',
+    headers: {
+      'x-internal-cron-secret': getInternalCronSecret(),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Unable to run queued jobs.');
+  }
+}
+
 export async function clearMailpitMessages() {
   const response = await fetch(`${getMailpitBaseURL()}/api/v1/messages`, {
     method: 'DELETE',
@@ -126,6 +149,8 @@ export async function waitForMailpitMessage(input: { to: string; subject: string
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
+    await runQueuedJobs();
+
     const response = await fetch(`${getMailpitBaseURL()}/api/v1/messages?limit=25`);
 
     if (!response.ok) {
