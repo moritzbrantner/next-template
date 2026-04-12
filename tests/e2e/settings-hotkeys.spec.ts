@@ -32,11 +32,17 @@ test.describe('settings and hotkeys', () => {
     await page.reload();
     await gotoAndWaitForHydration(page, '/en/settings');
 
-    await expect(page.locator('html')).toHaveAttribute('data-background', 'aurora');
+    await expect(page.locator('html')).toHaveAttribute('data-hotkey-hints', 'hidden');
     await expect(page.getByRole('button', { name: 'Hotkeys' })).toHaveCount(0);
+
+    await page.getByRole('tab', { name: 'Appearance' }).click();
+    await expect(page.getByRole('button', { name: /Aurora Cool cyan and green gradients\./ })).toHaveAttribute('aria-pressed', 'true');
 
     await page.getByRole('tab', { name: 'Dates' }).click();
     await expect(page.getByText(/\d{4}-\d{2}-\d{2}/)).toBeVisible();
+
+    await page.getByRole('tab', { name: 'Workflow' }).click();
+    await expect(page.getByRole('switch', { name: 'Show hotkey hints' })).toHaveAttribute('aria-checked', 'false');
 
     await page.getByRole('tab', { name: 'Notifications' }).click();
     await expect(page.getByRole('switch', { name: 'Enable notifications' })).toHaveAttribute('aria-checked', 'false');

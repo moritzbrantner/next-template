@@ -64,6 +64,7 @@ export const settingsScript = `
       }
     : defaultSettings;
 
+  window.__appSettings = settings;
   document.documentElement.dataset.background = settings.background;
   document.documentElement.dataset.density = settings.compactSpacing ? 'compact' : 'comfortable';
   document.documentElement.dataset.motion = settings.reducedMotion ? 'reduced' : 'full';
