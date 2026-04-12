@@ -10,6 +10,8 @@ describe('navigation categories', () => {
         links: [
           { href: '/', key: 'home', translationKey: 'links.home', hotkey: ['alt', 'h'] },
           { href: '/about', key: 'about', translationKey: 'links.about', hotkey: ['alt', 'a'] },
+          { href: '/blog', key: 'blog', translationKey: 'links.blog', hotkey: ['alt', 'g'] },
+          { href: '/changelog', key: 'changelog', translationKey: 'links.changelog', hotkey: ['alt', 'k'] },
           { href: '/remocn', key: 'remocn', translationKey: 'links.remocn', hotkey: ['alt', 'v'] },
           { href: '/report-problem', key: 'reportProblem', translationKey: 'links.reportProblem', hotkey: ['alt', 'b'] },
           { href: '/examples/story', key: 'story', translationKey: 'links.story', hotkey: ['alt', 's'] },
@@ -34,6 +36,8 @@ describe('navigation categories', () => {
         links: [
           { href: '/', key: 'home', translationKey: 'links.home', hotkey: ['alt', 'h'] },
           { href: '/about', key: 'about', translationKey: 'links.about', hotkey: ['alt', 'a'] },
+          { href: '/blog', key: 'blog', translationKey: 'links.blog', hotkey: ['alt', 'g'] },
+          { href: '/changelog', key: 'changelog', translationKey: 'links.changelog', hotkey: ['alt', 'k'] },
           { href: '/remocn', key: 'remocn', translationKey: 'links.remocn', hotkey: ['alt', 'v'] },
           { href: '/report-problem', key: 'reportProblem', translationKey: 'links.reportProblem', hotkey: ['alt', 'b'] },          
           { href: '/examples/story', key: 'story', translationKey: 'links.story', hotkey: ['alt', 's'] },
@@ -58,6 +62,8 @@ describe('navigation categories', () => {
         links: [
           { href: '/', key: 'home', translationKey: 'links.home', hotkey: ['alt', 'h'] },
           { href: '/about', key: 'about', translationKey: 'links.about', hotkey: ['alt', 'a'] },
+          { href: '/blog', key: 'blog', translationKey: 'links.blog', hotkey: ['alt', 'g'] },
+          { href: '/changelog', key: 'changelog', translationKey: 'links.changelog', hotkey: ['alt', 'k'] },
           { href: '/remocn', key: 'remocn', translationKey: 'links.remocn', hotkey: ['alt', 'v'] },
           { href: '/report-problem', key: 'reportProblem', translationKey: 'links.reportProblem', hotkey: ['alt', 'b'] },
           { href: '/examples/story', key: 'story', translationKey: 'links.story', hotkey: ['alt', 's'] },
