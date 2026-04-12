@@ -64,6 +64,16 @@ pnpm run checks:main
 - `checks:beta`: nightly checks plus integration tests
 - `checks:main`: beta checks plus database check, production build, and e2e setup/tests
 
+## Staging build with Unlighthouse
+
+```bash
+pnpm run build:staging
+```
+
+This builds the app with `NEXT_DEPLOY_TARGET=staging`, starts the built server locally on `127.0.0.1:3100`, runs `unlighthouse-ci`, and writes the JSON report to `.generated/unlighthouse/ci-result.json`.
+
+The localized report summary page reads that generated file at `/en/unlighthouse` and `/de/unlighthouse`. The generated report directory is ignored by git.
+
 ## Seeded users
 
 - `admin@example.com` / `admin`

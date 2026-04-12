@@ -16,6 +16,7 @@ import { reportProblemPage } from './report-problem-page';
 import { settingsPage } from './settings-page';
 import { storyPage } from './story-page';
 import { themeToggle } from './theme-toggle';
+import { unlighthousePage } from './unlighthouse-page';
 import { uploadsPage } from './uploads-page';
 
 const deMessages = {
@@ -37,6 +38,7 @@ const deMessages = {
   RemocnPage: remocnPage,
   ReportProblemPage: reportProblemPage,
   StoryPage: storyPage,
+  UnlighthousePage: unlighthousePage,
   UploadsPage: uploadsPage,
 };
 
