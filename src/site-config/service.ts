@@ -52,6 +52,13 @@ let siteConfigCache:
   | undefined;
 let databaseReadFallbackExpiresAt = 0;
 let databaseReadFallbackLoggedAt = 0;
+const databaseReadFallbackErrorCodes = new Set([
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'ENOTFOUND',
+  'ETIMEDOUT',
+  '42P01',
+]);
 
 function normalizeBoolean(value: number) {
   return value === 1;
@@ -84,7 +91,7 @@ function getDefaultPublicSiteConfig(): PublicSiteConfig {
   };
 }
 
-function isDatabaseUnavailableError(error: unknown): boolean {
+export function shouldUseDatabaseReadFallback(error: unknown): boolean {
   const visited = new Set<unknown>();
   let current = error;
 
@@ -94,7 +101,7 @@ function isDatabaseUnavailableError(error: unknown): boolean {
     const code = 'code' in current && typeof current.code === 'string' ? current.code : undefined;
     const message = 'message' in current && typeof current.message === 'string' ? current.message : undefined;
 
-    if (code && ['ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT'].includes(code)) {
+    if (code && databaseReadFallbackErrorCodes.has(code)) {
       return true;
     }
 
@@ -137,7 +144,7 @@ export async function listSiteSettings() {
         orderBy: (table, { asc }) => [asc(table.key)],
       });
     } catch (error) {
-      if (!isDatabaseUnavailableError(error)) {
+      if (!shouldUseDatabaseReadFallback(error)) {
         throw error;
       }
 
@@ -182,7 +189,7 @@ export async function listFeatureFlags() {
         orderBy: (table, { asc }) => [asc(table.key)],
       });
     } catch (error) {
-      if (!isDatabaseUnavailableError(error)) {
+      if (!shouldUseDatabaseReadFallback(error)) {
         throw error;
       }
 
@@ -262,7 +269,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
         flags,
       };
     } catch (error) {
-      if (!isDatabaseUnavailableError(error)) {
+      if (!shouldUseDatabaseReadFallback(error)) {
         throw error;
       }
 
@@ -292,7 +299,7 @@ export async function listAnnouncements(locale?: AppLocale): Promise<SiteAnnounc
         orderBy: (table, { desc }) => [desc(table.updatedAt)],
       });
     } catch (error) {
-      if (!isDatabaseUnavailableError(error)) {
+      if (!shouldUseDatabaseReadFallback(error)) {
         throw error;
       }
 
@@ -335,7 +342,7 @@ export async function getActiveAnnouncements(locale: AppLocale) {
         orderBy: (table, { desc }) => [desc(table.updatedAt)],
       });
     } catch (error) {
-      if (!isDatabaseUnavailableError(error)) {
+      if (!shouldUseDatabaseReadFallback(error)) {
         throw error;
       }
 
@@ -364,7 +371,7 @@ export async function getAnnouncementById(id: string) {
       where: (table, { eq: equals }) => equals(table.id, id),
     });
   } catch (error) {
-    if (!isDatabaseUnavailableError(error)) {
+    if (!shouldUseDatabaseReadFallback(error)) {
       throw error;
     }
 
