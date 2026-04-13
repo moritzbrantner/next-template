@@ -2,18 +2,22 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   followUserUseCase,
+  getProfileViewByTagUseCase,
   getProfileViewUseCase,
   getProfileSearchVisibilityUseCase,
   listFollowingProfilesUseCase,
   searchUsersToFollowUseCase,
   unfollowUserUseCase,
   updateProfileSearchVisibilityUseCase,
+  updateProfileTagUseCase,
   type ProfileUseCaseDeps,
 } from '@/src/domain/profile/use-cases';
 
 function createDeps(overrides: Partial<ProfileUseCaseDeps> = {}): ProfileUseCaseDeps {
   return {
     findUserById: vi.fn(),
+    findUserByTag: vi.fn(),
+    findUserByTagExcludingId: vi.fn(),
     countFollowers: vi.fn().mockResolvedValue(0),
     hasFollowRelationship: vi.fn().mockResolvedValue(false),
     createFollowRelationship: vi.fn().mockResolvedValue(undefined),
@@ -21,6 +25,7 @@ function createDeps(overrides: Partial<ProfileUseCaseDeps> = {}): ProfileUseCase
     listFollowingUsers: vi.fn().mockResolvedValue([]),
     searchUsersToFollow: vi.fn().mockResolvedValue([]),
     updateUserSearchVisibility: vi.fn().mockResolvedValue(undefined),
+    updateUserTag: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -31,6 +36,7 @@ describe('profile follow use cases', () => {
       findUserById: vi.fn().mockResolvedValue({
         id: 'user_2',
         email: 'person@example.com',
+        tag: 'person',
         name: 'Person',
         image: 'local-profile-images/user_2/avatar.jpg',
         isSearchable: true,
@@ -45,6 +51,7 @@ describe('profile follow use cases', () => {
       ok: true,
       data: {
         userId: 'user_2',
+        tag: 'person',
         displayName: 'Person',
         imageUrl: '/local-profile-images/user_2/avatar.jpg',
         followerCount: 14,
@@ -59,6 +66,7 @@ describe('profile follow use cases', () => {
       findUserById: vi.fn().mockResolvedValue({
         id: 'user_1',
         email: 'person@example.com',
+        tag: 'person',
         name: null,
         image: null,
         isSearchable: true,
@@ -72,6 +80,7 @@ describe('profile follow use cases', () => {
       ok: true,
       data: {
         userId: 'user_1',
+        tag: 'person',
         displayName: 'person',
         imageUrl: null,
         followerCount: 3,
@@ -87,6 +96,7 @@ describe('profile follow use cases', () => {
       findUserById: vi.fn().mockResolvedValue({
         id: 'user_2',
         email: 'person@example.com',
+        tag: 'person',
         name: 'Person',
         image: null,
         isSearchable: true,
@@ -130,6 +140,7 @@ describe('profile follow use cases', () => {
       findUserById: vi.fn().mockResolvedValue({
         id: 'user_1',
         email: 'viewer@example.com',
+        tag: 'viewer',
         name: 'Viewer',
         image: null,
         isSearchable: true,
@@ -138,6 +149,7 @@ describe('profile follow use cases', () => {
         {
           id: 'user_2',
           email: 'alpha@example.com',
+          tag: 'alpha',
           name: 'Alpha',
           image: null,
           isSearchable: true,
@@ -145,6 +157,7 @@ describe('profile follow use cases', () => {
         {
           id: 'user_3',
           email: 'bravo@example.com',
+          tag: 'bravo',
           name: null,
           image: 'local-profile-images/user_3/avatar.jpg',
           isSearchable: false,
@@ -160,11 +173,13 @@ describe('profile follow use cases', () => {
         profiles: [
           {
             userId: 'user_2',
+            tag: 'alpha',
             displayName: 'Alpha',
             imageUrl: null,
           },
           {
             userId: 'user_3',
+            tag: 'bravo',
             displayName: 'bravo',
             imageUrl: '/local-profile-images/user_3/avatar.jpg',
           },
@@ -178,6 +193,7 @@ describe('profile follow use cases', () => {
       findUserById: vi.fn().mockResolvedValue({
         id: 'user_1',
         email: 'viewer@example.com',
+        tag: 'viewer',
         name: 'Viewer',
         image: null,
         isSearchable: true,
@@ -186,6 +202,7 @@ describe('profile follow use cases', () => {
         {
           id: 'user_4',
           email: 'casey@example.com',
+          tag: 'casey',
           name: 'Casey',
           image: null,
           isSearchable: true,
@@ -201,6 +218,7 @@ describe('profile follow use cases', () => {
         profiles: [
           {
             userId: 'user_4',
+            tag: 'casey',
             displayName: 'Casey',
             imageUrl: null,
           },
@@ -215,6 +233,7 @@ describe('profile follow use cases', () => {
       findUserById: vi.fn().mockResolvedValue({
         id: 'user_1',
         email: 'viewer@example.com',
+        tag: 'viewer',
         name: 'Viewer',
         image: null,
         isSearchable: false,
@@ -235,5 +254,83 @@ describe('profile follow use cases', () => {
       },
     });
     expect(deps.updateUserSearchVisibility).toHaveBeenCalledWith('user_1', true);
+  });
+
+  it('loads a public profile by tag', async () => {
+    const deps = createDeps({
+      findUserByTag: vi.fn().mockResolvedValue({
+        id: 'user_2',
+        email: 'person@example.com',
+        tag: 'person',
+        name: 'Person',
+        image: null,
+        isSearchable: true,
+      }),
+      countFollowers: vi.fn().mockResolvedValue(2),
+    });
+
+    await expect(getProfileViewByTagUseCase('person', null, deps)).resolves.toEqual({
+      ok: true,
+      data: {
+        userId: 'user_2',
+        tag: 'person',
+        displayName: 'Person',
+        imageUrl: null,
+        followerCount: 2,
+        isOwnProfile: false,
+        isFollowing: false,
+      },
+    });
+  });
+
+  it('updates a profile tag when it is available', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'viewer@example.com',
+        tag: 'viewer',
+        name: 'Viewer',
+        image: null,
+        isSearchable: true,
+      }),
+      findUserByTagExcludingId: vi.fn().mockResolvedValue(undefined),
+    });
+
+    await expect(updateProfileTagUseCase('user_1', '@new-handle', deps)).resolves.toEqual({
+      ok: true,
+      data: {
+        tag: 'new-handle',
+      },
+    });
+    expect(deps.updateUserTag).toHaveBeenCalledWith('user_1', 'new-handle');
+  });
+
+  it('rejects profile tags that are already taken', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'viewer@example.com',
+        tag: 'viewer',
+        name: 'Viewer',
+        image: null,
+        isSearchable: true,
+      }),
+      findUserByTagExcludingId: vi.fn().mockResolvedValue({
+        id: 'user_2',
+        email: 'person@example.com',
+        tag: 'new-handle',
+        name: 'Person',
+        image: null,
+        isSearchable: true,
+      }),
+    });
+
+    await expect(updateProfileTagUseCase('user_1', 'new-handle', deps)).resolves.toEqual({
+      ok: false,
+      error: {
+        code: 'CONFLICT',
+        message: 'That tag is already taken.',
+      },
+    });
   });
 });

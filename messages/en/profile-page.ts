@@ -1,6 +1,6 @@
 export const profilePage = {
   title: 'Profile',
-  description: 'Manage your display name and profile picture.',
+  description: 'Manage your display name, public tag, and profile picture.',
   view: {
     title: 'Profile',
     description: 'View this user and keep up with their activity.',
@@ -19,6 +19,15 @@ export const profilePage = {
       save: 'Save name',
       saving: 'Saving…',
       success: 'Display name updated.',
+    },
+    tag: {
+      label: 'Public tag',
+      placeholder: 'your-tag',
+      hint: 'Your public profile URL updates immediately:',
+      save: 'Save tag',
+      saving: 'Saving…',
+      success: 'Public tag updated.',
+      viewProfile: 'View public profile',
     },
     chooseImage: 'Choose a profile picture',
     hint: 'Use a square PNG or JPEG image for best results.',

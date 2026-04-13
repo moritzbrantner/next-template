@@ -8,6 +8,7 @@ function createSession(role: "ADMIN" | "MANAGER" | "USER"): AppSession {
     user: {
       id: role === "ADMIN" ? "admin_1" : role === "MANAGER" ? "manager_1" : "user_1",
       email: `${role.toLowerCase()}@example.com`,
+      tag: role === "ADMIN" ? "admin" : role === "MANAGER" ? "manager" : "user",
       image: null,
       name: null,
       role,

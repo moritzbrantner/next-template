@@ -5,6 +5,7 @@ import { blogPosts, userFollows } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
 import { enqueueJob } from '@/src/jobs/service';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
+import { buildPublicProfileBlogPath } from '@/src/profile/tags';
 
 const BLOG_POST_TITLE_MIN_LENGTH = 4;
 const BLOG_POST_TITLE_MAX_LENGTH = 120;
@@ -14,6 +15,7 @@ const BLOG_POST_CONTENT_MAX_LENGTH = 10_000;
 type BlogAuthorRecord = {
   id: string;
   email: string | null;
+  tag: string;
   name: string | null;
   image: string | null;
 };
@@ -37,6 +39,7 @@ export type BlogPostSummary = {
 
 export type UserBlogPayload = {
   userId: string;
+  tag: string;
   displayName: string;
   imageUrl: string | null;
   posts: BlogPostSummary[];
@@ -55,6 +58,7 @@ export type BlogError = {
 
 export type BlogUseCaseDeps = {
   findUserById: (userId: string) => Promise<BlogAuthorRecord | undefined>;
+  findUserByTag: (tag: string) => Promise<BlogAuthorRecord | undefined>;
   listPostsByUserId: (userId: string) => Promise<BlogPostRecord[]>;
   listFollowerIdsByUserId: (userId: string) => Promise<string[]>;
   createPost: (input: { userId: string; title: string; content: string }) => Promise<BlogPostRecord>;
@@ -74,6 +78,10 @@ function getBlogUseCaseDeps(): BlogUseCaseDeps {
     findUserById: (userId) =>
       getDb().query.users.findFirst({
         where: (table, { eq: innerEq }) => innerEq(table.id, userId),
+      }),
+    findUserByTag: (tag) =>
+      getDb().query.users.findFirst({
+        where: (table, { eq: innerEq }) => innerEq(table.tag, tag),
       }),
     listPostsByUserId: (userId) =>
       getDb().query.blogPosts.findMany({
@@ -140,12 +148,13 @@ function normalizeBlogPost(post: BlogPostRecord): BlogPostSummary {
   };
 }
 
-function buildBlogPostHref(userId: string, postId: string) {
-  return `/profile/${userId}/blog#post-${postId}`;
+function buildBlogPostHref(tag: string, postId: string) {
+  return `${buildPublicProfileBlogPath(tag)}#post-${postId}`;
 }
 
 function buildFollowerNotification(input: {
   authorUserId: string;
+  authorTag: string;
   authorDisplayName: string;
   followerUserId: string;
   postId: string;
@@ -156,7 +165,7 @@ function buildFollowerNotification(input: {
     actorId: input.authorUserId,
     title: `${input.authorDisplayName} published a new blog post`,
     body: input.postTitle,
-    href: buildBlogPostHref(input.authorUserId, input.postId),
+    href: buildBlogPostHref(input.authorTag, input.postId),
   };
 }
 
@@ -177,10 +186,27 @@ export async function getUserBlogUseCase(
 
   return success({
     userId: user.id,
+    tag: user.tag,
     displayName: resolveProfileDisplayName(user),
     imageUrl: buildProfileImageUrl(user.image) ?? null,
     posts: posts.map(normalizeBlogPost),
   });
+}
+
+export async function getUserBlogByTagUseCase(
+  tag: string,
+  deps: BlogUseCaseDeps = getBlogUseCaseDeps(),
+): Promise<ServiceResult<UserBlogPayload, BlogError>> {
+  const user = await deps.findUserByTag(tag);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  return getUserBlogUseCase(user.id, deps);
 }
 
 export async function createBlogPostUseCase(
@@ -243,6 +269,7 @@ export async function createBlogPostUseCase(
         followerIds.map((followerUserId) =>
           buildFollowerNotification({
             authorUserId: userId,
+            authorTag: user.tag,
             authorDisplayName,
             followerUserId,
             postId: post.id,

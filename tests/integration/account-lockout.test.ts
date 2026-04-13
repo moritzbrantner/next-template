@@ -6,6 +6,7 @@ describe('account lockout controls', () => {
   it('increments failures and applies lockout after threshold', async () => {
     const deps = {
       findUserByEmail: vi.fn(),
+      findUserByTag: vi.fn(),
       createUser: vi.fn(),
       issueToken: vi.fn(),
       findToken: vi.fn(),
@@ -32,6 +33,7 @@ describe('account lockout controls', () => {
   it('clears lockout state after successful sign-in', async () => {
     const deps = {
       findUserByEmail: vi.fn(),
+      findUserByTag: vi.fn(),
       createUser: vi.fn(),
       issueToken: vi.fn(),
       findToken: vi.fn(),

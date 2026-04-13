@@ -9,18 +9,21 @@ import { users } from "@/src/db/schema";
 export const TEST_USERS = [
   {
     email: "admin@example.com",
+    tag: "test-admin",
     password: "admin",
     name: "Test Admin",
     role: "ADMIN" as const,
   },
   {
     email: "manager@example.com",
+    tag: "test-manager",
     password: "manager",
     name: "Test Manager",
     role: "MANAGER" as const,
   },
   {
     email: "user@example.com",
+    tag: "test-user",
     password: "user",
     name: "Test User",
     role: "USER" as const,
@@ -43,6 +46,7 @@ export async function seedTestUsers() {
       await db
         .update(users)
         .set({
+          tag: testUser.tag,
           name: testUser.name,
           role: testUser.role,
           passwordHash,
@@ -55,6 +59,7 @@ export async function seedTestUsers() {
     await db.insert(users).values({
       id: randomUUID(),
       email: testUser.email,
+      tag: testUser.tag,
       name: testUser.name,
       role: testUser.role,
       passwordHash,

@@ -3,6 +3,7 @@ import { getDb } from '@/src/db/client';
 import { profiles, securityAuditLogs, securityRateLimitCounters, users } from '@/src/db/schema';
 import { canWriteTable } from '@/src/domain/data-entry/table-permissions';
 import { isManagedTable } from '@/src/domain/data-entry/use-cases';
+import { getFallbackProfileTag } from '@/src/profile/tags';
 
 export async function POST(request: Request) {
   const guard = await secureRoute({
@@ -59,9 +60,12 @@ export async function POST(request: Request) {
         return guard.json({ error: 'Email is required for User rows.' }, { status: 400 });
       }
 
+      const newUserId = crypto.randomUUID();
+
       await db.insert(users).values({
-        id: crypto.randomUUID(),
+        id: newUserId,
         email,
+        tag: getFallbackProfileTag(newUserId),
         name,
         role: normalizedRole,
       });

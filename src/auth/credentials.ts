@@ -20,6 +20,7 @@ type CredentialsInput = {
 type DbUser = {
   id: string;
   email: string | null;
+  tag: string;
   name: string | null;
   image: string | null;
   role: AppRole;
@@ -108,6 +109,7 @@ export async function authorizeCredentials(
   return {
     id: user.id,
     email: user.email,
+    tag: user.tag,
     name: user.name,
     image: user.image,
     role: user.role,

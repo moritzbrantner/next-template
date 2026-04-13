@@ -14,6 +14,7 @@ import {
 function createDeps() {
   return {
     findUserByEmail: vi.fn(),
+    findUserByTag: vi.fn(),
     findUserById: vi.fn(),
     createUser: vi.fn(),
     issueToken: vi.fn(),
@@ -36,6 +37,7 @@ describe('account lifecycle', () => {
   it('signs up users with hashed password and issues a verification token', async () => {
     const deps = createDeps();
     deps.findUserByEmail.mockResolvedValue(undefined);
+    deps.findUserByTag.mockResolvedValue(undefined);
 
     const result = await signUpWithCredentialsLifecycle(
       {
@@ -51,6 +53,7 @@ describe('account lifecycle', () => {
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({
         email: 'newuser@example.com',
+        tag: expect.any(String),
         passwordHash: 'hashed-password',
       }),
     );
@@ -59,6 +62,7 @@ describe('account lifecycle', () => {
 
   it('rejects invalid and duplicate account creation attempts', async () => {
     const deps = createDeps();
+    deps.findUserByTag.mockResolvedValue(undefined);
 
     await expect(
       signUpWithCredentialsLifecycle(

@@ -7,6 +7,7 @@ import { buildNavigationCategories } from '@/src/navigation/navigation-categorie
 import type { NotificationPreview } from '@/src/domain/notifications/use-cases';
 import { useTranslations } from '@/src/i18n';
 import type { AppSession } from '@/src/auth';
+import { buildPublicProfilePath } from '@/src/profile/tags';
 
 import { AuthNavigation } from '@/components/auth-navigation';
 import { GroupedNavigationMenu } from '@/components/grouped-navigation-menu';
@@ -54,7 +55,7 @@ export function NavigationBar({ locale, session, notificationCenter, siteName }:
               <NotificationBell items={notificationCenter?.items ?? []} unreadCount={notificationCenter?.unreadCount ?? 0} />
               <ProfileMenu
                 locale={locale}
-                profileHref={`/profile/${session.user.id}`}
+                profileHref={session.user.tag ? buildPublicProfilePath(session.user.tag) : '/profile'}
                 settingsHref="/settings"
                 imageUrl={session.user.image ?? null}
                 displayName={session.user.name ?? 'User'}

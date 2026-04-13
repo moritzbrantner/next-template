@@ -5,8 +5,9 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
-import { getProfileViewUseCase } from '@/src/domain/profile/use-cases';
+import { getProfileViewByTagUseCase } from '@/src/domain/profile/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
+import { buildPublicProfileBlogPath, parseProfileTagSegment } from '@/src/profile/tags';
 import { resolveLocale } from '@/src/server/page-guards';
 
 export default async function PublicProfilePage({
@@ -14,13 +15,19 @@ export default async function PublicProfilePage({
 }: {
   params: Promise<{ locale: string; userId: string }>;
 }) {
-  const { locale: rawLocale, userId } = await params;
+  const { locale: rawLocale, userId: rawTagSegment } = await params;
   const locale = resolveLocale(rawLocale);
+  const profileTag = parseProfileTagSegment(rawTagSegment);
+
+  if (!profileTag) {
+    notFound();
+  }
+
   const t = createTranslator(locale, 'ProfilePage');
   const blogT = createTranslator(locale, 'BlogPage');
   const session = await getAuthSession();
   const viewerUserId = session?.user.id ?? null;
-  const result = await getProfileViewUseCase(userId, viewerUserId);
+  const result = await getProfileViewByTagUseCase(profileTag, viewerUserId);
 
   if (!result.ok) {
     notFound();
@@ -38,6 +45,7 @@ export default async function PublicProfilePage({
       <ProfileFollowPanel
         locale={locale}
         profileUserId={profile.userId}
+        profileTag={profile.tag}
         displayName={profile.displayName}
         imageUrl={profile.imageUrl}
         initialFollowerCount={profile.followerCount}
@@ -63,7 +71,7 @@ export default async function PublicProfilePage({
           </div>
 
           <LocalizedLink
-            href={`/profile/${profile.userId}/blog`}
+            href={buildPublicProfileBlogPath(profile.tag)}
             locale={locale}
             className={buttonVariants({ variant: 'default' })}
           >

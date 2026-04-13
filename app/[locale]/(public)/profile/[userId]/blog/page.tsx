@@ -5,7 +5,8 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
-import { getUserBlogUseCase } from '@/src/domain/blog/use-cases';
+import { getUserBlogByTagUseCase } from '@/src/domain/blog/use-cases';
+import { buildPublicProfilePath, parseProfileTagSegment } from '@/src/profile/tags';
 import { resolveLocale } from '@/src/server/page-guards';
 
 function formatBlogDate(locale: string, date: Date) {
@@ -20,10 +21,16 @@ export default async function PublicUserBlogPage({
 }: {
   params: Promise<{ locale: string; userId: string }>;
 }) {
-  const { locale: rawLocale, userId } = await params;
+  const { locale: rawLocale, userId: rawTagSegment } = await params;
   const locale = resolveLocale(rawLocale);
+  const profileTag = parseProfileTagSegment(rawTagSegment);
+
+  if (!profileTag) {
+    notFound();
+  }
+
   const t = createTranslator(locale, 'BlogPage');
-  const result = await getUserBlogUseCase(userId);
+  const result = await getUserBlogByTagUseCase(profileTag);
 
   if (!result.ok) {
     notFound();
@@ -57,7 +64,7 @@ export default async function PublicUserBlogPage({
             </div>
 
             <LocalizedLink
-              href={`/profile/${blog.userId}`}
+              href={buildPublicProfilePath(blog.tag)}
               locale={locale}
               className={buttonVariants({ variant: 'outline' })}
             >

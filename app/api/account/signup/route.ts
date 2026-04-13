@@ -36,6 +36,7 @@ export const POST = createApiRoute({
     await signInSession({
       id: user.id,
       email: user.email,
+      tag: user.tag,
       image: user.image,
       name: user.name,
       role: user.role,

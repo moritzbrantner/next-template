@@ -90,10 +90,11 @@ export async function getAuthSession(): Promise<AppSession | null> {
   return payload?.user ? { user: payload.user } : null;
 }
 
-export async function signInSession(user: Pick<AppSessionUser, 'id' | 'email' | 'name' | 'image' | 'role'>): Promise<AppSession> {
+export async function signInSession(user: Pick<AppSessionUser, 'id' | 'email' | 'tag' | 'name' | 'image' | 'role'>): Promise<AppSession> {
   const normalizedUser: AppSessionUser = {
     id: user.id,
     email: user.email,
+    tag: user.tag ?? null,
     name: user.name ?? null,
     image: buildProfileImageUrl(user.image) ?? null,
     role: user.role,

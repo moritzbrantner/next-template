@@ -9,6 +9,7 @@ import {
 function createDeps(overrides: Partial<BlogUseCaseDeps> = {}): BlogUseCaseDeps {
   return {
     findUserById: vi.fn(),
+    findUserByTag: vi.fn(),
     listPostsByUserId: vi.fn().mockResolvedValue([]),
     listFollowerIdsByUserId: vi.fn().mockResolvedValue([]),
     createPost: vi.fn(),
@@ -25,6 +26,7 @@ describe('blog post use cases', () => {
       findUserById: vi.fn().mockResolvedValue({
         id: 'user_2',
         email: 'writer@example.com',
+        tag: 'writer',
         name: 'Writer',
         image: 'local-profile-images/user_2/avatar.jpg',
       }),
@@ -46,6 +48,7 @@ describe('blog post use cases', () => {
       ok: true,
       data: {
         userId: 'user_2',
+        tag: 'writer',
         displayName: 'Writer',
         imageUrl: '/local-profile-images/user_2/avatar.jpg',
         posts: [
@@ -66,6 +69,7 @@ describe('blog post use cases', () => {
       findUserById: vi.fn().mockResolvedValue({
         id: 'user_1',
         email: 'author@example.com',
+        tag: 'author',
         name: 'Author',
         image: null,
       }),
@@ -108,14 +112,14 @@ describe('blog post use cases', () => {
         actorId: 'user_1',
         title: 'Author published a new blog post',
         body: 'Trimmed title',
-        href: '/profile/user_1/blog#post-post_2',
+        href: '/profile/@author/blog#post-post_2',
       },
       {
         userId: 'user_3',
         actorId: 'user_1',
         title: 'Author published a new blog post',
         body: 'Trimmed title',
-        href: '/profile/user_1/blog#post-post_2',
+        href: '/profile/@author/blog#post-post_2',
       },
     ]);
   });
@@ -127,6 +131,7 @@ describe('blog post use cases', () => {
         findUserById: vi.fn().mockResolvedValue({
           id: 'user_1',
           email: 'author@example.com',
+          tag: 'author',
           name: 'Author',
           image: null,
         }),

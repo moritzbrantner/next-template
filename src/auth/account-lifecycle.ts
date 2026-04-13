@@ -8,6 +8,7 @@ import { getDb } from '@/src/db/client';
 import { users, verificationTokens } from '@/src/db/schema';
 import { enqueueJob } from '@/src/jobs/service';
 import { getLogger } from '@/src/observability/logger';
+import { getInitialProfileTagCandidates } from '@/src/profile/tags';
 
 const EMAIL_VERIFICATION_PREFIX = 'email-verification:';
 const PASSWORD_RESET_PREFIX = 'password-reset:';
@@ -51,7 +52,8 @@ type VerificationTokenRecord = {
 
 type LifecycleDependencies = {
   findUserByEmail: (email: string) => Promise<DbUser | undefined>;
-  createUser: (input: { id: string; email: string; name: string | null; passwordHash: string }) => Promise<void>;
+  findUserByTag: (tag: string) => Promise<DbUser | undefined>;
+  createUser: (input: { id: string; email: string; tag: string; name: string | null; passwordHash: string }) => Promise<void>;
   issueToken: (input: { identifier: string; token: string; expires: Date }) => Promise<void>;
   findToken: (token: string, identifierPrefix: string) => Promise<VerificationTokenRecord | undefined>;
   deleteToken: (token: string) => Promise<void>;
@@ -73,10 +75,14 @@ async function resolveDependencies(): Promise<LifecycleDependencies> {
     findUserByEmail: async (email) => {
       return getDb().query.users.findFirst({ where: (table, { eq }) => eq(table.email, email) });
     },
+    findUserByTag: async (tag) => {
+      return getDb().query.users.findFirst({ where: (table, { eq }) => eq(table.tag, tag) });
+    },
     createUser: async (input) => {
       await getDb().insert(users).values({
         id: input.id,
         email: input.email,
+        tag: input.tag,
         name: input.name,
         passwordHash: input.passwordHash,
         createdAt: new Date(),
@@ -151,8 +157,16 @@ export async function signUpWithCredentials(input: SignupInput, deps?: Lifecycle
   if (await d.findUserByEmail(email)) return { ok: false, error: 'An account already exists for this email.' };
 
   const userId = crypto.randomUUID();
+  let tag = '';
+  for (const candidate of getInitialProfileTagCandidates({ userId, email, name: input.name })) {
+    if (!(await d.findUserByTag(candidate))) {
+      tag = candidate;
+      break;
+    }
+  }
+  if (!tag) return { ok: false, error: 'Unable to allocate a profile tag right now.' };
   const passwordHashValue = await d.hashPassword(input.password);
-  await d.createUser({ id: userId, email, name: input.name?.trim() || null, passwordHash: passwordHashValue });
+  await d.createUser({ id: userId, email, tag, name: input.name?.trim() || null, passwordHash: passwordHashValue });
 
   const rawToken = createRawToken();
   const locale = normalizeLocale(input.locale);

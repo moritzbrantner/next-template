@@ -90,6 +90,7 @@ describe('route security helper', () => {
         user: {
           id: 'user_1',
           email: 'user@example.com',
+          tag: 'user',
           name: 'User',
           image: null,
           role: 'USER',
@@ -126,6 +127,7 @@ describe('route security helper', () => {
         user: {
           id: 'admin_1',
           email: 'admin@example.com',
+          tag: 'admin',
           name: 'Admin',
           image: null,
           role: 'ADMIN',

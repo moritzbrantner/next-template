@@ -11,6 +11,7 @@ import { readProblemDetail } from '@/src/http/problem-client';
 type ProfileFollowPanelProps = {
   locale: AppLocale;
   profileUserId: string;
+  profileTag: string;
   displayName: string;
   imageUrl: string | null;
   initialFollowerCount: number;
@@ -31,6 +32,7 @@ type ProfileFollowPanelProps = {
 export function ProfileFollowPanel({
   locale,
   profileUserId,
+  profileTag,
   displayName,
   imageUrl,
   initialFollowerCount,
@@ -91,6 +93,7 @@ export function ProfileFollowPanel({
 
             <div className="space-y-2 pb-1">
               <h1 className="text-3xl font-semibold tracking-tight">{displayName}</h1>
+              <p className="text-sm text-zinc-600 dark:text-zinc-300">/@{profileTag}</p>
               <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
                 <span className="font-semibold">{followerCount}</span>
                 <span>{labels.followers}</span>

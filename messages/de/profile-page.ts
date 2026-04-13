@@ -1,6 +1,6 @@
 export const profilePage = {
   title: 'Profil',
-  description: 'Verwalte deinen Anzeigenamen und dein Profilbild.',
+  description: 'Verwalte deinen Anzeigenamen, deinen öffentlichen Tag und dein Profilbild.',
   view: {
     title: 'Profil',
     description: 'Sieh dir dieses Profil an und folge der Person bei Bedarf.',
@@ -19,6 +19,15 @@ export const profilePage = {
       save: 'Namen speichern',
       saving: 'Wird gespeichert…',
       success: 'Anzeigename aktualisiert.',
+    },
+    tag: {
+      label: 'Öffentlicher Tag',
+      placeholder: 'dein-tag',
+      hint: 'Deine öffentliche Profil-URL wird sofort aktualisiert:',
+      save: 'Tag speichern',
+      saving: 'Wird gespeichert…',
+      success: 'Öffentlicher Tag aktualisiert.',
+      viewProfile: 'Öffentliches Profil ansehen',
     },
     chooseImage: 'Profilbild auswählen',
     hint: 'Verwende für beste Ergebnisse ein quadratisches PNG- oder JPEG-Bild.',

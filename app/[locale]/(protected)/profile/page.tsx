@@ -2,7 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { buttonVariants } from '@/components/ui/button';
 import { ProfileDisplayNameForm } from '@/components/profile-display-name-form';
 import { ProfileImageForm } from '@/components/profile-image-form';
+import { ProfileTagForm } from '@/components/profile-tag-form';
 import { LocalizedLink } from '@/i18n/server-link';
+import { buildPublicProfileBlogPath, buildPublicProfilePath } from '@/src/profile/tags';
 import { createTranslator } from '@/src/i18n/messages';
 import { requireAuth, resolveLocale } from '@/src/server/page-guards';
 
@@ -33,6 +35,18 @@ export default async function ProfilePage({
             save: t('form.displayName.save'),
             saving: t('form.displayName.saving'),
             success: t('form.displayName.success'),
+          }}
+        />
+
+        <ProfileTagForm
+          currentTag={session.user.tag ?? ''}
+          labels={{
+            label: t('form.tag.label'),
+            placeholder: t('form.tag.placeholder'),
+            hint: t('form.tag.hint'),
+            save: t('form.tag.save'),
+            saving: t('form.tag.saving'),
+            success: t('form.tag.success'),
           }}
         />
 
@@ -71,11 +85,18 @@ export default async function ProfilePage({
               {blogT('editor.openComposer')}
             </LocalizedLink>
             <LocalizedLink
-              href={`/profile/${session.user.id}/blog`}
+              href={session.user.tag ? buildPublicProfileBlogPath(session.user.tag) : '/profile/blog'}
               locale={locale}
               className={buttonVariants({ variant: 'outline' })}
             >
               {blogT('editor.viewPublicBlog')}
+            </LocalizedLink>
+            <LocalizedLink
+              href={session.user.tag ? buildPublicProfilePath(session.user.tag) : '/profile'}
+              locale={locale}
+              className={buttonVariants({ variant: 'outline' })}
+            >
+              {t('form.tag.viewProfile')}
             </LocalizedLink>
           </div>
         </div>

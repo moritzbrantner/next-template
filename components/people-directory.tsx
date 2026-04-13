@@ -225,10 +225,10 @@ function ProfileRow({
       <div className="flex min-w-0 items-center gap-3">
         <Avatar imageUrl={profile.imageUrl} displayName={profile.displayName} />
         <div className="min-w-0">
-          <Link href={`/profile/${profile.userId}`} className="block truncate font-medium hover:underline">
+          <Link href={`/profile/@${profile.tag}`} className="block truncate font-medium hover:underline">
             {profile.displayName}
           </Link>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300">/@{profile.userId}</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-300">/@{profile.tag}</p>
         </div>
       </div>
 

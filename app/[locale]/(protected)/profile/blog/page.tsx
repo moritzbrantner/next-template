@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
 import { getUserBlogUseCase } from '@/src/domain/blog/use-cases';
+import { buildPublicProfileBlogPath } from '@/src/profile/tags';
 import { requireAuth, resolveLocale } from '@/src/server/page-guards';
 
 function formatBlogDate(locale: string, date: Date) {
@@ -50,7 +51,7 @@ export default async function ProfileBlogPage({
               {t('editor.backToProfile')}
             </LocalizedLink>
             <LocalizedLink
-              href={`/profile/${session.user.id}/blog`}
+              href={session.user.tag ? buildPublicProfileBlogPath(session.user.tag) : '/profile/blog'}
               locale={locale}
               className={buttonVariants({ variant: 'default' })}
             >

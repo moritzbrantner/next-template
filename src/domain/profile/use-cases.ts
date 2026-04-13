@@ -3,8 +3,9 @@ import { and, asc, count, eq, ilike, isNull, ne, or } from 'drizzle-orm';
 import { getDb } from '@/src/db/client';
 import { userFollows, users } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
-import { buildProfileImageUrl, deleteProfileImage, uploadProfileImage } from '@/src/profile/object-storage';
 import { ImageValidationError, validateImageUpload } from '@/src/profile/image-validation';
+import { buildProfileImageUrl, deleteProfileImage, uploadProfileImage } from '@/src/profile/object-storage';
+import { normalizeProfileTagInput, validateProfileTag } from '@/src/profile/tags';
 
 const DISPLAY_NAME_MIN_LENGTH = 2;
 const DISPLAY_NAME_MAX_LENGTH = 60;
@@ -17,6 +18,7 @@ export type ProfileError = {
 
 export type ProfileViewPayload = {
   userId: string;
+  tag: string;
   displayName: string;
   imageUrl: string | null;
   followerCount: number;
@@ -28,6 +30,10 @@ export type UpdateDisplayNamePayload = {
   displayName: string;
 };
 
+export type UpdateProfileTagPayload = {
+  tag: string;
+};
+
 export type UpdateProfileImagePayload = {
   imageKey: string;
   imageUrl: string;
@@ -35,6 +41,7 @@ export type UpdateProfileImagePayload = {
 
 export type ProfileDirectoryEntry = {
   userId: string;
+  tag: string;
   displayName: string;
   imageUrl: string | null;
 };
@@ -46,6 +53,7 @@ export type ProfileSearchVisibilityPayload = {
 type ProfileUserRecord = {
   id: string;
   email: string | null;
+  tag: string;
   name: string | null;
   image: string | null;
   isSearchable: boolean;
@@ -53,6 +61,8 @@ type ProfileUserRecord = {
 
 export type ProfileUseCaseDeps = {
   findUserById: (userId: string) => Promise<ProfileUserRecord | undefined>;
+  findUserByTag: (tag: string) => Promise<ProfileUserRecord | undefined>;
+  findUserByTagExcludingId: (tag: string, userId: string) => Promise<ProfileUserRecord | undefined>;
   countFollowers: (userId: string) => Promise<number>;
   hasFollowRelationship: (followerId: string, followingId: string) => Promise<boolean>;
   createFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
@@ -60,6 +70,7 @@ export type ProfileUseCaseDeps = {
   listFollowingUsers: (followerId: string) => Promise<ProfileUserRecord[]>;
   searchUsersToFollow: (viewerUserId: string, query: string) => Promise<ProfileUserRecord[]>;
   updateUserSearchVisibility: (userId: string, isSearchable: boolean) => Promise<void>;
+  updateUserTag: (userId: string, tag: string) => Promise<void>;
 };
 
 function getProfileUseCaseDeps(): ProfileUseCaseDeps {
@@ -67,6 +78,15 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
     findUserById: (userId) =>
       getDb().query.users.findFirst({
         where: (table, { eq: innerEq }) => innerEq(table.id, userId),
+      }),
+    findUserByTag: (tag) =>
+      getDb().query.users.findFirst({
+        where: (table, { eq: innerEq }) => innerEq(table.tag, tag),
+      }),
+    findUserByTagExcludingId: (tag, userId) =>
+      getDb().query.users.findFirst({
+        where: (table, { and: innerAnd, eq: innerEq, ne: innerNe }) =>
+          innerAnd(innerEq(table.tag, tag), innerNe(table.id, userId)),
       }),
     countFollowers: async (userId) => {
       const [result] = await getDb()
@@ -103,6 +123,7 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .select({
           id: users.id,
           email: users.email,
+          tag: users.tag,
           name: users.name,
           image: users.image,
           isSearchable: users.isSearchable,
@@ -110,7 +131,7 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .from(userFollows)
         .innerJoin(users, eq(userFollows.followingId, users.id))
         .where(eq(userFollows.followerId, followerId))
-        .orderBy(asc(users.name), asc(users.email));
+        .orderBy(asc(users.name), asc(users.tag), asc(users.email));
 
       return rows;
     },
@@ -119,6 +140,7 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .select({
           id: users.id,
           email: users.email,
+          tag: users.tag,
           name: users.name,
           image: users.image,
           isSearchable: users.isSearchable,
@@ -133,10 +155,10 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
             eq(users.isSearchable, true),
             ne(users.id, viewerUserId),
             isNull(userFollows.followingId),
-            or(ilike(users.name, `%${query}%`), ilike(users.email, `%${query}%`)),
+            or(ilike(users.name, `%${query}%`), ilike(users.email, `%${query}%`), ilike(users.tag, `%${query}%`)),
           ),
         )
-        .orderBy(asc(users.name), asc(users.email))
+        .orderBy(asc(users.name), asc(users.tag), asc(users.email))
         .limit(12);
 
       return rows;
@@ -145,6 +167,12 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
       await getDb()
         .update(users)
         .set({ isSearchable, updatedAt: new Date() })
+        .where(eq(users.id, userId));
+    },
+    updateUserTag: async (userId, tag) => {
+      await getDb()
+        .update(users)
+        .set({ tag, updatedAt: new Date() })
         .where(eq(users.id, userId));
     },
   };
@@ -164,9 +192,32 @@ function resolveProfileDisplayName(user: Pick<ProfileUserRecord, 'name' | 'email
 function toProfileDirectoryEntry(user: ProfileUserRecord): ProfileDirectoryEntry {
   return {
     userId: user.id,
+    tag: user.tag,
     displayName: resolveProfileDisplayName(user),
     imageUrl: buildProfileImageUrl(user.image) ?? null,
   };
+}
+
+async function buildProfileView(
+  user: ProfileUserRecord,
+  viewerUserId: string | null | undefined,
+  deps: ProfileUseCaseDeps,
+): Promise<ServiceResult<ProfileViewPayload, ProfileError>> {
+  const isOwnProfile = Boolean(viewerUserId && viewerUserId === user.id);
+  const [followerCount, isFollowing] = await Promise.all([
+    deps.countFollowers(user.id),
+    viewerUserId && !isOwnProfile ? deps.hasFollowRelationship(viewerUserId, user.id) : Promise.resolve(false),
+  ]);
+
+  return success({
+    userId: user.id,
+    tag: user.tag,
+    displayName: resolveProfileDisplayName(user),
+    imageUrl: buildProfileImageUrl(user.image) ?? null,
+    followerCount,
+    isOwnProfile,
+    isFollowing,
+  });
 }
 
 export async function getProfileViewUseCase(
@@ -183,20 +234,24 @@ export async function getProfileViewUseCase(
     });
   }
 
-  const isOwnProfile = Boolean(viewerUserId && viewerUserId === profileUserId);
-  const [followerCount, isFollowing] = await Promise.all([
-    deps.countFollowers(profileUserId),
-    viewerUserId && !isOwnProfile ? deps.hasFollowRelationship(viewerUserId, profileUserId) : Promise.resolve(false),
-  ]);
+  return buildProfileView(user, viewerUserId, deps);
+}
 
-  return success({
-    userId: user.id,
-    displayName: resolveProfileDisplayName(user),
-    imageUrl: buildProfileImageUrl(user.image) ?? null,
-    followerCount,
-    isOwnProfile,
-    isFollowing,
-  });
+export async function getProfileViewByTagUseCase(
+  profileTag: string,
+  viewerUserId?: string | null,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileViewPayload, ProfileError>> {
+  const user = await deps.findUserByTag(profileTag);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  return buildProfileView(user, viewerUserId, deps);
 }
 
 async function updateFollowRelationship(
@@ -378,6 +433,48 @@ export async function updateDisplayNameUseCase(
   return success({
     displayName,
   });
+}
+
+export async function updateProfileTagUseCase(
+  userId: string,
+  rawTag: string,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<UpdateProfileTagPayload, ProfileError>> {
+  const tag = normalizeProfileTagInput(rawTag);
+  const validation = validateProfileTag(tag);
+
+  if (!validation.ok) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: validation.message,
+    });
+  }
+
+  const existingUser = await deps.findUserById(userId);
+
+  if (!existingUser) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  if (existingUser.tag === tag) {
+    return success({ tag });
+  }
+
+  const duplicateUser = await deps.findUserByTagExcludingId(tag, userId);
+
+  if (duplicateUser) {
+    return failure({
+      code: 'CONFLICT',
+      message: 'That tag is already taken.',
+    });
+  }
+
+  await deps.updateUserTag(userId, tag);
+
+  return success({ tag });
 }
 
 export async function updateProfileImageUseCase(

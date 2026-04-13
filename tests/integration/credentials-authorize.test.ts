@@ -12,6 +12,7 @@ describe('authorizeCredentials', () => {
     const findUserByEmail = vi.fn().mockResolvedValue({
       id: 'user_1',
       email: 'person@example.com',
+      tag: 'person',
       name: 'Person',
       image: null,
       role: 'ADMIN',
@@ -35,6 +36,7 @@ describe('authorizeCredentials', () => {
     expect(result).toEqual({
       id: 'user_1',
       email: 'person@example.com',
+      tag: 'person',
       name: 'Person',
       image: null,
       role: 'ADMIN',
@@ -67,6 +69,7 @@ describe('authorizeCredentials', () => {
         findUserByEmail: vi.fn().mockResolvedValue({
           id: 'user_2',
           email: 'person@example.com',
+          tag: 'person',
           name: null,
           image: null,
           role: 'USER',
@@ -91,6 +94,7 @@ describe('authorizeCredentials', () => {
         findUserByEmail: vi.fn().mockResolvedValue({
           id: 'user_3',
           email: 'person@example.com',
+          tag: 'person',
           name: null,
           image: null,
           role: 'USER',

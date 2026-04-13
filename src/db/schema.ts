@@ -12,6 +12,7 @@ export const users = pgTable(
   {
     id: text("id").primaryKey(),
     email: text("email"),
+    tag: text("tag").notNull(),
     name: text("name"),
     image: text("image"),
     emailVerified: timestamp("emailVerified", { withTimezone: false, mode: "date" }),
@@ -25,7 +26,9 @@ export const users = pgTable(
   },
   (table) => [
     uniqueIndex("User_email_key").on(table.email),
+    uniqueIndex("User_tag_key").on(table.tag),
     index("User_email_idx").on(table.email),
+    index("User_tag_idx").on(table.tag),
     index("User_role_idx").on(table.role),
     index("User_isSearchable_idx").on(table.isSearchable),
   ],
