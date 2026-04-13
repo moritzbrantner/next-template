@@ -3,6 +3,8 @@ import enMessages from '@/messages/en';
 import { hasLocale, routing, type AppLocale } from '@/i18n/routing';
 
 export type Messages = typeof enMessages;
+export type MessageNamespace = keyof Messages;
+export type PartialMessages = Partial<Messages>;
 type MessageValue = string | number | boolean | null | undefined | Record<string, unknown>;
 
 const messageCatalog = {
@@ -10,11 +12,21 @@ const messageCatalog = {
   de: deMessages,
 } as const satisfies Record<AppLocale, Messages>;
 
-export function getMessages(locale: string): Messages {
+function getLocaleMessages(locale: string): Messages {
   return hasLocale(locale) ? messageCatalog[locale] : messageCatalog[routing.defaultLocale];
 }
 
-function getMessageByPath(messages: Messages, key: string): MessageValue {
+export function getMessages(locale: string, namespaces?: readonly MessageNamespace[]): PartialMessages {
+  const messages = getLocaleMessages(locale);
+
+  if (!namespaces) {
+    return messages;
+  }
+
+  return Object.fromEntries(namespaces.map((namespace) => [namespace, messages[namespace]])) as PartialMessages;
+}
+
+function getMessageByPath(messages: PartialMessages, key: string): MessageValue {
   return key.split('.').reduce<MessageValue>((value, segment) => {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       return undefined;
@@ -36,7 +48,7 @@ function formatMessage(template: string, values?: Record<string, string | number
 }
 
 export function createTranslator(locale: string, namespace?: string) {
-  const messages = getMessages(locale);
+  const messages = getLocaleMessages(locale);
 
   return (key: string, values?: Record<string, string | number | boolean | null | undefined>) => {
     const messageKey = namespace ? `${namespace}.${key}` : key;

@@ -1,4 +1,7 @@
 import { LocaleShell } from '@/components/locale-shell';
+import { I18nProvider } from '@/src/i18n';
+import { getMessages } from '@/src/i18n/messages';
+import { guestWebsiteNamespaces } from '@/src/i18n/namespaces';
 import { loadAppContext } from '@/src/runtime.functions';
 import { resolveLocale } from '@/src/server/page-guards';
 import { getActiveAnnouncements, getPublicSiteConfig } from '@/src/site-config/service';
@@ -17,16 +20,19 @@ export default async function GuestLocaleLayout({
     getPublicSiteConfig(),
     getActiveAnnouncements(locale),
   ]);
+  const messages = getMessages(locale, guestWebsiteNamespaces);
 
   return (
-    <LocaleShell
-      locale={locale}
-      session={session}
-      notificationCenter={notificationCenter}
-      siteName={siteConfig.siteName}
-      announcements={announcements}
-    >
-      {children}
-    </LocaleShell>
+    <I18nProvider locale={locale} messages={messages}>
+      <LocaleShell
+        locale={locale}
+        session={session}
+        notificationCenter={notificationCenter}
+        siteName={siteConfig.siteName}
+        announcements={announcements}
+      >
+        {children}
+      </LocaleShell>
+    </I18nProvider>
   );
 }

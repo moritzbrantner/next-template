@@ -1,4 +1,7 @@
 import { LocaleShell } from '@/components/locale-shell';
+import { I18nProvider } from '@/src/i18n';
+import { getMessages } from '@/src/i18n/messages';
+import { protectedWebsiteNamespaces } from '@/src/i18n/namespaces';
 import { loadAppContext } from '@/src/runtime.functions';
 import { redirectToLocaleHome, resolveLocale } from '@/src/server/page-guards';
 import { getActiveAnnouncements, getPublicSiteConfig } from '@/src/site-config/service';
@@ -22,15 +25,19 @@ export default async function ProtectedLocaleLayout({
     redirectToLocaleHome(locale);
   }
 
+  const messages = getMessages(locale, protectedWebsiteNamespaces);
+
   return (
-    <LocaleShell
-      locale={locale}
-      session={appContext.session}
-      notificationCenter={appContext.notificationCenter}
-      siteName={siteConfig.siteName}
-      announcements={announcements}
-    >
-      {children}
-    </LocaleShell>
+    <I18nProvider locale={locale} messages={messages}>
+      <LocaleShell
+        locale={locale}
+        session={appContext.session}
+        notificationCenter={appContext.notificationCenter}
+        siteName={siteConfig.siteName}
+        announcements={announcements}
+      >
+        {children}
+      </LocaleShell>
+    </I18nProvider>
   );
 }
