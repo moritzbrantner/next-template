@@ -40,8 +40,8 @@ export function NavigationBar({ locale, session, notificationCenter, siteName }:
   }));
 
   return (
-    <header className="sticky top-0 z-10 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
-      <nav className="mx-auto grid w-full max-w-5xl gap-3 px-4 py-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
+    <header className="sticky top-0 z-10 overflow-visible border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
+      <nav className="mx-auto grid w-full max-w-5xl gap-3 overflow-visible px-4 py-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           {siteName || t('brand')}
         </Link>

@@ -38,12 +38,14 @@ export function GroupedNavigationMenu({ categories }: GroupedNavigationMenuProps
 
   const activeCategoryKey =
     categories.find((category) => category.links.some((link) => matchesPath(pathname, link.href)))?.key ?? null;
+
   const openCategoryKey =
     openState &&
     openState.pathname === pathname &&
     categories.some((category) => category.key === openState.key)
       ? openState.key
       : null;
+
   const openCategory = categories.find((category) => category.key === openCategoryKey) ?? null;
 
   const handlePointerDown = useEffectEvent((event: PointerEvent) => {
@@ -75,7 +77,7 @@ export function GroupedNavigationMenu({ categories }: GroupedNavigationMenuProps
   return (
     <div
       ref={containerRef}
-      className="relative min-w-0"
+      className="relative min-w-0 overflow-visible"
       onBlurCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) {
           setOpenState(null);
@@ -133,7 +135,7 @@ export function GroupedNavigationMenu({ categories }: GroupedNavigationMenuProps
       {openCategory ? (
         <div
           id={`navigation-submenu-${openCategory.key}`}
-          className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-30 origin-top rounded-[1.75rem] border border-zinc-200/80 bg-white/95 p-3 shadow-[0_32px_90px_-40px_rgba(0,0,0,0.55)] backdrop-blur-xl transition-all duration-200 dark:border-zinc-800 dark:bg-zinc-950/95"
+          className="absolute left-1/2 top-[calc(100%+0.75rem)] z-30 w-[calc(100vw-2rem)] max-w-5xl -translate-x-1/2 origin-top rounded-[1.75rem] border border-zinc-200/80 bg-white/95 p-3 shadow-[0_32px_90px_-40px_rgba(0,0,0,0.55)] backdrop-blur-xl transition-all duration-200 dark:border-zinc-800 dark:bg-zinc-950/95"
         >
           <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {openCategory.links.map((link) => {

@@ -26,27 +26,29 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+import Script from 'next/script';
+
+// ...your other imports
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className="light"
-      data-background={defaultAppSettings.background}
-      data-density={defaultAppSettings.compactSpacing ? 'compact' : 'comfortable'}
-      data-motion={defaultAppSettings.reducedMotion ? 'reduced' : 'full'}
-      data-hotkey-hints={defaultAppSettings.showHotkeyHints ? 'visible' : 'hidden'}
-      data-app-hydrated="false"
-      suppressHydrationWarning
-    >
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <script dangerouslySetInnerHTML={{ __html: settingsScript }} />
+        <Script id="theme-script" strategy="beforeInteractive">
+          {themeScript}
+        </Script>
+        <Script id="settings-script" strategy="beforeInteractive">
+          {settingsScript}
+        </Script>
+
         <AppHydrationMarker />
-        <AppSettingsProvider initialSettings={defaultAppSettings}>{children}</AppSettingsProvider>
+        <AppSettingsProvider initialSettings={defaultAppSettings}>
+          {children}
+        </AppSettingsProvider>
       </body>
     </html>
   );

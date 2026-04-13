@@ -37,6 +37,7 @@ type SettingsTab = (typeof tabs)[number];
 
 const selectClassName =
   'w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900';
+const initialPreviewDate = new Date(2026, 5, 15, 12, 0, 0);
 
 export function SettingsClient({
   locale,
@@ -51,11 +52,11 @@ export function SettingsClient({
 }) {
   const t = useTranslations('SettingsPage');
   const { settings, updateSettings } = useAppSettings();
-  const [previewDate, setPreviewDate] = useState<Date | undefined>(new Date());
+  const [previewDate, setPreviewDate] = useState<Date | undefined>(initialPreviewDate);
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance');
 
   const role = session.user.role ?? 'USER';
-  const formattedPreviewDate = formatDatePreview(previewDate ?? new Date(), settings, locale);
+  const formattedPreviewDate = formatDatePreview(previewDate ?? initialPreviewDate, settings, locale);
   const updateNotificationSettings = (nextSettings: Partial<(typeof settings.notifications)>) => {
     updateSettings((currentSettings) => ({
       notifications: {

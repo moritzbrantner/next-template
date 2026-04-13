@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 
 import { NavigationBar } from '@/components/navigation-bar';
-import { PublicNavigationBar } from '@/components/public-navigation-bar';
 import { ConsentBanner } from '@/components/privacy/consent-banner';
 import { SiteAnnouncementBanner } from '@/components/site-announcement-banner';
 import type { AppLocale } from '@/i18n/routing';
@@ -22,14 +21,22 @@ type LocaleShellProps = {
   }>;
 };
 
-export function LocaleShell({ children, locale, session, notificationCenter, siteName, announcements }: LocaleShellProps) {
+export function LocaleShell({
+  children,
+  locale,
+  session,
+  notificationCenter,
+  siteName,
+  announcements,
+}: LocaleShellProps) {
   return (
     <>
-      {session?.user?.id ? (
-        <NavigationBar locale={locale} session={session} notificationCenter={notificationCenter} siteName={siteName} />
-      ) : (
-        <PublicNavigationBar locale={locale} siteName={siteName} />
-      )}
+      <NavigationBar
+        locale={locale}
+        session={session}
+        notificationCenter={notificationCenter}
+        siteName={siteName}
+      />
       <main className="app-shell mx-auto min-h-[calc(100vh-4rem)] w-full max-w-5xl px-4 py-10">
         <div className="space-y-4">
           <ConsentBanner />
