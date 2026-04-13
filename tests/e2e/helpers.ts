@@ -10,9 +10,21 @@ export async function waitForAppHydration(page: Page) {
   await page.waitForFunction(() => document.documentElement.dataset.appHydrated === 'true');
 }
 
+export async function dismissConsentBanner(page: Page) {
+  const necessaryOnlyButton = page.getByRole('button', { name: 'Necessary only' });
+
+  if (!(await necessaryOnlyButton.isVisible({ timeout: 1_000 }).catch(() => false))) {
+    return;
+  }
+
+  await necessaryOnlyButton.click();
+  await expect(necessaryOnlyButton).toBeHidden();
+}
+
 export async function gotoAndWaitForHydration(page: Page, path: string) {
   await page.goto(path);
   await waitForAppHydration(page);
+  await dismissConsentBanner(page);
 }
 
 export async function expectStatusMessage(page: Page, text: string) {
