@@ -41,6 +41,11 @@ if [[ "$1" != "compose" ]]; then
   exit 1
 fi
 
+if [[ -n "\${COMPOSE_FILE:-}" && "$COMPOSE_FILE" != "$EXPECTED_COMPOSE_FILE" ]]; then
+  echo "inherited COMPOSE_FILE leaked into docker compose: $COMPOSE_FILE" >&2
+  exit 1
+fi
+
 shift
 has_expected_file=0
 

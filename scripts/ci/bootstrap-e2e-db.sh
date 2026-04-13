@@ -94,11 +94,11 @@ docker_available() {
 }
 
 docker_compose_available() {
-  docker compose version >/dev/null 2>&1
+  env -u COMPOSE_FILE docker compose version >/dev/null 2>&1
 }
 
 docker_compose() {
-  docker compose -f "$COMPOSE_FILE_PATH" --project-directory "$APP_ROOT" "$@"
+  env -u COMPOSE_FILE docker compose -f "$COMPOSE_FILE_PATH" --project-directory "$APP_ROOT" "$@"
 }
 
 can_reach_mailpit() {
