@@ -3,9 +3,14 @@ import { getDb } from '@/src/db/client';
 import { profiles, securityAuditLogs, securityRateLimitCounters, users } from '@/src/db/schema';
 import { canWriteTable } from '@/src/domain/data-entry/table-permissions';
 import { isManagedTable } from '@/src/domain/data-entry/use-cases';
+import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import { getFallbackProfileTag } from '@/src/profile/tags';
 
 export async function POST(request: Request) {
+  if (!isFeatureEnabled('workspace.dataEntry')) {
+    return new Response('Not found', { status: 404 });
+  }
+
   const guard = await secureRoute({
     request,
     action: 'workspace.dataEntry.createRow',

@@ -15,6 +15,7 @@ const signupBodySchema = z.object({
 
 export const POST = createApiRoute({
   action: 'account.signup',
+  featureKey: 'account.register',
   bodySchema: signupBodySchema,
   async handler({ body }) {
     const result = await signUpWithCredentials(body);

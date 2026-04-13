@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { VerifyEmailPageContent } from '@/components/auth/verify-email-page-content';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createTranslator } from '@/src/i18n/messages';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 export default async function VerifyEmailPage({
   params,
@@ -12,6 +12,7 @@ export default async function VerifyEmailPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('account.register');
   const t = createTranslator(locale, 'AuthPages.verifyEmail');
 
   return (

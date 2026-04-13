@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { LocalizedLink } from '@/i18n/server-link';
 import { listBlogPosts } from '@/src/content/index';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 import { getPublicSiteConfig } from '@/src/site-config/service';
 
 export async function generateMetadata({
@@ -30,6 +30,7 @@ export default async function BlogIndexPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('content.blog');
   const posts = await listBlogPosts(locale);
 
   return (

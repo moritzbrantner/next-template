@@ -3,32 +3,16 @@ import {
   isAdmin,
   type AppRole,
 } from '@/lib/authorization';
+import { loadActiveApp } from '@/src/app-config/load-active-app';
+import type { AppHotkey } from '@/src/app-config/contracts';
+import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
+import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import type { NavigationCategoryKey } from '@/src/navigation/navigation-categories';
 
-export type AppPageKey =
-  | 'home'
-  | 'blog'
-  | 'changelog'
-  | 'about'
-  | 'remocn'
-  | 'reportProblem'
-  | 'forms'
-  | 'story'
-  | 'communication'
-  | 'notifications'
-  | 'people'
-  | 'table'
-  | 'uploads'
-  | 'dataEntry'
-  | 'admin'
-  | 'profile'
-  | 'settings'
-  | 'login'
-  | 'register';
+export type AppPageKey = string;
+export type { AppHotkey };
 
 type Visibility = 'public' | 'guest' | 'authenticated' | 'workspace' | 'admin';
-
-export type AppHotkey = readonly [modifier: 'alt', key: string];
 
 export type AppPageDefinition = {
   key: AppPageKey;
@@ -37,26 +21,12 @@ export type AppPageDefinition = {
   visibility: Visibility;
   navigationCategory?: NavigationCategoryKey;
   hotkey: AppHotkey;
+  order: number;
   prefetch?: boolean;
+  featureKey?: FoundationFeatureKey;
 };
 
-export const appPageDefinitions: readonly AppPageDefinition[] = [
-  {
-    key: 'home',
-    href: '/',
-    translationKey: 'links.home',
-    visibility: 'public',
-    navigationCategory: 'discover',
-    hotkey: ['alt', 'h'],
-  },
-  {
-    key: 'about',
-    href: '/about',
-    translationKey: 'links.about',
-    visibility: 'public',
-    navigationCategory: 'discover',
-    hotkey: ['alt', 'a'],
-  },
+const foundationPageDefinitions: readonly AppPageDefinition[] = [
   {
     key: 'blog',
     href: '/blog',
@@ -64,6 +34,8 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'discover',
     hotkey: ['alt', 'g'],
+    order: 110,
+    featureKey: 'content.blog',
   },
   {
     key: 'changelog',
@@ -72,15 +44,8 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'discover',
     hotkey: ['alt', 'k'],
-  },
-  {
-    key: 'remocn',
-    href: '/remocn',
-    translationKey: 'links.remocn',
-    visibility: 'public',
-    navigationCategory: 'discover',
-    hotkey: ['alt', 'v'],
-    prefetch: false,
+    order: 120,
+    featureKey: 'content.changelog',
   },
   {
     key: 'reportProblem',
@@ -89,24 +54,8 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'public',
     navigationCategory: 'discover',
     hotkey: ['alt', 'b'],
-  },
-  {
-    key: 'story',
-    href: '/examples/story',
-    translationKey: 'links.story',
-    visibility: 'public',
-    navigationCategory: 'discover',
-    hotkey: ['alt', 's'],
-    prefetch: false,
-  },
-  {
-    key: 'communication',
-    href: '/examples/communication',
-    translationKey: 'links.communication',
-    visibility: 'public',
-    navigationCategory: 'discover',
-    hotkey: ['alt', 'c'],
-    prefetch: false,
+    order: 130,
+    featureKey: 'reportProblem',
   },
   {
     key: 'people',
@@ -115,6 +64,8 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'authenticated',
     navigationCategory: 'discover',
     hotkey: ['alt', 'j'],
+    order: 210,
+    featureKey: 'people.directory',
   },
   {
     key: 'notifications',
@@ -123,32 +74,8 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'authenticated',
     navigationCategory: 'workspace',
     hotkey: ['alt', 'n'],
-  },
-  {
-    key: 'forms',
-    href: '/examples/forms',
-    translationKey: 'links.forms',
-    visibility: 'public',
-    navigationCategory: 'workspace',
-    hotkey: ['alt', 'f'],
-    prefetch: false,
-  },
-  {
-    key: 'table',
-    href: '/table',
-    translationKey: 'links.table',
-    visibility: 'public',
-    navigationCategory: 'workspace',
-    hotkey: ['alt', 't'],
-  },
-  {
-    key: 'uploads',
-    href: '/examples/uploads',
-    translationKey: 'links.uploads',
-    visibility: 'public',
-    navigationCategory: 'workspace',
-    hotkey: ['alt', 'u'],
-    prefetch: false,
+    order: 220,
+    featureKey: 'notifications',
   },
   {
     key: 'dataEntry',
@@ -157,6 +84,8 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'workspace',
     navigationCategory: 'workspace',
     hotkey: ['alt', 'd'],
+    order: 230,
+    featureKey: 'workspace.dataEntry',
   },
   {
     key: 'admin',
@@ -165,6 +94,8 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     visibility: 'admin',
     navigationCategory: 'admin',
     hotkey: ['alt', 'm'],
+    order: 310,
+    featureKey: 'admin.workspace',
   },
   {
     key: 'profile',
@@ -172,6 +103,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'menu.profile',
     visibility: 'authenticated',
     hotkey: ['alt', 'p'],
+    order: 410,
   },
   {
     key: 'settings',
@@ -179,6 +111,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'menu.settings',
     visibility: 'authenticated',
     hotkey: ['alt', 'e'],
+    order: 420,
   },
   {
     key: 'login',
@@ -186,6 +119,7 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'auth.login',
     visibility: 'guest',
     hotkey: ['alt', 'l'],
+    order: 510,
   },
   {
     key: 'register',
@@ -193,8 +127,51 @@ export const appPageDefinitions: readonly AppPageDefinition[] = [
     translationKey: 'auth.register',
     visibility: 'guest',
     hotkey: ['alt', 'r'],
+    order: 520,
+    featureKey: 'account.register',
   },
 ] as const;
+
+function hrefFromSlug(slug: string) {
+  return slug ? `/${slug}` : '/';
+}
+
+function getAppPublicPageDefinitions() {
+  const manifest = loadActiveApp();
+  return getAppPublicPageDefinitionsForManifest(manifest);
+}
+
+export function getAppPublicPageDefinitionsForManifest(manifest = loadActiveApp()): AppPageDefinition[] {
+  const pagesById = new Map(manifest.publicPages.map((page) => [page.id, page]));
+
+  return manifest.publicNavigation.map((item) => {
+    const page = pagesById.get(item.pageId);
+
+    if (!page) {
+      throw new Error(`Public navigation item "${item.pageId}" does not match any public page in manifest "${manifest.id}".`);
+    }
+
+    return {
+      key: page.id,
+      href: hrefFromSlug(page.slug),
+      translationKey: `links.${page.id}`,
+      visibility: 'public',
+      navigationCategory: item.category,
+      hotkey: item.hotkey,
+      order: item.order,
+      prefetch: item.prefetch,
+      featureKey: page.featureKey,
+    } satisfies AppPageDefinition;
+  });
+}
+
+export function composeAppPageDefinitions(manifest = loadActiveApp()): AppPageDefinition[] {
+  return [...getAppPublicPageDefinitionsForManifest(manifest), ...foundationPageDefinitions]
+    .filter((page) => !page.featureKey || isFeatureEnabled(page.featureKey, manifest))
+    .sort((left, right) => left.order - right.order);
+}
+
+export const appPageDefinitions: readonly AppPageDefinition[] = composeAppPageDefinitions();
 
 export function formatAppHotkey(hotkey: AppHotkey) {
   return hotkey.map((part) => part.toUpperCase()).join('+');

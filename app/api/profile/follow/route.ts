@@ -15,6 +15,7 @@ function mapFollowProblem(code: 'NOT_FOUND' | 'VALIDATION_ERROR' | 'FORBIDDEN' |
 
 export const POST = createApiRoute({
   action: 'profile.follow',
+  featureKey: 'profiles.follow',
   auth: true,
   bodySchema: followBodySchema,
   async handler({ actorId, body }) {
@@ -30,6 +31,7 @@ export const POST = createApiRoute({
 
 export const DELETE = createApiRoute({
   action: 'profile.unfollow',
+  featureKey: 'profiles.follow',
   auth: true,
   bodySchema: followBodySchema,
   async handler({ actorId, body }) {

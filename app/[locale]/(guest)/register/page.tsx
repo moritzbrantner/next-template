@@ -2,7 +2,7 @@ import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
 import { RegisterForm } from '@/components/auth/register-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createTranslator } from '@/src/i18n/messages';
-import { requireGuest, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, requireGuest, resolveLocale } from '@/src/server/page-guards';
 
 export default async function RegisterPage({
   params,
@@ -11,6 +11,7 @@ export default async function RegisterPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('account.register');
   await requireGuest(locale);
   const t = createTranslator(locale, 'AuthPages.register');
 

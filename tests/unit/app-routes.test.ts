@@ -40,19 +40,19 @@ describe('app routes', () => {
     {
       label: 'guests',
       input: { isAuthenticated: false, role: null },
-      visibleKeys: ['home', 'login', 'register'],
+      visibleKeys: ['home', 'about', 'forms', 'login', 'register'],
       hiddenKeys: ['people', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
     },
     {
       label: 'signed-in users',
       input: { isAuthenticated: true, role: 'USER' as const },
-      visibleKeys: ['people', 'notifications', 'dataEntry', 'profile', 'settings'],
+      visibleKeys: ['home', 'people', 'notifications', 'dataEntry', 'profile', 'settings'],
       hiddenKeys: ['login', 'register', 'admin'],
     },
     {
       label: 'managers',
       input: { isAuthenticated: true, role: 'MANAGER' as const },
-      visibleKeys: ['people', 'notifications', 'dataEntry', 'profile', 'settings'],
+      visibleKeys: ['home', 'people', 'notifications', 'dataEntry', 'profile', 'settings'],
       hiddenKeys: ['login', 'register', 'admin'],
     },
     {

@@ -9,6 +9,7 @@ type NavigationLinkDefinition = {
   translationKey: string;
   hotkey: AppHotkey;
   prefetch?: boolean;
+  order: number;
 };
 
 type NavigationCategoryDefinition = {
@@ -44,6 +45,7 @@ export function buildNavigationCategories({
           translationKey: page.translationKey,
           hotkey: page.hotkey,
           prefetch: page.prefetch,
+          order: page.order,
         })),
     },
     {
@@ -56,6 +58,7 @@ export function buildNavigationCategories({
           translationKey: page.translationKey,
           hotkey: page.hotkey,
           prefetch: page.prefetch,
+          order: page.order,
         })),
     },
     {
@@ -68,12 +71,13 @@ export function buildNavigationCategories({
           translationKey: page.translationKey,
           hotkey: page.hotkey,
           prefetch: page.prefetch,
+          order: page.order,
         })),
     },
   ];
 
   return navigationCategoryDefinitions.flatMap((category) => {
-    const links = category.links;
+    const links = [...category.links].sort((left, right) => left.order - right.order);
 
     if (!links.length) {
       return [];

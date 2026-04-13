@@ -60,6 +60,10 @@ export function forbiddenProblem(detail = 'Forbidden.') {
   return problem('/problems/forbidden', 'Forbidden', 403, detail);
 }
 
+export function notFoundProblem(detail = 'Not found.') {
+  return problem('/problems/not-found', 'Not found', 404, detail);
+}
+
 export function rateLimitedProblem(detail = 'Rate limit exceeded.') {
   return problem('/problems/rate-limited', 'Too many requests', 429, detail);
 }

@@ -24,6 +24,7 @@ function buildExpectedCategories({
         translationKey: page.translationKey,
         hotkey: page.hotkey,
         prefetch: page.prefetch,
+        order: page.order,
       }));
 
     return links.length ? [{ key: categoryKey, links }] : [];

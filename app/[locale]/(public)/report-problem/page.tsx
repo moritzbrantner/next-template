@@ -1,7 +1,7 @@
 import { ReportProblemForm } from '@/components/report-problem-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createTranslator } from '@/src/i18n/messages';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 const checklistKeys = ['summary', 'context', 'contact'] as const;
 
@@ -12,6 +12,7 @@ export default async function ReportProblemPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('reportProblem');
   const t = createTranslator(locale, 'ReportProblemPage');
 
   return (

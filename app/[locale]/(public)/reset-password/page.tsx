@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { ResetPasswordPageContent } from '@/components/auth/reset-password-page-content';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createTranslator } from '@/src/i18n/messages';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 export default async function ResetPasswordPage({
   params,
@@ -12,6 +12,7 @@ export default async function ResetPasswordPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('account.passwordRecovery');
   const t = createTranslator(locale, 'AuthPages.resetPassword');
   const labels = {
     password: t('form.password'),

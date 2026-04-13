@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -9,10 +10,11 @@ import * as z from 'zod';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
 
+import { loadActiveApp } from '@/src/app-config/load-active-app';
 import type { ContentCollection, ContentEntry, ContentIndexRecord } from '@/src/content/contracts';
 import { getEnv } from '@/src/config/env';
 
-const CONTENT_ROOT = path.join(process.cwd(), 'content');
+const LEGACY_CONTENT_ROOT = path.join(process.cwd(), 'content');
 
 const frontmatterSchema = z.object({
   title: z.string().min(1),
@@ -37,8 +39,23 @@ type IndexedCollection = {
   records: ContentEntry[];
 };
 
-function collectionDirectory(collection: ContentCollection, locale: string) {
-  return path.join(CONTENT_ROOT, collection, locale);
+function resolveContentRoot(root: string) {
+  return path.isAbsolute(root) ? root : path.join(process.cwd(), root);
+}
+
+export function getConfiguredContentRoots(collection: ContentCollection) {
+  const configuredRoots = loadActiveApp().contentRoots[collection].map(resolveContentRoot);
+  const legacyRoot = path.join(LEGACY_CONTENT_ROOT, collection);
+
+  if (existsSync(legacyRoot) && !configuredRoots.includes(legacyRoot)) {
+    return [...configuredRoots, legacyRoot];
+  }
+
+  return configuredRoots;
+}
+
+function collectionDirectories(collection: ContentCollection, locale: string) {
+  return getConfiguredContentRoots(collection).map((root) => path.join(root, locale));
 }
 
 function getHref(collection: ContentCollection, locale: string, slug: string) {
@@ -50,18 +67,20 @@ function getHref(collection: ContentCollection, locale: string, slug: string) {
 }
 
 async function readCollection(collection: ContentCollection, locale: string): Promise<IndexedCollection> {
-  const directory = collectionDirectory(collection, locale);
-  let fileNames: string[] = [];
+  const directories = collectionDirectories(collection, locale);
+  const filePaths: string[] = [];
 
-  try {
-    fileNames = (await readdir(directory)).filter((fileName) => fileName.endsWith('.mdx'));
-  } catch {
-    return { records: [] };
+  for (const directory of directories) {
+    try {
+      const fileNames = (await readdir(directory)).filter((fileName) => fileName.endsWith('.mdx'));
+      filePaths.push(...fileNames.map((fileName) => path.join(directory, fileName)));
+    } catch {
+      continue;
+    }
   }
 
   const records = await Promise.all(
-    fileNames.map(async (fileName) => {
-      const fullPath = path.join(directory, fileName);
+    filePaths.map(async (fullPath) => {
       const source = await readFile(fullPath, 'utf8');
       const parsed = matter(source);
       const frontmatter = frontmatterSchema.parse(parsed.data);

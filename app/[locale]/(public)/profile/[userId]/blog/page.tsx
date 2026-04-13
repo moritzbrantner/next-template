@@ -7,7 +7,7 @@ import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
 import { getUserBlogByTagUseCase } from '@/src/domain/blog/use-cases';
 import { buildPublicProfilePath, parseProfileTagSegment } from '@/src/profile/tags';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 function formatBlogDate(locale: string, date: Date) {
   return new Intl.DateTimeFormat(locale, {
@@ -23,6 +23,7 @@ export default async function PublicUserBlogPage({
 }) {
   const { locale: rawLocale, userId: rawTagSegment } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('profiles.blog');
   const profileTag = parseProfileTagSegment(rawTagSegment);
 
   if (!profileTag) {

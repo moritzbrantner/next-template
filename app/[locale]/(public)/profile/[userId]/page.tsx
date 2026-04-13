@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
 import { getProfileViewByTagUseCase } from '@/src/domain/profile/use-cases';
+import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import { createTranslator } from '@/src/i18n/messages';
 import { buildPublicProfileBlogPath, parseProfileTagSegment } from '@/src/profile/tags';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 export default async function PublicProfilePage({
   params,
@@ -17,6 +18,7 @@ export default async function PublicProfilePage({
 }) {
   const { locale: rawLocale, userId: rawTagSegment } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('profiles.public');
   const profileTag = parseProfileTagSegment(rawTagSegment);
 
   if (!profileTag) {
@@ -27,6 +29,8 @@ export default async function PublicProfilePage({
   const blogT = createTranslator(locale, 'BlogPage');
   const session = await getAuthSession();
   const viewerUserId = session?.user.id ?? null;
+  const followEnabled = isFeatureEnabled('profiles.follow');
+  const blogEnabled = isFeatureEnabled('profiles.blog');
   const result = await getProfileViewByTagUseCase(profileTag, viewerUserId);
 
   if (!result.ok) {
@@ -51,7 +55,7 @@ export default async function PublicProfilePage({
         initialFollowerCount={profile.followerCount}
         initialIsFollowing={profile.isFollowing}
         isOwnProfile={profile.isOwnProfile}
-        canManageFollowState={Boolean(viewerUserId)}
+        canManageFollowState={Boolean(viewerUserId) && followEnabled}
         labels={{
           followers: t('view.followers'),
           follow: t('view.follow'),
@@ -63,26 +67,28 @@ export default async function PublicProfilePage({
         }}
       />
 
-      <Card className="mx-auto max-w-3xl">
-        <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1.5">
-            <CardTitle>{blogT('profileCard.title')}</CardTitle>
-            <CardDescription>{blogT('profileCard.description', { name: profile.displayName })}</CardDescription>
-          </div>
+      {blogEnabled ? (
+        <Card className="mx-auto max-w-3xl">
+          <CardHeader className="gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1.5">
+              <CardTitle>{blogT('profileCard.title')}</CardTitle>
+              <CardDescription>{blogT('profileCard.description', { name: profile.displayName })}</CardDescription>
+            </div>
 
-          <LocalizedLink
-            href={buildPublicProfileBlogPath(profile.tag)}
-            locale={locale}
-            className={buttonVariants({ variant: 'default' })}
-          >
-            {blogT('profileCard.open')}
-          </LocalizedLink>
-        </CardHeader>
+            <LocalizedLink
+              href={buildPublicProfileBlogPath(profile.tag)}
+              locale={locale}
+              className={buttonVariants({ variant: 'default' })}
+            >
+              {blogT('profileCard.open')}
+            </LocalizedLink>
+          </CardHeader>
 
-        <CardContent>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">{blogT('profileCard.caption')}</p>
-        </CardContent>
-      </Card>
+          <CardContent>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{blogT('profileCard.caption')}</p>
+          </CardContent>
+        </Card>
+      ) : null}
     </section>
   );
 }

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { LocalizedLink } from '@/i18n/server-link';
 import { routing } from '@/i18n/routing';
 import { getAdjacentEntries, getContentEntry, listBlogPosts, renderContentEntry } from '@/src/content/index';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 export async function generateStaticParams() {
   const entries = await Promise.all(
@@ -53,6 +53,7 @@ export default async function BlogDetailPage({
 }) {
   const { locale: rawLocale, slug } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('content.blog');
   const entry = await getContentEntry('blog', locale, slug);
 
   if (!entry) {

@@ -6,6 +6,7 @@ import { createApiRoute } from '@/src/http/route';
 
 export const GET = createApiRoute({
   action: 'account.verifyEmail',
+  featureKey: 'account.register',
   querySchema: z.object({
     token: z.string().min(1),
   }),

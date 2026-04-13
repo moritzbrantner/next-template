@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LocalizedLink } from '@/i18n/server-link';
 import { getNotificationsPageDataUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { requireAuth, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, requireAuth, resolveLocale } from '@/src/server/page-guards';
 
 const summaryKeys = ['unread', 'today', 'preferences'] as const;
 const badgeVariants = { unread: 'default', read: 'secondary' } as const;
@@ -17,6 +17,7 @@ export default async function NotificationsPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('notifications');
   const session = await requireAuth(locale);
   const data = await getNotificationsPageDataUseCase(session.user.id);
   const t = createTranslator(locale, 'NotificationsPage');

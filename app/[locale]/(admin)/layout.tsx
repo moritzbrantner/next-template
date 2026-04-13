@@ -1,9 +1,10 @@
 import { LocaleShell } from '@/components/locale-shell';
+import { loadActiveApp } from '@/src/app-config/load-active-app';
 import { I18nProvider } from '@/src/i18n';
 import { getMessages } from '@/src/i18n/messages';
 import { adminWebsiteNamespaces } from '@/src/i18n/namespaces';
 import { loadAppContext } from '@/src/runtime.functions';
-import { redirectToLocaleHome, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, redirectToLocaleHome, resolveLocale } from '@/src/server/page-guards';
 import { isAdmin } from '@/lib/authorization';
 import { getActiveAnnouncements, getPublicSiteConfig } from '@/src/site-config/service';
 
@@ -16,6 +17,8 @@ export default async function AdminLocaleLayout({
 }>) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('admin.workspace');
+  const activeApp = loadActiveApp();
   const [appContext, siteConfig, announcements] = await Promise.all([
     loadAppContext(),
     getPublicSiteConfig(),
@@ -34,7 +37,7 @@ export default async function AdminLocaleLayout({
         locale={locale}
         session={appContext.session}
         notificationCenter={appContext.notificationCenter}
-        siteName={siteConfig.siteName}
+        siteName={activeApp.siteName || siteConfig.siteName}
         announcements={announcements}
       >
         {children}

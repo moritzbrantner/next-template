@@ -1,16 +1,18 @@
 import type { MetadataRoute } from 'next';
 
+import { loadActiveApp } from '@/src/app-config/load-active-app';
 import { getPublicSiteConfig } from '@/src/site-config/service';
 
 export const dynamic = 'force-static';
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const activeApp = loadActiveApp();
   const siteConfig = await getPublicSiteConfig();
 
   return {
-    name: siteConfig.siteName,
-    short_name: siteConfig.siteName,
-    description: siteConfig.seo.defaultDescription,
+    name: activeApp.siteName,
+    short_name: activeApp.siteName,
+    description: activeApp.defaultLocaleMetadata.description || siteConfig.seo.defaultDescription,
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

@@ -1,4 +1,5 @@
 import { LocaleShell } from '@/components/locale-shell';
+import { loadActiveApp } from '@/src/app-config/load-active-app';
 import { I18nProvider } from '@/src/i18n';
 import { getMessages } from '@/src/i18n/messages';
 import { guestWebsiteNamespaces } from '@/src/i18n/namespaces';
@@ -15,6 +16,7 @@ export default async function GuestLocaleLayout({
 }>) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  const activeApp = loadActiveApp();
   const [{ session, notificationCenter }, siteConfig, announcements] = await Promise.all([
     loadAppContext(),
     getPublicSiteConfig(),
@@ -28,7 +30,7 @@ export default async function GuestLocaleLayout({
         locale={locale}
         session={session}
         notificationCenter={notificationCenter}
-        siteName={siteConfig.siteName}
+        siteName={activeApp.siteName || siteConfig.siteName}
         announcements={announcements}
       >
         {children}

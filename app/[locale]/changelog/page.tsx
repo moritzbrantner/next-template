@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { LocalizedLink } from '@/i18n/server-link';
 import { listChangelogEntries } from '@/src/content/index';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 export async function generateMetadata({
   params,
@@ -27,6 +27,7 @@ export default async function ChangelogIndexPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('content.changelog');
   const entries = await listChangelogEntries(locale);
 
   return (

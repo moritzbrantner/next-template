@@ -6,6 +6,7 @@ import { createApiRoute } from '@/src/http/route';
 
 export const POST = createApiRoute({
   action: 'account.resetPassword',
+  featureKey: 'account.passwordRecovery',
   bodySchema: z.object({
     token: z.string().min(1),
     password: z.string().min(1),

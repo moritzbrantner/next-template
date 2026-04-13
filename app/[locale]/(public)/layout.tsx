@@ -1,9 +1,9 @@
 import { LocaleShell } from '@/components/locale-shell';
+import { loadActiveApp } from '@/src/app-config/load-active-app';
 import { I18nProvider } from '@/src/i18n';
 import { getMessages } from '@/src/i18n/messages';
 import { publicWebsiteNamespaces } from '@/src/i18n/namespaces';
 import { resolveLocale } from '@/src/server/page-guards';
-import { getPublicSiteConfig } from '@/src/site-config/service';
 
 export default async function PublicLocaleLayout({
   children,
@@ -14,12 +14,12 @@ export default async function PublicLocaleLayout({
 }>) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  const siteConfig = await getPublicSiteConfig();
+  const activeApp = loadActiveApp();
   const messages = getMessages(locale, publicWebsiteNamespaces);
 
   return (
     <I18nProvider locale={locale} messages={messages}>
-      <LocaleShell locale={locale} siteName={siteConfig.siteName}>
+      <LocaleShell locale={locale} siteName={activeApp.siteName}>
         {children}
       </LocaleShell>
     </I18nProvider>

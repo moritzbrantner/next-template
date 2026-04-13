@@ -6,6 +6,7 @@ import { createApiRoute } from '@/src/http/route';
 
 export const POST = createApiRoute({
   action: 'newsletter.subscribe',
+  featureKey: 'newsletter',
   bodySchema: z.object({
     email: z.string().min(1),
     locale: z.string().optional(),

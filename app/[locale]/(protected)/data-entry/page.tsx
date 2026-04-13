@@ -1,7 +1,7 @@
 import { TableEntryForm } from '@/components/data-entry/table-entry-form';
 import { getTablePermissionViews } from '@/src/domain/data-entry/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { requireWorkspaceAccess, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, requireWorkspaceAccess, resolveLocale } from '@/src/server/page-guards';
 
 export default async function DataEntryPage({
   params,
@@ -10,6 +10,7 @@ export default async function DataEntryPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('workspace.dataEntry');
   const session = await requireWorkspaceAccess(locale);
   const t = createTranslator(locale, 'DataEntryPage');
   const readableTables = getTablePermissionViews(session.user.role ?? 'USER');

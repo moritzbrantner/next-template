@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { LocalizedLink } from '@/i18n/server-link';
 import { routing } from '@/i18n/routing';
 import { getAdjacentEntries, getContentEntry, listChangelogEntries, renderContentEntry } from '@/src/content/index';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 export async function generateStaticParams() {
   const entries = await Promise.all(
@@ -53,6 +53,7 @@ export default async function ChangelogDetailPage({
 }) {
   const { locale: rawLocale, slug } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('content.changelog');
   const entry = await getContentEntry('changelog', locale, slug);
 
   if (!entry) {

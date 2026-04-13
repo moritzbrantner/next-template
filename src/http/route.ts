@@ -1,8 +1,10 @@
 import type { ZodType } from 'zod';
 
 import type { AppRole } from '@/lib/authorization';
+import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import type { AppSession } from '@/src/auth';
 import { getAuthSession } from '@/src/auth.server';
+import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import { auditAction, enforceRateLimit, getRateLimitKey } from '@/src/api/security';
 import { errorReporter, getLogger } from '@/src/observability/logger';
 import { createRequestContext, setRequestActorId, withRequestContext } from '@/src/observability/request-context';
@@ -13,6 +15,7 @@ import {
   internalServerProblem,
   invalidBodyProblem,
   invalidQueryProblem,
+  notFoundProblem,
   ProblemError,
   rateLimitedProblem,
   zodFieldErrors,
@@ -34,6 +37,7 @@ type HandlerContext<TBody, TQuery> = {
 
 type CreateApiRouteOptions<TBody, TQuery, TResult> = {
   action: string;
+  featureKey?: FoundationFeatureKey;
   auth?: boolean;
   roles?: readonly AppRole[];
   bodySchema?: BodySchema<TBody>;
@@ -169,6 +173,16 @@ export function createApiRoute<TBody = undefined, TQuery = undefined, TResult = 
         if (!rateLimit.ok) {
           await audit(429);
           return createProblemResponse(rateLimitedProblem(), {
+            headers: new Headers({
+              ...Object.fromEntries(rateLimitHeaders.entries()),
+              'x-request-id': requestContext.requestId,
+            }),
+          });
+        }
+
+        if (options.featureKey && !isFeatureEnabled(options.featureKey)) {
+          await audit(404);
+          return createProblemResponse(notFoundProblem(), {
             headers: new Headers({
               ...Object.fromEntries(rateLimitHeaders.entries()),
               'x-request-id': requestContext.requestId,

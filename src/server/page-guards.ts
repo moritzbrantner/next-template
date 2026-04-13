@@ -2,7 +2,9 @@ import { notFound, redirect } from 'next/navigation';
 
 import { canAccessDataEntryWorkspace, isAdmin } from '@/lib/authorization';
 import { type AppLocale, hasLocale, withLocalePath } from '@/i18n/routing';
+import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import { getAuthSession } from '@/src/auth.server';
+import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import { isGithubPagesBuild } from '@/src/runtime/build-target';
 
 export function resolveLocale(locale: string): AppLocale {
@@ -59,4 +61,10 @@ export async function requireAdmin(locale: AppLocale) {
   }
 
   return session;
+}
+
+export function notFoundUnlessFeatureEnabled(featureKey: FoundationFeatureKey) {
+  if (!isFeatureEnabled(featureKey)) {
+    notFound();
+  }
 }
