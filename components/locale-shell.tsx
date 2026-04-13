@@ -1,19 +1,21 @@
 import type { ReactNode } from 'react';
+import { Suspense } from 'react';
 
 import { NavigationBar } from '@/components/navigation-bar';
-import { ConsentBanner } from '@/components/privacy/consent-banner';
-import { SiteAnnouncementBanner } from '@/components/site-announcement-banner';
+import { DeferredConsentBanner } from '@/components/deferred-consent-banner';
+import { SiteAnnouncementStack } from '@/components/site-announcement-stack';
 import type { AppLocale } from '@/i18n/routing';
 import type { AppSession } from '@/src/auth';
 import type { NotificationPreview } from '@/src/domain/notifications/use-cases';
+import { SiteAnnouncementBanner } from '@/components/site-announcement-banner';
 
 type LocaleShellProps = {
   children: ReactNode;
   locale: AppLocale;
-  session: AppSession | null;
-  notificationCenter: NotificationPreview | null;
   siteName: string;
-  announcements: Array<{
+  session?: AppSession | null;
+  notificationCenter?: NotificationPreview | null;
+  announcements?: Array<{
     id: string;
     title: string;
     body: string;
@@ -24,25 +26,31 @@ type LocaleShellProps = {
 export function LocaleShell({
   children,
   locale,
+  siteName,
   session,
   notificationCenter,
-  siteName,
   announcements,
 }: LocaleShellProps) {
   return (
     <>
       <NavigationBar
         locale={locale}
+        siteName={siteName}
         session={session}
         notificationCenter={notificationCenter}
-        siteName={siteName}
       />
       <main className="app-shell mx-auto min-h-[calc(100vh-4rem)] w-full max-w-5xl px-4 py-10">
         <div className="space-y-4">
-          <ConsentBanner />
-          {announcements.map((announcement) => (
-            <SiteAnnouncementBanner key={announcement.id} announcement={announcement} locale={locale} />
-          ))}
+          <DeferredConsentBanner />
+          {announcements ? (
+            announcements.map((announcement) => (
+              <SiteAnnouncementBanner key={announcement.id} announcement={announcement} locale={locale} />
+            ))
+          ) : (
+            <Suspense fallback={null}>
+              <SiteAnnouncementStack locale={locale} />
+            </Suspense>
+          )}
         </div>
         {children}
       </main>
