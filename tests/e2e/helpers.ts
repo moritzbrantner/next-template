@@ -13,12 +13,16 @@ export async function waitForAppHydration(page: Page) {
 export async function dismissConsentBanner(page: Page) {
   const necessaryOnlyButton = page.getByRole('button', { name: 'Necessary only' });
 
-  if (!(await necessaryOnlyButton.isVisible({ timeout: 1_000 }).catch(() => false))) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    if (!(await necessaryOnlyButton.isVisible({ timeout: 500 }).catch(() => false))) {
+      await page.waitForTimeout(250);
+      continue;
+    }
+
+    await necessaryOnlyButton.click();
+    await expect(necessaryOnlyButton).toBeHidden();
     return;
   }
-
-  await necessaryOnlyButton.click();
-  await expect(necessaryOnlyButton).toBeHidden();
 }
 
 export async function gotoAndWaitForHydration(page: Page, path: string) {

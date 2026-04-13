@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 const LanguageSelector = dynamic(
-  () => import('@/components/language-selector').then((module) => module.LanguageSelector),
+  () => import('@/components/language-selector').then((mod) => mod.LanguageSelector),
   {
     loading: () => (
       <div
@@ -15,7 +15,7 @@ const LanguageSelector = dynamic(
 );
 
 const ThemeToggle = dynamic(
-  () => import('@/components/theme-toggle').then((module) => module.ThemeToggle),
+  () => import('@/components/theme-toggle').then((mod) => mod.ThemeToggle),
   {
     loading: () => (
       <div

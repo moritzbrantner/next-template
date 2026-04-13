@@ -5,8 +5,6 @@ import {
   CONSENT_COOKIE_NAME,
   defaultConsentState,
   parseConsentCookie,
-  serializeConsentState,
-  type ConsentState,
 } from '@/src/privacy/contracts';
 
 export const REDACTED_QUERY_VALUE = '[REDACTED]';

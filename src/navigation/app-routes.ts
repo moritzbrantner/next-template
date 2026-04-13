@@ -136,11 +136,6 @@ function hrefFromSlug(slug: string) {
   return slug ? `/${slug}` : '/';
 }
 
-function getAppPublicPageDefinitions() {
-  const manifest = loadActiveApp();
-  return getAppPublicPageDefinitionsForManifest(manifest);
-}
-
 export function getAppPublicPageDefinitionsForManifest(manifest = loadActiveApp()): AppPageDefinition[] {
   const pagesById = new Map(manifest.publicPages.map((page) => [page.id, page]));
 

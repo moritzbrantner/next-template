@@ -2,16 +2,34 @@
 
 import dynamic from 'next/dynamic';
 
-import type { AppSession } from '@/src/auth';
+type NavigationHotkey = readonly [string, string];
+
+type NavigationHotkeyItem = {
+  key: string;
+  href: string;
+  label: string;
+  groupLabel: string;
+  hotkey: NavigationHotkey;
+  hotkeyLabel: string;
+  searchText: string;
+};
 
 const NavigationHotkeys = dynamic(
-  () => import('@/components/navigation-hotkeys').then((module) => module.NavigationHotkeys),
+  () => import('@/components/navigation-hotkeys').then((mod) => mod.NavigationHotkeys),
 );
 
 export function NavigationHotkeysTrigger({
-  session,
+  items,
+  labels,
 }: {
-  session: AppSession | null;
+  items: NavigationHotkeyItem[];
+  labels: {
+    button: string;
+    title: string;
+    description: string;
+    searchPlaceholder: string;
+    empty: string;
+  };
 }) {
-  return <NavigationHotkeys session={session} />;
+  return <NavigationHotkeys items={items} labels={labels} />;
 }

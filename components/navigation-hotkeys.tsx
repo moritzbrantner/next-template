@@ -1,18 +1,34 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useTranslations } from '@/src/i18n';
-import { formatAppHotkey, getVisibleAppPages, type AppPageDefinition } from '@/src/navigation/app-routes';
 import { useAppSettings } from '@/src/settings/provider';
-import type { AppSession } from '@/src/auth';
+
+type NavigationHotkey = readonly [string, string];
+
+type NavigationHotkeyItem = {
+  key: string;
+  href: string;
+  label: string;
+  groupLabel: string;
+  hotkey: NavigationHotkey;
+  hotkeyLabel: string;
+  searchText: string;
+};
 
 type NavigationHotkeysProps = {
-  session: AppSession | null;
+  items: NavigationHotkeyItem[];
+  labels: {
+    button: string;
+    title: string;
+    description: string;
+    searchPlaceholder: string;
+    empty: string;
+  };
 };
 
 function isTypingTarget(target: EventTarget | null) {
@@ -24,26 +40,16 @@ function isTypingTarget(target: EventTarget | null) {
   return tagName === 'input' || tagName === 'textarea' || tagName === 'select' || target.isContentEditable;
 }
 
-function getShortcutCode(shortcut: AppPageDefinition['hotkey']) {
+function getShortcutCode(shortcut: NavigationHotkey) {
   return `Key${shortcut[1].toUpperCase()}`;
 }
 
-export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
-  const t = useTranslations('NavigationBar');
+export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
   const router = useRouter();
   const { settings } = useAppSettings();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const pages = useMemo(
-    () =>
-      getVisibleAppPages({
-        isAuthenticated: Boolean(session?.user?.id),
-        role: session?.user?.role,
-      }),
-    [session?.user?.id, session?.user?.role],
-  );
 
   useEffect(() => {
     if (!open) {
@@ -79,7 +85,7 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
         return;
       }
 
-      const matchingPage = pages.find((page) => getShortcutCode(page.hotkey) === event.code);
+      const matchingPage = items.find((page) => getShortcutCode(page.hotkey) === event.code);
 
       if (!matchingPage) {
         return;
@@ -95,19 +101,11 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [open, pages, router]);
+  }, [items, open, router]);
 
-  const groupedPages = pages.reduce<Record<string, AppPageDefinition[]>>((groups, page) => {
-    const groupKey =
-      page.navigationCategory === 'discover'
-        ? t('categories.discover')
-        : page.navigationCategory === 'workspace'
-          ? t('categories.workspace')
-          : page.navigationCategory === 'admin'
-            ? t('categories.admin')
-            : t('hotkeys.accountGroup');
-    groups[groupKey] ??= [];
-    groups[groupKey].push(page);
+  const groupedPages = items.reduce<Record<string, NavigationHotkeyItem[]>>((groups, page) => {
+    groups[page.groupLabel] ??= [];
+    groups[page.groupLabel].push(page);
     return groups;
   }, {});
 
@@ -120,9 +118,7 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
           return true;
         }
 
-        const label = t(page.translationKey).toLowerCase();
-        const searchValue = `${groupLabel} ${label} ${page.hotkey.join(' ')} ${formatAppHotkey(page.hotkey)}`.toLowerCase();
-        return searchValue.includes(normalizedQuery);
+        return page.searchText.includes(normalizedQuery);
       }),
     ] as const)
     .filter(([, groupPages]) => groupPages.length > 0);
@@ -131,7 +127,7 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
     <>
       {settings.showHotkeyHints ? (
         <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)}>
-          {t('hotkeys.button')}
+          {labels.button}
           <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
             ?
           </Badge>
@@ -147,13 +143,13 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
           <div
             role="dialog"
             aria-modal="true"
-            aria-label={t('hotkeys.title')}
+            aria-label={labels.title}
             className="w-full max-w-2xl overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
-              <p className="text-sm font-semibold">{t('hotkeys.title')}</p>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{t('hotkeys.description')}</p>
+              <p className="text-sm font-semibold">{labels.title}</p>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{labels.description}</p>
             </div>
 
             <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
@@ -161,14 +157,14 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
                 ref={inputRef}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder={t('hotkeys.searchPlaceholder')}
-                aria-label={t('hotkeys.searchPlaceholder')}
+                placeholder={labels.searchPlaceholder}
+                aria-label={labels.searchPlaceholder}
               />
             </div>
 
             <div className="max-h-[24rem] overflow-y-auto px-3 py-3">
               {filteredGroups.length === 0 ? (
-                <p className="rounded-2xl px-3 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">{t('hotkeys.empty')}</p>
+                <p className="rounded-2xl px-3 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">{labels.empty}</p>
               ) : (
                 filteredGroups.map(([groupLabel, groupPages]) => (
                   <section key={groupLabel} className="mb-4 last:mb-0">
@@ -186,8 +182,8 @@ export function NavigationHotkeys({ session }: NavigationHotkeysProps) {
                             setOpen(false);
                           }}
                         >
-                          <span className="font-medium">{t(page.translationKey)}</span>
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">{formatAppHotkey(page.hotkey)}</span>
+                          <span className="font-medium">{page.label}</span>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">{page.hotkeyLabel}</span>
                         </button>
                       ))}
                     </div>

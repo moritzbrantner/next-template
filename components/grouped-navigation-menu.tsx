@@ -3,8 +3,9 @@
 import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 import { Link, usePathname } from '@/i18n/navigation';
-import { type NavigationCategoryKey } from '@/src/navigation/navigation-categories';
 import { useAppSettings } from '@/src/settings/provider';
+
+type NavigationCategoryKey = 'discover' | 'workspace' | 'admin';
 
 type GroupedNavigationMenuProps = {
   categories: Array<{

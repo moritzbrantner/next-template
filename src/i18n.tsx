@@ -2,8 +2,16 @@
 
 import { createContext, useContext, type ReactNode } from 'react';
 
-import { type PartialMessages } from '@/src/i18n/messages';
 import { type AppLocale } from '@/i18n/routing';
+
+type MessageValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | { [key: string]: MessageValue };
+type PartialMessages = Record<string, MessageValue | undefined>;
 
 type I18nContextValue = {
   locale: AppLocale;

@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
 const ConsentBanner = dynamic(
-  () => import('@/components/privacy/consent-banner').then((module) => module.ConsentBanner),
+  () => import('@/components/privacy/consent-banner').then((mod) => mod.ConsentBanner),
   { ssr: false },
 );
 

@@ -51,8 +51,8 @@ const showcaseManifest: AppManifest = {
       kind: 'component',
       namespace: 'HomePage',
       render: async ({ locale }) => {
-        const module = await import('./pages/home-page');
-        const HomePage = module.default;
+        const pageModule = await import('./pages/home-page');
+        const HomePage = pageModule.default;
         return createElement(HomePage, { locale });
       },
     },
@@ -62,8 +62,8 @@ const showcaseManifest: AppManifest = {
       kind: 'component',
       namespace: 'AboutPage',
       render: async ({ locale }) => {
-        const module = await import('./pages/about-page');
-        const AboutPage = module.default;
+        const pageModule = await import('./pages/about-page');
+        const AboutPage = pageModule.default;
         return createElement(AboutPage, { locale });
       },
     },
@@ -74,8 +74,8 @@ const showcaseManifest: AppManifest = {
       namespace: 'RemocnPage',
       featureKey: 'showcase.remocn',
       render: async ({ locale }) => {
-        const module = await import('./pages/remocn-page');
-        const RemocnPage = module.default;
+        const pageModule = await import('./pages/remocn-page');
+        const RemocnPage = pageModule.default;
         return createElement(RemocnPage, { locale });
       },
     },
@@ -95,8 +95,8 @@ const showcaseManifest: AppManifest = {
           redirect(withLocalePath('/examples/forms', locale));
         }
 
-        const module = await import('./pages/examples/forms-page');
-        const FormsPage = module.default;
+        const pageModule = await import('./pages/examples/forms-page');
+        const FormsPage = pageModule.default;
         return createElement(FormsPage, { locale });
       },
     },
@@ -116,8 +116,8 @@ const showcaseManifest: AppManifest = {
           redirect(withLocalePath('/examples/story', locale));
         }
 
-        const module = await import('./pages/examples/story-page');
-        const StoryPage = module.default;
+        const pageModule = await import('./pages/examples/story-page');
+        const StoryPage = pageModule.default;
         return createElement(StoryPage, { locale });
       },
     },
@@ -137,8 +137,8 @@ const showcaseManifest: AppManifest = {
           redirect(withLocalePath('/examples/communication', locale));
         }
 
-        const module = await import('./pages/examples/communication-page');
-        const CommunicationPage = module.default;
+        const pageModule = await import('./pages/examples/communication-page');
+        const CommunicationPage = pageModule.default;
         return createElement(CommunicationPage, { locale });
       },
     },
@@ -149,8 +149,8 @@ const showcaseManifest: AppManifest = {
       namespace: 'NavigationBar',
       featureKey: 'showcase.employeeTable',
       render: async ({ locale }) => {
-        const module = await import('./pages/table-page');
-        const TablePage = module.default;
+        const pageModule = await import('./pages/table-page');
+        const TablePage = pageModule.default;
         return createElement(TablePage, { locale });
       },
     },
@@ -170,8 +170,8 @@ const showcaseManifest: AppManifest = {
           redirect(withLocalePath('/examples/uploads', locale));
         }
 
-        const module = await import('./pages/examples/uploads-page');
-        const UploadsPage = module.default;
+        const pageModule = await import('./pages/examples/uploads-page');
+        const UploadsPage = pageModule.default;
         return createElement(UploadsPage, { locale });
       },
     },

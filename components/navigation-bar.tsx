@@ -4,7 +4,7 @@ import { LocalizedLink } from '@/i18n/server-link';
 import type { AppLocale } from '@/i18n/routing';
 import type { AppSession } from '@/src/auth';
 import type { NotificationPreview } from '@/src/domain/notifications/use-cases';
-import { formatAppHotkey } from '@/src/navigation/app-routes';
+import { formatAppHotkey, getVisibleAppPages } from '@/src/navigation/app-routes';
 import { buildNavigationCategories } from '@/src/navigation/navigation-categories';
 import { createTranslator } from '@/src/i18n/messages';
 import { loadAppContext } from '@/src/runtime.functions';
@@ -23,6 +23,25 @@ type NavigationBarProps = {
   session?: AppSession | null;
   notificationCenter?: NotificationPreview | null;
 };
+
+function getHotkeyGroupLabel(
+  category: 'discover' | 'workspace' | 'admin' | undefined,
+  t: ReturnType<typeof createTranslator>,
+) {
+  if (category === 'discover') {
+    return t('categories.discover');
+  }
+
+  if (category === 'workspace') {
+    return t('categories.workspace');
+  }
+
+  if (category === 'admin') {
+    return t('categories.admin');
+  }
+
+  return t('hotkeys.accountGroup');
+}
 
 export function NavigationBar({ locale, siteName, session, notificationCenter }: NavigationBarProps) {
   const t = createTranslator(locale, 'NavigationBar');
@@ -48,6 +67,13 @@ export function NavigationBar({ locale, siteName, session, notificationCenter }:
     settings: t('menu.settings'),
     logout: t('menu.logout'),
     openMenu: t('menu.openMenu'),
+  };
+  const hotkeyLabels = {
+    button: t('hotkeys.button'),
+    title: t('hotkeys.title'),
+    description: t('hotkeys.description'),
+    searchPlaceholder: t('hotkeys.searchPlaceholder'),
+    empty: t('hotkeys.empty'),
   };
 
   return (
@@ -75,6 +101,7 @@ export function NavigationBar({ locale, siteName, session, notificationCenter }:
             }))}
             authLabels={authLabels}
             profileLabels={profileLabels}
+            hotkeyLabels={hotkeyLabels}
             session={session ?? null}
             notificationCenter={notificationCenter ?? null}
           />
@@ -86,12 +113,18 @@ export function NavigationBar({ locale, siteName, session, notificationCenter }:
                 navigationCategories={guestNavigationCategories}
                 authLabels={authLabels}
                 profileLabels={profileLabels}
+                hotkeyLabels={hotkeyLabels}
                 session={null}
                 notificationCenter={null}
               />
             }
           >
-            <NavigationBarResolved locale={locale} authLabels={authLabels} profileLabels={profileLabels} />
+            <NavigationBarResolved
+              locale={locale}
+              authLabels={authLabels}
+              profileLabels={profileLabels}
+              hotkeyLabels={hotkeyLabels}
+            />
           </Suspense>
         )}
       </nav>
@@ -103,6 +136,7 @@ async function NavigationBarResolved({
   locale,
   authLabels,
   profileLabels,
+  hotkeyLabels,
 }: {
   locale: AppLocale;
   authLabels: {
@@ -114,6 +148,13 @@ async function NavigationBarResolved({
     settings: string;
     logout: string;
     openMenu: string;
+  };
+  hotkeyLabels: {
+    button: string;
+    title: string;
+    description: string;
+    searchPlaceholder: string;
+    empty: string;
   };
 }) {
   const { session, notificationCenter } = await loadAppContext();
@@ -138,6 +179,7 @@ async function NavigationBarResolved({
       navigationCategories={navigationCategories}
       authLabels={authLabels}
       profileLabels={profileLabels}
+      hotkeyLabels={hotkeyLabels}
       session={session}
       notificationCenter={notificationCenter}
     />
@@ -149,6 +191,7 @@ function NavigationBarContent({
   navigationCategories,
   authLabels,
   profileLabels,
+  hotkeyLabels,
   session,
   notificationCenter,
 }: {
@@ -173,9 +216,36 @@ function NavigationBarContent({
     logout: string;
     openMenu: string;
   };
+  hotkeyLabels: {
+    button: string;
+    title: string;
+    description: string;
+    searchPlaceholder: string;
+    empty: string;
+  };
   session: AppSession | null;
   notificationCenter: NotificationPreview | null;
 }) {
+  const t = createTranslator(locale, 'NavigationBar');
+  const hotkeyItems = getVisibleAppPages({
+    isAuthenticated: Boolean(session?.user?.id),
+    role: session?.user?.role,
+  }).map((page) => {
+    const label = t(page.translationKey);
+    const groupLabel = getHotkeyGroupLabel(page.navigationCategory, t);
+    const hotkeyLabel = formatAppHotkey(page.hotkey);
+
+    return {
+      key: page.key,
+      href: page.href,
+      label,
+      groupLabel,
+      hotkey: page.hotkey,
+      hotkeyLabel,
+      searchText: `${groupLabel} ${label} ${page.hotkey.join(' ')} ${hotkeyLabel}`.toLowerCase(),
+    };
+  });
+
   return (
     <>
       <GroupedNavigationMenu categories={navigationCategories} />
@@ -196,7 +266,7 @@ function NavigationBarContent({
         ) : (
           <AuthNavigation locale={locale} labels={authLabels} />
         )}
-        <NavigationHotkeysTrigger session={session} />
+        <NavigationHotkeysTrigger items={hotkeyItems} labels={hotkeyLabels} />
         <NavigationPreferences />
       </div>
     </>
