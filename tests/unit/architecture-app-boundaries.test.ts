@@ -1,17 +1,37 @@
-import { execSync } from 'node:child_process';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-function listFiles(command: string) {
-  return execSync(command, { encoding: 'utf8' })
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean);
+function listFiles(...roots: string[]) {
+  const files: string[] = [];
+
+  function walk(currentPath: string) {
+    for (const entry of readdirSync(currentPath, { withFileTypes: true })) {
+      const entryPath = path.join(currentPath, entry.name);
+
+      if (entry.isDirectory()) {
+        walk(entryPath);
+        continue;
+      }
+
+      files.push(path.relative(process.cwd(), entryPath));
+    }
+  }
+
+  for (const root of roots) {
+    try {
+      walk(path.resolve(root));
+    } catch {
+      // Some template variants omit directories like components/ or scripts/.
+    }
+  }
+
+  return files;
 }
 
 function readImports(filePath: string) {
-  const output = execSync(`sed -n '1,240p' '${filePath}'`, { encoding: 'utf8' });
+  const output = readFileSync(filePath, 'utf8');
   return Array.from(output.matchAll(/from ['"]([^'"]+)['"]/g), (match) => match[1]);
 }
 
@@ -25,7 +45,7 @@ function resolveRelativeImport(filePath: string, importPath: string) {
 
 describe('architecture: app boundaries', () => {
   it('prevents foundation-owned files from importing app packs directly', () => {
-    const files = listFiles("rg --files app src components lib scripts");
+    const files = listFiles('app', 'src', 'components', 'lib', 'scripts');
     const violations = files.flatMap((filePath) => {
       if (filePath === 'src/app-config/load-active-app.ts') {
         return [];
@@ -49,7 +69,7 @@ describe('architecture: app boundaries', () => {
   });
 
   it('prevents app packs from importing sibling app packs', () => {
-    const files = listFiles("rg --files apps");
+    const files = listFiles('apps');
     const violations = files.flatMap((filePath) => {
       const currentApp = filePath.split(path.sep)[1];
 
