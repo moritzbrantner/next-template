@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 import { AppHydrationMarker } from '@/components/app-hydration-marker';
+import { DocumentBootstrap } from '@/components/document-bootstrap';
 import { AppSettingsProvider } from '@/src/settings/provider';
-import { settingsScript, themeScript } from '@/src/runtime/document-context';
-import { defaultAppSettings } from '@/src/settings/preferences';
+import { loadDocumentContext } from '@/src/runtime/document-context';
 import { getPublicSiteConfig } from '@/src/site-config/service';
 
 import './globals.css';
@@ -26,27 +26,27 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-import Script from 'next/script';
-
-// ...your other imports
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">
-        <Script id="theme-script" strategy="beforeInteractive">
-          {themeScript}
-        </Script>
-        <Script id="settings-script" strategy="beforeInteractive">
-          {settingsScript}
-        </Script>
+  const documentContext = await loadDocumentContext();
 
+  return (
+    <html
+      lang="en"
+      className={documentContext.theme}
+      data-background={documentContext.settings.background}
+      data-density={documentContext.settings.compactSpacing ? 'compact' : 'comfortable'}
+      data-motion={documentContext.settings.reducedMotion ? 'reduced' : 'full'}
+      data-hotkey-hints={documentContext.settings.showHotkeyHints ? 'visible' : 'hidden'}
+      suppressHydrationWarning
+    >
+      <body className="antialiased">
+        <DocumentBootstrap />
         <AppHydrationMarker />
-        <AppSettingsProvider initialSettings={defaultAppSettings}>
+        <AppSettingsProvider initialSettings={documentContext.settings}>
           {children}
         </AppSettingsProvider>
       </body>
