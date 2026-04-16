@@ -7,6 +7,7 @@ import {
   logoutFromProfileMenu,
   runQueuedJobs,
   waitForAppHydration,
+  waitForServiceWorkerReady,
 } from '@/tests/e2e/helpers';
 
 const adminUser = getSeededUser('admin@example.com');
@@ -123,11 +124,11 @@ test.describe('social interactions', () => {
     await loginWithCredentials(page, primaryUser.email, primaryUser.password);
     await gotoAndWaitForHydration(page, '/en/profile/blog');
 
-    await page.getByLabel('Post title').fill(postTitle);
+    await page.getByLabel('Title').fill(postTitle);
     await page.getByLabel('Post content').fill(postContent);
     await page.getByRole('button', { name: 'Publish post' }).click();
 
-    await expect(page.getByText('Your post is live on your public profile blog.')).toBeVisible();
+    await expect(page.getByRole('status')).toContainText('Published');
     await expect(page.locator('article').filter({ hasText: postTitle }).first()).toContainText(postContent);
     await runQueuedJobs();
     await logoutFromProfileMenu(page);
@@ -146,6 +147,32 @@ test.describe('social interactions', () => {
     const notificationLink = page.locator('a').filter({ hasText: postTitle }).first();
     await expect(notificationLink).toContainText('Unread');
     await expect(notificationLink).toContainText('Test User published a new blog post');
+  });
+
+  test('persists local drafts across reload and publishes queued drafts after reconnect', async ({ page }) => {
+    const postToken = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const postTitle = `Offline draft ${postToken}`;
+    const postContent = `This local-first draft should survive a reload and publish after reconnect for ${postToken}.`;
+
+    await loginWithCredentials(page, primaryUser.email, primaryUser.password);
+    await gotoAndWaitForHydration(page, '/en/profile/blog');
+    await waitForServiceWorkerReady(page);
+
+    await page.getByLabel('Title').fill(postTitle);
+    await page.getByLabel('Post content').fill(postContent);
+    await expect(page.getByRole('status')).toContainText('Saved locally');
+    await page.context().setOffline(true);
+    await page.goto('/en/profile/blog', { waitUntil: 'domcontentloaded' });
+    await waitForAppHydration(page);
+
+    await expect(page.getByLabel('Title')).toHaveValue(postTitle);
+    await expect(page.getByLabel('Post content')).toHaveValue(postContent);
+    await page.getByRole('button', { name: 'Publish post' }).click();
+    await expect(page.getByRole('status')).toContainText('Queued to publish');
+
+    await page.context().setOffline(false);
+    await expect(page.getByRole('status')).toContainText('Published');
+    await expect(page.locator('article').filter({ hasText: postTitle }).first()).toContainText(postContent);
   });
 });
 

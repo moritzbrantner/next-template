@@ -9,8 +9,27 @@ export const blogPage = {
     viewPublicBlog: 'Oeffentlichen Blog ansehen',
   },
   composer: {
-    title: 'Neuer Post',
-    description: 'Schreibe einen Titel und veroeffentliche laengere Updates in deinem Blog.',
+    title: 'Lokale Entwuerfe',
+    description: 'Schreibe Markdown lokal, behalte Entwuerfe offline und veroeffentliche erst, wenn du bereit bist.',
+    drafts: {
+      title: 'Entwuerfe',
+      empty: 'Noch keine lokalen Entwuerfe. Fang an zu tippen oder erstelle einen manuell.',
+      untitled: 'Unbenannter Entwurf',
+    },
+    editor: {
+      empty: 'Fang an zu tippen, um einen lokalen Entwurf zu erstellen.',
+      publishedReadonly: 'Veroeffentlichte Entwuerfe sind lokal schreibgeschuetzt. Erstelle einen neuen Entwurf fuer den naechsten Post.',
+    },
+    actions: {
+      newDraft: 'Neuer Entwurf',
+      deleteDraft: 'Entwurf loeschen',
+    },
+    status: {
+      savedLocally: 'Lokal gespeichert',
+      queuedToPublish: 'Zur Veroeffentlichung vorgemerkt',
+      publishFailed: 'Veroeffentlichung fehlgeschlagen',
+      published: 'Veroeffentlicht',
+    },
     form: {
       title: 'Titel',
       titlePlaceholder: 'Worum geht es in diesem Post?',
@@ -18,7 +37,6 @@ export const blogPage = {
       contentPlaceholder: 'Schreibe deinen Post hier...',
       publish: 'Post veroeffentlichen',
       publishing: 'Wird veroeffentlicht…',
-      success: 'Blogpost veroeffentlicht.',
       error: 'Dein Blogpost konnte gerade nicht veroeffentlicht werden. Bitte versuche es erneut.',
     },
   },

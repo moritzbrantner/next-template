@@ -9,8 +9,27 @@ export const blogPage = {
     viewPublicBlog: 'View public blog',
   },
   composer: {
-    title: 'New post',
-    description: 'Write a title and publish long-form updates to your blog.',
+    title: 'Local drafts',
+    description: 'Write Markdown locally, keep drafts offline, and publish when you are ready.',
+    drafts: {
+      title: 'Drafts',
+      empty: 'No local drafts yet. Start typing or create one manually.',
+      untitled: 'Untitled draft',
+    },
+    editor: {
+      empty: 'Start typing to create a local draft.',
+      publishedReadonly: 'Published drafts are read-only locally. Create a new draft for your next post.',
+    },
+    actions: {
+      newDraft: 'New draft',
+      deleteDraft: 'Delete draft',
+    },
+    status: {
+      savedLocally: 'Saved locally',
+      queuedToPublish: 'Queued to publish',
+      publishFailed: 'Publish failed',
+      published: 'Published',
+    },
     form: {
       title: 'Title',
       titlePlaceholder: 'What is this post about?',
@@ -18,7 +37,6 @@ export const blogPage = {
       contentPlaceholder: 'Write your post here...',
       publish: 'Publish post',
       publishing: 'Publishing…',
-      success: 'Blog post published.',
       error: 'Unable to publish your blog post right now. Please try again.',
     },
   },

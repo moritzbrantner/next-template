@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { AppHydrationMarker } from '@/components/app-hydration-marker';
+import { AppServiceWorker } from '@/components/app-service-worker';
 import { DocumentBootstrap } from '@/components/document-bootstrap';
 import { AppSettingsProvider } from '@/src/settings/provider';
 import { loadDocumentContext } from '@/src/runtime/document-context';
@@ -46,6 +47,7 @@ export default async function RootLayout({
       <body className="antialiased">
         <DocumentBootstrap />
         <AppHydrationMarker />
+        <AppServiceWorker />
         <AppSettingsProvider initialSettings={documentContext.settings}>
           {children}
         </AppSettingsProvider>

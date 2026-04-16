@@ -1,16 +1,16 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
 import { blogPosts, userFollows } from '@/src/db/schema';
+import {
+  normalizeBlogPostCreateInput,
+  validateNormalizedBlogPostCreateInput,
+  type CreateBlogPostRequest,
+} from '@/src/domain/blog/contracts';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
 import { enqueueJob } from '@/src/jobs/service';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
 import { buildPublicProfileBlogPath } from '@/src/profile/tags';
-
-const BLOG_POST_TITLE_MIN_LENGTH = 4;
-const BLOG_POST_TITLE_MAX_LENGTH = 120;
-const BLOG_POST_CONTENT_MIN_LENGTH = 20;
-const BLOG_POST_CONTENT_MAX_LENGTH = 10_000;
 
 type BlogAuthorRecord = {
   id: string;
@@ -23,6 +23,7 @@ type BlogAuthorRecord = {
 type BlogPostRecord = {
   id: string;
   userId: string;
+  clientRequestId: string;
   title: string;
   content: string;
   createdAt: Date;
@@ -48,7 +49,7 @@ export type UserBlogPayload = {
 export type BlogPostMutationPayload = {
   id: string;
   title: string;
-  content: string;
+  contentMarkdown: string;
 };
 
 export type BlogError = {
@@ -61,7 +62,12 @@ export type BlogUseCaseDeps = {
   findUserByTag: (tag: string) => Promise<BlogAuthorRecord | undefined>;
   listPostsByUserId: (userId: string) => Promise<BlogPostRecord[]>;
   listFollowerIdsByUserId: (userId: string) => Promise<string[]>;
-  createPost: (input: { userId: string; title: string; content: string }) => Promise<BlogPostRecord>;
+  createPost: (input: {
+    userId: string;
+    clientRequestId: string;
+    title: string;
+    content: string;
+  }) => Promise<{ created: boolean; post: BlogPostRecord }>;
   createNotifications: (
     input: Array<{
       userId: string;
@@ -96,18 +102,41 @@ function getBlogUseCaseDeps(): BlogUseCaseDeps {
 
       return followers.map((follower) => follower.userId);
     },
-    createPost: async ({ userId, title, content }) => {
+    createPost: async ({ userId, clientRequestId, title, content }) => {
       const [createdPost] = await getDb()
         .insert(blogPosts)
         .values({
           id: crypto.randomUUID(),
           userId,
+          clientRequestId,
           title,
           content,
         })
+        .onConflictDoNothing({
+          target: [blogPosts.userId, blogPosts.clientRequestId],
+        })
         .returning();
 
-      return createdPost;
+      if (createdPost) {
+        return {
+          created: true,
+          post: createdPost,
+        };
+      }
+
+      const existingPost = await getDb().query.blogPosts.findFirst({
+        where: (table, { and: innerAnd, eq: innerEq }) =>
+          innerAnd(innerEq(table.userId, userId), innerEq(table.clientRequestId, clientRequestId)),
+      });
+
+      if (!existingPost) {
+        throw new Error('Expected blog post to exist after idempotent create replay.');
+      }
+
+      return {
+        created: false,
+        post: existingPost,
+      };
     },
     createNotifications: async (input) => {
       if (input.length === 0) {
@@ -211,37 +240,16 @@ export async function getUserBlogByTagUseCase(
 
 export async function createBlogPostUseCase(
   userId: string,
-  input: { title: string; content: string },
+  input: CreateBlogPostRequest,
   deps: BlogUseCaseDeps = getBlogUseCaseDeps(),
 ): Promise<ServiceResult<BlogPostMutationPayload, BlogError>> {
-  const title = input.title.trim();
-  const content = input.content.trim();
+  const normalizedInput = normalizeBlogPostCreateInput(input);
+  const validationError = validateNormalizedBlogPostCreateInput(normalizedInput);
 
-  if (title.length < BLOG_POST_TITLE_MIN_LENGTH) {
+  if (validationError) {
     return failure({
       code: 'VALIDATION_ERROR',
-      message: `Title must be at least ${BLOG_POST_TITLE_MIN_LENGTH} characters.`,
-    });
-  }
-
-  if (title.length > BLOG_POST_TITLE_MAX_LENGTH) {
-    return failure({
-      code: 'VALIDATION_ERROR',
-      message: `Title must be ${BLOG_POST_TITLE_MAX_LENGTH} characters or fewer.`,
-    });
-  }
-
-  if (content.length < BLOG_POST_CONTENT_MIN_LENGTH) {
-    return failure({
-      code: 'VALIDATION_ERROR',
-      message: `Post content must be at least ${BLOG_POST_CONTENT_MIN_LENGTH} characters.`,
-    });
-  }
-
-  if (content.length > BLOG_POST_CONTENT_MAX_LENGTH) {
-    return failure({
-      code: 'VALIDATION_ERROR',
-      message: `Post content must be ${BLOG_POST_CONTENT_MAX_LENGTH} characters or fewer.`,
+      message: validationError,
     });
   }
 
@@ -255,36 +263,39 @@ export async function createBlogPostUseCase(
   }
 
   const authorDisplayName = resolveProfileDisplayName(user);
-  const post = await deps.createPost({
+  const { created, post } = await deps.createPost({
     userId,
-    title,
-    content,
+    clientRequestId: input.clientRequestId,
+    title: normalizedInput.title,
+    content: normalizedInput.contentMarkdown,
   });
 
-  const followerIds = [...new Set(await deps.listFollowerIdsByUserId(userId))].filter((followerId) => followerId !== userId);
+  if (created) {
+    const followerIds = [...new Set(await deps.listFollowerIdsByUserId(userId))].filter((followerId) => followerId !== userId);
 
-  if (followerIds.length > 0) {
-    try {
-      await deps.createNotifications(
-        followerIds.map((followerUserId) =>
-          buildFollowerNotification({
-            authorUserId: userId,
-            authorTag: user.tag,
-            authorDisplayName,
-            followerUserId,
-            postId: post.id,
-            postTitle: post.title,
-          }),
-        ),
-      );
-    } catch (error) {
-      console.error('Failed to deliver follower notifications for blog post.', error);
+    if (followerIds.length > 0) {
+      try {
+        await deps.createNotifications(
+          followerIds.map((followerUserId) =>
+            buildFollowerNotification({
+              authorUserId: userId,
+              authorTag: user.tag,
+              authorDisplayName,
+              followerUserId,
+              postId: post.id,
+              postTitle: post.title,
+            }),
+          ),
+        );
+      } catch (error) {
+        console.error('Failed to deliver follower notifications for blog post.', error);
+      }
     }
   }
 
   return success({
     id: post.id,
     title: post.title,
-    content: post.content,
+    contentMarkdown: post.content,
   });
 }
