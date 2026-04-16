@@ -7,8 +7,15 @@ import { featureFlags, siteAnnouncements, siteSettings } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
 import { getLogger } from '@/src/observability/logger';
 import type { AppLocale } from '@/i18n/routing';
-import type { FeatureFlagKey, PublicSiteConfig, SiteSettingKey } from '@/src/site-config/contracts';
-import { featureFlagKeys, siteSettingKeys } from '@/src/site-config/contracts';
+import type {
+  AnalyticsSiteSettingKey,
+  FeatureFlagKey,
+  PublicSiteConfig,
+  PublicSiteSettingKey,
+  SiteSettingKey,
+} from '@/src/site-config/contracts';
+import { analyticsSiteSettingKeys, featureFlagKeys, publicSiteSettingKeys } from '@/src/site-config/contracts';
+import type { AdminReportWindow } from '@/src/domain/admin-reports/use-cases';
 
 export const siteAnnouncementStatuses = ['draft', 'scheduled', 'published', 'archived'] as const;
 export type SiteAnnouncementStatus = (typeof siteAnnouncementStatuses)[number];
@@ -52,6 +59,16 @@ export type SaveAnnouncementResult = ServiceResult<{
   unpublishAt: Date | null;
 }, SiteAnnouncementError>;
 
+export type AdminAnalyticsSettings = {
+  pageVisitRetentionDays: number;
+  defaultAdminReportWindow: AdminReportWindow;
+};
+
+export type AnalyticsPruneStatus = {
+  pruningPolicy: string;
+  lastSuccessfulRunAt: string | null;
+};
+
 type SiteSettingsRows = Awaited<ReturnType<ReturnType<typeof getDb>['query']['siteSettings']['findMany']>>;
 type FeatureFlagRows = Awaited<ReturnType<ReturnType<typeof getDb>['query']['featureFlags']['findMany']>>;
 type SiteAnnouncementRows = Awaited<ReturnType<ReturnType<typeof getDb>['query']['siteAnnouncements']['findMany']>>;
@@ -68,6 +85,8 @@ const siteConfigDefaults: Record<SiteSettingKey, string> = {
   'seo.defaultDescription': 'Next.js application with auth, admin examples, and Drizzle/Postgres persistence.',
   'seo.defaultOgImage': '',
   'contact.supportEmail': 'support@example.com',
+  'analytics.pageVisitRetentionDays': '365',
+  'analytics.defaultAdminReportWindow': '7d',
 };
 
 const featureFlagDefaults: Record<FeatureFlagKey, boolean> = {
@@ -190,7 +209,7 @@ export async function listSiteSettings() {
     }
   }
 
-  return siteSettingKeys.map((key) => ({
+  return publicSiteSettingKeys.map((key) => ({
     key,
     value: rows.find((row) => row.key === key)?.value ?? siteConfigDefaults[key],
   }));
@@ -278,7 +297,7 @@ async function loadPublicSiteConfig(): Promise<PublicSiteConfig> {
         getDb()
           .select()
           .from(siteSettings)
-          .where(inArray(siteSettings.key, [...siteSettingKeys])),
+          .where(inArray(siteSettings.key, [...publicSiteSettingKeys])),
         getDb()
           .select()
           .from(featureFlags)
@@ -286,8 +305,8 @@ async function loadPublicSiteConfig(): Promise<PublicSiteConfig> {
       ]);
 
       const settings = Object.fromEntries(
-        siteSettingKeys.map((key) => [key, settingRows.find((row) => row.key === key)?.value ?? siteConfigDefaults[key]]),
-      ) as Record<SiteSettingKey, string>;
+        publicSiteSettingKeys.map((key) => [key, settingRows.find((row) => row.key === key)?.value ?? siteConfigDefaults[key]]),
+      ) as Record<PublicSiteSettingKey, string>;
 
       const flags = Object.fromEntries(
         featureFlagKeys.map((key) => [key, normalizeBoolean(flagRows.find((row) => row.key === key)?.enabled ?? (featureFlagDefaults[key] ? 1 : 0))]),
@@ -331,6 +350,102 @@ const getCachedPublicSiteConfig = unstable_cache(loadPublicSiteConfig, ['public-
 
 export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   return getCachedPublicSiteConfig();
+}
+
+function parsePositiveInteger(value: string, fallback: number) {
+  const parsed = Number.parseInt(value, 10);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function parseAdminReportWindow(value: string): AdminReportWindow {
+  return value === '24h' || value === '30d' || value === '7d' ? value : '7d';
+}
+
+async function listSiteSettingsByKeys(keys: readonly SiteSettingKey[]) {
+  let rows: SiteSettingsRows;
+
+  if (hasActiveDatabaseReadFallback()) {
+    rows = [];
+  } else {
+    try {
+      rows = await getDb().query.siteSettings.findMany({
+        where: (table, { inArray: innerInArray }) => innerInArray(table.key, [...keys]),
+        orderBy: (table, { asc }) => [asc(table.key)],
+      });
+    } catch (error) {
+      if (!shouldUseDatabaseReadFallback(error)) {
+        throw error;
+      }
+
+      activateDatabaseReadFallback(error, 'listSiteSettingsByKeys');
+      rows = [];
+    }
+  }
+
+  return keys.map((key) => ({
+    key,
+    value: rows.find((row) => row.key === key)?.value ?? siteConfigDefaults[key],
+  }));
+}
+
+export async function listAnalyticsSettings() {
+  return listSiteSettingsByKeys(analyticsSiteSettingKeys);
+}
+
+export async function getAdminAnalyticsSettings(): Promise<AdminAnalyticsSettings> {
+  const settings = await listAnalyticsSettings();
+  const values = Object.fromEntries(settings.map((setting) => [setting.key, setting.value])) as Record<AnalyticsSiteSettingKey, string>;
+
+  return {
+    pageVisitRetentionDays: parsePositiveInteger(
+      values['analytics.pageVisitRetentionDays'],
+      parsePositiveInteger(siteConfigDefaults['analytics.pageVisitRetentionDays'], 365),
+    ),
+    defaultAdminReportWindow: parseAdminReportWindow(values['analytics.defaultAdminReportWindow']),
+  };
+}
+
+export async function getAnalyticsPruneStatus(): Promise<AnalyticsPruneStatus> {
+  const analyticsSettings = await getAdminAnalyticsSettings();
+
+  if (hasActiveDatabaseReadFallback()) {
+    return {
+      pruningPolicy: `Prune page visits older than ${analyticsSettings.pageVisitRetentionDays} days.`,
+      lastSuccessfulRunAt: null,
+    };
+  }
+
+  try {
+    const [latestRun] = await getDb().query.jobOutbox.findMany({
+      where: (table, { and: innerAnd, eq: innerEq }) =>
+        innerAnd(innerEq(table.jobName, 'pruneAnalytics'), innerEq(table.status, 'completed')),
+      orderBy: (table, { desc }) => [desc(table.updatedAt)],
+      limit: 1,
+      columns: {
+        updatedAt: true,
+      },
+    });
+
+    return {
+      pruningPolicy: `Prune page visits older than ${analyticsSettings.pageVisitRetentionDays} days.`,
+      lastSuccessfulRunAt: latestRun?.updatedAt.toISOString() ?? null,
+    };
+  } catch (error) {
+    if (!shouldUseDatabaseReadFallback(error)) {
+      throw error;
+    }
+
+    activateDatabaseReadFallback(error, 'getAnalyticsPruneStatus');
+    return {
+      pruningPolicy: `Prune page visits older than ${analyticsSettings.pageVisitRetentionDays} days.`,
+      lastSuccessfulRunAt: null,
+    };
+  }
 }
 
 export async function listAnnouncements(locale?: AppLocale): Promise<SiteAnnouncementRecord[]> {

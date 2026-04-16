@@ -5,7 +5,7 @@ import { jobOutbox, notifications, pageVisitQueryParameters, pageVisits } from '
 import { sendEmail } from '@/src/email/service';
 import type { JobName, JobPayloadMap } from '@/src/jobs/contracts';
 import { getLogger } from '@/src/observability/logger';
-import { archiveAnnouncementNow, getAnnouncementById, publishAnnouncementNow } from '@/src/site-config/service';
+import { archiveAnnouncementNow, getAdminAnalyticsSettings, getAnnouncementById, publishAnnouncementNow } from '@/src/site-config/service';
 
 const MAX_JOB_ATTEMPTS = 5;
 
@@ -73,8 +73,17 @@ async function runArchiveAnnouncementJob(payload: JobPayloadMap['archiveAnnounce
   await archiveAnnouncementNow(payload.announcementId);
 }
 
+export async function resolvePruneAnalyticsOlderThanDays(payload: JobPayloadMap['pruneAnalytics']) {
+  if (typeof payload.olderThanDays === 'number' && payload.olderThanDays > 0) {
+    return payload.olderThanDays;
+  }
+
+  const analyticsSettings = await getAdminAnalyticsSettings();
+  return analyticsSettings.pageVisitRetentionDays;
+}
+
 async function runPruneAnalyticsJob(payload: JobPayloadMap['pruneAnalytics']) {
-  const olderThanDays = payload.olderThanDays ?? 90;
+  const olderThanDays = await resolvePruneAnalyticsOlderThanDays(payload);
   const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
   const visits = await getDb().query.pageVisits.findMany({
     where: (table, { lt }) => lt(table.visitedAt, cutoff),
