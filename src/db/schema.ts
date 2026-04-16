@@ -1,7 +1,7 @@
 
 import { pgEnum, pgTable, primaryKey, text, timestamp, integer, index, uniqueIndex, jsonb, boolean } from "drizzle-orm/pg-core";
 
-import { followerVisibilityRoles } from "@/src/profile/follower-visibility";
+import { followerVisibilityRoles } from "@/src/social/follower-visibility";
 
 export const roleEnum = pgEnum("Role", ["SUPERADMIN", "ADMIN", "MANAGER", "USER"]);
 export const followerVisibilityEnum = pgEnum("FollowerVisibility", followerVisibilityRoles);

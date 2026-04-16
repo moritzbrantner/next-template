@@ -74,6 +74,7 @@ const eslintConfig = defineConfig([
     'build/**',
     'dist/**',
     'coverage/**',
+    'vendor/**',
     'next-env.d.ts',
     'src/routes/**',
     'src/routeTree.gen.ts',
