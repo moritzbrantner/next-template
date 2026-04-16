@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
+@import "@moritzbrantner/ui/styles.css";
+
+@source "../node_modules/@moritzbrantner/storytelling/dist/**/*.{js,mjs}";
 
 :root {
   --background: #ffffff;

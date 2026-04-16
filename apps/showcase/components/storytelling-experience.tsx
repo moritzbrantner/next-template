@@ -1,9 +1,10 @@
 'use client';
 
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Mesh } from 'three';
-import { Color, MathUtils, Vector3 } from 'three';
+import {
+  StoryContainer,
+  StoryScene as PackageStoryScene,
+  StorySeries,
+} from '@moritzbrantner/storytelling';
 
 export type StoryScene = {
   id: string;
@@ -20,146 +21,114 @@ type StorytellingExperienceProps = {
   scenes: StoryScene[];
 };
 
-type InternalProgression = {
-  absolute: number;
-  sceneNumber: number;
-  sceneProgression: number;
-};
+function formatPosition(position: [number, number, number]) {
+  return position.map((value) => value.toFixed(1)).join(', ');
+}
 
-function deriveInternalProgression(absolute: number, sceneCount: number): InternalProgression {
-  const safeSceneCount = Math.max(sceneCount, 1);
-  const clamped = MathUtils.clamp(absolute, 0, safeSceneCount * 100 - Number.EPSILON);
-  const sceneNumber = Math.floor(clamped / 100);
-  const sceneProgression = clamped - sceneNumber * 100;
+function toRgb(hexColor: string) {
+  const normalized = hexColor.replace('#', '');
+
+  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+    return null;
+  }
+
+  const value = Number.parseInt(normalized, 16);
 
   return {
-    absolute: clamped,
-    sceneNumber,
-    sceneProgression,
+    red: (value >> 16) & 255,
+    green: (value >> 8) & 255,
+    blue: value & 255,
   };
 }
 
-function SceneNode({ scene, sceneProgression }: { scene: StoryScene; sceneProgression: number }) {
-  const meshRef = useRef<Mesh>(null);
-  const target = useMemo(() => new Vector3(...scene.position), [scene.position]);
+function toAlphaColor(hexColor: string, alpha: number) {
+  const rgb = toRgb(hexColor);
 
-  useFrame((state, delta) => {
-    if (!meshRef.current) {
-      return;
-    }
+  if (!rgb) {
+    return hexColor;
+  }
 
-    const normalizedSceneProgress = MathUtils.clamp(sceneProgression / 100, 0, 1);
-    const pulse = Math.sin(normalizedSceneProgress * Math.PI);
-    const zoom = MathUtils.lerp(8, 6.2, normalizedSceneProgress);
-
-    state.camera.position.z = MathUtils.damp(state.camera.position.z, zoom, 4, delta);
-
-    const destinationColor = new Color(scene.color);
-    state.scene.background = state.scene.background ?? new Color(destinationColor);
-    (state.scene.background as Color).lerp(destinationColor, 1 - Math.exp(-delta * 2.5));
-
-    meshRef.current.position.lerp(target, 1 - Math.exp(-delta * 7));
-    meshRef.current.position.y = target.y + pulse * 0.55;
-    meshRef.current.scale.setScalar((scene.scale ?? 1) * (0.86 + pulse * 0.28));
-    meshRef.current.rotation.y += delta * (0.35 + normalizedSceneProgress * 0.85);
-    meshRef.current.rotation.x = MathUtils.lerp(
-      meshRef.current.rotation.x,
-      pulse * 0.22,
-      1 - Math.exp(-delta * 6),
-    );
-  });
-
-  return (
-    <mesh ref={meshRef} position={scene.position}>
-      <icosahedronGeometry args={[1, 1]} />
-      <meshStandardMaterial color={scene.color} roughness={0.18} metalness={0.3} />
-    </mesh>
-  );
+  return `rgba(${rgb.red}, ${rgb.green}, ${rgb.blue}, ${alpha})`;
 }
 
 export function StorytellingExperience({ scenes }: StorytellingExperienceProps) {
-  const sectionRef = useRef<HTMLElement>(null);
-  const [absoluteProgression, setAbsoluteProgression] = useState(0);
-
-  useEffect(() => {
-    const updateProgression = () => {
-      if (!sectionRef.current) {
-        return;
-      }
-
-      const rect = sectionRef.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const totalScrollable = Math.max(sectionRef.current.offsetHeight - viewportHeight, 1);
-      const consumed = MathUtils.clamp(-rect.top, 0, totalScrollable);
-      const normalized = consumed / totalScrollable;
-      const nextAbsolute = normalized * scenes.length * 100;
-
-      setAbsoluteProgression(MathUtils.clamp(nextAbsolute, 0, scenes.length * 100));
-    };
-
-    updateProgression();
-    window.addEventListener('scroll', updateProgression, { passive: true });
-    window.addEventListener('resize', updateProgression);
-
-    return () => {
-      window.removeEventListener('scroll', updateProgression);
-      window.removeEventListener('resize', updateProgression);
-    };
-  }, [scenes.length]);
-
-  const internal = deriveInternalProgression(absoluteProgression, scenes.length);
-  const activeScene = scenes[internal.sceneNumber] ?? scenes[scenes.length - 1];
-
   return (
-    <section
-      ref={sectionRef}
-      className="relative h-[350vh] rounded-2xl border border-border/60 bg-gradient-to-b from-background to-muted/30"
+    <StoryContainer
+      title="Package-powered story sequence"
+      subtitle="This scroll sequence now runs on @moritzbrantner/storytelling instead of the local prototype."
+      ariaLabel="Storytelling package demo"
+      className="rounded-[2rem] border-border/60 bg-gradient-to-b from-background via-background to-muted/30 shadow-sm"
     >
-      <div className="sticky top-6 mx-auto grid h-[calc(100vh-3rem)] max-w-6xl grid-cols-1 gap-6 p-6 lg:grid-cols-[1.2fr_1fr]">
-        <div className="relative overflow-hidden rounded-xl border border-border/60 bg-black/20">
-          <Canvas
-            camera={{ position: [0, 0, 8], fov: 45 }}
-            onCreated={({ gl, scene }) => {
-              gl.setClearColor('#0b1020');
-              scene.background = new Color('#0b1020');
-            }}
-          >
-            <ambientLight intensity={1.2} />
-            <directionalLight position={[6, 8, 4]} intensity={1.6} />
-            <SceneNode scene={activeScene} sceneProgression={internal.sceneProgression} />
-          </Canvas>
-        </div>
+      <StorySeries
+        ariaLabel="Story sequence scenes"
+        viewportClassName="h-[30rem] md:h-[72vh]"
+        className="rounded-[1.75rem] border border-border/60 bg-background/80 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.45)]"
+      >
+        {scenes.map((scene, index) => {
+          const accentBackground = toAlphaColor(scene.color, 0.14);
+          const accentBorder = toAlphaColor(scene.color, 0.34);
+          const accentGlow = toAlphaColor(scene.color, 0.18);
 
-        <div className="flex flex-col rounded-xl border border-border/60 bg-background/85 p-6 backdrop-blur-sm">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Internal Progression {internal.absolute.toFixed(0)}
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Scene {internal.sceneNumber + 1} at {internal.sceneProgression.toFixed(0)} units
-          </p>
+          return (
+            <PackageStoryScene
+              key={scene.id}
+              id={scene.id}
+              title={scene.title}
+              menuLabel={String(index + 1).padStart(2, '0')}
+              eyebrow={`Scene ${index + 1}`}
+              className="p-0"
+            >
+              <div className="space-y-5">
+                <div
+                  className="inline-flex items-center gap-3 rounded-full border px-3 py-1 text-xs uppercase tracking-[0.18em]"
+                  style={{
+                    backgroundColor: accentBackground,
+                    borderColor: accentBorder,
+                    boxShadow: `0 0 0 1px ${accentGlow}`,
+                  }}
+                >
+                  <span
+                    className="size-2 rounded-full"
+                    style={{ backgroundColor: scene.color }}
+                    aria-hidden="true"
+                  />
+                  Internal Progression {scene.progressionStart}-{scene.progressionEnd}
+                </div>
 
-          <h2 className="mt-4 text-3xl font-semibold">{activeScene.title}</h2>
-          <p className="mt-3 text-muted-foreground">{activeScene.description}</p>
+                <p>{scene.description}</p>
 
-          <div className="mt-6 h-2 rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-foreground transition-[width] duration-200"
-              style={{ width: `${internal.sceneProgression}%` }}
-            />
-          </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div
+                    className="rounded-[1.5rem] border p-4"
+                    style={{
+                      background: `linear-gradient(135deg, ${accentBackground}, transparent 70%)`,
+                      borderColor: accentBorder,
+                    }}
+                  >
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                      Focus Vector
+                    </p>
+                    <p className="mt-2 font-mono text-sm text-foreground">{formatPosition(scene.position)}</p>
+                  </div>
 
-          <ol className="mt-6 space-y-2 text-sm text-muted-foreground">
-            {scenes.map((scene, index) => (
-              <li
-                key={scene.id}
-                className={index === internal.sceneNumber ? 'font-semibold text-foreground' : undefined}
-              >
-                Scene {index + 1}: {scene.title}
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    </section>
+                  <div
+                    className="rounded-[1.5rem] border p-4"
+                    style={{
+                      background: `linear-gradient(135deg, ${accentGlow}, transparent 70%)`,
+                      borderColor: accentBorder,
+                    }}
+                  >
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                      Scene Scale
+                    </p>
+                    <p className="mt-2 text-sm text-foreground">{(scene.scale ?? 1).toFixed(2)}x</p>
+                  </div>
+                </div>
+              </div>
+            </PackageStoryScene>
+          );
+        })}
+      </StorySeries>
+    </StoryContainer>
   );
 }
