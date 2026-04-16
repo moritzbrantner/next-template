@@ -3,6 +3,43 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AppRole } from '@/lib/authorization';
 import { exportAdminReportUseCase, getAdminReportDetailUseCase } from '@/src/domain/admin-reports/use-cases';
 
+function createVisit(overrides: Partial<{
+  id: string;
+  userId: string | null;
+  trackingVersion: number;
+  visitorId: string;
+  sessionId: string;
+  pathname: string;
+  href: string;
+  canonicalPath: string;
+  routeGroup: string;
+  isAuthenticated: boolean;
+  previousPathname: string | null;
+  previousCanonicalPath: string | null;
+  referrerType: string;
+  referrerHost: string | null;
+  visitedAt: Date;
+}> = {}) {
+  return {
+    id: 'visit_1',
+    userId: 'admin_1',
+    trackingVersion: 2,
+    visitorId: 'visitor_1',
+    sessionId: 'session_1',
+    pathname: '/en/admin/reports',
+    href: '/en/admin/reports',
+    canonicalPath: '/admin/reports',
+    routeGroup: 'admin',
+    isAuthenticated: true,
+    previousPathname: null,
+    previousCanonicalPath: null,
+    referrerType: 'direct',
+    referrerHost: null,
+    visitedAt: new Date('2026-04-16T08:00:00.000Z'),
+    ...overrides,
+  };
+}
+
 function createApiMocks(session: { user?: { id: string; role: AppRole } } | null) {
   vi.doMock('@/src/api/security', () => ({
     auditAction: vi.fn().mockResolvedValue(undefined),
@@ -94,13 +131,7 @@ describe('admin reports', () => {
       listUsers: async () => [{ id: 'admin_1', role: 'ADMIN' as const, lockoutUntil: null }],
       listAuditLogsSince: async () => [],
       listPageVisitsSince: async () => [
-        {
-          id: 'visit_1',
-          userId: 'admin_1',
-          pathname: '/en/admin/reports',
-          href: 'http://localhost/en/admin/reports',
-          visitedAt: new Date('2026-04-16T08:00:00.000Z'),
-        },
+        createVisit({ href: 'http://localhost/en/admin/reports' }),
       ],
       listJobsSince: async () => [],
     });
@@ -122,20 +153,15 @@ describe('admin reports', () => {
         listUsers: async () => [],
         listAuditLogsSince: async () => [],
         listPageVisitsSince: async () => [
-          {
-            id: 'visit_1',
-            userId: 'admin_1',
-            pathname: '/en/admin/reports',
-            href: '/en/admin/reports',
-            visitedAt: new Date('2026-04-16T08:00:00.000Z'),
-          },
-          {
+          createVisit(),
+          createVisit({
             id: 'visit_2',
-            userId: 'admin_1',
             pathname: '/de/admin/users/123',
             href: '/de/admin/users/123',
+            canonicalPath: '/admin/users/[userId]',
+            sessionId: 'session_2',
             visitedAt: new Date('2026-04-16T09:00:00.000Z'),
-          },
+          }),
         ],
         listJobsSince: async () => [],
       }),

@@ -1,5 +1,9 @@
 import { getDb } from '@/src/db/client';
 import { pageVisitQueryParameters, pageVisits } from '@/src/db/schema';
+import {
+  classifyNavigationPathname,
+  type NavigationRouteGroup,
+} from '@/src/analytics/navigation-classification';
 import { sanitizeTrackedQueryParameters } from '@/src/privacy/consent';
 
 const TRACKED_PAGE_BASE_URL = 'https://page-visit.local';
@@ -15,7 +19,7 @@ export type NormalizedPageVisit = {
   }>;
 };
 
-export type PageVisitTrackingCause = 'preload' | 'enter' | 'stay';
+export type PageVisitReferrerType = 'direct' | 'internal' | 'external';
 
 export function isTrackablePageVisitPathname(pathname: string): boolean {
   return !NON_TRACKABLE_PAGE_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
@@ -47,22 +51,103 @@ export function normalizeTrackedPageVisit(href: string): NormalizedPageVisit {
   };
 }
 
-export function shouldTrackPageVisit(input: { href?: string | null; cause?: PageVisitTrackingCause | null }): boolean {
-  if (!input.href || input.cause === 'preload') {
-    return false;
+function tryNormalizeTrackedPageVisit(href?: string | null) {
+  if (!href) {
+    return null;
   }
 
   try {
-    return isTrackablePageVisitPathname(normalizeTrackedPageVisit(input.href).pathname);
+    return normalizeTrackedPageVisit(href);
   } catch {
-    return false;
+    return null;
   }
 }
 
-export async function recordPageVisit(input: { userId: string; href: string; visitedAt?: Date }) {
+export function resolveTrackedPageVisitReferrer(input: {
+  href: string;
+  requestUrl?: string | URL;
+  previousHref?: string | null;
+  documentReferrer?: string | null;
+}) {
+  const currentVisit = normalizeTrackedPageVisit(input.href);
+  const currentUrl = new URL(currentVisit.href, input.requestUrl ?? TRACKED_PAGE_BASE_URL);
+  const previousVisit = tryNormalizeTrackedPageVisit(input.previousHref);
+
+  if (previousVisit && isTrackablePageVisitPathname(previousVisit.pathname)) {
+    return {
+      previousPathname: previousVisit.pathname,
+      previousCanonicalPath: classifyNavigationPathname(previousVisit.pathname).canonicalPath,
+      referrerType: 'internal' as const,
+      referrerHost: null,
+    };
+  }
+
+  if (!input.documentReferrer) {
+    return {
+      previousPathname: null,
+      previousCanonicalPath: null,
+      referrerType: 'direct' as const,
+      referrerHost: null,
+    };
+  }
+
+  try {
+    const referrerUrl = new URL(input.documentReferrer, input.requestUrl ?? TRACKED_PAGE_BASE_URL);
+
+    if (referrerUrl.origin === currentUrl.origin && isTrackablePageVisitPathname(referrerUrl.pathname)) {
+      return {
+        previousPathname: referrerUrl.pathname,
+        previousCanonicalPath: classifyNavigationPathname(referrerUrl.pathname).canonicalPath,
+        referrerType: 'internal' as const,
+        referrerHost: null,
+      };
+    }
+
+    if (referrerUrl.origin !== currentUrl.origin) {
+      return {
+        previousPathname: null,
+        previousCanonicalPath: null,
+        referrerType: 'external' as const,
+        referrerHost: referrerUrl.host || null,
+      };
+    }
+  } catch {
+    return {
+      previousPathname: null,
+      previousCanonicalPath: null,
+      referrerType: 'direct' as const,
+      referrerHost: null,
+    };
+  }
+
+  return {
+    previousPathname: null,
+    previousCanonicalPath: null,
+    referrerType: 'direct' as const,
+    referrerHost: null,
+  };
+}
+
+export async function recordPageVisit(input: {
+  userId?: string | null;
+  href: string;
+  visitorId: string;
+  sessionId: string;
+  previousHref?: string | null;
+  occurredAt?: Date;
+  documentReferrer?: string | null;
+  requestUrl?: string | URL;
+}) {
   const visitId = crypto.randomUUID();
-  const visitedAt = input.visitedAt ?? new Date();
+  const visitedAt = input.occurredAt ?? new Date();
   const normalizedVisit = normalizeTrackedPageVisit(input.href);
+  const classification = classifyNavigationPathname(normalizedVisit.pathname);
+  const referrer = resolveTrackedPageVisitReferrer({
+    href: normalizedVisit.href,
+    previousHref: input.previousHref,
+    documentReferrer: input.documentReferrer,
+    requestUrl: input.requestUrl,
+  });
   const db = getDb();
 
   if (!isTrackablePageVisitPathname(normalizedVisit.pathname)) {
@@ -72,9 +157,19 @@ export async function recordPageVisit(input: { userId: string; href: string; vis
   await db.transaction(async (tx) => {
     await tx.insert(pageVisits).values({
       id: visitId,
-      userId: input.userId,
+      userId: input.userId ?? null,
+      trackingVersion: 2,
+      visitorId: input.visitorId,
+      sessionId: input.sessionId,
       href: normalizedVisit.href,
       pathname: normalizedVisit.pathname,
+      canonicalPath: classification.canonicalPath,
+      routeGroup: classification.routeGroup,
+      isAuthenticated: Boolean(input.userId),
+      previousPathname: referrer.previousPathname,
+      previousCanonicalPath: referrer.previousCanonicalPath,
+      referrerType: referrer.referrerType,
+      referrerHost: referrer.referrerHost,
       visitedAt,
     });
 
@@ -95,8 +190,17 @@ export async function recordPageVisit(input: { userId: string; href: string; vis
 
   return {
     id: visitId,
-    userId: input.userId,
+    userId: input.userId ?? null,
+    visitorId: input.visitorId,
+    sessionId: input.sessionId,
     visitedAt,
+    canonicalPath: classification.canonicalPath,
+    routeGroup: classification.routeGroup as NavigationRouteGroup,
+    isAuthenticated: Boolean(input.userId),
+    previousPathname: referrer.previousPathname,
+    previousCanonicalPath: referrer.previousCanonicalPath,
+    referrerType: referrer.referrerType as PageVisitReferrerType,
+    referrerHost: referrer.referrerHost,
     ...normalizedVisit,
   };
 }

@@ -1,12 +1,14 @@
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { AdminReportChart } from '@/components/admin/admin-report-chart';
 import { AdminOverviewGrid } from '@/components/admin/admin-overview-grid';
+import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getEnabledAdminPageDefinitions, getEnabledAdminWorkspacePageDefinitions } from '@/src/admin/pages';
-import { getAdminReportSummaryUseCase } from '@/src/domain/admin-reports/use-cases';
+import { getAdminReportDetailUseCase, getAdminReportSummaryUseCase } from '@/src/domain/admin-reports/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { resolveLocale } from '@/src/server/page-guards';
+import { getAdminAnalyticsSettings } from '@/src/site-config/service';
 
 export default async function AdminPage({
   params,
@@ -17,7 +19,11 @@ export default async function AdminPage({
   const locale = resolveLocale(rawLocale);
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = getEnabledAdminPageDefinitions();
-  const pulse = await getAdminReportSummaryUseCase('7d');
+  const analyticsSettings = await getAdminAnalyticsSettings();
+  const [pulse, navigationPulse] = await Promise.all([
+    getAdminReportSummaryUseCase('7d'),
+    getAdminReportDetailUseCase('navigationJourneys', analyticsSettings.defaultAdminReportWindow),
+  ]);
   const pages = getEnabledAdminWorkspacePageDefinitions().map((page) => ({
     key: page.key,
     href: page.href,
@@ -74,6 +80,62 @@ export default async function AdminPage({
             </CardHeader>
             <CardContent>
               <AdminReportChart series={pulse.series[0]} />
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">Navigation pulse</h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">
+              First-party journey analytics for the last {navigationPulse.window}. Refreshed {navigationPulse.generatedAt}.
+            </p>
+          </div>
+          <LocalizedLink
+            href={`/admin/reports/navigationJourneys?window=${navigationPulse.window}`}
+            locale={locale}
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          >
+            Open full report
+          </LocalizedLink>
+        </div>
+
+        {navigationPulse.status === 'degraded' ? (
+          <div className="rounded-3xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+            {navigationPulse.message ?? 'Data unavailable.'}
+          </div>
+        ) : null}
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {navigationPulse.cards.map((card) => (
+              <Card key={card.id}>
+                <CardHeader className="space-y-2">
+                  <CardDescription>{card.label}</CardDescription>
+                  <CardTitle className="text-3xl">{card.value}</CardTitle>
+                </CardHeader>
+                {card.detail ? (
+                  <CardContent>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300">{card.detail}</p>
+                  </CardContent>
+                ) : null}
+              </Card>
+            ))}
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardDescription>Daily visitors vs sessions</CardDescription>
+              <CardTitle className="text-xl">Journey trend</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {navigationPulse.series[0] ? (
+                <AdminReportChart series={navigationPulse.series[0]} />
+              ) : (
+                <p className="text-sm text-zinc-600 dark:text-zinc-300">{navigationPulse.message ?? 'Data unavailable.'}</p>
+              )}
             </CardContent>
           </Card>
         </div>

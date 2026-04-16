@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 
 import { NavigationBar } from '@/components/navigation-bar';
 import { DeferredConsentBanner } from '@/components/deferred-consent-banner';
+import { NavigationAnalyticsTracker } from '@/components/navigation-analytics-tracker';
 import { SiteAnnouncementStack } from '@/components/site-announcement-stack';
 import type { AppLocale } from '@/i18n/routing';
 import type { AppSession } from '@/src/auth';
@@ -21,6 +22,7 @@ type LocaleShellProps = {
     body: string;
     href: string | null;
   }>;
+  analyticsEnabled?: boolean;
 };
 
 export function LocaleShell({
@@ -30,9 +32,11 @@ export function LocaleShell({
   session,
   notificationCenter,
   announcements,
+  analyticsEnabled = false,
 }: LocaleShellProps) {
   return (
     <>
+      <NavigationAnalyticsTracker enabled={analyticsEnabled} />
       <NavigationBar
         locale={locale}
         siteName={siteName}
