@@ -104,15 +104,9 @@ export function BlogPostComposer({ userId, locale, labels }: BlogPostComposerPro
 
     setEditorTitle(activeDraft.title);
     setEditorContent(activeDraft.contentMarkdown);
-  }, [
-    activeDraft?.contentMarkdown,
-    activeDraft?.id,
-    activeDraft?.lastSavedLocallyAt,
-    activeDraft?.title,
-    drafts.length,
-  ]);
+  }, [activeDraft, drafts.length]);
 
-  const runOutbox = useEffectEvent(async () => {
+  const runOutbox = useEffectEvent(async (currentUserId: string) => {
     if (outboxRunningRef.current) {
       return {
         processedCount: 0,
@@ -123,7 +117,7 @@ export function BlogPostComposer({ userId, locale, labels }: BlogPostComposerPro
     outboxRunningRef.current = true;
 
     try {
-      const result = await flushBlogPublishOutbox({ userId });
+      const result = await flushBlogPublishOutbox({ userId: currentUserId });
 
       if (result.publishedDraftIds.length > 0) {
         startTransition(() => {
@@ -138,17 +132,17 @@ export function BlogPostComposer({ userId, locale, labels }: BlogPostComposerPro
   });
 
   useEffect(() => {
-    void runOutbox();
-  }, [runOutbox, userId]);
+    void runOutbox(userId);
+  }, [userId]);
 
   useEffect(() => {
     function handleOnline() {
-      void runOutbox();
+      void runOutbox(userId);
     }
 
     function handleVisibilityChange() {
       if (document.visibilityState === 'visible') {
-        void runOutbox();
+        void runOutbox(userId);
       }
     }
 
@@ -159,7 +153,7 @@ export function BlogPostComposer({ userId, locale, labels }: BlogPostComposerPro
       window.removeEventListener('online', handleOnline);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [runOutbox]);
+  }, [userId]);
 
   async function ensureDraft(nextTitle: string, nextContent: string) {
     if (activeDraftId) {

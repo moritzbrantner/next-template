@@ -47,7 +47,11 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
       setSearchError(null);
 
       try {
-        const response = await fetch(`/api/profile/search?query=${encodeURIComponent(normalizedQuery)}`, {
+        const searchParams = new URLSearchParams({
+          query: normalizedQuery,
+          refresh: String(refreshKey),
+        });
+        const response = await fetch(`/api/profile/search?${searchParams.toString()}`, {
           signal: abortController.signal,
         });
 
