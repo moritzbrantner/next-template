@@ -23,7 +23,7 @@ export function ConsentSettingsCard({ initialConsent }: { initialConsent: Consen
       <div className="space-y-1">
         <p className="font-medium">Consent settings</p>
         <p className="text-sm text-zinc-600 dark:text-zinc-300">
-          Necessary storage stays enabled. Analytics and marketing can be updated any time.
+          Necessary storage stays enabled. Analytics and marketing preferences can be updated any time.
         </p>
       </div>
 
@@ -33,7 +33,9 @@ export function ConsentSettingsCard({ initialConsent }: { initialConsent: Consen
             <div>
               <p className="font-medium capitalize">{key}</p>
               <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                {key === 'analytics' ? 'Controls page-visit recording and marketing attribution.' : 'Controls optional marketing personalization.'}
+                {key === 'analytics'
+                  ? 'Controls anonymous and signed-in page-navigation measurement with pseudonymous visitor and session ids.'
+                  : 'Controls optional marketing personalization.'}
               </p>
             </div>
             <input

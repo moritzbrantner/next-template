@@ -32,6 +32,7 @@ export default async function PublicLocaleLayout({
         notificationCenter={notificationCenter}
         siteName={activeApp.siteName || siteConfig.siteName}
         announcements={announcements}
+        analyticsEnabled={siteConfig.flags['analytics.pageVisits']}
       >
         {children}
       </LocaleShell>

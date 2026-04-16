@@ -13,17 +13,41 @@ import {
   getAdminReportDetailUseCase,
   isAdminReportId,
   isAdminReportWindow,
+  normalizeNavigationReportFilters,
 } from '@/src/domain/admin-reports/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { getAdminAnalyticsSettings } from '@/src/site-config/service';
 import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
+
+function buildReportSearchParams(input: {
+  window: string;
+  audience?: string | null;
+  routeGroup?: string | null;
+  path?: string | null;
+}) {
+  const searchParams = new URLSearchParams({ window: input.window });
+
+  if (input.audience && input.audience !== 'all') {
+    searchParams.set('audience', input.audience);
+  }
+
+  if (input.routeGroup && input.routeGroup !== 'all') {
+    searchParams.set('routeGroup', input.routeGroup);
+  }
+
+  if (input.path) {
+    searchParams.set('path', input.path);
+  }
+
+  return searchParams.toString();
+}
 
 export default async function AdminReportDetailPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string; reportId: string }>;
-  searchParams: Promise<{ window?: string }>;
+  searchParams: Promise<{ window?: string; audience?: string; routeGroup?: string; path?: string }>;
 }) {
   const [{ locale: rawLocale, reportId }, rawSearchParams] = await Promise.all([params, searchParams]);
   const locale = resolveLocale(rawLocale);
@@ -36,9 +60,20 @@ export default async function AdminReportDetailPage({
   const analyticsSettings = await getAdminAnalyticsSettings();
   const requestedWindow = rawSearchParams.window ?? '';
   const window = isAdminReportWindow(requestedWindow) ? requestedWindow : analyticsSettings.defaultAdminReportWindow;
+  const navigationFilters = normalizeNavigationReportFilters({
+    audience: rawSearchParams.audience,
+    routeGroup: rawSearchParams.routeGroup,
+    path: rawSearchParams.path,
+  });
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = getEnabledAdminPageDefinitions();
-  const detail = await getAdminReportDetailUseCase(reportId, window);
+  const detail = await getAdminReportDetailUseCase(reportId, window, undefined, navigationFilters);
+  const currentQuery = buildReportSearchParams({
+    window,
+    audience: detail.filters?.audience ?? navigationFilters.audience,
+    routeGroup: detail.filters?.routeGroup ?? navigationFilters.routeGroup,
+    path: detail.filters?.path ?? navigationFilters.path,
+  });
 
   return (
     <AdminPageShell
@@ -56,7 +91,12 @@ export default async function AdminReportDetailPage({
           {adminReportWindows.map((candidateWindow) => (
             <LocalizedLink
               key={candidateWindow}
-              href={`/admin/reports/${reportId}?window=${candidateWindow}`}
+              href={`/admin/reports/${reportId}?${buildReportSearchParams({
+                window: candidateWindow,
+                audience: detail.filters?.audience,
+                routeGroup: detail.filters?.routeGroup,
+                path: detail.filters?.path,
+              })}`}
               locale={locale}
               className={buttonVariants({
                 variant: candidateWindow === window ? 'default' : 'outline',
@@ -67,7 +107,7 @@ export default async function AdminReportDetailPage({
             </LocalizedLink>
           ))}
           <a
-            href={`/api/admin/reports/${reportId}?window=${window}&format=csv`}
+            href={`/api/admin/reports/${reportId}?${currentQuery}&format=csv`}
             className={buttonVariants({ variant: 'outline', size: 'sm' })}
             download
           >
@@ -75,6 +115,65 @@ export default async function AdminReportDetailPage({
           </a>
         </div>
       </div>
+
+      {detail.filters ? (
+        <form method="GET" className="grid gap-3 rounded-3xl border border-zinc-200 bg-white/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/50 md:grid-cols-4">
+          <input type="hidden" name="window" value={window} />
+          <label className="space-y-1 text-sm">
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">Audience</span>
+            <select
+              name="audience"
+              defaultValue={detail.filters.audience}
+              className="w-full rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+            >
+              <option value="all">All visitors</option>
+              <option value="anonymous">Anonymous</option>
+              <option value="authenticated">Authenticated</option>
+            </select>
+          </label>
+          <label className="space-y-1 text-sm">
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">Route group</span>
+            <select
+              name="routeGroup"
+              defaultValue={detail.filters.routeGroup}
+              className="w-full rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+            >
+              <option value="all">All groups</option>
+              <option value="public">Public</option>
+              <option value="guest">Guest</option>
+              <option value="authenticated">Authenticated</option>
+              <option value="workspace">Workspace</option>
+              <option value="admin">Admin</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </label>
+          <label className="space-y-1 text-sm">
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">Page drill-down</span>
+            <input
+              name="path"
+              list="navigation-report-paths"
+              defaultValue={detail.filters.path ?? ''}
+              placeholder="/blog/[slug]"
+              className="w-full rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+            />
+            <datalist id="navigation-report-paths">
+              {detail.filters.pathOptions.map((path) => (
+                <option key={path} value={path} />
+              ))}
+            </datalist>
+          </label>
+          <div className="flex items-end gap-2">
+            <button type="submit" className={buttonVariants({ variant: 'default', size: 'sm' })}>Apply filters</button>
+            <LocalizedLink
+              href={`/admin/reports/${reportId}?window=${window}`}
+              locale={locale}
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            >
+              Reset
+            </LocalizedLink>
+          </div>
+        </form>
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-zinc-200 bg-white/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950/50">
         <p className="text-sm text-zinc-600 dark:text-zinc-300">
@@ -154,8 +253,8 @@ export default async function AdminReportDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent events</CardTitle>
-          <CardDescription>Live operational output for the selected time window.</CardDescription>
+          <CardTitle>{detail.tableTitle ?? 'Recent events'}</CardTitle>
+          <CardDescription>{detail.tableDescription ?? 'Live operational output for the selected time window.'}</CardDescription>
         </CardHeader>
         <CardContent>
           {detail.table.rows.length > 0 ? (

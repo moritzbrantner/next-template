@@ -85,6 +85,12 @@ export const adminPage = {
         owner: 'Data engineering',
         cadence: 'On every deployment',
       },
+      navigationJourneys: {
+        title: 'Navigation journeys',
+        description: 'Track entry pages, common next steps, exits, and bounce behavior across consented visitors.',
+        owner: 'Product analytics',
+        cadence: 'Live feed',
+      },
     },
     alertsTitle: 'Scheduled alerts',
     alertsDescription: 'Admins can keep the most important report outputs pushed to the right audience.',

@@ -11,7 +11,7 @@ import { createTranslator } from '@/src/i18n/messages';
 import { getAdminAnalyticsSettings } from '@/src/site-config/service';
 import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
-const reportCatalogKeys = ['securityAccess', 'auditActivity', 'workspaceAdoption', 'schemaHealth'] as const;
+const reportCatalogKeys = ['securityAccess', 'auditActivity', 'workspaceAdoption', 'schemaHealth', 'navigationJourneys'] as const;
 
 export default async function ReportsPage({
   params,

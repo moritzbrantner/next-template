@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeTrackedPageVisit, shouldTrackPageVisit } from '@/src/analytics/page-visits';
+import { isTrackablePageVisitPathname, normalizeTrackedPageVisit, resolveTrackedPageVisitReferrer } from '@/src/analytics/page-visits';
 
 describe('page visit tracking', () => {
   it('splits the pathname and query parameters for aggregation', () => {
@@ -27,14 +27,39 @@ describe('page visit tracking', () => {
     expect(() => normalizeTrackedPageVisit('')).toThrowError('Page visit href is required.');
   });
 
-  it('tracks document navigations, including tokenized urls', () => {
-    expect(shouldTrackPageVisit({ href: '/en/about?token=invite-token', cause: 'enter' })).toBe(true);
-    expect(shouldTrackPageVisit({ href: '/en/about?token=invite-token', cause: 'stay' })).toBe(true);
+  it('derives internal referrers from previous tracked hrefs', () => {
+    expect(
+      resolveTrackedPageVisitReferrer({
+        href: '/en/blog/post-one',
+        previousHref: '/en',
+        requestUrl: 'https://app.example.com/api/analytics/page-visits',
+      }),
+    ).toEqual({
+      previousPathname: '/en',
+      previousCanonicalPath: '/',
+      referrerType: 'internal',
+      referrerHost: null,
+    });
   });
 
-  it('skips preloads and non-page urls', () => {
-    expect(shouldTrackPageVisit({ href: '/en/about?token=invite-token', cause: 'preload' })).toBe(false);
-    expect(shouldTrackPageVisit({ href: '/api/analytics/page-visits', cause: 'enter' })).toBe(false);
-    expect(shouldTrackPageVisit({ href: '/_serverFn/abc123', cause: 'enter' })).toBe(false);
+  it('reduces external referrers to their host', () => {
+    expect(
+      resolveTrackedPageVisitReferrer({
+        href: '/en/about',
+        documentReferrer: 'https://news.example.net/story?id=42',
+        requestUrl: 'https://app.example.com/api/analytics/page-visits',
+      }),
+    ).toEqual({
+      previousPathname: null,
+      previousCanonicalPath: null,
+      referrerType: 'external',
+      referrerHost: 'news.example.net',
+    });
+  });
+
+  it('skips non-page urls', () => {
+    expect(isTrackablePageVisitPathname('/en/about')).toBe(true);
+    expect(isTrackablePageVisitPathname('/api/analytics/page-visits')).toBe(false);
+    expect(isTrackablePageVisitPathname('/_serverFn/abc123')).toBe(false);
   });
 });

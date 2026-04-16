@@ -86,6 +86,12 @@ export const adminPage = {
         owner: 'Data Engineering',
         cadence: 'Bei jedem Deployment',
       },
+      navigationJourneys: {
+        title: 'Navigationspfade',
+        description: 'Verfolge Einstiegsseiten, typische nächste Schritte, Ausstiege und Bounce-Verhalten über eingewilligte Besucher.',
+        owner: 'Produktanalyse',
+        cadence: 'Live-Feed',
+      },
     },
     alertsTitle: 'Geplante Alerts',
     alertsDescription: 'Admins können die wichtigsten Berichtsergebnisse direkt an die richtigen Empfänger verteilen.',

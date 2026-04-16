@@ -1,13 +1,6 @@
-import { recordPageVisit, shouldTrackPageVisit, type PageVisitTrackingCause } from '@/src/analytics/page-visits';
 import { getAuthSession } from '@/src/auth.server';
 import { getNotificationPreviewUseCase, type NotificationPreview } from '@/src/domain/notifications/use-cases';
-import { getConsentState } from '@/src/privacy/consent';
 import { isGithubPagesBuild } from '@/src/runtime/build-target';
-
-type LoadAppContextInput = {
-  href?: string;
-  cause?: PageVisitTrackingCause;
-};
 
 export type AppRouteContext = {
   session: Awaited<ReturnType<typeof getAuthSession>>;
@@ -19,33 +12,12 @@ export const emptyAppContext: AppRouteContext = {
   notificationCenter: null,
 };
 
-function validateLoadAppContextInput(input: LoadAppContextInput | undefined): LoadAppContextInput {
-  return {
-    href: typeof input?.href === 'string' ? input.href : undefined,
-    cause: input?.cause,
-  };
-}
-
-export async function loadAppContext(input?: LoadAppContextInput): Promise<AppRouteContext> {
+export async function loadAppContext(): Promise<AppRouteContext> {
   if (isGithubPagesBuild) {
     return emptyAppContext;
   }
 
-  const data = validateLoadAppContextInput(input);
   const session = await getAuthSession();
-
-  if (session?.user.id && shouldTrackPageVisit(data)) {
-    const consent = await getConsentState();
-
-    if (consent.state.analytics) {
-      void recordPageVisit({
-        userId: session.user.id,
-        href: data.href!,
-      }).catch((error) => {
-        console.warn('[analytics] unable to record page visit', error);
-      });
-    }
-  }
 
   return {
     session,

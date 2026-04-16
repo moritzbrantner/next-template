@@ -2,11 +2,49 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   exportAdminReportUseCase,
+  getAdminReportDetailUseCase,
   getAdminReportSummaryUseCase,
   getAdminWorkspaceKey,
   serializeAdminReportCsv,
   stripLocalePrefix,
 } from '@/src/domain/admin-reports/use-cases';
+
+function createVisit(overrides: Partial<{
+  id: string;
+  userId: string | null;
+  trackingVersion: number;
+  visitorId: string;
+  sessionId: string;
+  pathname: string;
+  href: string;
+  canonicalPath: string;
+  routeGroup: string;
+  isAuthenticated: boolean;
+  previousPathname: string | null;
+  previousCanonicalPath: string | null;
+  referrerType: string;
+  referrerHost: string | null;
+  visitedAt: Date;
+}> = {}) {
+  return {
+    id: 'visit_1',
+    userId: 'admin_1',
+    trackingVersion: 2,
+    visitorId: 'visitor_1',
+    sessionId: 'session_1',
+    pathname: '/en/admin/reports',
+    href: '/en/admin/reports',
+    canonicalPath: '/admin/reports',
+    routeGroup: 'admin',
+    isAuthenticated: true,
+    previousPathname: null,
+    previousCanonicalPath: null,
+    referrerType: 'direct',
+    referrerHost: null,
+    visitedAt: new Date('2026-04-16T08:00:00.000Z'),
+    ...overrides,
+  };
+}
 
 const fakeDeps = Promise.resolve({
   listUsers: async () => [
@@ -72,27 +110,24 @@ describe('admin report exports', () => {
         listUsers: async () => [{ id: 'admin_1', role: 'ADMIN' as const, lockoutUntil: null }],
         listAuditLogsSince: async () => [],
         listPageVisitsSince: async () => [
-          {
-            id: 'visit_current_1',
-            userId: 'admin_1',
-            pathname: '/en/admin/reports',
-            href: '/en/admin/reports',
-            visitedAt: new Date('2026-04-11T08:00:00.000Z'),
-          },
-          {
+          createVisit({ id: 'visit_current_1', visitedAt: new Date('2026-04-11T08:00:00.000Z') }),
+          createVisit({
             id: 'visit_current_2',
             userId: 'admin_2',
+            visitorId: 'visitor_2',
+            sessionId: 'session_2',
             pathname: '/de/admin/users/123',
             href: '/de/admin/users/123',
+            canonicalPath: '/admin/users/[userId]',
             visitedAt: new Date('2026-04-12T09:00:00.000Z'),
-          },
-          {
+          }),
+          createVisit({
             id: 'visit_previous_1',
             userId: 'admin_3',
-            pathname: '/en/admin/reports',
-            href: '/en/admin/reports',
+            visitorId: 'visitor_3',
+            sessionId: 'session_3',
             visitedAt: new Date('2026-04-07T09:00:00.000Z'),
-          },
+          }),
         ],
         listJobsSince: async () => [],
       }),
@@ -121,5 +156,165 @@ describe('admin report exports', () => {
 
     expect(summary.status).toBe('degraded');
     expect(summary.metrics.every((metric) => metric.value === 'Data unavailable')).toBe(true);
+  });
+
+  it('aggregates navigation journeys and scopes transitions by filters', async () => {
+    const detail = await getAdminReportDetailUseCase(
+      'navigationJourneys',
+      '7d',
+      Promise.resolve({
+        listUsers: async () => [],
+        listAuditLogsSince: async () => [],
+        listPageVisitsSince: async () => [
+          createVisit({
+            id: 'home',
+            userId: null,
+            visitorId: 'visitor_anon',
+            sessionId: 'session_anon',
+            pathname: '/en',
+            href: '/en',
+            canonicalPath: '/',
+            routeGroup: 'public',
+            isAuthenticated: false,
+            visitedAt: new Date('2026-04-14T08:00:00.000Z'),
+          }),
+          createVisit({
+            id: 'blog',
+            userId: null,
+            visitorId: 'visitor_anon',
+            sessionId: 'session_anon',
+            pathname: '/en/blog',
+            href: '/en/blog',
+            canonicalPath: '/blog',
+            routeGroup: 'public',
+            isAuthenticated: false,
+            previousPathname: '/en',
+            previousCanonicalPath: '/',
+            referrerType: 'internal',
+            visitedAt: new Date('2026-04-14T08:02:00.000Z'),
+          }),
+          createVisit({
+            id: 'login',
+            userId: null,
+            visitorId: 'visitor_anon',
+            sessionId: 'session_anon',
+            pathname: '/en/login',
+            href: '/en/login',
+            canonicalPath: '/login',
+            routeGroup: 'guest',
+            isAuthenticated: false,
+            previousPathname: '/en/blog',
+            previousCanonicalPath: '/blog',
+            referrerType: 'internal',
+            visitedAt: new Date('2026-04-14T08:05:00.000Z'),
+          }),
+          createVisit({
+            id: 'people',
+            userId: 'user_1',
+            visitorId: 'visitor_auth',
+            sessionId: 'session_auth',
+            pathname: '/en/people',
+            href: '/en/people',
+            canonicalPath: '/people',
+            routeGroup: 'authenticated',
+            isAuthenticated: true,
+            previousPathname: '/en/login',
+            previousCanonicalPath: '/login',
+            referrerType: 'internal',
+            visitedAt: new Date('2026-04-15T09:00:00.000Z'),
+          }),
+          createVisit({
+            id: 'profile',
+            userId: 'user_1',
+            visitorId: 'visitor_auth',
+            sessionId: 'session_auth',
+            pathname: '/en/profile',
+            href: '/en/profile',
+            canonicalPath: '/profile',
+            routeGroup: 'authenticated',
+            isAuthenticated: true,
+            previousPathname: '/en/people',
+            previousCanonicalPath: '/people',
+            referrerType: 'internal',
+            visitedAt: new Date('2026-04-15T09:04:00.000Z'),
+          }),
+          createVisit({
+            id: 'notifications',
+            userId: 'user_1',
+            visitorId: 'visitor_auth',
+            sessionId: 'session_auth',
+            pathname: '/en/notifications',
+            href: '/en/notifications',
+            canonicalPath: '/notifications',
+            routeGroup: 'authenticated',
+            isAuthenticated: true,
+            previousPathname: '/en/profile',
+            previousCanonicalPath: '/profile',
+            referrerType: 'internal',
+            visitedAt: new Date('2026-04-15T09:08:00.000Z'),
+          }),
+        ],
+        listJobsSince: async () => [],
+      }),
+      {
+        audience: 'anonymous',
+        routeGroup: 'all',
+        path: '/blog',
+      },
+    );
+
+    expect(detail.cards.find((card) => card.id === 'uniqueVisitors')?.value).toBe('1');
+    expect(detail.cards.find((card) => card.id === 'sessions')?.value).toBe('1');
+    expect(detail.table.rows).toContainEqual(['/blog', '/login', '1', '100%', '1', '0%']);
+    expect(detail.filters?.path).toBe('/blog');
+  });
+
+  it('exports filtered navigation journeys as CSV', async () => {
+    const exported = await exportAdminReportUseCase(
+      'navigationJourneys',
+      '7d',
+      'csv',
+      Promise.resolve({
+        listUsers: async () => [],
+        listAuditLogsSince: async () => [],
+        listPageVisitsSince: async () => [
+          createVisit({
+            id: 'visit_1',
+            userId: null,
+            visitorId: 'visitor_1',
+            sessionId: 'session_1',
+            pathname: '/en',
+            href: '/en',
+            canonicalPath: '/',
+            routeGroup: 'public',
+            isAuthenticated: false,
+          }),
+          createVisit({
+            id: 'visit_2',
+            userId: null,
+            visitorId: 'visitor_1',
+            sessionId: 'session_1',
+            pathname: '/en/blog',
+            href: '/en/blog',
+            canonicalPath: '/blog',
+            routeGroup: 'public',
+            isAuthenticated: false,
+            previousPathname: '/en',
+            previousCanonicalPath: '/',
+            referrerType: 'internal',
+            visitedAt: new Date('2026-04-16T08:02:00.000Z'),
+          }),
+        ],
+        listJobsSince: async () => [],
+      }),
+      {
+        audience: 'anonymous',
+        routeGroup: 'all',
+        path: '/',
+      },
+    );
+
+    expect(exported.body.split('\n')[0]).toBe('From,To,Transitions,Transition share,From page views,Exit rate after from');
+    expect(exported.body).toContain('/,/blog,1,100%,1,0%');
   });
 });

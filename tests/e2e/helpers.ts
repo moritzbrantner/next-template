@@ -44,9 +44,38 @@ export async function dismissConsentBanner(page: Page) {
   }
 }
 
-export async function gotoAndWaitForHydration(page: Page, path: string) {
+export async function acceptAllConsent(page: Page) {
+  const acceptAllButton = page.getByRole('button', { name: 'Accept all' });
+
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    if (!(await acceptAllButton.isVisible({ timeout: 500 }).catch(() => false))) {
+      await page.waitForTimeout(250);
+      continue;
+    }
+
+    await acceptAllButton.click();
+    await expect(acceptAllButton).toBeHidden();
+    return;
+  }
+}
+
+export async function gotoAndWaitForHydration(
+  page: Page,
+  path: string,
+  options?: { consent?: 'necessary-only' | 'accept-all' | 'leave' },
+) {
   await page.goto(path);
   await waitForAppHydration(page);
+
+  if (options?.consent === 'leave') {
+    return;
+  }
+
+  if (options?.consent === 'accept-all') {
+    await acceptAllConsent(page);
+    return;
+  }
+
   await dismissConsentBanner(page);
 }
 

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 
 import { hashPassword } from "@/lib/password";
+import { classifyNavigationPathname } from "@/src/analytics/navigation-classification";
 import { getDb } from "@/src/db/client";
 import { notifications, pageVisits, profiles, userFollows, users } from "@/src/db/schema";
 import type { FollowerVisibilityRole } from "@/src/profile/follower-visibility";
@@ -468,6 +469,7 @@ export async function seedTestUsers() {
   for (const seedPageVisit of TEST_USER_PAGE_VISITS) {
     const userId = getRequiredUserId(userIdByEmail, seedPageVisit.userEmail);
     const visitedAt = toSeedDate(seedPageVisit.minutesAgo);
+    const classification = classifyNavigationPathname(seedPageVisit.pathname);
     const existingPageVisit = await db.query.pageVisits.findFirst({
       where: (table, { eq: equals }) => equals(table.id, seedPageVisit.id),
     });
@@ -477,8 +479,18 @@ export async function seedTestUsers() {
         .update(pageVisits)
         .set({
           userId,
+          trackingVersion: 2,
+          visitorId: `seed-visitor:${userId}`,
+          sessionId: `seed-session:${seedPageVisit.id}`,
           href: seedPageVisit.href,
           pathname: seedPageVisit.pathname,
+          canonicalPath: classification.canonicalPath,
+          routeGroup: classification.routeGroup,
+          isAuthenticated: true,
+          previousPathname: null,
+          previousCanonicalPath: null,
+          referrerType: "direct",
+          referrerHost: null,
           visitedAt,
         })
         .where(eq(pageVisits.id, seedPageVisit.id));
@@ -488,8 +500,18 @@ export async function seedTestUsers() {
     await db.insert(pageVisits).values({
       id: seedPageVisit.id,
       userId,
+      trackingVersion: 2,
+      visitorId: `seed-visitor:${userId}`,
+      sessionId: `seed-session:${seedPageVisit.id}`,
       href: seedPageVisit.href,
       pathname: seedPageVisit.pathname,
+      canonicalPath: classification.canonicalPath,
+      routeGroup: classification.routeGroup,
+      isAuthenticated: true,
+      previousPathname: null,
+      previousCanonicalPath: null,
+      referrerType: "direct",
+      referrerHost: null,
       visitedAt,
     });
   }

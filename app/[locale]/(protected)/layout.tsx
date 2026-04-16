@@ -37,6 +37,7 @@ export default async function ProtectedLocaleLayout({
         notificationCenter={appContext.notificationCenter}
         siteName={activeApp.siteName || siteConfig.siteName}
         announcements={announcements}
+        analyticsEnabled={siteConfig.flags['analytics.pageVisits']}
       >
         {children}
       </LocaleShell>

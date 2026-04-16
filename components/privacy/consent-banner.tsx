@@ -45,7 +45,7 @@ export function ConsentBanner() {
         <div>
           <p className="font-semibold">Privacy controls</p>
           <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            Analytics stays off until you opt in. Marketing parameters are allowlisted and sensitive query params are redacted.
+            Analytics stays off until you opt in. If enabled, page navigation is measured with pseudonymous visitor and session ids, external referrers are reduced to hostnames, and sensitive query params stay redacted.
           </p>
         </div>
 
