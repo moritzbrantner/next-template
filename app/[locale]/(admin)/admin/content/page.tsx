@@ -8,10 +8,12 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
 import { withLocalePath, type AppLocale } from '@/i18n/routing';
-import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
+import { getAuthSession } from '@/src/auth.server';
+import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
+import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { createTranslator } from '@/src/i18n/messages';
 import { enqueueJob } from '@/src/jobs/service';
-import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, requirePermission, resolveLocale } from '@/src/server/page-guards';
 import {
   archiveAnnouncementNow,
   deleteAnnouncement,
@@ -52,6 +54,15 @@ async function saveAnnouncementAction(
   formData: FormData,
 ): Promise<AnnouncementFormState> {
   'use server';
+
+  const session = await getAuthSession();
+
+  if (!await hasPermissionForRole(session?.user.role, 'admin.content.edit')) {
+    return {
+      error: 'You do not have permission to update admin content.',
+      fieldErrors: {},
+    };
+  }
 
   const locale = String(formData.get('locale') ?? 'en') as AppLocale;
   const result = await saveAnnouncement({
@@ -101,6 +112,12 @@ async function saveAnnouncementAction(
 async function publishAnnouncementAction(formData: FormData) {
   'use server';
 
+  const session = await getAuthSession();
+
+  if (!await hasPermissionForRole(session?.user.role, 'admin.content.edit')) {
+    throw new Error('Forbidden');
+  }
+
   const locale = String(formData.get('locale') ?? 'en') as AppLocale;
   const announcementId = String(formData.get('id') ?? '');
   await publishAnnouncementNow(announcementId);
@@ -111,6 +128,12 @@ async function publishAnnouncementAction(formData: FormData) {
 async function archiveAnnouncementAction(formData: FormData) {
   'use server';
 
+  const session = await getAuthSession();
+
+  if (!await hasPermissionForRole(session?.user.role, 'admin.content.edit')) {
+    throw new Error('Forbidden');
+  }
+
   const locale = String(formData.get('locale') ?? 'en') as AppLocale;
   const announcementId = String(formData.get('id') ?? '');
   await archiveAnnouncementNow(announcementId);
@@ -120,6 +143,12 @@ async function archiveAnnouncementAction(formData: FormData) {
 
 async function deleteAnnouncementAction(formData: FormData) {
   'use server';
+
+  const session = await getAuthSession();
+
+  if (!await hasPermissionForRole(session?.user.role, 'admin.content.edit')) {
+    throw new Error('Forbidden');
+  }
 
   const locale = String(formData.get('locale') ?? 'en') as AppLocale;
   await deleteAnnouncement(String(formData.get('id') ?? ''));
@@ -199,9 +228,10 @@ export default async function AdminContentPage({
 }) {
   const [{ locale: rawLocale }, rawSearchParams] = await Promise.all([params, searchParams]);
   const locale = resolveLocale(rawLocale);
+  const session = await requirePermission(locale, 'admin.content.read');
   notFoundUnlessFeatureEnabled('admin.content');
   const t = createTranslator(locale, 'AdminPage');
-  const adminPages = getEnabledAdminPageDefinitions();
+  const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
   const editingAnnouncementId = typeof rawSearchParams.announcementId === 'string' ? rawSearchParams.announcementId : undefined;
   const [announcements, editingAnnouncement] = await Promise.all([
     listAnnouncements(locale),

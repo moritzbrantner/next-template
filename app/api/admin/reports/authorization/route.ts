@@ -1,5 +1,5 @@
 import { secureRoute } from '@/src/api/route-security';
-import { getAdminActionPermissions } from '@/src/domain/authorization/use-cases';
+import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 
 export async function GET(request: Request) {
@@ -10,19 +10,15 @@ export async function GET(request: Request) {
   const guard = await secureRoute({
     request,
     action: 'admin.reports.authorization',
-    allowedRoles: ['ADMIN', 'SUPERADMIN'],
+    requiredPermission: 'admin.reports.read',
   });
 
   if (!guard.ok) {
     return guard.response;
   }
 
-  const [reportsPermission] = getAdminActionPermissions(guard.session!.user.role).filter(
-    (permission) => permission.key === 'viewReports',
-  );
-
   return guard.json({
     action: 'viewReports',
-    allowed: reportsPermission?.allowed ?? false,
+    allowed: await hasPermissionForRole(guard.session!.user.role, 'admin.reports.read'),
   });
 }

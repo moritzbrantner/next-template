@@ -307,7 +307,7 @@ export function BlogPostComposer({ userId, locale, labels }: BlogPostComposerPro
         draftId,
       });
 
-      await runOutbox();
+      await runOutbox(userId);
     } catch {
       setLocalError(labels.genericError);
     } finally {

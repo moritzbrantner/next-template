@@ -1,6 +1,7 @@
 import { revalidateTag, unstable_cache } from 'next/cache';
 import { eq, inArray } from 'drizzle-orm';
 
+import { defaultRolePermissionAssignments } from '@/lib/authorization';
 import { getEnv } from '@/src/config/env';
 import { getDb } from '@/src/db/client';
 import { featureFlags, siteAnnouncements, siteSettings } from '@/src/db/schema';
@@ -87,6 +88,7 @@ const siteConfigDefaults: Record<SiteSettingKey, string> = {
   'contact.supportEmail': 'support@example.com',
   'analytics.pageVisitRetentionDays': '365',
   'analytics.defaultAdminReportWindow': '7d',
+  'authorization.rolePermissions': JSON.stringify(defaultRolePermissionAssignments),
 };
 
 const featureFlagDefaults: Record<FeatureFlagKey, boolean> = {

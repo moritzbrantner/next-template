@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const guard = await secureRoute({
     request,
     action: 'account.delete',
-    requireAuth: true,
+    requiredPermission: 'account.deleteOwn',
   });
 
   if (!guard.ok) {

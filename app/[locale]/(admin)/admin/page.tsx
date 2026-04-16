@@ -4,10 +4,10 @@ import { AdminOverviewGrid } from '@/components/admin/admin-overview-grid';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
-import { getEnabledAdminPageDefinitions, getEnabledAdminWorkspacePageDefinitions } from '@/src/admin/pages';
+import { getAuthorizedAdminPageDefinitions, getAuthorizedAdminWorkspacePageDefinitions } from '@/src/admin/pages';
 import { getAdminReportDetailUseCase, getAdminReportSummaryUseCase } from '@/src/domain/admin-reports/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { resolveLocale } from '@/src/server/page-guards';
+import { requirePermission, resolveLocale } from '@/src/server/page-guards';
 import { getAdminAnalyticsSettings } from '@/src/site-config/service';
 
 export default async function AdminPage({
@@ -17,14 +17,15 @@ export default async function AdminPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  const session = await requirePermission(locale, 'admin.access');
   const t = createTranslator(locale, 'AdminPage');
-  const adminPages = getEnabledAdminPageDefinitions();
+  const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
   const analyticsSettings = await getAdminAnalyticsSettings();
   const [pulse, navigationPulse] = await Promise.all([
     getAdminReportSummaryUseCase('7d'),
     getAdminReportDetailUseCase('navigationJourneys', analyticsSettings.defaultAdminReportWindow),
   ]);
-  const pages = getEnabledAdminWorkspacePageDefinitions().map((page) => ({
+  const pages = (await getAuthorizedAdminWorkspacePageDefinitions(session.user.role)).map((page) => ({
     key: page.key,
     href: page.href,
     title: t(`${page.key}.title`),

@@ -1,4 +1,4 @@
-import type { AppRole } from '@/lib/authorization';
+import type { AppPermissionKey, AppRole } from '@/lib/authorization';
 import { getAuthSession } from '@/src/auth.server';
 import {
   auditAction,
@@ -9,12 +9,14 @@ import {
   type RateLimitResult,
 } from '@/src/api/security';
 import type { AppSession } from '@/src/auth';
+import { hasPermissionForRole } from '@/src/domain/authorization/service';
 
 type SecurityDependencies = {
   getSession: () => Promise<AppSession | null>;
   getRateLimitKey: (request: Request, actorId: string | null) => string;
   enforceRateLimit: (key: string) => Promise<RateLimitResult>;
   auditAction: (record: AuditRecord) => Promise<void>;
+  hasPermission: (role: AppRole | null | undefined, permission: AppPermissionKey) => Promise<boolean>;
 };
 
 type RouteSecurityOptions = {
@@ -22,6 +24,7 @@ type RouteSecurityOptions = {
   action: string;
   requireAuth?: boolean;
   allowedRoles?: readonly AppRole[];
+  requiredPermission?: AppPermissionKey;
   metadata?: Record<string, unknown>;
 };
 
@@ -183,6 +186,53 @@ export function createRouteSecurity(deps: SecurityDependencies) {
       }
     }
 
+    if (options.requiredPermission) {
+      if (!session?.user?.id) {
+        await deps.auditAction({
+          actorId,
+          action: options.action,
+          outcome: 'denied',
+          statusCode: 401,
+          metadata: options.metadata,
+        });
+
+        return {
+          ok: false,
+          response: Response.json(
+            { error: 'Authentication required.' },
+            {
+              status: 401,
+              headers: withRateLimitHeaders(rateLimit),
+            },
+          ),
+        };
+      }
+
+      if (!await deps.hasPermission(session.user.role, options.requiredPermission)) {
+        await deps.auditAction({
+          actorId,
+          action: options.action,
+          outcome: 'denied',
+          statusCode: 403,
+          metadata: {
+            ...(options.metadata ?? {}),
+            permission: options.requiredPermission,
+          },
+        });
+
+        return {
+          ok: false,
+          response: Response.json(
+            { error: 'Forbidden.' },
+            {
+              status: 403,
+              headers: withRateLimitHeaders(rateLimit),
+            },
+          ),
+        };
+      }
+    }
+
     return {
       ok: true,
       session,
@@ -239,4 +289,5 @@ export const secureRoute = createRouteSecurity({
   getRateLimitKey,
   enforceRateLimit,
   auditAction,
+  hasPermission: hasPermissionForRole,
 });

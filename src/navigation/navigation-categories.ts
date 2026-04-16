@@ -1,4 +1,4 @@
-import type { AppRole } from '@/lib/authorization';
+import type { AppPermissionKey, AppRole } from '@/lib/authorization';
 import { getVisibleAppPages, type AppHotkey } from '@/src/navigation/app-routes';
 
 export type NavigationCategoryKey = 'discover' | 'workspace' | 'admin';
@@ -25,13 +25,16 @@ export type NavigationCategory = {
 export function buildNavigationCategories({
   isAuthenticated,
   role,
+  permissionSet,
 }: {
   isAuthenticated: boolean;
   role: AppRole | null | undefined;
+  permissionSet?: ReadonlySet<AppPermissionKey>;
 }): NavigationCategory[] {
   const pages = getVisibleAppPages({
     isAuthenticated,
     role,
+    permissionSet,
   });
 
   const navigationCategoryDefinitions: readonly NavigationCategoryDefinition[] = [

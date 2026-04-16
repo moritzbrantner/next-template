@@ -8,11 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
-import { canManageRoles } from '@/lib/authorization';
-import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
+import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
+import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { getAdminUserDetailUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { notFoundUnlessFeatureEnabled, requireAdmin, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, requirePermission, resolveLocale } from '@/src/server/page-guards';
 
 export default async function AdminUserDetailPage({
   params,
@@ -21,11 +21,13 @@ export default async function AdminUserDetailPage({
 }) {
   const { locale: rawLocale, userId } = await params;
   const locale = resolveLocale(rawLocale);
-  const session = await requireAdmin(locale);
+  const session = await requirePermission(locale, 'admin.users.read');
   notFoundUnlessFeatureEnabled('admin.users');
   const t = createTranslator(locale, 'AdminPage');
-  const adminPages = getEnabledAdminPageDefinitions();
+  const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
   const user = await getAdminUserDetailUseCase(userId);
+  const canEditRoles = await hasPermissionForRole(session.user.role, 'admin.roles.edit');
+  const canNotifyUsers = await hasPermissionForRole(session.user.role, 'admin.users.notify');
 
   if (!user) {
     notFound();
@@ -134,22 +136,24 @@ export default async function AdminUserDetailPage({
         </div>
 
         <div className="space-y-6">
-          <Card className="rounded-[1.75rem]">
-            <CardHeader>
-              <CardTitle>{t('users.detail.directNotificationTitle')}</CardTitle>
-              <CardDescription>{t('users.detail.directNotificationDescription')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdminNotificationComposer
-                allowedAudiences={['user']}
-                initialAudience="user"
-                initialTargetUserId={user.id}
-                userOptions={[{ id: user.id, displayName: user.displayName, email: user.email, role: user.role }]}
-              />
-            </CardContent>
-          </Card>
+          {canNotifyUsers ? (
+            <Card className="rounded-[1.75rem]">
+              <CardHeader>
+                <CardTitle>{t('users.detail.directNotificationTitle')}</CardTitle>
+                <CardDescription>{t('users.detail.directNotificationDescription')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdminNotificationComposer
+                  allowedAudiences={['user']}
+                  initialAudience="user"
+                  initialTargetUserId={user.id}
+                  userOptions={[{ id: user.id, displayName: user.displayName, email: user.email, role: user.role }]}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
 
-          {canManageRoles(session.user.role) ? (
+          {canEditRoles ? (
             <Card>
               <CardHeader>
                 <CardTitle>{t('users.detail.roleManager.title')}</CardTitle>

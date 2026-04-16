@@ -1,9 +1,11 @@
 import { notFound, redirect } from 'next/navigation';
 
-import { canAccessDataEntryWorkspace, isAdmin } from '@/lib/authorization';
+import type { AppPermissionKey } from '@/lib/authorization';
+import { canAccessDataEntryWorkspace } from '@/lib/authorization';
 import { type AppLocale, hasLocale, withLocalePath } from '@/i18n/routing';
 import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import { getAuthSession } from '@/src/auth.server';
+import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import { isGithubPagesBuild } from '@/src/runtime/build-target';
 
@@ -54,9 +56,13 @@ export async function requireWorkspaceAccess(locale: AppLocale) {
 }
 
 export async function requireAdmin(locale: AppLocale) {
+  return requirePermission(locale, 'admin.access');
+}
+
+export async function requirePermission(locale: AppLocale, permission: AppPermissionKey) {
   const session = await requireAuth(locale);
 
-  if (!isAdmin(session.user.role)) {
+  if (!await hasPermissionForRole(session.user.role, permission)) {
     redirectToLocaleHome(locale);
   }
 

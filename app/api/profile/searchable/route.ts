@@ -16,6 +16,7 @@ function mapSearchableProblem(code: 'NOT_FOUND' | 'VALIDATION_ERROR' | 'FORBIDDE
 export const PATCH = createApiRoute({
   action: 'profile.updateSearchVisibility',
   auth: true,
+  permission: 'profile.manageOwnSearchVisibility',
   bodySchema: searchableBodySchema,
   async handler({ actorId, body }) {
     const result = await updateProfileSearchVisibilityUseCase(actorId!, body.isSearchable);

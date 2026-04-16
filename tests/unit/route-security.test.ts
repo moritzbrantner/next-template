@@ -8,6 +8,7 @@ function createDependencies(input?: {
   session?: AppSession | null;
   rateLimitResult?: RateLimitResult;
   audit?: AuditRecord[];
+  hasPermission?: (role: AppSession['user']['role'] | null | undefined, permission: string) => Promise<boolean>;
 }) {
   const audit = input?.audit ?? [];
 
@@ -25,6 +26,7 @@ function createDependencies(input?: {
       auditAction: async (record) => {
         audit.push(record);
       },
+      hasPermission: async (role, permission) => input?.hasPermission ? input.hasPermission(role, permission) : permission.startsWith('admin.') ? role === 'ADMIN' || role === 'SUPERADMIN' : Boolean(role),
     }),
   };
 }
@@ -114,6 +116,43 @@ describe('route security helper', () => {
       expect.objectContaining({
         actorId: 'user_1',
         action: 'admin.reports.authorization',
+        outcome: 'denied',
+        statusCode: 403,
+      }),
+    );
+  });
+
+  it('returns 403 for permission-restricted routes when the permission is missing', async () => {
+    const { secure, audit } = createDependencies({
+      session: {
+        user: {
+          id: 'admin_1',
+          email: 'admin@example.com',
+          tag: 'admin',
+          name: 'Admin',
+          image: null,
+          role: 'ADMIN',
+        },
+      },
+      hasPermission: async (_role, permission) => permission !== 'admin.roles.edit',
+    });
+
+    const result = await secure({
+      request: new Request('https://example.com/api/admin/users/user_1/role', { method: 'PATCH' }),
+      action: 'admin.users.updateRole',
+      requiredPermission: 'admin.roles.edit',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected forbidden result');
+    }
+
+    expect(result.response.status).toBe(403);
+    expect(audit).toContainEqual(
+      expect.objectContaining({
+        actorId: 'admin_1',
+        action: 'admin.users.updateRole',
         outcome: 'denied',
         statusCode: 403,
       }),

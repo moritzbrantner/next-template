@@ -8,6 +8,7 @@ import { createApiRoute } from '@/src/http/route';
 export const POST = createApiRoute({
   action: 'profile.updateDisplayName',
   auth: true,
+  permission: 'profile.editOwn',
   bodySchema: z.object({
     displayName: z.string(),
   }),

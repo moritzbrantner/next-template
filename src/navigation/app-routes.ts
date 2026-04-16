@@ -1,5 +1,7 @@
 import {
+  type AppPermissionKey,
   canAccessDataEntryWorkspace,
+  canReadOwnNotifications,
   isAdmin,
   type AppRole,
 } from '@/lib/authorization';
@@ -24,6 +26,7 @@ export type AppPageDefinition = {
   order: number;
   prefetch?: boolean;
   featureKey?: FoundationFeatureKey;
+  permission?: AppPermissionKey;
 };
 
 const foundationPageDefinitions: readonly AppPageDefinition[] = [
@@ -76,6 +79,7 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     hotkey: ['alt', 'n'],
     order: 220,
     featureKey: 'notifications',
+    permission: 'notifications.readOwn',
   },
   {
     key: 'dataEntry',
@@ -86,6 +90,7 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     hotkey: ['alt', 'd'],
     order: 230,
     featureKey: 'workspace.dataEntry',
+    permission: 'workspace.access',
   },
   {
     key: 'admin',
@@ -96,6 +101,7 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     hotkey: ['alt', 'm'],
     order: 310,
     featureKey: 'admin.workspace',
+    permission: 'admin.access',
   },
   {
     key: 'profile',
@@ -174,13 +180,29 @@ export function formatAppHotkey(hotkey: AppHotkey) {
 
 export function canViewAppPage(
   page: AppPageDefinition,
-  { isAuthenticated, role }: { isAuthenticated: boolean; role: AppRole | null | undefined },
+  {
+    isAuthenticated,
+    role,
+    permissionSet,
+  }: {
+    isAuthenticated: boolean;
+    role: AppRole | null | undefined;
+    permissionSet?: ReadonlySet<AppPermissionKey>;
+  },
 ) {
+  if (page.permission && permissionSet) {
+    return isAuthenticated && permissionSet.has(page.permission);
+  }
+
   if (page.visibility === 'guest') {
     return !isAuthenticated;
   }
 
   if (page.visibility === 'authenticated') {
+    if (page.permission === 'notifications.readOwn') {
+      return isAuthenticated && canReadOwnNotifications(role);
+    }
+
     return isAuthenticated;
   }
 
@@ -198,9 +220,11 @@ export function canViewAppPage(
 export function getVisibleAppPages({
   isAuthenticated,
   role,
+  permissionSet,
 }: {
   isAuthenticated: boolean;
   role: AppRole | null | undefined;
+  permissionSet?: ReadonlySet<AppPermissionKey>;
 }) {
-  return appPageDefinitions.filter((page) => canViewAppPage(page, { isAuthenticated, role }));
+  return appPageDefinitions.filter((page) => canViewAppPage(page, { isAuthenticated, role, permissionSet }));
 }

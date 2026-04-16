@@ -22,6 +22,7 @@ function mapFollowerVisibilityProblem(
 export const PATCH = createApiRoute({
   action: 'profile.updateFollowerVisibility',
   auth: true,
+  permission: 'profile.manageOwnFollowerVisibility',
   bodySchema: followerVisibilityBodySchema,
   async handler({ actorId, body }) {
     const result = await updateProfileFollowerVisibilityUseCase(actorId!, body.followerVisibility);

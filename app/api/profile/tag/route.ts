@@ -21,6 +21,7 @@ function statusForProfileTagError(code: 'NOT_FOUND' | 'VALIDATION_ERROR' | 'FORB
 export const POST = createApiRoute({
   action: 'profile.updateTag',
   auth: true,
+  permission: 'profile.manageOwnTags',
   bodySchema: z.object({
     tag: z.string(),
   }),

@@ -8,6 +8,7 @@ import { formatAppHotkey, getVisibleAppPages } from '@/src/navigation/app-routes
 import { buildNavigationCategories } from '@/src/navigation/navigation-categories';
 import { createTranslator } from '@/src/i18n/messages';
 import { loadAppContext } from '@/src/runtime.functions';
+import { getPermissionSetForRole } from '@/src/domain/authorization/service';
 import { buildPublicProfilePath } from '@/src/profile/tags';
 
 import { AuthNavigation } from '@/components/auth-navigation';
@@ -158,10 +159,12 @@ async function NavigationBarResolved({
   };
 }) {
   const { session, notificationCenter } = await loadAppContext();
+  const permissionSet = await getPermissionSetForRole(session?.user.role);
   const t = createTranslator(locale, 'NavigationBar');
   const navigationCategories = buildNavigationCategories({
     isAuthenticated: Boolean(session?.user?.id),
     role: session?.user?.role,
+    permissionSet,
   }).map((category) => ({
     key: category.key,
     label: t(`categories.${category.key}`),
@@ -182,6 +185,7 @@ async function NavigationBarResolved({
       hotkeyLabels={hotkeyLabels}
       session={session}
       notificationCenter={notificationCenter}
+      permissionSet={permissionSet}
     />
   );
 }
@@ -194,6 +198,7 @@ function NavigationBarContent({
   hotkeyLabels,
   session,
   notificationCenter,
+  permissionSet,
 }: {
   locale: AppLocale;
   navigationCategories: Array<{
@@ -225,11 +230,13 @@ function NavigationBarContent({
   };
   session: AppSession | null;
   notificationCenter: NotificationPreview | null;
+  permissionSet?: ReadonlySet<import('@/lib/authorization').AppPermissionKey>;
 }) {
   const t = createTranslator(locale, 'NavigationBar');
   const hotkeyItems = getVisibleAppPages({
     isAuthenticated: Boolean(session?.user?.id),
     role: session?.user?.role,
+    permissionSet,
   }).map((page) => {
     const label = t(page.translationKey);
     const groupLabel = getHotkeyGroupLabel(page.navigationCategory, t);

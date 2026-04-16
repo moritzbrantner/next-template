@@ -5,11 +5,11 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LocalizedLink } from '@/i18n/server-link';
-import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
+import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import { getAdminReportSummaryUseCase } from '@/src/domain/admin-reports/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { getAdminAnalyticsSettings } from '@/src/site-config/service';
-import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, requirePermission, resolveLocale } from '@/src/server/page-guards';
 
 const reportCatalogKeys = ['securityAccess', 'auditActivity', 'workspaceAdoption', 'schemaHealth', 'navigationJourneys'] as const;
 
@@ -20,9 +20,10 @@ export default async function ReportsPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  const session = await requirePermission(locale, 'admin.reports.read');
   notFoundUnlessFeatureEnabled('admin.reports');
   const t = createTranslator(locale, 'AdminPage');
-  const adminPages = getEnabledAdminPageDefinitions();
+  const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
   const analyticsSettings = await getAdminAnalyticsSettings();
   const summary = await getAdminReportSummaryUseCase(analyticsSettings.defaultAdminReportWindow);
 

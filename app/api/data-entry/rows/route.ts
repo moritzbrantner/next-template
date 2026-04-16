@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const guard = await secureRoute({
     request,
     action: 'workspace.dataEntry.createRow',
-    requireAuth: true,
+    requiredPermission: 'workspace.dataEntry.write',
   });
 
   if (!guard.ok) {

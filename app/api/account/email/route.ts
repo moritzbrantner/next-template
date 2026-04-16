@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const guard = await secureRoute({
     request,
     action: 'account.updateEmail',
-    requireAuth: true,
+    requiredPermission: 'account.updateOwnEmail',
   });
 
   if (!guard.ok) {

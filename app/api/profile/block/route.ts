@@ -16,6 +16,7 @@ function mapBlockProblem(code: 'NOT_FOUND' | 'VALIDATION_ERROR' | 'FORBIDDEN' | 
 export const POST = createApiRoute({
   action: 'profile.block',
   auth: true,
+  permission: 'profile.block',
   bodySchema: blockBodySchema,
   async handler({ actorId, body }) {
     const result = await blockUserUseCase(actorId!, body.userId);
@@ -31,6 +32,7 @@ export const POST = createApiRoute({
 export const DELETE = createApiRoute({
   action: 'profile.unblock',
   auth: true,
+  permission: 'profile.block',
   bodySchema: blockBodySchema,
   async handler({ actorId, body }) {
     const result = await unblockUserUseCase(actorId!, body.userId);

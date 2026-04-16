@@ -13,11 +13,16 @@ export const analyticsSiteSettingKeys = [
   'analytics.defaultAdminReportWindow',
 ] as const;
 
-export const siteSettingKeys = [...publicSiteSettingKeys, ...analyticsSiteSettingKeys] as const;
+export const authorizationSiteSettingKeys = [
+  'authorization.rolePermissions',
+] as const;
+
+export const siteSettingKeys = [...publicSiteSettingKeys, ...analyticsSiteSettingKeys, ...authorizationSiteSettingKeys] as const;
 
 export type SiteSettingKey = (typeof siteSettingKeys)[number];
 export type PublicSiteSettingKey = (typeof publicSiteSettingKeys)[number];
 export type AnalyticsSiteSettingKey = (typeof analyticsSiteSettingKeys)[number];
+export type AuthorizationSiteSettingKey = (typeof authorizationSiteSettingKeys)[number];
 
 export const featureFlagKeys = [
   'marketing.blog',

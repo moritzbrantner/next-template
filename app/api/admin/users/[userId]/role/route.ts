@@ -17,7 +17,7 @@ const patchRoute = createApiRoute({
   action: 'admin.users.updateRole',
   featureKey: 'admin.users',
   auth: true,
-  roles: ['SUPERADMIN'],
+  permission: 'admin.roles.edit',
   bodySchema: roleBodySchema,
   async handler({ actorId, body, request }) {
     const pathnameParts = new URL(request.url).pathname.split('/');
