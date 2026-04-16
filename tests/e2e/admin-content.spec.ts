@@ -20,8 +20,8 @@ test.describe('admin content', () => {
     await page.getByLabel('Body').fill(`Operational update ${token}`);
     await page.getByLabel('Destination link').fill('/status');
     await page.getByLabel('Status').selectOption('scheduled');
-    await page.getByLabel('Publish at').fill('2026-04-20T09:00');
-    await page.getByLabel('Unpublish at').fill('2026-04-21T09:00');
+    await page.getByLabel('Publish at', { exact: true }).fill('2026-04-20T09:00');
+    await page.getByLabel('Unpublish at', { exact: true }).fill('2026-04-21T09:00');
     await page.getByRole('button', { name: 'Create announcement' }).click();
 
     await expect(page).toHaveURL(/announcementId=/);
@@ -31,10 +31,12 @@ test.describe('admin content', () => {
     await page.getByRole('button', { name: 'Update announcement' }).click();
     await expect(page.getByText(`Scheduled maintenance ${updatedToken}`)).toBeVisible();
 
-    await page.getByRole('button', { name: 'Publish now' }).first().click();
-    await expect(page.getByText('published').first()).toBeVisible();
+    const announcementCard = page.getByText(`Scheduled maintenance ${updatedToken}`).locator('xpath=../..');
 
-    await page.getByRole('button', { name: 'Archive now' }).first().click();
-    await expect(page.getByText('archived').first()).toBeVisible();
+    await announcementCard.getByRole('button', { name: 'Publish now' }).click();
+    await expect(announcementCard).toContainText('published');
+
+    await announcementCard.getByRole('button', { name: 'Archive now' }).click();
+    await expect(announcementCard).toContainText('archived');
   });
 });

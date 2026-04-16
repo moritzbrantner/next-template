@@ -9,6 +9,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
 import { canManageRoles } from '@/lib/authorization';
+import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
 import { getAdminUserDetailUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { notFoundUnlessFeatureEnabled, requireAdmin, resolveLocale } from '@/src/server/page-guards';
@@ -23,6 +24,7 @@ export default async function AdminUserDetailPage({
   const session = await requireAdmin(locale);
   notFoundUnlessFeatureEnabled('admin.users');
   const t = createTranslator(locale, 'AdminPage');
+  const adminPages = getEnabledAdminPageDefinitions();
   const user = await getAdminUserDetailUseCase(userId);
 
   if (!user) {
@@ -30,7 +32,11 @@ export default async function AdminUserDetailPage({
   }
 
   return (
-    <AdminPageShell title={t('users.detail.title')} description={t('users.detail.description', { name: user.displayName })}>
+    <AdminPageShell
+      title={t('users.detail.title')}
+      description={t('users.detail.description', { name: user.displayName })}
+      adminPages={adminPages}
+    >
       <LocalizedLink href="/admin/users" locale={locale} className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'w-fit' })}>
         {t('users.detail.back')}
       </LocalizedLink>

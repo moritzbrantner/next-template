@@ -5,6 +5,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LocalizedLink } from '@/i18n/server-link';
+import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
 import {
   adminReportWindows,
   getAdminReportDetailUseCase,
@@ -32,6 +33,7 @@ export default async function AdminReportDetailPage({
   const requestedWindow = rawSearchParams.window ?? '';
   const window = isAdminReportWindow(requestedWindow) ? requestedWindow : '7d';
   const t = createTranslator(locale, 'AdminPage');
+  const adminPages = getEnabledAdminPageDefinitions();
   const detail = await getAdminReportDetailUseCase(reportId, window).catch(() => ({
     reportId,
     cards: [{ label: 'Report status', value: 'Unavailable', detail: 'Live data could not be loaded for this report.' }],
@@ -46,6 +48,7 @@ export default async function AdminReportDetailPage({
     <AdminPageShell
       title={t(`reports.catalog.${reportId}.title`)}
       description={t(`reports.catalog.${reportId}.description`)}
+      adminPages={adminPages}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <LocalizedLink href="/admin/reports" locale={locale} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>

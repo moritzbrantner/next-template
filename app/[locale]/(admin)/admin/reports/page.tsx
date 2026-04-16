@@ -4,6 +4,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LocalizedLink } from '@/i18n/server-link';
+import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
 import { getAdminReportSummaryUseCase } from '@/src/domain/admin-reports/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
@@ -20,6 +21,7 @@ export default async function ReportsPage({
   const locale = resolveLocale(rawLocale);
   notFoundUnlessFeatureEnabled('admin.reports');
   const t = createTranslator(locale, 'AdminPage');
+  const adminPages = getEnabledAdminPageDefinitions();
   const summary = await getAdminReportSummaryUseCase('7d').catch(() => ({
     metrics: [
       { label: 'Admin accounts', value: '0', detail: 'Report data is temporarily unavailable.' },
@@ -29,7 +31,7 @@ export default async function ReportsPage({
   }));
 
   return (
-    <AdminPageShell title={t('reports.title')} description={t('reports.description')}>
+    <AdminPageShell title={t('reports.title')} description={t('reports.description')} adminPages={adminPages}>
       <div className="grid gap-4 md:grid-cols-3">
         {summary.metrics.map((metric) => (
           <Card key={metric.label}>
