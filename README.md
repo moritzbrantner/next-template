@@ -1,15 +1,24 @@
 # next-template
 
-Next.js App Router template with localized routing, credential auth, account lifecycle flows, MDX + Postgres content foundations, admin/workspace examples, Drizzle/Postgres persistence, and tiered checks.
+Next.js 16 App Router platform template with localized routing, credential auth, account lifecycle flows, MDX + Postgres content foundations, internal workspace packages, and app-pack seams built around `AppManifest`.
 
 ## Stack
 
-- TanStack Start + TanStack Router
-- Next.js App Router + React 19
+- Next.js 16 App Router + React 19
+- Bun workspaces
 - Drizzle ORM + PostgreSQL
 - Vitest + Playwright
 - Tailwind CSS 4
 - MDX with repo-managed content roots and DB-backed operational content
+
+## Repository layout
+
+- `app/`: canonical Next.js App Router entrypoints, pages, and route handlers
+- `apps/showcase/`: showcase app-pack manifest, content, messages, example pages, and contract tests
+- `packages/ui/`: shared UI workspace package
+- `packages/storytelling/`: storytelling workspace package
+- `src/`: domain, infrastructure, and foundation code used by the root app runtime
+- `docs/`: platform repo guidance for package and app-pack contributors
 
 ## Local setup
 
@@ -27,7 +36,7 @@ cp .env.e2e.example .env.e2e
 - `DATABASE_URL` for long-lived database flows
 - `INTERNAL_CRON_SECRET` if you want the internal cron jobs endpoint
 
-3. Start local development:
+3. Install dependencies and start development:
 
 ```bash
 bun install
@@ -46,15 +55,6 @@ bun run db:seed:test-users
 bun run dev:app
 ```
 
-This starts:
-
-- Postgres on `127.0.0.1:55433`
-- Mailpit on `http://127.0.0.1:8025`
-- MinIO S3 API on `http://127.0.0.1:9000`
-- MinIO console on `http://127.0.0.1:9001`
-
-The default `.env.example` values now point profile-image uploads at the local MinIO bucket created by `minio-create-bucket`. The same MinIO instance can also hold other uploaded assets in additional buckets if you need them.
-
 Run the outbox worker in another shell if you want queued email and announcement jobs processed locally:
 
 ```bash
@@ -69,9 +69,18 @@ bun run checks:beta
 bun run checks:main
 ```
 
-- `checks:nightly`: lint, typecheck, unit tests
+- `checks:nightly`: app lint/typecheck/unit tests plus workspace package lint/typecheck/tests
 - `checks:beta`: nightly checks plus integration tests
 - `checks:main`: beta checks plus database check, production build, and e2e setup/tests
+
+Workspace package commands are also available directly:
+
+```bash
+bun run packages:lint
+bun run packages:typecheck
+bun run packages:test
+bun run packages:build
+```
 
 ## GitHub Pages build with Unlighthouse
 
@@ -79,9 +88,7 @@ bun run checks:main
 bun run build:gh-pages
 ```
 
-This GitHub Pages build now runs in two passes. It first exports the static site with `NEXT_DEPLOY_TARGET=gh-pages`, serves that export locally, runs `unlighthouse-ci` against the exported files, writes `.generated/unlighthouse/ci-result.json`, and then exports the site again so `/en/unlighthouse` and `/de/unlighthouse` are baked into the final static artifact.
-
-The GitHub Actions Pages workflow uses this build path, so the published Pages site includes a static Unlighthouse summary page. `bun run build:staging` is now an alias to the same flow. The generated report directory is ignored by git.
+The GitHub Pages workflow uses Bun end to end. It builds the static export, runs Unlighthouse against the exported site, then re-exports so `/en/unlighthouse` and `/de/unlighthouse` are present in the final artifact.
 
 ## Seeded users
 
@@ -95,12 +102,9 @@ The GitHub Actions Pages workflow uses this build path, so the published Pages s
 - `dana@example.com` / `dana`
 - `private@example.com` / `private`
 
-The seed also creates baseline profiles, follow relationships, notification history, and recent page visits so the test database is immediately useful for social and admin workflows.
+## Further docs
 
-## Notes
-
-- Product and architecture docs live beside the app root.
-- Example/demo experiences are exposed under localized `/examples/*` routes.
-- High-risk HTTP endpoints are protected by shared rate limiting and audit logging.
-- Repo-managed site content lives under `content/pages`, `content/blog`, and `content/changelog`.
-- Operational content such as announcements, settings, flags, analytics retention, and jobs live in Postgres.
+- [ARCHITECTURE.md](/home/moenarch/moritzbrantner/next-template/ARCHITECTURE.md)
+- [docs/platform-layout.md](/home/moenarch/moritzbrantner/next-template/docs/platform-layout.md)
+- [docs/adding-an-app-pack.md](/home/moenarch/moritzbrantner/next-template/docs/adding-an-app-pack.md)
+- [docs/releasing-packages.md](/home/moenarch/moritzbrantner/next-template/docs/releasing-packages.md)

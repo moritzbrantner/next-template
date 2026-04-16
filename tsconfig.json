@@ -44,13 +44,6 @@
   ],
   "exclude": [
     "node_modules",
-    "vendor",
-    ".tanstack",
-    "src/routes/**",
-    "src/router.tsx",
-    "src/routeTree.gen.ts",
-    "components/router-devtools.tsx",
-    "vite.config.ts",
-    "app.manifest.ts"
+    "packages/**"
   ]
 }

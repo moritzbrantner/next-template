@@ -28,12 +28,9 @@
       "!build/**",
       "!dist/**",
       "!coverage/**",
-      "!vendor/**",
+      "!packages/**",
       "!next-env.d.ts",
-      "!src/routes/**",
-      "!src/routeTree.gen.ts",
-      "!src/router.tsx",
-      "!components/router-devtools.tsx"
+      "!vendor/**"
     ],
     "rules": {
       "recommended": false,

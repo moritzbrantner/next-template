@@ -1,61 +1,61 @@
 # DECISIONS.md
 
-## DEC-0001: TanStack Start is the canonical application runtime
-- **Date:** 2026-04-06
+## DEC-0001: Next.js App Router is the canonical application runtime
+- **Date:** 2026-04-16
 - **Status:** accepted
 
 ### Context
 
-The repository previously mixed a TanStack Start app with stale Next.js/App Router documentation and template metadata.
+The repository runtime is already Next.js App Router, but major docs and decisions still described an older starter runtime. That mismatch made the platform shape harder to reason about than the code itself.
 
 ### Decision
 
-Standardize the generated application on TanStack Start, TanStack Router, Vite, and Drizzle. Documentation, routes, and template metadata must all reflect that runtime.
+Standardize the repository on Next.js 16 App Router, Bun, and Drizzle. Documentation, CI, and contributor guidance must all reflect that runtime.
 
 ### Consequences
 
 - Positive:
   - One runtime model for docs, tests, and generated output
-  - No ambiguity around route structure or build tooling
+  - No ambiguity around route structure, build tooling, or deployment behavior
 - Trade-offs:
-  - Older Next.js-oriented references are intentionally removed
+  - Stale TanStack-era references are intentionally removed
 
-## DEC-0002: `src/` is the only canonical application namespace
-- **Date:** 2026-04-06
+## DEC-0002: `src/` is the canonical application namespace and `AppManifest` is the app-pack seam
+- **Date:** 2026-04-16
 - **Status:** accepted
 
 ### Context
 
-Deprecated `features/`, `stores/`, and `lib/services/` paths remained in the repository after the migration to a domain-first layout.
+The repository already exposes app-pack behavior through `AppManifest`, while older docs still implied alternate route trees and parallel namespace roots.
 
 ### Decision
 
-Keep `src/` as the sole canonical application namespace. Deprecated roots are removed instead of maintained in parallel.
+Keep `src/` as the sole canonical application namespace for the root app and keep `AppManifest` as the phase-1 extension seam for app packs.
 
 ### Consequences
 
 - Positive:
-  - Fewer parallel abstractions and cleaner import rules
-  - New contributors only learn one structure
+  - New contributors only learn one runtime architecture and one extension seam
+  - Foundation code and app-pack code have a clearer contract boundary
 - Trade-offs:
-  - Historical migration shims are no longer available
+  - The manifest shape stays conservative in phase 1 instead of being redesigned immediately
 
-## DEC-0003: Example features live under explicit example routes
-- **Date:** 2026-04-06
+## DEC-0003: Shared libraries are first-class Bun workspaces
+- **Date:** 2026-04-16
 - **Status:** accepted
 
 ### Context
 
-Sample pages for forms, storytelling, communication, uploads, and mock REST data were exposed as first-class product routes.
+`ui` and `storytelling` were stored as vendored packages with build artifacts and partial package-manager wiring, but the repository did not behave like a real workspace.
 
 ### Decision
 
-Move non-canonical sample features under localized `/examples/*` routes and `/api/examples/*` endpoints. The main product surface stays focused on core platform capabilities.
+Promote shared libraries into `packages/*` Bun workspaces and treat their package entrypoints as the only supported public APIs.
 
 ### Consequences
 
 - Positive:
-  - Example code stays useful without confusing product intent
-  - Navigation can distinguish core routes from demonstrations
+  - Clear package boundaries for CI, publishing, and import verification
+  - Less ambiguity between app code and shared package code
 - Trade-offs:
-  - Route paths changed and required test updates
+  - Package checks are now an explicit part of the repository verification surface

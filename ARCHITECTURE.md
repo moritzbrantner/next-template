@@ -1,52 +1,58 @@
 # ARCHITECTURE.md
 
+## Canonical runtime
+
+This repository ships a Next.js 16 App Router application at the repo root. `app/` is the only canonical runtime entrypoint for pages and route handlers.
+
 ## Canonical structure
 
-This app uses a TanStack Start runtime with a domain-first application layout under `src/`.
-
 ```text
-app/                     Static assets only
-components/              Shared UI components
+app/                     Next.js App Router pages, layouts, route handlers
+apps/showcase/           App-pack manifest, content, messages, examples, tests
+components/              Shared app-facing React components
+docs/                    Platform repo contributor documentation
 emails/                  React Email source
 i18n/                    Routing and navigation adapters
-messages/                Localized copy dictionaries
+messages/                Foundation localization dictionaries
+packages/
+  storytelling/          Internal storytelling workspace package
+  ui/                    Internal UI workspace package
 src/
   admin/                 Admin page composition helpers
   analytics/             Analytics use-cases and adapters
   api/                   Cross-route security and API helpers
+  app-config/            App-pack contracts and manifest loading
   auth/                  Auth and account lifecycle services
+  content/               MDX/content indexing
   db/                    Database schema and client
   domain/                Business use-cases
   dynamic-db/            Admin data-studio helpers
   email/                 Outbound email delivery/templates
+  foundation/            Shared platform features exposed to app packs
   navigation/            App navigation metadata
-  profile/               Profile-specific infrastructure helpers
-  routes/                TanStack file routes
-  settings/              Client settings persistence/provider
-  testing/               Test fixtures
+  observability/         Logging and health helpers
+  site-config/           Site settings, flags, announcements, analytics config
 ```
 
 ## Runtime boundaries
 
-- Route handlers and pages live in `src/routes/**`.
+- Route handlers and pages live in `app/**`.
+- App-pack extension data lives behind `AppManifest` in `apps/**`.
 - Domain rules live in `src/domain/**`.
 - Database access lives in `src/db/**`.
 - Cross-cutting HTTP protections live in `src/api/**`.
-- Shared UI lives in `components/**`.
+- Workspace package public APIs are `@moritzbrantner/ui`, `@moritzbrantner/ui/styles.css`, `@moritzbrantner/storytelling`, `@moritzbrantner/storytelling/remotion`, and `@moritzbrantner/storytelling/three`.
 
 ## Import rules
 
 - Use canonical aliases only: `@/src/*`, `@/components/*`, `@/lib/*`, `@/i18n/*`, `@/messages/*`, `@/emails/*`, `@/tests/*`.
 - Do not introduce `features/`, `stores/`, or `lib/services/` namespaces.
-- `src/domain/**` must not import UI code.
+- `src/domain/**` must not import app or component layer modules directly.
 - `src/db/**` stays infrastructure-only.
+- Foundation-owned code must not import `apps/**` directly except through the manifest loader seam.
 
-## Example route policy
+## Platform direction
 
-Optional example experiences are intentionally isolated under localized `/examples/*` routes and `/api/examples/*` endpoints. They exist to demonstrate extension patterns, not to define the canonical product surface.
-
-## API policy
-
-- Public and authenticated mutation routes use shared rate limiting and audit logging.
-- Admin routes require explicit role checks plus audit records.
-- Route-specific validation stays close to the handler; persistence and business logic stay in use-cases.
+- Keep the deployable Next.js app at the repo root for now.
+- Treat `AppManifest` as the public app-pack extension seam in phase 1.
+- Promote shared code into real workspace packages before considering an `apps/web` relocation.
