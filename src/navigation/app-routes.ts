@@ -82,6 +82,16 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     permission: 'notifications.readOwn',
   },
   {
+    key: 'messages',
+    href: '/messages',
+    translationKey: 'links.messages',
+    visibility: 'authenticated',
+    navigationCategory: 'workspace',
+    hotkey: ['alt', 'y'],
+    order: 225,
+    featureKey: 'messages.direct',
+  },
+  {
     key: 'dataEntry',
     href: '/data-entry',
     translationKey: 'links.dataEntry',

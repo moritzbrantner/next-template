@@ -89,6 +89,51 @@ export const userBlocks = pgTable(
   ],
 );
 
+export const directMessageConversations = pgTable(
+  "DirectMessageConversation",
+  {
+    id: text("id").primaryKey(),
+    participantOneId: text("participantOneId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    participantTwoId: text("participantTwoId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    lastMessageAt: timestamp("lastMessageAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("DirectMessageConversation_participantPair_key").on(table.participantOneId, table.participantTwoId),
+    index("DirectMessageConversation_participantOneId_lastMessageAt_idx").on(table.participantOneId, table.lastMessageAt),
+    index("DirectMessageConversation_participantTwoId_lastMessageAt_idx").on(table.participantTwoId, table.lastMessageAt),
+  ],
+);
+
+export const directMessages = pgTable(
+  "DirectMessage",
+  {
+    id: text("id").primaryKey(),
+    conversationId: text("conversationId")
+      .notNull()
+      .references(() => directMessageConversations.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    senderId: text("senderId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    recipientId: text("recipientId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    body: text("body").notNull(),
+    readAt: timestamp("readAt", { withTimezone: false, mode: "date" }),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("DirectMessage_conversationId_createdAt_idx").on(table.conversationId, table.createdAt),
+    index("DirectMessage_recipientId_readAt_createdAt_idx").on(table.recipientId, table.readAt, table.createdAt),
+    index("DirectMessage_senderId_createdAt_idx").on(table.senderId, table.createdAt),
+  ],
+);
+
 export const blogPosts = pgTable(
   "BlogPost",
   {

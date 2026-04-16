@@ -3,6 +3,7 @@ import { blogPage } from './blog-page';
 import { authPages } from './auth-pages';
 import { dataEntryPage } from './data-entry-page';
 import { languageSelector } from './language-selector';
+import { messagesPage } from './messages-page';
 import { navigationBar } from './navigation-bar';
 import { notificationsPage } from './notifications-page';
 import { peoplePage } from './people-page';
@@ -20,6 +21,7 @@ const deMessages = {
   AdminPage: adminPage,
   BlogPage: blogPage,
   DataEntryPage: dataEntryPage,
+  MessagesPage: messagesPage,
   SettingsPage: settingsPage,
   NotificationsPage: notificationsPage,
   PeoplePage: peoplePage,

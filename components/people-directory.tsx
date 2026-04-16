@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
+import { buildDirectMessagesPath } from '@/src/messages/paths';
 
 type PeopleDirectoryProps = {
   initialFollowing: ProfileDirectoryEntry[];
@@ -199,6 +200,8 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
                   actionVariant="default"
                   isPending={pendingUserIds.includes(profile.userId)}
                   onAction={() => updateFollowState(profile, true)}
+                  messageHref={buildDirectMessagesPath(profile.tag)}
+                  messageLabel={t('actions.message')}
                   secondaryActionLabel={t('actions.block')}
                   secondaryPendingLabel={t('actions.blocking')}
                   onSecondaryAction={() => blockProfile(profile)}
@@ -234,6 +237,8 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
               actionVariant="outline"
               isPending={pendingUserIds.includes(profile.userId)}
               onAction={() => updateFollowState(profile, false)}
+              messageHref={buildDirectMessagesPath(profile.tag)}
+              messageLabel={t('actions.message')}
               secondaryActionLabel={t('actions.block')}
               secondaryPendingLabel={t('actions.blocking')}
               onSecondaryAction={() => blockProfile(profile)}
@@ -252,6 +257,8 @@ function ProfileRow({
   actionVariant,
   isPending,
   onAction,
+  messageHref,
+  messageLabel,
   secondaryActionLabel,
   secondaryPendingLabel,
   onSecondaryAction,
@@ -262,6 +269,8 @@ function ProfileRow({
   actionVariant: 'default' | 'outline';
   isPending: boolean;
   onAction: () => void;
+  messageHref?: string;
+  messageLabel?: string;
   secondaryActionLabel?: string;
   secondaryPendingLabel?: string;
   onSecondaryAction?: () => void;
@@ -279,6 +288,15 @@ function ProfileRow({
       </div>
 
       <div className="flex items-center gap-2">
+        {messageHref && messageLabel ? (
+          <Link
+            href={messageHref}
+            className="inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-medium transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
+          >
+            {messageLabel}
+          </Link>
+        ) : null}
+
         {secondaryActionLabel && onSecondaryAction ? (
           <Button type="button" variant="ghost" size="sm" disabled={isPending} onClick={onSecondaryAction}>
             {isPending ? secondaryPendingLabel : secondaryActionLabel}

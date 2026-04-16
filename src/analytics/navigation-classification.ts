@@ -24,6 +24,7 @@ const DISPLAY_LABELS: Record<string, string> = {
   '/verify-email': 'Verify email',
   '/reset-password': 'Reset password',
   '/people': 'People',
+  '/messages': 'Messages',
   '/notifications': 'Notifications',
   '/profile': 'Profile',
   '/profile/blog': 'Profile blog editor',
@@ -83,6 +84,8 @@ export function classifyNavigationPathname(pathname: string): NavigationClassifi
       return buildClassification('/reset-password', 'guest');
     case '/people':
       return buildClassification('/people', 'authenticated');
+    case '/messages':
+      return buildClassification('/messages', 'authenticated');
     case '/notifications':
       return buildClassification('/notifications', 'authenticated');
     case '/profile':

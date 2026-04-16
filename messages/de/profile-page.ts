@@ -9,6 +9,7 @@ export const profilePage = {
     unfollow: 'Nicht mehr folgen',
     following: 'Wird gefolgt…',
     unfollowing: 'Wird entfolgt…',
+    message: 'Nachricht',
     block: 'Blockieren',
     unblock: 'Entblockieren',
     blocking: 'Wird blockiert…',

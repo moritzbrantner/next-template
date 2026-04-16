@@ -4,5 +4,6 @@ export * from './schema/auth';
 export * from './schema/content';
 export * from './schema/analytics';
 export * from './schema/notifications';
+export * from './schema/messages';
 export * from './schema/site-config';
 export * from './schema/jobs';

@@ -5,8 +5,9 @@ import { useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { readProblemDetail } from '@/src/http/problem-client';
+import { buildDirectMessagesPath } from '@/src/messages/paths';
 import { buildPublicProfileFollowersPath } from '@/src/profile/tags';
 
 type ProfileFollowPanelProps = {
@@ -20,6 +21,7 @@ type ProfileFollowPanelProps = {
   initialIsBlockedByViewer: boolean;
   isOwnProfile: boolean;
   canManageFollowState: boolean;
+  canMessage: boolean;
   canManageBlockState: boolean;
   canViewFollowersPage: boolean;
   labels: {
@@ -28,6 +30,7 @@ type ProfileFollowPanelProps = {
     unfollow: string;
     following: string;
     unfollowing: string;
+    message: string;
     block: string;
     unblock: string;
     blocking: string;
@@ -49,6 +52,7 @@ export function ProfileFollowPanel({
   initialIsBlockedByViewer,
   isOwnProfile,
   canManageFollowState,
+  canMessage,
   canManageBlockState,
   canViewFollowersPage,
   labels,
@@ -172,15 +176,26 @@ export function ProfileFollowPanel({
           {!isOwnProfile && canManageFollowState ? (
             <div className="flex flex-wrap items-center justify-end gap-3">
               {!isBlockedByViewer ? (
-                <Button type="button" onClick={handleFollowToggle} disabled={pendingAction !== null}>
-                  {pendingAction === 'follow'
-                    ? isFollowing
-                      ? labels.unfollowing
-                      : labels.following
-                    : isFollowing
-                      ? labels.unfollow
-                      : labels.follow}
-                </Button>
+                <>
+                  {canMessage ? (
+                    <Link
+                      href={buildDirectMessagesPath(profileTag)}
+                      locale={locale}
+                      className={buttonVariants({ variant: 'outline' })}
+                    >
+                      {labels.message}
+                    </Link>
+                  ) : null}
+                  <Button type="button" onClick={handleFollowToggle} disabled={pendingAction !== null}>
+                    {pendingAction === 'follow'
+                      ? isFollowing
+                        ? labels.unfollowing
+                        : labels.following
+                      : isFollowing
+                        ? labels.unfollow
+                        : labels.follow}
+                  </Button>
+                </>
               ) : null}
 
               {canManageBlockState ? (
@@ -197,16 +212,30 @@ export function ProfileFollowPanel({
             </div>
           ) : null}
 
-          {!isOwnProfile && !canManageFollowState && canManageBlockState ? (
-            <Button type="button" variant="outline" onClick={handleBlockToggle} disabled={pendingAction !== null}>
-              {pendingAction === 'block'
-                ? isBlockedByViewer
-                  ? labels.unblocking
-                  : labels.blocking
-                : isBlockedByViewer
-                  ? labels.unblock
-                  : labels.block}
-            </Button>
+          {!isOwnProfile && !canManageFollowState && (canMessage || canManageBlockState) ? (
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {!isBlockedByViewer && canMessage ? (
+                <Link
+                  href={buildDirectMessagesPath(profileTag)}
+                  locale={locale}
+                  className={buttonVariants({ variant: 'outline' })}
+                >
+                  {labels.message}
+                </Link>
+              ) : null}
+
+              {canManageBlockState ? (
+                <Button type="button" variant="outline" onClick={handleBlockToggle} disabled={pendingAction !== null}>
+                  {pendingAction === 'block'
+                    ? isBlockedByViewer
+                      ? labels.unblocking
+                      : labels.blocking
+                    : isBlockedByViewer
+                      ? labels.unblock
+                      : labels.block}
+                </Button>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </div>

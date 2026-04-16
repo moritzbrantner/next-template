@@ -30,6 +30,7 @@ export default async function PublicProfilePage({
   const session = await getAuthSession();
   const viewerUserId = session?.user.id ?? null;
   const followEnabled = isFeatureEnabled('profiles.follow');
+  const directMessagesEnabled = isFeatureEnabled('messages.direct');
   const blogEnabled = isFeatureEnabled('profiles.blog');
   const result = await getProfileViewByTagUseCase(profileTag, viewerUserId);
 
@@ -57,6 +58,7 @@ export default async function PublicProfilePage({
         initialIsBlockedByViewer={profile.isBlockedByViewer}
         isOwnProfile={profile.isOwnProfile}
         canManageFollowState={Boolean(viewerUserId) && followEnabled}
+        canMessage={Boolean(viewerUserId) && directMessagesEnabled}
         canManageBlockState={Boolean(viewerUserId)}
         canViewFollowersPage={followEnabled}
         labels={{
@@ -65,6 +67,7 @@ export default async function PublicProfilePage({
           unfollow: t('view.unfollow'),
           following: t('view.following'),
           unfollowing: t('view.unfollowing'),
+          message: t('view.message'),
           block: t('view.block'),
           unblock: t('view.unblock'),
           blocking: t('view.blocking'),

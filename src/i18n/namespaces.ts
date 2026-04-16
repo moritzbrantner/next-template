@@ -4,6 +4,6 @@ export const publicWebsiteNamespaces = [...shellNamespaces, 'ReportProblemPage']
 
 export const guestWebsiteNamespaces = [...shellNamespaces] as const;
 
-export const protectedWebsiteNamespaces = [...shellNamespaces, 'NotificationsPage', 'PeoplePage', 'SettingsPage'] as const;
+export const protectedWebsiteNamespaces = [...shellNamespaces, 'MessagesPage', 'NotificationsPage', 'PeoplePage', 'SettingsPage'] as const;
 
 export const adminWebsiteNamespaces = [...shellNamespaces, 'AdminPage'] as const;

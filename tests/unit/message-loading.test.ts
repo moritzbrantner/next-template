@@ -16,4 +16,11 @@ describe('message loading', () => {
     expect(links.home).toBe('Home');
     expect(homePage.title).toBeDefined();
   });
+
+  it('loads protected workspace namespaces for direct messages', () => {
+    const messages = getMessages('en', ['MessagesPage']);
+    const directMessages = messages.MessagesPage as Record<string, unknown>;
+
+    expect(directMessages.title).toBe('Messages');
+  });
 });

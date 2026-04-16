@@ -14,6 +14,11 @@ describe('navigation classification', () => {
       routeGroup: 'public',
       displayLabel: 'Blog post',
     });
+    expect(classifyNavigationPathname('/en/messages?with=%40alice')).toEqual({
+      canonicalPath: '/messages',
+      routeGroup: 'authenticated',
+      displayLabel: 'Messages',
+    });
   });
 
   it('classifies profile routes and repo-managed public pages', () => {

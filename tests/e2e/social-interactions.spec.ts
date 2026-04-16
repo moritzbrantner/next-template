@@ -14,6 +14,7 @@ const adminUser = getSeededUser('admin@example.com');
 const managerUser = getSeededUser('manager@example.com');
 const primaryUser = getSeededUser('user@example.com');
 const aliceUser = getSeededUser('alice@example.com');
+const danaUser = getSeededUser('dana@example.com');
 const hiddenUser = getSeededUser('private@example.com');
 
 test.describe('social interactions', () => {
@@ -71,6 +72,35 @@ test.describe('social interactions', () => {
 
     await getFollowingEntry(page, 'Casey Carter').getByRole('button', { name: 'Unfollow' }).click();
     await expect(getFollowingEntry(page, 'Casey Carter')).toHaveCount(0);
+  });
+
+  test('lets two users exchange direct messages', async ({ page }) => {
+    const token = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const firstMessage = `Direct hello ${token}`;
+    const replyMessage = `Direct reply ${token}`;
+
+    await loginWithCredentials(page, primaryUser.email, primaryUser.password);
+    await gotoAndWaitForHydration(page, '/en/profile/@dana');
+
+    await page.getByRole('link', { name: 'Message' }).click();
+    await expect(page).toHaveURL(/\/en\/messages\?with=%40dana/);
+    await page.getByLabel('Message').fill(firstMessage);
+    await page.getByRole('button', { name: 'Send message' }).click();
+    await expect(getDirectMessageBubble(page, firstMessage)).toBeVisible();
+    await logoutFromProfileMenu(page);
+
+    await loginWithCredentials(page, danaUser.email, danaUser.password);
+    await gotoAndWaitForHydration(page, '/en/messages');
+    await expect(getDirectMessageBubble(page, firstMessage)).toBeVisible();
+    await page.getByLabel('Message').fill(replyMessage);
+    await page.getByRole('button', { name: 'Send message' }).click();
+    await expect(getDirectMessageBubble(page, replyMessage)).toBeVisible();
+    await logoutFromProfileMenu(page);
+
+    await loginWithCredentials(page, primaryUser.email, primaryUser.password);
+    await gotoAndWaitForHydration(page, '/en/messages?with=%40dana');
+    await expect(getDirectMessageBubble(page, firstMessage)).toBeVisible();
+    await expect(getDirectMessageBubble(page, replyMessage)).toBeVisible();
   });
 
   test('delivers a role-based admin notification to the seeded manager cohort', async ({ page }) => {
@@ -186,6 +216,10 @@ function getSearchResult(page: Page, displayName: string): Locator {
 
 function getFollowingEntry(page: Page, displayName: string): Locator {
   return page.locator('div.rounded-2xl').filter({ hasText: displayName }).filter({ has: page.getByRole('button', { name: 'Unfollow' }) }).first();
+}
+
+function getDirectMessageBubble(page: Page, text: string): Locator {
+  return page.locator('article').filter({ hasText: text }).last();
 }
 
 function getNotificationBell(page: Page) {
