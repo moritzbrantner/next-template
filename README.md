@@ -36,15 +36,24 @@ bun run dev
 
 `bun run dev` starts an ephemeral Postgres database, applies migrations, seeds baseline users, regenerates `db-schema.json`, and launches the app.
 
-## Long-lived local database
+## Long-lived local services
 
 ```bash
-docker compose up -d postgres mailpit
+docker compose up -d postgres mailpit minio minio-create-bucket
 bun run db:migrate
 bun run db:schema:generate
 bun run db:seed:test-users
 bun run dev:app
 ```
+
+This starts:
+
+- Postgres on `127.0.0.1:55433`
+- Mailpit on `http://127.0.0.1:8025`
+- MinIO S3 API on `http://127.0.0.1:9000`
+- MinIO console on `http://127.0.0.1:9001`
+
+The default `.env.example` values now point profile-image uploads at the local MinIO bucket created by `minio-create-bucket`. The same MinIO instance can also hold other uploaded assets in additional buckets if you need them.
 
 Run the outbox worker in another shell if you want queued email and announcement jobs processed locally:
 
