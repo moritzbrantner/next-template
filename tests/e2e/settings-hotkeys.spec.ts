@@ -47,6 +47,9 @@ test.describe('settings and hotkeys', () => {
     await page.getByRole('tab', { name: 'Notifications' }).click();
     await expect(page.getByRole('switch', { name: 'Enable notifications' })).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByLabel('Notification type')).toHaveValue('digest');
+
+    await page.getByRole('tab', { name: 'Privacy' }).click();
+    await expect(page.getByRole('switch', { name: 'Allow people to find me' })).toBeVisible();
   });
 
   test('does not expose admin hotkeys to manager roles', async ({ page }) => {

@@ -1,12 +1,13 @@
 export const settingsPage = {
   title: 'Settings',
-  description: 'Tune appearance, date behavior, notification preferences, hotkey visibility, and profile controls in one place.',
+  description: 'Tune appearance, date behavior, notification preferences, privacy, hotkey visibility, and profile controls in one place.',
   saveState: 'Settings save automatically',
   tabs: {
     appearance: 'Appearance',
     dates: 'Dates',
     workflow: 'Workflow',
     notifications: 'Notifications',
+    privacy: 'Privacy',
     account: 'Account',
   },
   roles: {
@@ -93,6 +94,10 @@ export const settingsPage = {
       silent: 'Silent',
     },
   },
+  privacy: {
+    title: 'Privacy controls',
+    description: 'Decide whether other people can find your profile and how your profile activity is exposed.',
+  },
   account: {
     email: {
       title: 'Email address',
@@ -120,10 +125,10 @@ export const settingsPage = {
   profilePictureTitle: 'Profile picture',
   profilePictureDescription: 'Upload a new profile picture or remove your current one.',
   profileDiscovery: {
-    title: 'Profile discovery',
-    description: 'Control whether your profile appears in user search for new followers.',
-    toggleTitle: 'Allow profile search',
-    toggleDescription: 'When enabled, other signed-in users can find your profile from the People page.',
+    title: 'Search and discovery',
+    description: 'Control whether your profile appears when other people look for users to follow.',
+    toggleTitle: 'Allow people to find me',
+    toggleDescription: 'When enabled, other signed-in users can find your profile from the People page and similar search surfaces.',
     saving: 'Saving search visibility…',
     successEnabled: 'Your profile can now be found in search.',
     successDisabled: 'Your profile has been removed from search results.',

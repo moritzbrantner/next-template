@@ -35,7 +35,7 @@ const backgroundSwatches: Record<BackgroundOption, string> = {
   forest: 'from-emerald-200 via-lime-100 to-stone-200',
 };
 
-const tabs = ['appearance', 'dates', 'workflow', 'notifications', 'account'] as const;
+const tabs = ['appearance', 'dates', 'workflow', 'notifications', 'privacy', 'account'] as const;
 type SettingsTab = (typeof tabs)[number];
 
 const selectClassName =
@@ -240,11 +240,36 @@ export function SettingsClient({
               />
             </CardContent>
           </Card>
+        </div>
+      ) : null}
 
+      {activeTab === 'notifications' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('notifications.title')}</CardTitle>
+            <CardDescription>{t('notifications.description')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <ToggleRow title={t('notifications.enabled')} description={t('notifications.enabledDescription')} checked={settings.notifications.enabled} onCheckedChange={(checked) => updateNotificationSettings({ enabled: checked })} />
+
+            <div className="space-y-2">
+              <Label htmlFor="notification-type">{t('notifications.typeLabel')}</Label>
+              <select id="notification-type" value={settings.notifications.type} className={selectClassName} onChange={(event) => updateNotificationSettings({ type: event.target.value })}>
+                <option value="instant">{t('notifications.types.instant')}</option>
+                <option value="digest">{t('notifications.types.digest')}</option>
+                <option value="silent">{t('notifications.types.silent')}</option>
+              </select>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {activeTab === 'privacy' ? (
+        <div className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-col gap-2">
-              <CardTitle>{t('profileDiscovery.title')}</CardTitle>
-              <CardDescription>{t('profileDiscovery.description')}</CardDescription>
+            <CardHeader>
+              <CardTitle>{t('privacy.title')}</CardTitle>
+              <CardDescription>{t('privacy.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ProfileSearchVisibilityForm
@@ -291,30 +316,9 @@ export function SettingsClient({
               />
             </CardContent>
           </Card>
+
+          <ConsentSettingsCard initialConsent={consent} />
         </div>
-      ) : null}
-
-      {activeTab === 'notifications' ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('notifications.title')}</CardTitle>
-            <CardDescription>{t('notifications.description')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <ToggleRow title={t('notifications.enabled')} description={t('notifications.enabledDescription')} checked={settings.notifications.enabled} onCheckedChange={(checked) => updateNotificationSettings({ enabled: checked })} />
-
-            <div className="space-y-2">
-              <Label htmlFor="notification-type">{t('notifications.typeLabel')}</Label>
-              <select id="notification-type" value={settings.notifications.type} className={selectClassName} onChange={(event) => updateNotificationSettings({ type: event.target.value })}>
-                <option value="instant">{t('notifications.types.instant')}</option>
-                <option value="digest">{t('notifications.types.digest')}</option>
-                <option value="silent">{t('notifications.types.silent')}</option>
-              </select>
-            </div>
-
-            <ConsentSettingsCard initialConsent={consent} />
-          </CardContent>
-        </Card>
       ) : null}
 
       {activeTab === 'account' ? (
