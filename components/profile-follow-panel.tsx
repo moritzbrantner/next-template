@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { readProblemDetail } from '@/src/http/problem-client';
+import { buildPublicProfileFollowersPath } from '@/src/profile/tags';
 
 type ProfileFollowPanelProps = {
   locale: AppLocale;
@@ -18,6 +19,7 @@ type ProfileFollowPanelProps = {
   initialIsFollowing: boolean;
   isOwnProfile: boolean;
   canManageFollowState: boolean;
+  canViewFollowersPage: boolean;
   labels: {
     followers: string;
     follow: string;
@@ -39,6 +41,7 @@ export function ProfileFollowPanel({
   initialIsFollowing,
   isOwnProfile,
   canManageFollowState,
+  canViewFollowersPage,
   labels,
 }: ProfileFollowPanelProps) {
   const [followerCount, setFollowerCount] = useState(initialFollowerCount);
@@ -94,10 +97,21 @@ export function ProfileFollowPanel({
             <div className="space-y-2 pb-1">
               <h1 className="text-3xl font-semibold tracking-tight">{displayName}</h1>
               <p className="text-sm text-zinc-600 dark:text-zinc-300">/@{profileTag}</p>
-              <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
-                <span className="font-semibold">{followerCount}</span>
-                <span>{labels.followers}</span>
-              </div>
+              {canViewFollowersPage ? (
+                <Link
+                  href={buildPublicProfileFollowersPath(profileTag)}
+                  locale={locale}
+                  className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
+                >
+                  <span className="font-semibold">{followerCount}</span>
+                  <span>{labels.followers}</span>
+                </Link>
+              ) : (
+                <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+                  <span className="font-semibold">{followerCount}</span>
+                  <span>{labels.followers}</span>
+                </div>
+              )}
             </div>
           </div>
 

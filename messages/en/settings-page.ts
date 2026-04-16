@@ -129,6 +129,27 @@ export const settingsPage = {
     successDisabled: 'Your profile has been removed from search results.',
     error: 'Unable to update search visibility right now. Please try again.',
   },
+  followerVisibility: {
+    title: 'Follower visibility',
+    description: 'Choose who can see you when you appear in another user’s follower list.',
+    saving: 'Saving follower visibility…',
+    success: 'Follower visibility updated.',
+    error: 'Unable to update follower visibility right now. Please try again.',
+    options: {
+      PUBLIC: {
+        title: 'Public',
+        description: 'Anyone who opens a followers page can see you.',
+      },
+      MEMBERS: {
+        title: 'Members only',
+        description: 'Only signed-in users can see you in followers lists.',
+      },
+      PRIVATE: {
+        title: 'Private',
+        description: 'Only you and the profile owner can see you in followers lists.',
+      },
+    },
+  },
   form: {
     chooseImage: 'Choose a profile picture',
     hint: 'Use a square PNG or JPEG image for best results.',

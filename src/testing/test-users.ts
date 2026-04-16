@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { hashPassword } from "@/lib/password";
 import { getDb } from "@/src/db/client";
 import { notifications, pageVisits, profiles, userFollows, users } from "@/src/db/schema";
+import type { FollowerVisibilityRole } from "@/src/profile/follower-visibility";
 
 type TestUserSeed = {
   email: string;
@@ -13,6 +14,7 @@ type TestUserSeed = {
   name: string;
   role: "SUPERADMIN" | "ADMIN" | "MANAGER" | "USER";
   isSearchable: boolean;
+  followerVisibility: FollowerVisibilityRole;
   emailVerified: boolean;
   profile: {
     bio: string;
@@ -54,6 +56,7 @@ export const TEST_USERS: readonly TestUserSeed[] = [
     name: "Test Superadmin",
     role: "SUPERADMIN",
     isSearchable: false,
+    followerVisibility: "PRIVATE",
     emailVerified: true,
     profile: {
       bio: "Owns privileged workspace access and can assign or revoke elevated roles.",
@@ -68,6 +71,7 @@ export const TEST_USERS: readonly TestUserSeed[] = [
     name: "Test Admin",
     role: "ADMIN",
     isSearchable: false,
+    followerVisibility: "PRIVATE",
     emailVerified: true,
     profile: {
       bio: "Keeps the shared test environment organized and can send admin notifications.",
@@ -82,6 +86,7 @@ export const TEST_USERS: readonly TestUserSeed[] = [
     name: "Test Manager",
     role: "MANAGER",
     isSearchable: false,
+    followerVisibility: "MEMBERS",
     emailVerified: true,
     profile: {
       bio: "Reviews operational workflows and keeps an eye on user activity.",
@@ -96,6 +101,7 @@ export const TEST_USERS: readonly TestUserSeed[] = [
     name: "Test User",
     role: "USER",
     isSearchable: true,
+    followerVisibility: "PUBLIC",
     emailVerified: true,
     profile: {
       bio: "Primary member account for following, notifications, and profile workflows.",
@@ -110,6 +116,7 @@ export const TEST_USERS: readonly TestUserSeed[] = [
     name: "Alice Archer",
     role: "USER",
     isSearchable: true,
+    followerVisibility: "PUBLIC",
     emailVerified: true,
     profile: {
       bio: "Publishes updates often and is useful as a baseline follow target.",
@@ -124,6 +131,7 @@ export const TEST_USERS: readonly TestUserSeed[] = [
     name: "Bob Baker",
     role: "USER",
     isSearchable: true,
+    followerVisibility: "MEMBERS",
     emailVerified: true,
     profile: {
       bio: "Another discoverable member account for testing follow and unfollow flows.",
@@ -138,6 +146,7 @@ export const TEST_USERS: readonly TestUserSeed[] = [
     name: "Casey Carter",
     role: "USER",
     isSearchable: true,
+    followerVisibility: "PUBLIC",
     emailVerified: true,
     profile: {
       bio: "Shows up in the people directory search so you can test new follow actions.",
@@ -152,6 +161,7 @@ export const TEST_USERS: readonly TestUserSeed[] = [
     name: "Dana Diaz",
     role: "USER",
     isSearchable: true,
+    followerVisibility: "PUBLIC",
     emailVerified: true,
     profile: {
       bio: "Receives and sends notifications in the seeded social graph.",
@@ -166,6 +176,7 @@ export const TEST_USERS: readonly TestUserSeed[] = [
     name: "Private Member",
     role: "USER",
     isSearchable: false,
+    followerVisibility: "PRIVATE",
     emailVerified: true,
     profile: {
       bio: "Hidden from people search but still part of the follower graph.",
@@ -329,6 +340,7 @@ export async function seedTestUsers() {
           name: testUser.name,
           role: testUser.role,
           isSearchable: testUser.isSearchable,
+          followerVisibility: testUser.followerVisibility,
           emailVerified: emailVerifiedAt,
           passwordHash,
           failedSignInAttempts: 0,
@@ -349,6 +361,7 @@ export async function seedTestUsers() {
       name: testUser.name,
       role: testUser.role,
       isSearchable: testUser.isSearchable,
+      followerVisibility: testUser.followerVisibility,
       emailVerified: emailVerifiedAt,
       passwordHash,
       failedSignInAttempts: 0,

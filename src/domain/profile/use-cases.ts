@@ -5,6 +5,7 @@ import { userFollows, users } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
 import { ImageValidationError, validateImageUpload } from '@/src/profile/image-validation';
 import { buildProfileImageUrl, deleteProfileImage, uploadProfileImage } from '@/src/profile/object-storage';
+import { canViewerSeeFollower, type FollowerVisibilityRole } from '@/src/profile/follower-visibility';
 import { normalizeProfileTagInput, validateProfileTag } from '@/src/profile/tags';
 
 const DISPLAY_NAME_MIN_LENGTH = 2;
@@ -46,8 +47,28 @@ export type ProfileDirectoryEntry = {
   imageUrl: string | null;
 };
 
+export type ProfileFollowerEntry = ProfileDirectoryEntry & {
+  visibilityRole: FollowerVisibilityRole;
+};
+
 export type ProfileSearchVisibilityPayload = {
   isSearchable: boolean;
+};
+
+export type ProfileFollowerVisibilityPayload = {
+  followerVisibility: FollowerVisibilityRole;
+};
+
+export type ProfileFollowersPayload = {
+  profile: {
+    userId: string;
+    tag: string;
+    displayName: string;
+  };
+  followers: ProfileFollowerEntry[];
+  totalFollowerCount: number;
+  hiddenFollowerCount: number;
+  isOwnProfile: boolean;
 };
 
 type ProfileUserRecord = {
@@ -57,6 +78,7 @@ type ProfileUserRecord = {
   name: string | null;
   image: string | null;
   isSearchable: boolean;
+  followerVisibility: FollowerVisibilityRole;
 };
 
 export type ProfileUseCaseDeps = {
@@ -68,8 +90,10 @@ export type ProfileUseCaseDeps = {
   createFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
   deleteFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
   listFollowingUsers: (followerId: string) => Promise<ProfileUserRecord[]>;
+  listFollowersForUser: (followingId: string) => Promise<ProfileUserRecord[]>;
   searchUsersToFollow: (viewerUserId: string, query: string) => Promise<ProfileUserRecord[]>;
   updateUserSearchVisibility: (userId: string, isSearchable: boolean) => Promise<void>;
+  updateUserFollowerVisibility: (userId: string, followerVisibility: FollowerVisibilityRole) => Promise<void>;
   updateUserTag: (userId: string, tag: string) => Promise<void>;
 };
 
@@ -127,10 +151,29 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           name: users.name,
           image: users.image,
           isSearchable: users.isSearchable,
+          followerVisibility: users.followerVisibility,
         })
         .from(userFollows)
         .innerJoin(users, eq(userFollows.followingId, users.id))
         .where(eq(userFollows.followerId, followerId))
+        .orderBy(asc(users.name), asc(users.tag), asc(users.email));
+
+      return rows;
+    },
+    listFollowersForUser: async (followingId) => {
+      const rows = await getDb()
+        .select({
+          id: users.id,
+          email: users.email,
+          tag: users.tag,
+          name: users.name,
+          image: users.image,
+          isSearchable: users.isSearchable,
+          followerVisibility: users.followerVisibility,
+        })
+        .from(userFollows)
+        .innerJoin(users, eq(userFollows.followerId, users.id))
+        .where(eq(userFollows.followingId, followingId))
         .orderBy(asc(users.name), asc(users.tag), asc(users.email));
 
       return rows;
@@ -144,6 +187,7 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           name: users.name,
           image: users.image,
           isSearchable: users.isSearchable,
+          followerVisibility: users.followerVisibility,
         })
         .from(users)
         .leftJoin(
@@ -167,6 +211,12 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
       await getDb()
         .update(users)
         .set({ isSearchable, updatedAt: new Date() })
+        .where(eq(users.id, userId));
+    },
+    updateUserFollowerVisibility: async (userId, followerVisibility) => {
+      await getDb()
+        .update(users)
+        .set({ followerVisibility, updatedAt: new Date() })
         .where(eq(users.id, userId));
     },
     updateUserTag: async (userId, tag) => {
@@ -195,6 +245,13 @@ function toProfileDirectoryEntry(user: ProfileUserRecord): ProfileDirectoryEntry
     tag: user.tag,
     displayName: resolveProfileDisplayName(user),
     imageUrl: buildProfileImageUrl(user.image) ?? null,
+  };
+}
+
+function toProfileFollowerEntry(user: ProfileUserRecord): ProfileFollowerEntry {
+  return {
+    ...toProfileDirectoryEntry(user),
+    visibilityRole: user.followerVisibility,
   };
 }
 
@@ -373,6 +430,24 @@ export async function getProfileSearchVisibilityUseCase(
   });
 }
 
+export async function getProfileFollowerVisibilityUseCase(
+  userId: string,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileFollowerVisibilityPayload, ProfileError>> {
+  const user = await deps.findUserById(userId);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  return success({
+    followerVisibility: user.followerVisibility,
+  });
+}
+
 export async function updateProfileSearchVisibilityUseCase(
   userId: string,
   isSearchable: boolean,
@@ -391,6 +466,64 @@ export async function updateProfileSearchVisibilityUseCase(
 
   return success({
     isSearchable,
+  });
+}
+
+export async function updateProfileFollowerVisibilityUseCase(
+  userId: string,
+  followerVisibility: FollowerVisibilityRole,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileFollowerVisibilityPayload, ProfileError>> {
+  const user = await deps.findUserById(userId);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  await deps.updateUserFollowerVisibility(userId, followerVisibility);
+
+  return success({
+    followerVisibility,
+  });
+}
+
+export async function listProfileFollowersByTagUseCase(
+  profileTag: string,
+  viewerUserId?: string | null,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileFollowersPayload, ProfileError>> {
+  const user = await deps.findUserByTag(profileTag);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const followers = await deps.listFollowersForUser(user.id);
+  const visibleFollowers = followers.filter((follower) =>
+    canViewerSeeFollower({
+      viewerUserId,
+      profileOwnerId: user.id,
+      followerUserId: follower.id,
+      followerVisibility: follower.followerVisibility,
+    }),
+  );
+
+  return success({
+    profile: {
+      userId: user.id,
+      tag: user.tag,
+      displayName: resolveProfileDisplayName(user),
+    },
+    followers: visibleFollowers.map(toProfileFollowerEntry),
+    totalFollowerCount: followers.length,
+    hiddenFollowerCount: Math.max(0, followers.length - visibleFollowers.length),
+    isOwnProfile: Boolean(viewerUserId && viewerUserId === user.id),
   });
 }
 

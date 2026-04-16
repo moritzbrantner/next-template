@@ -1,7 +1,10 @@
 
 import { pgEnum, pgTable, primaryKey, text, timestamp, integer, index, uniqueIndex, jsonb, boolean } from "drizzle-orm/pg-core";
 
+import { followerVisibilityRoles } from "@/src/profile/follower-visibility";
+
 export const roleEnum = pgEnum("Role", ["SUPERADMIN", "ADMIN", "MANAGER", "USER"]);
+export const followerVisibilityEnum = pgEnum("FollowerVisibility", followerVisibilityRoles);
 export const notificationStatusEnum = pgEnum("NotificationStatus", ["unread", "read"]);
 export const notificationAudienceEnum = pgEnum("NotificationAudience", ["user", "role", "all"]);
 export const siteAnnouncementStatusEnum = pgEnum("SiteAnnouncementStatus", ["draft", "scheduled", "published", "archived"]);
@@ -18,6 +21,7 @@ export const users = pgTable(
     emailVerified: timestamp("emailVerified", { withTimezone: false, mode: "date" }),
     role: roleEnum("role").notNull().default("USER"),
     isSearchable: boolean("isSearchable").notNull().default(true),
+    followerVisibility: followerVisibilityEnum("followerVisibility").notNull().default("PUBLIC"),
     passwordHash: text("passwordHash"),
     failedSignInAttempts: integer("failedSignInAttempts").notNull().default(0),
     lockoutUntil: timestamp("lockoutUntil", { withTimezone: false, mode: "date" }),
@@ -31,6 +35,7 @@ export const users = pgTable(
     index("User_tag_idx").on(table.tag),
     index("User_role_idx").on(table.role),
     index("User_isSearchable_idx").on(table.isSearchable),
+    index("User_followerVisibility_idx").on(table.followerVisibility),
   ],
 );
 

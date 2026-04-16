@@ -92,6 +92,13 @@
       "when": 1776335241051,
       "tag": "0012_easy_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1776345579831,
+      "tag": "0013_lazy_the_order",
+      "breakpoints": true
     }
   ]
 }

@@ -35,6 +35,20 @@ test.describe('social interactions', () => {
     await expect(page.getByRole('button', { name: 'Follow' })).toBeVisible();
   });
 
+  test('opens the followers page from the follower count and respects visibility roles', async ({ page }) => {
+    await loginWithCredentials(page, aliceUser.email, aliceUser.password);
+    await gotoAndWaitForHydration(page, '/en/profile/@test-user');
+
+    await page.getByRole('link', { name: /6 followers/i }).click();
+
+    await expect(page).toHaveURL('/en/profile/@test-user/followers');
+    await expect(page.getByRole('heading', { name: 'Followers' })).toBeVisible();
+    await expect(page.getByText('Alice Archer', { exact: true })).toBeVisible();
+    await expect(page.getByText('Bob Baker', { exact: true })).toBeVisible();
+    await expect(page.getByText('Test Manager', { exact: true })).toBeVisible();
+    await expect(page.getByText('Private Member', { exact: true })).toHaveCount(0);
+  });
+
   test('lets a user follow and unfollow discoverable people from the directory', async ({ page }) => {
     await loginWithCredentials(page, primaryUser.email, primaryUser.password);
     await gotoAndWaitForHydration(page, '/en/people');

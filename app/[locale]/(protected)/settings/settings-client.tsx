@@ -7,6 +7,7 @@ import { DayPicker } from 'react-day-picker';
 
 import { AccountDeleteForm } from '@/components/account-delete-form';
 import { AccountEmailForm } from '@/components/account-email-form';
+import { ProfileFollowerVisibilityForm } from '@/components/profile-follower-visibility-form';
 import { ConsentSettingsCard } from '@/components/privacy/consent-settings-card';
 import { ProfileImageForm } from '@/components/profile-image-form';
 import { ProfileSearchVisibilityForm } from '@/components/profile-search-visibility-form';
@@ -23,6 +24,7 @@ import {
 import type { AppSession } from '@/src/auth';
 import { useTranslations } from '@/src/i18n';
 import type { ConsentState } from '@/src/privacy/contracts';
+import type { FollowerVisibilityRole } from '@/src/profile/follower-visibility';
 import { backgroundOptions, formatDatePreview, type BackgroundOption } from '@/src/settings/preferences';
 import { useAppSettings } from '@/src/settings/provider';
 
@@ -45,11 +47,13 @@ export function SettingsClient({
   session,
   consent,
   initialSearchVisibility,
+  initialFollowerVisibility,
 }: {
   locale: string;
   session: AppSession;
   consent: ConsentState;
   initialSearchVisibility: boolean;
+  initialFollowerVisibility: FollowerVisibilityRole;
 }) {
   const t = useTranslations('SettingsPage');
   const { settings, updateSettings } = useAppSettings();
@@ -252,6 +256,37 @@ export function SettingsClient({
                   successEnabled: t('profileDiscovery.successEnabled'),
                   successDisabled: t('profileDiscovery.successDisabled'),
                   error: t('profileDiscovery.error'),
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-col gap-2">
+              <CardTitle>{t('followerVisibility.title')}</CardTitle>
+              <CardDescription>{t('followerVisibility.description')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProfileFollowerVisibilityForm
+                initialFollowerVisibility={initialFollowerVisibility}
+                labels={{
+                  saving: t('followerVisibility.saving'),
+                  success: t('followerVisibility.success'),
+                  error: t('followerVisibility.error'),
+                  options: {
+                    PUBLIC: {
+                      title: t('followerVisibility.options.PUBLIC.title'),
+                      description: t('followerVisibility.options.PUBLIC.description'),
+                    },
+                    MEMBERS: {
+                      title: t('followerVisibility.options.MEMBERS.title'),
+                      description: t('followerVisibility.options.MEMBERS.description'),
+                    },
+                    PRIVATE: {
+                      title: t('followerVisibility.options.PRIVATE.title'),
+                      description: t('followerVisibility.options.PRIVATE.description'),
+                    },
+                  },
                 }}
               />
             </CardContent>

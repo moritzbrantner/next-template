@@ -60,6 +60,10 @@ export function buildPublicProfileBlogPath(tag: string) {
   return `${buildPublicProfilePath(tag)}/blog`;
 }
 
+export function buildPublicProfileFollowersPath(tag: string) {
+  return `${buildPublicProfilePath(tag)}/followers`;
+}
+
 function decodeProfileTagSegment(segment: string) {
   try {
     return decodeURIComponent(segment);
