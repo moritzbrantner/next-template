@@ -42,6 +42,41 @@ function formatValue(value: RowData[keyof RowData], valueType: ValueType) {
   return String(value);
 }
 
+function compareValues(
+  left: RowData[keyof RowData],
+  right: RowData[keyof RowData],
+  valueType: ValueType,
+  direction: SortDirection,
+) {
+  const order = direction === 'asc' ? 1 : -1;
+
+  if (left === null && right === null) {
+    return 0;
+  }
+
+  if (left === null) {
+    return 1;
+  }
+
+  if (right === null) {
+    return -1;
+  }
+
+  if (valueType === 'number' || valueType === 'currency') {
+    return (Number(left) - Number(right)) * order;
+  }
+
+  if (valueType === 'boolean') {
+    return (Number(Boolean(left)) - Number(Boolean(right))) * order;
+  }
+
+  if (valueType === 'date') {
+    return (new Date(String(left)).getTime() - new Date(String(right)).getTime()) * order;
+  }
+
+  return String(left).localeCompare(String(right), undefined, { sensitivity: 'base' }) * order;
+}
+
 export function RestDataTable<T extends RowData>({ endpoint, columns }: RestDataTableProps<T>) {
   const [rows, setRows] = useState<T[]>([]);
   const [status, setStatus] = useState<'loading' | 'error' | 'ready'>('loading');
@@ -74,42 +109,6 @@ export function RestDataTable<T extends RowData>({ endpoint, columns }: RestData
 
     return () => controller.abort();
   }, [endpoint]);
-
-
-  function compareValues(
-    left: RowData[keyof RowData],
-    right: RowData[keyof RowData],
-    valueType: ValueType,
-    direction: SortDirection,
-  ) {
-    const order = direction === 'asc' ? 1 : -1;
-
-    if (left === null && right === null) {
-      return 0;
-    }
-
-    if (left === null) {
-      return 1;
-    }
-
-    if (right === null) {
-      return -1;
-    }
-
-    if (valueType === 'number' || valueType === 'currency') {
-      return (Number(left) - Number(right)) * order;
-    }
-
-    if (valueType === 'boolean') {
-      return (Number(Boolean(left)) - Number(Boolean(right))) * order;
-    }
-
-    if (valueType === 'date') {
-      return (new Date(String(left)).getTime() - new Date(String(right)).getTime()) * order;
-    }
-
-    return String(left).localeCompare(String(right), undefined, { sensitivity: 'base' }) * order;
-  }
 
   const visibleRows = useMemo(() => {
     const filteredRows = rows.filter((row) =>

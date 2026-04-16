@@ -33,7 +33,7 @@ export function AppServiceWorker() {
   const pathname = useNextPathname();
 
   const warmOfflineBlogEditorRoute = useEffectEvent(async () => {
-    if (!isBlogEditorPath(pathname)) {
+    if (!isBlogEditorPath(window.location.pathname)) {
       return;
     }
 
@@ -75,10 +75,14 @@ export function AppServiceWorker() {
     return () => {
       cancelled = true;
     };
-  }, [warmOfflineBlogEditorRoute]);
+  }, []);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production' || !('serviceWorker' in navigator)) {
+      return;
+    }
+
+    if (!isBlogEditorPath(pathname)) {
       return;
     }
 
@@ -87,7 +91,7 @@ export function AppServiceWorker() {
     }
 
     void warmOfflineBlogEditorRoute();
-  }, [pathname, warmOfflineBlogEditorRoute]);
+  }, [pathname]);
 
   return null;
 }
