@@ -129,6 +129,7 @@ describe('feature gating', () => {
           followerCount: 3,
           isOwnProfile: false,
           isFollowing: true,
+          isBlockedByViewer: false,
         },
       }),
     }));

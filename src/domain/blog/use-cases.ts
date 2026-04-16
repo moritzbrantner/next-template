@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
 import { blogPosts, userFollows } from '@/src/db/schema';
@@ -53,13 +53,19 @@ export type BlogPostMutationPayload = {
 };
 
 export type BlogError = {
-  code: 'VALIDATION_ERROR' | 'NOT_FOUND';
+  code: 'VALIDATION_ERROR' | 'NOT_FOUND' | 'FORBIDDEN';
   message: string;
+};
+
+type BlockRelationshipState = {
+  isBlockedByViewer: boolean;
+  hasBlockedViewer: boolean;
 };
 
 export type BlogUseCaseDeps = {
   findUserById: (userId: string) => Promise<BlogAuthorRecord | undefined>;
   findUserByTag: (tag: string) => Promise<BlogAuthorRecord | undefined>;
+  getBlockRelationshipState: (viewerUserId: string, otherUserId: string) => Promise<BlockRelationshipState>;
   listPostsByUserId: (userId: string) => Promise<BlogPostRecord[]>;
   listFollowerIdsByUserId: (userId: string) => Promise<string[]>;
   createPost: (input: {
@@ -89,6 +95,23 @@ function getBlogUseCaseDeps(): BlogUseCaseDeps {
       getDb().query.users.findFirst({
         where: (table, { eq: innerEq }) => innerEq(table.tag, tag),
       }),
+    getBlockRelationshipState: async (viewerUserId, otherUserId) => {
+      const [isBlockedByViewer, hasBlockedViewer] = await Promise.all([
+        getDb().query.userBlocks.findFirst({
+          where: (table, { and: innerAnd, eq: innerEq }) =>
+            innerAnd(innerEq(table.blockerId, viewerUserId), innerEq(table.blockedId, otherUserId)),
+        }),
+        getDb().query.userBlocks.findFirst({
+          where: (table, { and: innerAnd, eq: innerEq }) =>
+            innerAnd(innerEq(table.blockerId, otherUserId), innerEq(table.blockedId, viewerUserId)),
+        }),
+      ]);
+
+      return {
+        isBlockedByViewer: Boolean(isBlockedByViewer),
+        hasBlockedViewer: Boolean(hasBlockedViewer),
+      };
+    },
     listPostsByUserId: (userId) =>
       getDb().query.blogPosts.findMany({
         where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
@@ -200,6 +223,7 @@ function buildFollowerNotification(input: {
 
 export async function getUserBlogUseCase(
   userId: string,
+  viewerUserId?: string | null,
   deps: BlogUseCaseDeps = getBlogUseCaseDeps(),
 ): Promise<ServiceResult<UserBlogPayload, BlogError>> {
   const user = await deps.findUserById(userId);
@@ -209,6 +233,17 @@ export async function getUserBlogUseCase(
       code: 'NOT_FOUND',
       message: 'User account was not found.',
     });
+  }
+
+  if (viewerUserId && viewerUserId !== user.id) {
+    const blockState = await deps.getBlockRelationshipState(viewerUserId, user.id);
+
+    if (blockState.hasBlockedViewer) {
+      return failure({
+        code: 'FORBIDDEN',
+        message: 'You cannot view this profile.',
+      });
+    }
   }
 
   const posts = await deps.listPostsByUserId(userId);
@@ -224,6 +259,7 @@ export async function getUserBlogUseCase(
 
 export async function getUserBlogByTagUseCase(
   tag: string,
+  viewerUserId?: string | null,
   deps: BlogUseCaseDeps = getBlogUseCaseDeps(),
 ): Promise<ServiceResult<UserBlogPayload, BlogError>> {
   const user = await deps.findUserByTag(tag);
@@ -235,7 +271,7 @@ export async function getUserBlogByTagUseCase(
     });
   }
 
-  return getUserBlogUseCase(user.id, deps);
+  return getUserBlogUseCase(user.id, viewerUserId, deps);
 }
 
 export async function createBlogPostUseCase(

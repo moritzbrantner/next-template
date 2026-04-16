@@ -17,8 +17,10 @@ type ProfileFollowPanelProps = {
   imageUrl: string | null;
   initialFollowerCount: number;
   initialIsFollowing: boolean;
+  initialIsBlockedByViewer: boolean;
   isOwnProfile: boolean;
   canManageFollowState: boolean;
+  canManageBlockState: boolean;
   canViewFollowersPage: boolean;
   labels: {
     followers: string;
@@ -26,6 +28,11 @@ type ProfileFollowPanelProps = {
     unfollow: string;
     following: string;
     unfollowing: string;
+    block: string;
+    unblock: string;
+    blocking: string;
+    unblocking: string;
+    blockedDescription: string;
     editProfile: string;
     error: string;
   };
@@ -39,20 +46,23 @@ export function ProfileFollowPanel({
   imageUrl,
   initialFollowerCount,
   initialIsFollowing,
+  initialIsBlockedByViewer,
   isOwnProfile,
   canManageFollowState,
+  canManageBlockState,
   canViewFollowersPage,
   labels,
 }: ProfileFollowPanelProps) {
   const [followerCount, setFollowerCount] = useState(initialFollowerCount);
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-  const [isPending, setIsPending] = useState(false);
+  const [isBlockedByViewer, setIsBlockedByViewer] = useState(initialIsBlockedByViewer);
+  const [pendingAction, setPendingAction] = useState<'follow' | 'block' | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleFollowToggle() {
     const nextIsFollowing = !isFollowing;
 
-    setIsPending(true);
+    setPendingAction('follow');
     setError(null);
 
     try {
@@ -75,7 +85,41 @@ export function ProfileFollowPanel({
     } catch {
       setError(labels.error);
     } finally {
-      setIsPending(false);
+      setPendingAction(null);
+    }
+  }
+
+  async function handleBlockToggle() {
+    const nextIsBlocked = !isBlockedByViewer;
+
+    setPendingAction('block');
+    setError(null);
+
+    try {
+      const response = await fetch('/api/profile/block', {
+        method: nextIsBlocked ? 'POST' : 'DELETE',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ userId: profileUserId }),
+      });
+
+      if (!response.ok) {
+        const problem = await readProblemDetail(response, labels.error);
+        setError(problem.message);
+        return;
+      }
+
+      if (nextIsBlocked && isFollowing) {
+        setIsFollowing(false);
+        setFollowerCount((current) => Math.max(0, current - 1));
+      }
+
+      setIsBlockedByViewer(nextIsBlocked);
+    } catch {
+      setError(labels.error);
+    } finally {
+      setPendingAction(null);
     }
   }
 
@@ -126,13 +170,48 @@ export function ProfileFollowPanel({
           ) : null}
 
           {!isOwnProfile && canManageFollowState ? (
-            <Button type="button" onClick={handleFollowToggle} disabled={isPending}>
-              {isPending ? (isFollowing ? labels.unfollowing : labels.following) : isFollowing ? labels.unfollow : labels.follow}
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {!isBlockedByViewer ? (
+                <Button type="button" onClick={handleFollowToggle} disabled={pendingAction !== null}>
+                  {pendingAction === 'follow'
+                    ? isFollowing
+                      ? labels.unfollowing
+                      : labels.following
+                    : isFollowing
+                      ? labels.unfollow
+                      : labels.follow}
+                </Button>
+              ) : null}
+
+              {canManageBlockState ? (
+                <Button type="button" variant="outline" onClick={handleBlockToggle} disabled={pendingAction !== null}>
+                  {pendingAction === 'block'
+                    ? isBlockedByViewer
+                      ? labels.unblocking
+                      : labels.blocking
+                    : isBlockedByViewer
+                      ? labels.unblock
+                      : labels.block}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+
+          {!isOwnProfile && !canManageFollowState && canManageBlockState ? (
+            <Button type="button" variant="outline" onClick={handleBlockToggle} disabled={pendingAction !== null}>
+              {pendingAction === 'block'
+                ? isBlockedByViewer
+                  ? labels.unblocking
+                  : labels.blocking
+                : isBlockedByViewer
+                  ? labels.unblock
+                  : labels.block}
             </Button>
           ) : null}
         </div>
       </div>
 
+      {isBlockedByViewer ? <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">{labels.blockedDescription}</p> : null}
       {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
     </section>
   );

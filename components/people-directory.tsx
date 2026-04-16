@@ -19,6 +19,7 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
   const t = useTranslations('PeoplePage');
   const searchErrorMessage = t('search.error');
   const followErrorMessage = t('actions.error');
+  const blockErrorMessage = t('actions.blockError');
   const [followingProfiles, setFollowingProfiles] = useState(initialFollowing);
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
@@ -123,6 +124,35 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
     }
   }
 
+  async function blockProfile(profile: ProfileDirectoryEntry) {
+    markPendingUser(profile.userId, true);
+    setActionError(null);
+
+    try {
+      const response = await fetch('/api/profile/block', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ userId: profile.userId }),
+      });
+
+      if (!response.ok) {
+        const problem = await readProblemDetail(response, blockErrorMessage);
+        setActionError(problem.message);
+        return;
+      }
+
+      setFollowingProfiles((current) => current.filter((currentProfile) => currentProfile.userId !== profile.userId));
+      setSearchResults((current) => current.filter((currentProfile) => currentProfile.userId !== profile.userId));
+      setRefreshKey((current) => current + 1);
+    } catch {
+      setActionError(blockErrorMessage);
+    } finally {
+      markPendingUser(profile.userId, false);
+    }
+  }
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
       <Card className="overflow-hidden">
@@ -165,6 +195,9 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
                   actionVariant="default"
                   isPending={pendingUserIds.includes(profile.userId)}
                   onAction={() => updateFollowState(profile, true)}
+                  secondaryActionLabel={t('actions.block')}
+                  secondaryPendingLabel={t('actions.blocking')}
+                  onSecondaryAction={() => blockProfile(profile)}
                 />
               ))}
             </div>
@@ -197,6 +230,9 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
               actionVariant="outline"
               isPending={pendingUserIds.includes(profile.userId)}
               onAction={() => updateFollowState(profile, false)}
+              secondaryActionLabel={t('actions.block')}
+              secondaryPendingLabel={t('actions.blocking')}
+              onSecondaryAction={() => blockProfile(profile)}
             />
           ))}
         </CardContent>
@@ -212,6 +248,9 @@ function ProfileRow({
   actionVariant,
   isPending,
   onAction,
+  secondaryActionLabel,
+  secondaryPendingLabel,
+  onSecondaryAction,
 }: {
   profile: ProfileDirectoryEntry;
   actionLabel: string;
@@ -219,6 +258,9 @@ function ProfileRow({
   actionVariant: 'default' | 'outline';
   isPending: boolean;
   onAction: () => void;
+  secondaryActionLabel?: string;
+  secondaryPendingLabel?: string;
+  onSecondaryAction?: () => void;
 }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl border p-3 dark:border-zinc-800">
@@ -232,9 +274,17 @@ function ProfileRow({
         </div>
       </div>
 
-      <Button type="button" variant={actionVariant} size="sm" disabled={isPending} onClick={onAction}>
-        {isPending ? pendingLabel : actionLabel}
-      </Button>
+      <div className="flex items-center gap-2">
+        {secondaryActionLabel && onSecondaryAction ? (
+          <Button type="button" variant="ghost" size="sm" disabled={isPending} onClick={onSecondaryAction}>
+            {isPending ? secondaryPendingLabel : secondaryActionLabel}
+          </Button>
+        ) : null}
+
+        <Button type="button" variant={actionVariant} size="sm" disabled={isPending} onClick={onAction}>
+          {isPending ? pendingLabel : actionLabel}
+        </Button>
+      </div>
     </div>
   );
 }

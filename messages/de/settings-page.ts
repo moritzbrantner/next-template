@@ -156,6 +156,15 @@ export const settingsPage = {
       },
     },
   },
+  blockedUsers: {
+    title: 'Blockierte Benutzer',
+    description: 'Verwalte die Personen, die du blockiert hast. Beim Blockieren werden Follow-Beziehungen in beide Richtungen entfernt.',
+    empty: 'Du hast niemanden blockiert.',
+    unblock: 'Entblockieren',
+    unblocking: 'Wird entblockiert…',
+    success: 'Benutzer entblockiert.',
+    error: 'Blockierte Benutzer konnten gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+  },
   form: {
     chooseImage: 'Profilbild auswählen',
     hint: 'Verwende für beste Ergebnisse ein quadratisches PNG- oder JPEG-Bild.',

@@ -155,6 +155,15 @@ export const settingsPage = {
       },
     },
   },
+  blockedUsers: {
+    title: 'Blocked users',
+    description: 'Manage the people you have blocked. Blocking removes follow relationships in both directions.',
+    empty: 'You have not blocked anyone.',
+    unblock: 'Unblock',
+    unblocking: 'Unblocking…',
+    success: 'User unblocked.',
+    error: 'Unable to update blocked users right now. Please try again.',
+  },
   form: {
     chooseImage: 'Choose a profile picture',
     hint: 'Use a square PNG or JPEG image for best results.',
