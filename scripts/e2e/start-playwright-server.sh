@@ -32,13 +32,9 @@ resolve_node_binary() {
 
 NODE_BINARY="$(resolve_node_binary || command -v node)"
 NODE_DIR="$(dirname "$NODE_BINARY")"
-PNPM_BINARY="${NODE_DIR}/pnpm"
+BUN_BINARY="${BUN_BINARY:-bun}"
 
 export PATH="${NODE_DIR}:${PATH}"
 
-if [[ ! -x "$PNPM_BINARY" ]]; then
-  PNPM_BINARY="pnpm"
-fi
-
-"$PNPM_BINARY" run build
+"$BUN_BINARY" run build
 exec node ./scripts/serve-prod.mjs --port "$PORT" --host 127.0.0.1

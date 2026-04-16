@@ -9,7 +9,7 @@ MARKER_FILE="${TMPDIR:-/tmp}/next-template-e2e-db-bootstrap.started"
 export POSTGRES_PORT="${POSTGRES_PORT:-55433}"
 export DB_BOOTSTRAP_TIMEOUT_SECONDS="${DB_BOOTSTRAP_TIMEOUT_SECONDS:-90}"
 export MAILPIT_BASE_URL="${MAILPIT_BASE_URL:-http://127.0.0.1:8025}"
-PNPM_BINARY="pnpm"
+BUN_BINARY="${BUN_BINARY:-bun}"
 
 resolve_node_binary() {
   local first_candidate=""
@@ -50,9 +50,6 @@ configure_node_toolchain() {
   node_dir="$(dirname "$node_binary")"
   export PATH="${node_dir}:${PATH}"
 
-  if [[ -x "${node_dir}/pnpm" ]]; then
-    PNPM_BINARY="${node_dir}/pnpm"
-  fi
 }
 
 configure_node_toolchain
@@ -263,13 +260,13 @@ node --eval '
 echo "ℹ️ Applying migrations..."
 (
   cd "$APP_ROOT"
-  "$PNPM_BINARY" run db:migrate
+  "$BUN_BINARY" run db:migrate
 )
 
 echo "ℹ️ Seeding baseline e2e users..."
 (
   cd "$APP_ROOT"
-  "$PNPM_BINARY" run db:seed:test-users
+  "$BUN_BINARY" run db:seed:test-users
 )
 
 echo "✅ E2E DB bootstrap complete."

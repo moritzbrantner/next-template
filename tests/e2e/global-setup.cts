@@ -36,13 +36,13 @@ export default async function globalSetup() {
     stdio: 'inherit',
   });
 
-  const installArgs = ['exec', 'playwright', 'install'];
+  const installArgs = ['x', 'playwright', 'install'];
 
   if (process.env.CI) {
     installArgs.push('--with-deps');
   }
 
-  execFileSync('pnpm', installArgs, {
+  execFileSync('bun', installArgs, {
     cwd: path.resolve(setupDir, '../..'),
     stdio: 'inherit',
   });

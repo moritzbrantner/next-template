@@ -2,4 +2,4 @@
 set -euo pipefail
 
 ./scripts/ci/tier-nightly.sh
-pnpm run test:integration
+bun run test:integration

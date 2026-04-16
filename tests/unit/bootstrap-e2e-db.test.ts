@@ -20,7 +20,7 @@ describe('bootstrap-e2e-db.sh', () => {
     const binDir = path.join(testDir, 'bin');
     const dockerLogPath = path.join(testDir, 'docker.log');
     const nodeStatePath = path.join(testDir, 'node-state');
-    const pnpmLogPath = path.join(testDir, 'pnpm.log');
+    const bunLogPath = path.join(testDir, 'bun.log');
 
     try {
       mkdirSync(binDir, { recursive: true });
@@ -132,11 +132,11 @@ esac
       );
 
       writeExecutable(
-        path.join(binDir, 'pnpm'),
+        path.join(binDir, 'bun'),
         `#!/usr/bin/env bash
 set -euo pipefail
 
-printf '%s\\n' "$*" >> "$FAKE_PNPM_LOG"
+printf '%s\\n' "$*" >> "$FAKE_BUN_LOG"
 exit 0
 `,
       );
@@ -150,7 +150,7 @@ exit 0
           EXPECTED_COMPOSE_FILE: composeFilePath,
           FAKE_DOCKER_LOG: dockerLogPath,
           FAKE_NODE_STATE: nodeStatePath,
-          FAKE_PNPM_LOG: pnpmLogPath,
+          FAKE_BUN_LOG: bunLogPath,
           PATH: `${binDir}:${process.env.PATH ?? ''}`,
           TMPDIR: testDir,
         },
@@ -159,7 +159,7 @@ exit 0
       expect(result.status).toBe(0);
 
       const dockerLog = readFileSync(dockerLogPath, 'utf8');
-      const pnpmLog = readFileSync(pnpmLogPath, 'utf8');
+      const bunLog = readFileSync(bunLogPath, 'utf8');
 
       expect(dockerLog).toContain(
         `compose -f ${composeFilePath} --project-directory ${appRoot} config --services`,
@@ -167,8 +167,8 @@ exit 0
       expect(dockerLog).toContain(
         `compose -f ${composeFilePath} --project-directory ${appRoot} up -d postgres mailpit`,
       );
-      expect(pnpmLog).toContain('run db:migrate');
-      expect(pnpmLog).toContain('run db:seed:test-users');
+      expect(bunLog).toContain('run db:migrate');
+      expect(bunLog).toContain('run db:seed:test-users');
     } finally {
       rmSync(testDir, { force: true, recursive: true });
     }

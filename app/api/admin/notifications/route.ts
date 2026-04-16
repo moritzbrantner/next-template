@@ -4,8 +4,13 @@ import {
   type NotificationAudience,
   type NotificationRoleTarget,
 } from '@/src/domain/notifications/use-cases';
+import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 
 export async function POST(request: Request) {
+  if (!isFeatureEnabled('admin.users')) {
+    return new Response('Not found', { status: 404 });
+  }
+
   const guard = await secureRoute({
     request,
     action: 'admin.notifications.send',
