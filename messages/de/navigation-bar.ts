@@ -29,6 +29,9 @@ export const navigationBar = {
     title: 'Benachrichtigungen',
     subtitle: 'Aktuell {count} ungelesen',
     empty: 'Noch keine Benachrichtigungen.',
+    markRead: 'Als gelesen markieren',
+    markingRead: 'Wird aktualisiert...',
+    markReadError: 'Diese Benachrichtigung konnte gerade nicht aktualisiert werden.',
     viewAll: 'Alle Benachrichtigungen',
   },
   hotkeys: {

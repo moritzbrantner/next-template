@@ -57,16 +57,7 @@ test.describe('notifications', () => {
     const title = `Read check ${token}`;
     const body = `Mark this notification as read for ${token}.`;
 
-    await loginWithCredentials(page, adminUser.email, adminUser.password);
-    await openUsersPageAsAdmin(page);
-    await sendNotificationFromAdminUsersPage(page, {
-      recipientEmail: recipientUser.email,
-      title,
-      body,
-    });
-    await logoutFromProfileMenu(page);
-
-    await loginWithCredentials(page, recipientUser.email, recipientUser.password);
+    await deliverNotificationToRecipient(page, { title, body });
     await gotoAndWaitForHydration(page, '/en/notifications');
 
     const notificationCard = page.locator('article').filter({ hasText: title }).first();
@@ -78,6 +69,43 @@ test.describe('notifications', () => {
     await expect(page.getByRole('button', { name: 'Mark all as read' })).toBeDisabled();
     await expect(notificationCard).toContainText('Read');
     await expect(getNotificationBell(page)).toHaveAttribute('aria-label', 'Open notifications (0 unread)');
+  });
+
+  test('marks a single notification as read from the notifications page', async ({ page }) => {
+    const token = createNotificationToken();
+    const title = `Single page read ${token}`;
+    const body = `Mark only this page notification as read for ${token}.`;
+
+    await deliverNotificationToRecipient(page, { title, body });
+    await gotoAndWaitForHydration(page, '/en/notifications');
+
+    const unreadBefore = await getUnreadNotificationCount(page);
+    const notificationCard = page.locator('article').filter({ hasText: title }).first();
+    await expect(notificationCard).toContainText('Unread');
+
+    await notificationCard.getByRole('button', { name: 'Mark as read' }).click();
+
+    await expect(notificationCard).toContainText('Read');
+    await expect.poll(() => getUnreadNotificationCount(page)).toBe(Math.max(0, unreadBefore - 1));
+  });
+
+  test('marks a single notification as read from the notifications component', async ({ page }) => {
+    const token = createNotificationToken();
+    const title = `Bell read ${token}`;
+    const body = `Mark this bell notification as read for ${token}.`;
+
+    await deliverNotificationToRecipient(page, { title, body });
+
+    const unreadBefore = await getUnreadNotificationCount(page);
+    await openNotificationBell(page);
+
+    const notificationCard = page.locator('article').filter({ hasText: title }).first();
+    await expect(notificationCard).toContainText(body);
+
+    await notificationCard.getByRole('button', { name: 'Mark as read' }).click();
+
+    await expect.poll(() => getUnreadNotificationCount(page)).toBe(Math.max(0, unreadBefore - 1));
+    await expect(notificationCard.getByRole('button', { name: 'Mark as read' })).toHaveCount(0);
   });
 });
 
@@ -109,6 +137,28 @@ async function openUsersPageAsAdmin(page: Page) {
   await gotoAndWaitForHydration(page, '/en/admin/users');
   await expect(page.getByRole('heading', { name: 'User management' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Send notification' })).toBeVisible();
+}
+
+async function deliverNotificationToRecipient(
+  page: Page,
+  input: { title: string; body: string; href?: string },
+) {
+  await loginWithCredentials(page, recipientUser.email, recipientUser.password);
+  const unreadBefore = await getUnreadNotificationCount(page);
+  await logoutFromProfileMenu(page);
+
+  await loginWithCredentials(page, adminUser.email, adminUser.password);
+  await openUsersPageAsAdmin(page);
+  await sendNotificationFromAdminUsersPage(page, {
+    recipientEmail: recipientUser.email,
+    title: input.title,
+    body: input.body,
+    href: input.href,
+  });
+  await logoutFromProfileMenu(page);
+
+  await loginWithCredentials(page, recipientUser.email, recipientUser.password);
+  await expect.poll(() => getUnreadNotificationCount(page)).toBeGreaterThan(unreadBefore);
 }
 
 async function sendNotificationFromAdminUsersPage(

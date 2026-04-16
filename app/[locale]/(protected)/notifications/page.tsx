@@ -1,6 +1,6 @@
-import { MarkAllReadButton } from '@/components/notifications/mark-all-read-button';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
+import { NotificationsFeedCard } from '@/components/notifications/notifications-feed-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getNotificationsPageDataUseCase } from '@/src/domain/notifications/use-cases';
@@ -8,7 +8,6 @@ import { createTranslator } from '@/src/i18n/messages';
 import { notFoundUnlessFeatureEnabled, requireAuth, resolveLocale } from '@/src/server/page-guards';
 
 const summaryKeys = ['unread', 'today', 'preferences'] as const;
-const badgeVariants = { unread: 'default', read: 'secondary' } as const;
 
 export default async function NotificationsPage({
   params,
@@ -54,57 +53,7 @@ export default async function NotificationsPage({
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
-        <Card className="rounded-[1.75rem]">
-          <CardHeader>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <CardTitle>{t('feed.title')}</CardTitle>
-                <CardDescription>{t('feed.description')}</CardDescription>
-              </div>
-              <MarkAllReadButton disabled={data.unreadCount === 0} />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.items.length > 0 ? data.items.map((item) => {
-              const status = item.status as keyof typeof badgeVariants;
-              const content = (
-                <>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={badgeVariants[status]}>{t(`feed.status.${item.status}`)}</Badge>
-                        <span className="text-xs font-medium uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
-                          {formatNotificationDate(item.createdAt)}
-                        </span>
-                      </div>
-                      <h2 className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{item.title}</h2>
-                    </div>
-                  </div>
-
-                  <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{item.body}</p>
-                </>
-              );
-
-              if (item.href) {
-                return (
-                  <LocalizedLink key={item.id} href={item.href} locale={locale} className="block rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900/70 dark:hover:border-zinc-700 dark:hover:bg-zinc-900">
-                    {content}
-                  </LocalizedLink>
-                );
-              }
-
-              return (
-                <article key={item.id} className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-900/70">
-                  {content}
-                </article>
-              );
-            }) : (
-              <div className="rounded-2xl border border-dashed border-zinc-200 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                {t('feed.empty')}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <NotificationsFeedCard items={data.items} unreadCount={data.unreadCount} />
 
         <div className="space-y-6">
           <Card className="rounded-[1.75rem]">
@@ -133,8 +82,4 @@ export default async function NotificationsPage({
       </div>
     </section>
   );
-}
-
-function formatNotificationDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }

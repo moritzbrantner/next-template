@@ -60,12 +60,22 @@ export function buildPublicProfileBlogPath(tag: string) {
   return `${buildPublicProfilePath(tag)}/blog`;
 }
 
+function decodeProfileTagSegment(segment: string) {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return null;
+  }
+}
+
 export function parseProfileTagSegment(segment: string) {
-  if (!segment.startsWith('@')) {
+  const decodedSegment = decodeProfileTagSegment(segment);
+
+  if (!decodedSegment?.startsWith('@')) {
     return null;
   }
 
-  const tag = normalizeProfileTagInput(segment);
+  const tag = normalizeProfileTagInput(decodedSegment);
   return validateProfileTag(tag).ok ? tag : null;
 }
 

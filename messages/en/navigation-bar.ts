@@ -29,6 +29,9 @@ export const navigationBar = {
     title: 'Notifications',
     subtitle: '{count} unread right now',
     empty: 'No notifications yet.',
+    markRead: 'Mark as read',
+    markingRead: 'Updating...',
+    markReadError: 'Unable to update this notification right now.',
     viewAll: 'View all notifications',
   },
   hotkeys: {
