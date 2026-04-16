@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useOptimistic, useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
+import { MarkNotificationReadButton } from '@/components/notifications/mark-notification-read-button';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import type { NotificationFeedItem } from '@/src/domain/notifications/use-cases';
@@ -13,9 +14,31 @@ type NotificationBellProps = {
   unreadCount: number;
 };
 
+type NotificationBellState = {
+  items: NotificationFeedItem[];
+  unreadCount: number;
+};
+
 export function NotificationBell({ items, unreadCount }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const navigationT = useTranslations('NavigationBar');
+  const [state, applyOptimisticUpdate] = useOptimistic<NotificationBellState, string>(
+    { items, unreadCount },
+    (currentState, notificationId) => {
+      const target = currentState.items.find((item) => item.id === notificationId);
+
+      if (!target || target.status === 'read') {
+        return currentState;
+      }
+
+      return {
+        items: currentState.items.map((item) =>
+          item.id === notificationId ? { ...item, status: 'read' } : item,
+        ),
+        unreadCount: Math.max(0, currentState.unreadCount - 1),
+      };
+    },
+  );
 
   return (
     <div
@@ -29,15 +52,15 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
       <button
         type="button"
         className="relative flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-        aria-label={navigationT('notifications.button', { count: unreadCount })}
+        aria-label={navigationT('notifications.button', { count: state.unreadCount })}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((current) => !current)}
       >
         <BellIcon />
-        {unreadCount > 0 ? (
+        {state.unreadCount > 0 ? (
           <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-semibold leading-5 text-white">
-            {unreadCount}
+            {state.unreadCount}
           </span>
         ) : null}
       </button>
@@ -50,15 +73,15 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
                 {navigationT('notifications.title')}
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {navigationT('notifications.subtitle', { count: unreadCount })}
+                {navigationT('notifications.subtitle', { count: state.unreadCount })}
               </p>
             </div>
-            {unreadCount > 0 ? <Badge>{unreadCount}</Badge> : null}
+            {state.unreadCount > 0 ? <Badge>{state.unreadCount}</Badge> : null}
           </div>
 
           <div className="mt-3 space-y-2">
-            {items.length > 0 ? (
-              items.map((item) => {
+            {state.items.length > 0 ? (
+              state.items.map((item) => {
                 const content = (
                   <>
                     <div className="flex items-start justify-between gap-3">
@@ -78,26 +101,37 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
                   </>
                 );
 
-                if (item.href) {
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className="block rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
-                    >
-                      {content}
-                    </Link>
-                  );
-                }
-
                 return (
-                  <div
+                  <article
                     key={item.id}
                     className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3 dark:border-zinc-800 dark:bg-zinc-950"
                   >
-                    {content}
-                  </div>
+                    {item.href ? (
+                      <Link
+                        href={item.href}
+                        onClick={() => setOpen(false)}
+                        className="block transition-colors hover:text-zinc-950 dark:hover:text-zinc-50"
+                      >
+                        {content}
+                      </Link>
+                    ) : (
+                      content
+                    )}
+
+                    {item.status === 'unread' ? (
+                      <MarkNotificationReadButton
+                        notificationId={item.id}
+                        label={navigationT('notifications.markRead')}
+                        pendingLabel={navigationT('notifications.markingRead')}
+                        errorLabel={navigationT('notifications.markReadError')}
+                        onSuccess={() => {
+                          applyOptimisticUpdate(item.id);
+                        }}
+                        className="mt-3 px-0 text-xs"
+                        errorClassName="text-xs text-red-600 dark:text-red-400"
+                      />
+                    ) : null}
+                  </article>
                 );
               })
             ) : (

@@ -23,6 +23,9 @@ export const notificationsPage = {
     title: 'Letzte Aktivitaeten',
     description: 'Hier stehen deine zuletzt zugestellten In-App-Benachrichtigungen.',
     empty: 'Noch keine Benachrichtigungen.',
+    markRead: 'Als gelesen markieren',
+    markingRead: 'Wird aktualisiert...',
+    markReadError: 'Diese Benachrichtigung konnte gerade nicht aktualisiert werden.',
     status: {
       unread: 'Ungelesen',
       read: 'Gelesen',

@@ -22,6 +22,9 @@ export const notificationsPage = {
     title: 'Recent activity',
     description: 'Your latest in-app notifications are listed below.',
     empty: 'No notifications yet.',
+    markRead: 'Mark as read',
+    markingRead: 'Updating...',
+    markReadError: 'Unable to update this notification right now.',
     status: {
       unread: 'Unread',
       read: 'Read',

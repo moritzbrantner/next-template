@@ -9,9 +9,10 @@ import { useTranslations } from '@/src/i18n';
 
 type MarkAllReadButtonProps = {
   disabled?: boolean;
+  onSuccess?: () => void;
 };
 
-export function MarkAllReadButton({ disabled = false }: MarkAllReadButtonProps) {
+export function MarkAllReadButton({ disabled = false, onSuccess }: MarkAllReadButtonProps) {
   const t = useTranslations('NotificationsPage');
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -32,6 +33,7 @@ export function MarkAllReadButton({ disabled = false }: MarkAllReadButtonProps) 
       return;
     }
 
+    onSuccess?.();
     setPending(false);
     router.refresh();
   }

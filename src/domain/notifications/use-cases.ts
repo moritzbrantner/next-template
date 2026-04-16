@@ -257,6 +257,41 @@ export async function markAllNotificationsReadUseCase(userId: string) {
   return success({ updated: true });
 }
 
+export async function markNotificationReadUseCase(
+  userId: string,
+  notificationId: string,
+): Promise<ServiceResult<{ updated: boolean }, NotificationError>> {
+  const updatedNotifications = await getDb()
+    .update(notifications)
+    .set({
+      status: 'read',
+      readAt: new Date(),
+    })
+    .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId), eq(notifications.status, 'unread')))
+    .returning({ id: notifications.id });
+
+  if (updatedNotifications.length > 0) {
+    return success({ updated: true });
+  }
+
+  const existingNotification = await getDb().query.notifications.findFirst({
+    where: (table, { and: innerAnd, eq: innerEq }) =>
+      innerAnd(innerEq(table.id, notificationId), innerEq(table.userId, userId)),
+    columns: {
+      id: true,
+    },
+  });
+
+  if (!existingNotification) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'Notification not found.',
+    });
+  }
+
+  return success({ updated: false });
+}
+
 export async function getAdminUsersPageDataUseCase(): Promise<AdminUsersPageData> {
   const userRecords = await getDb().query.users.findMany({
     orderBy: (table, { desc: innerDesc }) => [innerDesc(table.createdAt)],

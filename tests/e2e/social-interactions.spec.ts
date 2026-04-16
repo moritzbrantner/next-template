@@ -16,6 +16,25 @@ const aliceUser = getSeededUser('alice@example.com');
 const hiddenUser = getSeededUser('private@example.com');
 
 test.describe('social interactions', () => {
+  test('loads a logged-in user public profile by tag and exposes the edit action', async ({ page }) => {
+    await loginWithCredentials(page, aliceUser.email, aliceUser.password);
+    await gotoAndWaitForHydration(page, '/en/profile/@alice');
+
+    await expect(page).toHaveURL('/en/profile/@alice');
+    await expect(page.getByText('Alice Archer', { exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Edit profile' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Follow' })).toHaveCount(0);
+  });
+
+  test('loads another user public profile by tag and exposes follow controls', async ({ page }) => {
+    await loginWithCredentials(page, aliceUser.email, aliceUser.password);
+    await gotoAndWaitForHydration(page, '/en/profile/@bob');
+
+    await expect(page).toHaveURL('/en/profile/@bob');
+    await expect(page.getByText('Bob Baker', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Follow' })).toBeVisible();
+  });
+
   test('lets a user follow and unfollow discoverable people from the directory', async ({ page }) => {
     await loginWithCredentials(page, primaryUser.email, primaryUser.password);
     await gotoAndWaitForHydration(page, '/en/people');
