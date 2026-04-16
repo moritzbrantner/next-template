@@ -20,6 +20,7 @@ export const normalNextConfig: NextConfig = {
   allowedDevOrigins: [
     ...allowedDevOrigins,
   ],
+  transpilePackages: ['@moritzbrantner/ui', '@moritzbrantner/storytelling'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
@@ -32,6 +33,7 @@ export const githubPagesNextConfig: NextConfig = {
   allowedDevOrigins: [
     ...allowedDevOrigins,
   ],
+  transpilePackages: ['@moritzbrantner/ui', '@moritzbrantner/storytelling'],
   assetPrefix: githubPagesBasePath === '/' ? undefined : githubPagesBasePath,
   basePath: githubPagesBasePath === '/' ? undefined : githubPagesBasePath,
   images: {

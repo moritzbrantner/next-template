@@ -3,7 +3,7 @@ export const remocnPage = {
   subeyebrow: 'Installed from remocn.dev with the CLI',
   title: 'A remocn showcase route inside the existing app shell.',
   description:
-    'This page embeds remocn primitives directly in the TanStack Start app. The components were pulled from the official registry and rendered in-browser with the Remotion player.',
+    'This page embeds remocn primitives directly in the Next.js App Router app. The components were pulled from the official registry and rendered in-browser with the Remotion player.',
   supportingCopy:
     'remocn is documented for Remotion projects first. In this repo, the same building blocks are mounted as interactive previews so you can evaluate the motion language without leaving the app.',
   actions: {
