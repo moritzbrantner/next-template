@@ -1,12 +1,13 @@
 export const settingsPage = {
   title: 'Einstellungen',
-  description: 'Passe Erscheinungsbild, Datumsverhalten, Benachrichtigungseinstellungen, Hotkey-Sichtbarkeit und Profilsteuerung an einer Stelle an.',
+  description: 'Passe Erscheinungsbild, Datumsverhalten, Benachrichtigungseinstellungen, Datenschutz, Hotkey-Sichtbarkeit und Profilsteuerung an einer Stelle an.',
   saveState: 'Einstellungen werden automatisch gespeichert',
   tabs: {
     appearance: 'Darstellung',
     dates: 'Datum',
     workflow: 'Arbeitsfluss',
     notifications: 'Benachrichtigungen',
+    privacy: 'Datenschutz',
     account: 'Konto',
   },
   roles: {
@@ -94,6 +95,10 @@ export const settingsPage = {
       silent: 'Still',
     },
   },
+  privacy: {
+    title: 'Datenschutzoptionen',
+    description: 'Lege fest, ob andere dein Profil finden können und wie sichtbar deine Profilaktivität ist.',
+  },
   account: {
     email: {
       title: 'E-Mail-Adresse',
@@ -121,10 +126,10 @@ export const settingsPage = {
   profilePictureTitle: 'Profilbild',
   profilePictureDescription: 'Lade ein neues Profilbild hoch oder entferne dein aktuelles Bild.',
   profileDiscovery: {
-    title: 'Profilsichtbarkeit',
-    description: 'Steuere, ob dein Profil in der Benutzersuche für neue Follower erscheint.',
-    toggleTitle: 'In der Suche anzeigen',
-    toggleDescription: 'Wenn aktiviert, können andere angemeldete Benutzer dein Profil auf der Personen-Seite finden.',
+    title: 'Suche und Auffindbarkeit',
+    description: 'Steuere, ob dein Profil erscheint, wenn andere nach Benutzern zum Folgen suchen.',
+    toggleTitle: 'Von anderen gefunden werden',
+    toggleDescription: 'Wenn aktiviert, können andere angemeldete Benutzer dein Profil auf der Personen-Seite und in vergleichbaren Suchansichten finden.',
     saving: 'Suchsichtbarkeit wird gespeichert…',
     successEnabled: 'Dein Profil kann jetzt in der Suche gefunden werden.',
     successDisabled: 'Dein Profil wurde aus den Suchergebnissen entfernt.',
