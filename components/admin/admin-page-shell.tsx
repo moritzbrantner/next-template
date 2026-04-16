@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 
 import { Link, usePathname } from '@/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
-import { adminPageDefinitions } from '@/src/admin/pages';
+import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
 import { useTranslations } from '@/src/i18n';
 
 type AdminPageShellProps = {
@@ -16,6 +16,7 @@ type AdminPageShellProps = {
 export function AdminPageShell({ title, description, children }: AdminPageShellProps) {
   const pathname = usePathname();
   const t = useTranslations('AdminPage');
+  const adminPages = getEnabledAdminPageDefinitions();
 
   return (
     <section className="mx-auto max-w-6xl space-y-6">
@@ -30,8 +31,8 @@ export function AdminPageShell({ title, description, children }: AdminPageShellP
       </header>
 
       <nav className="flex flex-wrap gap-2 rounded-3xl border border-zinc-200 bg-white/70 p-2 dark:border-zinc-800 dark:bg-zinc-950/60">
-        {adminPageDefinitions.map((page) => {
-          const isActive = pathname === page.href;
+        {adminPages.map((page) => {
+          const isActive = pathname === page.href || (page.href !== '/admin' && pathname.startsWith(`${page.href}/`));
 
           return (
             <Link

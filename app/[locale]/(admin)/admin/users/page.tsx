@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAdminUsersPageDataUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 const userMetricKeys = ['privileged', 'operational', 'member'] as const;
 const workflowKeys = ['inspect', 'broadcast', 'suspend'] as const;
@@ -19,6 +19,7 @@ export default async function UsersPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('admin.users');
   const t = createTranslator(locale, 'AdminPage');
   const data = await getAdminUsersPageDataUseCase();
 

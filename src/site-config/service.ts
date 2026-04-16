@@ -4,23 +4,53 @@ import { eq, inArray } from 'drizzle-orm';
 import { getEnv } from '@/src/config/env';
 import { getDb } from '@/src/db/client';
 import { featureFlags, siteAnnouncements, siteSettings } from '@/src/db/schema';
+import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
 import { getLogger } from '@/src/observability/logger';
 import type { AppLocale } from '@/i18n/routing';
 import type { FeatureFlagKey, PublicSiteConfig, SiteSettingKey } from '@/src/site-config/contracts';
 import { featureFlagKeys, siteSettingKeys } from '@/src/site-config/contracts';
 
-type SiteAnnouncementRecord = {
+export const siteAnnouncementStatuses = ['draft', 'scheduled', 'published', 'archived'] as const;
+export type SiteAnnouncementStatus = (typeof siteAnnouncementStatuses)[number];
+
+export type SiteAnnouncementRecord = {
   id: string;
   locale: string;
   title: string;
   body: string;
   href: string | null;
-  status: 'draft' | 'scheduled' | 'published' | 'archived';
+  status: SiteAnnouncementStatus;
   publishAt: string | null;
   unpublishAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
+
+export type SiteAnnouncementInput = {
+  id?: string;
+  locale: AppLocale;
+  title: string;
+  body: string;
+  href?: string;
+  status: SiteAnnouncementStatus;
+  publishAt?: Date | null;
+  unpublishAt?: Date | null;
+};
+
+export type SiteAnnouncementValidationErrors = Partial<Record<'title' | 'body' | 'status' | 'publishAt' | 'unpublishAt', string>>;
+
+export type SiteAnnouncementError = {
+  message: string;
+  fieldErrors: SiteAnnouncementValidationErrors;
+};
+
+export type SaveAnnouncementResult = ServiceResult<{
+  id: string;
+  locale: AppLocale;
+  status: SiteAnnouncementStatus;
+  publishAt: Date | null;
+  unpublishAt: Date | null;
+}, SiteAnnouncementError>;
 
 type SiteSettingsRows = Awaited<ReturnType<ReturnType<typeof getDb>['query']['siteSettings']['findMany']>>;
 type FeatureFlagRows = Awaited<ReturnType<ReturnType<typeof getDb>['query']['featureFlags']['findMany']>>;
@@ -65,6 +95,10 @@ const databaseReadFallbackErrorCodes = new Set([
 
 function normalizeBoolean(value: number) {
   return value === 1;
+}
+
+function isInvalidDate(value: Date | null | undefined) {
+  return value instanceof Date && Number.isNaN(value.getTime());
 }
 
 function invalidateSiteConfigCache() {
@@ -418,16 +452,73 @@ export async function getAnnouncementById(id: string) {
   };
 }
 
-export async function saveAnnouncement(input: {
-  id?: string;
-  locale: AppLocale;
+export function validateAnnouncementInput(input: SiteAnnouncementInput): ServiceResult<{
   title: string;
   body: string;
-  href?: string;
-  status: 'draft' | 'scheduled' | 'published' | 'archived';
-  publishAt?: Date | null;
-  unpublishAt?: Date | null;
-}) {
+  href: string | null;
+  status: SiteAnnouncementStatus;
+  publishAt: Date | null;
+  unpublishAt: Date | null;
+}, SiteAnnouncementError> {
+  const title = input.title.trim();
+  const body = input.body.trim();
+  const href = input.href?.trim() || null;
+  const publishAt = input.publishAt ?? null;
+  const unpublishAt = input.unpublishAt ?? null;
+  const fieldErrors: SiteAnnouncementValidationErrors = {};
+
+  if (!title) {
+    fieldErrors.title = 'Title is required.';
+  }
+
+  if (!body) {
+    fieldErrors.body = 'Body is required.';
+  }
+
+  if (isInvalidDate(publishAt)) {
+    fieldErrors.publishAt = 'Publish time must be a valid date.';
+  }
+
+  if (isInvalidDate(unpublishAt)) {
+    fieldErrors.unpublishAt = 'Unpublish time must be a valid date.';
+  }
+
+  if (input.status === 'scheduled' && !publishAt) {
+    fieldErrors.publishAt = 'Scheduled announcements require a publish time.';
+  }
+
+  if (unpublishAt && !publishAt && input.status !== 'published') {
+    fieldErrors.unpublishAt = 'Choose a publish time before scheduling an unpublish time.';
+  }
+
+  if (publishAt && unpublishAt && unpublishAt.getTime() <= publishAt.getTime()) {
+    fieldErrors.unpublishAt = 'Unpublish time must be later than publish time.';
+  }
+
+  if (Object.keys(fieldErrors).length > 0) {
+    return failure({
+      message: 'Announcement details are invalid.',
+      fieldErrors,
+    });
+  }
+
+  return success({
+    title,
+    body,
+    href,
+    status: input.status,
+    publishAt,
+    unpublishAt,
+  });
+}
+
+export async function saveAnnouncement(input: SiteAnnouncementInput): Promise<SaveAnnouncementResult> {
+  const validated = validateAnnouncementInput(input);
+
+  if (!validated.ok) {
+    return validated;
+  }
+
   const id = input.id ?? crypto.randomUUID();
   const now = new Date();
 
@@ -436,12 +527,12 @@ export async function saveAnnouncement(input: {
     .values({
       id,
       locale: input.locale,
-      title: input.title.trim(),
-      body: input.body.trim(),
-      href: input.href?.trim() || null,
-      status: input.status,
-      publishAt: input.publishAt ?? null,
-      unpublishAt: input.unpublishAt ?? null,
+      title: validated.data.title,
+      body: validated.data.body,
+      href: validated.data.href,
+      status: validated.data.status,
+      publishAt: validated.data.publishAt,
+      unpublishAt: validated.data.unpublishAt,
       createdAt: now,
       updatedAt: now,
     })
@@ -449,18 +540,48 @@ export async function saveAnnouncement(input: {
       target: siteAnnouncements.id,
       set: {
         locale: input.locale,
-        title: input.title.trim(),
-        body: input.body.trim(),
-        href: input.href?.trim() || null,
-        status: input.status,
-        publishAt: input.publishAt ?? null,
-        unpublishAt: input.unpublishAt ?? null,
+        title: validated.data.title,
+        body: validated.data.body,
+        href: validated.data.href,
+        status: validated.data.status,
+        publishAt: validated.data.publishAt,
+        unpublishAt: validated.data.unpublishAt,
         updatedAt: now,
       },
     });
 
   revalidateTag(ACTIVE_ANNOUNCEMENTS_TAG, 'max');
-  return id;
+  return success({
+    id,
+    locale: input.locale,
+    status: validated.data.status,
+    publishAt: validated.data.publishAt,
+    unpublishAt: validated.data.unpublishAt,
+  });
+}
+
+export async function publishAnnouncementNow(id: string) {
+  await getDb()
+    .update(siteAnnouncements)
+    .set({
+      status: 'published',
+      updatedAt: new Date(),
+    })
+    .where(eq(siteAnnouncements.id, id));
+
+  revalidateTag(ACTIVE_ANNOUNCEMENTS_TAG, 'max');
+}
+
+export async function archiveAnnouncementNow(id: string) {
+  await getDb()
+    .update(siteAnnouncements)
+    .set({
+      status: 'archived',
+      updatedAt: new Date(),
+    })
+    .where(eq(siteAnnouncements.id, id));
+
+  revalidateTag(ACTIVE_ANNOUNCEMENTS_TAG, 'max');
 }
 
 export async function deleteAnnouncement(id: string) {

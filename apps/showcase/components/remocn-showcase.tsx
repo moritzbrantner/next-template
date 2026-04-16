@@ -15,10 +15,10 @@ import { TerminalSimulator, type TerminalLine } from '@/src/components/remocn/te
 const docsUrl = 'https://www.remocn.dev/docs/components';
 const installUrl = 'https://www.remocn.dev/docs/getting-started/installation';
 const installCommand =
-  'pnpm dlx shadcn@latest add @remocn/blur-reveal @remocn/matrix-decode @remocn/spotlight-card @remocn/terminal-simulator';
+  'bunx shadcn@latest add @remocn/blur-reveal @remocn/matrix-decode @remocn/spotlight-card @remocn/terminal-simulator';
 
 const terminalLines: TerminalLine[] = [
-  { text: 'pnpm dlx shadcn@latest add @remocn/terminal-simulator', type: 'command', delay: 0 },
+  { text: 'bunx shadcn@latest add @remocn/terminal-simulator', type: 'command', delay: 0 },
   { text: 'Checking registry...', type: 'log', delay: 8, pause: 12 },
   { text: 'Installing remotion peer dependencies...', type: 'log', delay: 6 },
   { text: 'Creating src/components/remocn/terminal-simulator.tsx', type: 'success', delay: 10 },

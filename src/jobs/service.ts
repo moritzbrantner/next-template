@@ -1,17 +1,18 @@
 import { and, eq, inArray, isNull, lte, or } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
-import { jobOutbox, notifications, pageVisitQueryParameters, pageVisits, siteAnnouncements } from '@/src/db/schema';
+import { jobOutbox, notifications, pageVisitQueryParameters, pageVisits } from '@/src/db/schema';
 import { sendEmail } from '@/src/email/service';
 import type { JobName, JobPayloadMap } from '@/src/jobs/contracts';
 import { getLogger } from '@/src/observability/logger';
+import { archiveAnnouncementNow, getAnnouncementById, publishAnnouncementNow } from '@/src/site-config/service';
 
 const MAX_JOB_ATTEMPTS = 5;
 
 export class PermanentJobError extends Error {}
 
 function isJobName(value: string): value is JobName {
-  return ['sendEmail', 'fanoutNotification', 'publishAnnouncement', 'pruneAnalytics'].includes(value);
+  return ['sendEmail', 'fanoutNotification', 'publishAnnouncement', 'archiveAnnouncement', 'pruneAnalytics'].includes(value);
 }
 
 async function runSendEmailJob(payload: JobPayloadMap['sendEmail']) {
@@ -40,22 +41,36 @@ async function runFanoutNotificationJob(payload: JobPayloadMap['fanoutNotificati
   );
 }
 
+export function scheduledTimestampMatches(value: Date | null | undefined, scheduledFor: string) {
+  return value?.toISOString() === scheduledFor;
+}
+
 async function runPublishAnnouncementJob(payload: JobPayloadMap['publishAnnouncement']) {
-  const announcement = await getDb().query.siteAnnouncements.findFirst({
-    where: (table, { eq: equals }) => equals(table.id, payload.announcementId),
-  });
+  const announcement = await getAnnouncementById(payload.announcementId);
 
   if (!announcement) {
     throw new PermanentJobError(`Announcement ${payload.announcementId} was not found.`);
   }
 
-  await getDb()
-    .update(siteAnnouncements)
-    .set({
-      status: 'published',
-      updatedAt: new Date(),
-    })
-    .where(eq(siteAnnouncements.id, payload.announcementId));
+  if (!scheduledTimestampMatches(announcement.publishAt, payload.scheduledFor)) {
+    return;
+  }
+
+  await publishAnnouncementNow(payload.announcementId);
+}
+
+async function runArchiveAnnouncementJob(payload: JobPayloadMap['archiveAnnouncement']) {
+  const announcement = await getAnnouncementById(payload.announcementId);
+
+  if (!announcement) {
+    throw new PermanentJobError(`Announcement ${payload.announcementId} was not found.`);
+  }
+
+  if (!scheduledTimestampMatches(announcement.unpublishAt, payload.scheduledFor)) {
+    return;
+  }
+
+  await archiveAnnouncementNow(payload.announcementId);
 }
 
 async function runPruneAnalyticsJob(payload: JobPayloadMap['pruneAnalytics']) {
@@ -86,6 +101,8 @@ async function runJob(jobName: JobName, payload: JobPayloadMap[JobName]) {
       return runFanoutNotificationJob(payload as JobPayloadMap['fanoutNotification']);
     case 'publishAnnouncement':
       return runPublishAnnouncementJob(payload as JobPayloadMap['publishAnnouncement']);
+    case 'archiveAnnouncement':
+      return runArchiveAnnouncementJob(payload as JobPayloadMap['archiveAnnouncement']);
     case 'pruneAnalytics':
       return runPruneAnalyticsJob(payload as JobPayloadMap['pruneAnalytics']);
     default:

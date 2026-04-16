@@ -7,7 +7,7 @@ This repo is structured for subtree-based downstream repos.
 1. Keep downstream-only changes in `app.config.ts` and `apps/<app>/**`.
 2. Pull upstream foundation changes into your downstream repo with your normal subtree merge flow.
 3. Resolve conflicts in foundation-owned paths first.
-4. Re-run `pnpm run typecheck` and the relevant test suites after the merge.
+4. Re-run `bun run typecheck` and the relevant test suites after the merge.
 
 ## Why this layout helps
 
@@ -21,5 +21,5 @@ This repo is structured for subtree-based downstream repos.
 - Confirm `app.config.ts` still points at the intended app pack.
 - Review `apps/<app>/manifest.ts` for new feature keys or contract changes.
 - Reconcile any new foundation feature modules with your app manifest.
-- Run `pnpm run typecheck`.
+- Run `bun run typecheck`.
 - Run the unit and integration tests that cover manifest routing and feature gates.

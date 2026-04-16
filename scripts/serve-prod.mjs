@@ -35,7 +35,7 @@ const port = String(Number(args.get('port') ?? process.env.PORT ?? '3000'));
 try {
   await access(nextBuildDir);
 } catch {
-  console.error(`Missing Next.js build output at ${nextBuildDir}. Run "pnpm run build" first.`);
+  console.error(`Missing Next.js build output at ${nextBuildDir}. Run "bun run build" first.`);
   process.exit(1);
 }
 

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { createTranslator } from '@/src/i18n/messages';
 import type { FeatureFlagKey, SiteSettingKey } from '@/src/site-config/contracts';
 import { listFeatureFlags, listSiteSettings, upsertFeatureFlag, upsertSiteSetting } from '@/src/site-config/service';
-import { resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 async function saveSetting(formData: FormData) {
   'use server';
@@ -38,6 +38,7 @@ export default async function SystemSettingsPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  notFoundUnlessFeatureEnabled('admin.systemSettings');
   const t = createTranslator(locale, 'AdminPage');
   const [settings, flags] = await Promise.all([listSiteSettings(), listFeatureFlags()]);
 

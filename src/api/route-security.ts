@@ -32,11 +32,20 @@ type JsonResponseOptions = {
   headers?: HeadersInit;
 };
 
+type ResponseOptions = {
+  status?: number;
+  outcome?: AuditOutcome;
+  metadata?: Record<string, unknown>;
+  headers?: HeadersInit;
+  statusText?: string;
+};
+
 type RouteSecuritySuccess = {
   ok: true;
   session: AppSession | null;
   actorId: string | null;
   json: (body: unknown, options?: JsonResponseOptions) => Promise<Response>;
+  respond: (body: BodyInit | null | undefined, options?: ResponseOptions) => Promise<Response>;
 };
 
 type RouteSecurityFailure = {
@@ -196,6 +205,28 @@ export function createRouteSecurity(deps: SecurityDependencies) {
 
         return Response.json(body, {
           status,
+          headers,
+        });
+      },
+      respond: async (body, responseOptions = {}) => {
+        const status = responseOptions.status ?? 200;
+        const outcome = responseOptions.outcome ?? defaultOutcomeForStatus(status);
+        const headers = mergeHeaders(withRateLimitHeaders(rateLimit), responseOptions.headers);
+
+        await deps.auditAction({
+          actorId,
+          action: options.action,
+          outcome,
+          statusCode: status,
+          metadata: {
+            ...(options.metadata ?? {}),
+            ...(responseOptions.metadata ?? {}),
+          },
+        });
+
+        return new Response(body, {
+          status,
+          statusText: responseOptions.statusText,
           headers,
         });
       },

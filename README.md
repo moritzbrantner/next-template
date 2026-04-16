@@ -30,34 +30,34 @@ cp .env.e2e.example .env.e2e
 3. Start local development:
 
 ```bash
-pnpm install
-pnpm run dev
+bun install
+bun run dev
 ```
 
-`pnpm run dev` starts an ephemeral Postgres database, applies migrations, seeds baseline users, regenerates `db-schema.json`, and launches the app.
+`bun run dev` starts an ephemeral Postgres database, applies migrations, seeds baseline users, regenerates `db-schema.json`, and launches the app.
 
 ## Long-lived local database
 
 ```bash
 docker compose up -d postgres mailpit
-pnpm run db:migrate
-pnpm run db:schema:generate
-pnpm run db:seed:test-users
-pnpm run dev:app
+bun run db:migrate
+bun run db:schema:generate
+bun run db:seed:test-users
+bun run dev:app
 ```
 
 Run the outbox worker in another shell if you want queued email and announcement jobs processed locally:
 
 ```bash
-pnpm run jobs:work
+bun run jobs:work
 ```
 
 ## Checks
 
 ```bash
-pnpm run checks:nightly
-pnpm run checks:beta
-pnpm run checks:main
+bun run checks:nightly
+bun run checks:beta
+bun run checks:main
 ```
 
 - `checks:nightly`: lint, typecheck, unit tests
@@ -67,12 +67,12 @@ pnpm run checks:main
 ## GitHub Pages build with Unlighthouse
 
 ```bash
-pnpm run build:gh-pages
+bun run build:gh-pages
 ```
 
 This GitHub Pages build now runs in two passes. It first exports the static site with `NEXT_DEPLOY_TARGET=gh-pages`, serves that export locally, runs `unlighthouse-ci` against the exported files, writes `.generated/unlighthouse/ci-result.json`, and then exports the site again so `/en/unlighthouse` and `/de/unlighthouse` are baked into the final static artifact.
 
-The GitHub Actions Pages workflow uses this build path, so the published Pages site includes a static Unlighthouse summary page. `pnpm run build:staging` is now an alias to the same flow. The generated report directory is ignored by git.
+The GitHub Actions Pages workflow uses this build path, so the published Pages site includes a static Unlighthouse summary page. `bun run build:staging` is now an alias to the same flow. The generated report directory is ignored by git.
 
 ## Seeded users
 

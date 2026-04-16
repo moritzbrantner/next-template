@@ -3,8 +3,13 @@ import { secureRoute } from '@/src/api/route-security';
 import { getDb } from '@/src/db/client';
 import { writableTableMap } from '@/src/dynamic-db/config';
 import { normalizeFieldValue, parseDbSchemaDocument } from '@/src/dynamic-db/schema';
+import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 
 export async function POST(request: Request) {
+  if (!isFeatureEnabled('admin.dataStudio')) {
+    return new Response('Not found', { status: 404 });
+  }
+
   const guard = await secureRoute({
     request,
     action: 'admin.dataStudio.createRecord',

@@ -174,4 +174,45 @@ describe('feature gating', () => {
 
     expect(response.status).toBe(404);
   });
+
+  it('returns 404 for disabled admin pages and APIs', async () => {
+    createApiMocks();
+    vi.doMock('@/src/foundation/features/runtime', () => createFeatureMock(['admin.reports', 'admin.users', 'admin.dataStudio']));
+
+    const notFound = vi.fn(() => {
+      throw new Error('NOT_FOUND');
+    });
+    vi.doMock('next/navigation', async () => {
+      const actual = await vi.importActual<typeof import('next/navigation')>('next/navigation');
+      return {
+        ...actual,
+        notFound,
+      };
+    });
+
+    const reportsPage = await import('@/app/[locale]/(admin)/admin/reports/page');
+    await expect(
+      reportsPage.default({
+        params: Promise.resolve({ locale: 'en' }),
+      }),
+    ).rejects.toThrow('NOT_FOUND');
+
+    const notificationsRoute = await import('@/app/api/admin/notifications/route');
+    const notificationResponse = await notificationsRoute.POST(
+      new Request('http://localhost/api/admin/notifications', {
+        method: 'POST',
+        body: new FormData(),
+      }),
+    );
+    expect(notificationResponse.status).toBe(404);
+
+    const dataStudioRoute = await import('@/app/api/admin/data-studio/records/route');
+    const dataStudioResponse = await dataStudioRoute.POST(
+      new Request('http://localhost/api/admin/data-studio/records', {
+        method: 'POST',
+        body: new FormData(),
+      }),
+    );
+    expect(dataStudioResponse.status).toBe(404);
+  });
 });

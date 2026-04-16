@@ -219,7 +219,7 @@ async function waitForStaticExport(url, timeoutMs = 60_000) {
 
 function runNextBuild() {
   return new Promise((resolve, reject) => {
-    const child = spawn('pnpm', ['exec', 'next', 'build'], {
+    const child = spawn('bun', ['run', 'build'], {
       cwd: repoRoot,
       stdio: 'inherit',
       env: {
@@ -244,9 +244,9 @@ function runNextBuild() {
 function runUnlighthouse() {
   return new Promise((resolve, reject) => {
     const child = spawn(
-      'pnpm',
+      'bun',
       [
-        'exec',
+        'x',
         'unlighthouse-ci',
         '--site',
         previewOrigin,

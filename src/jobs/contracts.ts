@@ -1,6 +1,6 @@
 import type { SendEmailRequest } from '@/src/email/service';
 
-export const jobNames = ['sendEmail', 'fanoutNotification', 'publishAnnouncement', 'pruneAnalytics'] as const;
+export const jobNames = ['sendEmail', 'fanoutNotification', 'publishAnnouncement', 'archiveAnnouncement', 'pruneAnalytics'] as const;
 
 export type JobName = (typeof jobNames)[number];
 
@@ -17,6 +17,11 @@ export type JobPayloadMap = {
   };
   publishAnnouncement: {
     announcementId: string;
+    scheduledFor: string;
+  };
+  archiveAnnouncement: {
+    announcementId: string;
+    scheduledFor: string;
   };
   pruneAnalytics: {
     olderThanDays?: number;

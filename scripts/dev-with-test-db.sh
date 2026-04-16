@@ -187,7 +187,7 @@ start_database() {
 }
 
 if ! docker_available; then
-  echo "Docker is required for pnpm dev because it now starts an ephemeral Postgres database." >&2
+  echo "Docker is required for bun dev because it now starts an ephemeral Postgres database." >&2
   exit 1
 fi
 
@@ -201,25 +201,25 @@ start_database
 echo "Applying migrations to ephemeral dev database..."
 (
   cd "$APP_ROOT"
-  pnpm run db:migrate
+  bun run db:migrate
 )
 
 echo "Generating db-schema.json for local admin tooling..."
 (
   cd "$APP_ROOT"
-  pnpm run db:schema:generate
+  bun run db:schema:generate
 )
 
 echo "Seeding baseline users into ephemeral dev database..."
 (
   cd "$APP_ROOT"
-  pnpm run db:seed:test-users
+  bun run db:seed:test-users
 )
 
 echo "Launching app against the ephemeral database on port ${DEV_DB_PORT}..."
 (
   cd "$APP_ROOT"
-  pnpm run dev:app -- "$@"
+  bun run dev:app -- "$@"
 ) &
 DEV_APP_PID=$!
 wait "$DEV_APP_PID"
