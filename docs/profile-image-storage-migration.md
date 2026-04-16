@@ -19,6 +19,16 @@ Set these environment variables before enabling uploads:
 - `PROFILE_IMAGE_PUBLIC_BASE_URL` (base URL used to build stable image URLs)
 - `PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE` (`true` for providers requiring path-style addressing)
 
+For local development, `docker compose up -d minio minio-create-bucket` provisions a MinIO bucket with matching defaults from `.env.example`:
+
+- `PROFILE_IMAGE_STORAGE_BUCKET=profile-images`
+- `PROFILE_IMAGE_STORAGE_REGION=us-east-1`
+- `PROFILE_IMAGE_STORAGE_ENDPOINT=http://127.0.0.1:9000`
+- `PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID=minioadmin`
+- `PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY=minioadmin`
+- `PROFILE_IMAGE_PUBLIC_BASE_URL=http://127.0.0.1:9000/profile-images`
+- `PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE=true`
+
 ## Migration strategy
 
 1. Deploy code with object storage upload pipeline enabled.
