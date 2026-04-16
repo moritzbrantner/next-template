@@ -12,6 +12,20 @@ export const profilePage = {
     editProfile: 'Profil bearbeiten',
     error: 'Der Follow-Status konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
   },
+  followersPage: {
+    title: 'Follower',
+    description: '{name} hat {count} Follower.',
+    backToProfile: 'Zurück zum Profil',
+    summary: '{visibleCount} von {totalCount} Followern werden angezeigt.',
+    hiddenSummary: '{count} Follower sind durch Sichtbarkeitsrechte verborgen.',
+    empty: 'Dieses Profil hat noch keine Follower.',
+    hiddenEmpty: 'Es gibt Follower, aber ihre Sichtbarkeitsrollen erlauben hier keine Anzeige.',
+    roles: {
+      PUBLIC: 'Öffentlich',
+      MEMBERS: 'Mitglieder',
+      PRIVATE: 'Privat',
+    },
+  },
   form: {
     displayName: {
       label: 'Anzeigename',

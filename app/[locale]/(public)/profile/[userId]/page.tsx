@@ -56,6 +56,7 @@ export default async function PublicProfilePage({
         initialIsFollowing={profile.isFollowing}
         isOwnProfile={profile.isOwnProfile}
         canManageFollowState={Boolean(viewerUserId) && followEnabled}
+        canViewFollowersPage={followEnabled}
         labels={{
           followers: t('view.followers'),
           follow: t('view.follow'),

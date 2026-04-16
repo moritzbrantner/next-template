@@ -130,6 +130,27 @@ export const settingsPage = {
     successDisabled: 'Dein Profil wurde aus den Suchergebnissen entfernt.',
     error: 'Die Suchsichtbarkeit konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
   },
+  followerVisibility: {
+    title: 'Follower-Sichtbarkeit',
+    description: 'Lege fest, wer dich sehen kann, wenn du in der Follower-Liste eines anderen Profils erscheinst.',
+    saving: 'Follower-Sichtbarkeit wird gespeichert…',
+    success: 'Follower-Sichtbarkeit aktualisiert.',
+    error: 'Die Follower-Sichtbarkeit konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+    options: {
+      PUBLIC: {
+        title: 'Öffentlich',
+        description: 'Jeder kann dich auf einer Follower-Seite sehen.',
+      },
+      MEMBERS: {
+        title: 'Nur Mitglieder',
+        description: 'Nur angemeldete Benutzer sehen dich in Follower-Listen.',
+      },
+      PRIVATE: {
+        title: 'Privat',
+        description: 'Nur du und der Profilinhaber sehen dich in Follower-Listen.',
+      },
+    },
+  },
   form: {
     chooseImage: 'Profilbild auswählen',
     hint: 'Verwende für beste Ergebnisse ein quadratisches PNG- oder JPEG-Bild.',

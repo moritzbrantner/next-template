@@ -12,6 +12,20 @@ export const profilePage = {
     editProfile: 'Edit profile',
     error: 'Unable to update follow status right now. Please try again.',
   },
+  followersPage: {
+    title: 'Followers',
+    description: '{name} has {count} followers.',
+    backToProfile: 'Back to profile',
+    summary: 'Showing {visibleCount} of {totalCount} followers.',
+    hiddenSummary: '{count} followers are hidden by visibility permissions.',
+    empty: 'No one is following this profile yet.',
+    hiddenEmpty: 'Followers exist, but their visibility roles do not allow them to appear here.',
+    roles: {
+      PUBLIC: 'Public',
+      MEMBERS: 'Members',
+      PRIVATE: 'Private',
+    },
+  },
   form: {
     displayName: {
       label: 'Display name',

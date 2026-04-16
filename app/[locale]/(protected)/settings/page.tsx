@@ -1,5 +1,8 @@
 import { getConsentState } from '@/src/privacy/consent';
-import { getProfileSearchVisibilityUseCase } from '@/src/domain/profile/use-cases';
+import {
+  getProfileFollowerVisibilityUseCase,
+  getProfileSearchVisibilityUseCase,
+} from '@/src/domain/profile/use-cases';
 import { requireAuth, resolveLocale } from '@/src/server/page-guards';
 
 import { SettingsClient } from './settings-client';
@@ -13,7 +16,10 @@ export default async function SettingsPage({
   const locale = resolveLocale(rawLocale);
   const session = await requireAuth(locale);
   const consent = await getConsentState();
-  const visibilityResult = await getProfileSearchVisibilityUseCase(session.user.id);
+  const [visibilityResult, followerVisibilityResult] = await Promise.all([
+    getProfileSearchVisibilityUseCase(session.user.id),
+    getProfileFollowerVisibilityUseCase(session.user.id),
+  ]);
 
   return (
     <SettingsClient
@@ -21,6 +27,7 @@ export default async function SettingsPage({
       session={session}
       consent={consent.state}
       initialSearchVisibility={visibilityResult.ok ? visibilityResult.data.isSearchable : true}
+      initialFollowerVisibility={followerVisibilityResult.ok ? followerVisibilityResult.data.followerVisibility : 'PUBLIC'}
     />
   );
 }
