@@ -49,7 +49,7 @@ cleanup() {
 can_reach_database() {
   (
     cd "$APP_ROOT"
-    node --eval '
+    bun --eval '
       (async () => {
         const { Client } = require("pg");
         const client = new Client({ connectionString: process.env.DATABASE_URL });

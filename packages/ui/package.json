@@ -63,7 +63,7 @@
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean --out-dir dist",
-    "lint": "node ../../scripts/verify-package-imports.mjs ./src @/ next/",
+    "lint": "bun ../../scripts/verify-package-imports.mjs ./src @/ next/",
     "typecheck": "tsc --noEmit",
     "test": "cd ../.. && vitest run packages/ui/tests/ui.test.tsx"
   }

@@ -19,7 +19,7 @@ describe('bootstrap-e2e-db.sh', () => {
     const testDir = mkdtempSync(path.join(tmpdir(), 'bootstrap-e2e-db-'));
     const binDir = path.join(testDir, 'bin');
     const dockerLogPath = path.join(testDir, 'docker.log');
-    const nodeStatePath = path.join(testDir, 'node-state');
+    const bunStatePath = path.join(testDir, 'bun-state');
     const bunLogPath = path.join(testDir, 'bun.log');
 
     try {
@@ -108,42 +108,35 @@ exit 1
       );
 
       writeExecutable(
-        path.join(binDir, 'node'),
-        `#!/usr/bin/env bash
-set -euo pipefail
-
-count=0
-if [[ -f "$FAKE_NODE_STATE" ]]; then
-  count="$(cat "$FAKE_NODE_STATE")"
-fi
-count=$((count + 1))
-printf '%s' "$count" > "$FAKE_NODE_STATE"
-
-case "$count" in
-  1|2)
-    exit 1
-    ;;
-  3)
-    echo "Postgres is ready."
-    exit 0
-    ;;
-  4)
-    echo "Mailpit is ready."
-    exit 0
-    ;;
-  *)
-    exit 0
-    ;;
-esac
-`,
-      );
-
-      writeExecutable(
         path.join(binDir, 'bun'),
         `#!/usr/bin/env bash
 set -euo pipefail
 
 printf '%s\\n' "$*" >> "$FAKE_BUN_LOG"
+
+if [[ "\${1:-}" == "--eval" ]]; then
+  count=0
+  if [[ -f "$FAKE_BUN_STATE" ]]; then
+    count="$(cat "$FAKE_BUN_STATE")"
+  fi
+  count=$((count + 1))
+  printf '%s' "$count" > "$FAKE_BUN_STATE"
+
+  case "$count" in
+    1|2)
+      exit 1
+      ;;
+    3)
+      echo "Postgres is ready."
+      exit 0
+      ;;
+    4)
+      echo "Mailpit is ready."
+      exit 0
+      ;;
+  esac
+fi
+
 exit 0
 `,
       );
@@ -156,7 +149,7 @@ exit 0
           COMPOSE_FILE: '/tmp/incorrect-compose.yml',
           EXPECTED_COMPOSE_FILE: composeFilePath,
           FAKE_DOCKER_LOG: dockerLogPath,
-          FAKE_NODE_STATE: nodeStatePath,
+          FAKE_BUN_STATE: bunStatePath,
           FAKE_BUN_LOG: bunLogPath,
           PATH: `${binDir}:${process.env.PATH ?? ''}`,
           TMPDIR: testDir,

@@ -22,49 +22,6 @@ export PROFILE_IMAGE_PUBLIC_BASE_URL="${PROFILE_IMAGE_PUBLIC_BASE_URL:-${PROFILE
 export PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE="${PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE:-true}"
 BUN_BINARY="${BUN_BINARY:-bun}"
 
-resolve_node_binary() {
-  local first_candidate=""
-  local candidate=""
-
-  while IFS= read -r candidate; do
-    [[ -z "$candidate" ]] && continue
-
-    if [[ -z "$first_candidate" ]]; then
-      first_candidate="$candidate"
-    fi
-
-    if [[ "$candidate" == /tmp/bun-node-*"/node" ]]; then
-      continue
-    fi
-
-    printf '%s\n' "$candidate"
-    return 0
-  done < <(which -a node 2>/dev/null || true)
-
-  if [[ -n "$first_candidate" ]]; then
-    printf '%s\n' "$first_candidate"
-    return 0
-  fi
-
-  return 1
-}
-
-configure_node_toolchain() {
-  local node_binary=""
-  local node_dir=""
-
-  node_binary="$(resolve_node_binary || true)"
-  if [[ -z "$node_binary" ]]; then
-    return
-  fi
-
-  node_dir="$(dirname "$node_binary")"
-  export PATH="${node_dir}:${PATH}"
-
-}
-
-configure_node_toolchain
-
 if [[ -z "${DATABASE_URL:-}" ]]; then
   export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:${POSTGRES_PORT}/next_template?schema=public"
   echo "ℹ️ DATABASE_URL was not set; defaulting to ${DATABASE_URL}"
@@ -77,7 +34,7 @@ OBJECT_STORAGE_MANAGED=0
 can_reach_database() {
   (
     cd "$APP_ROOT"
-    node --eval '
+    "$BUN_BINARY" --eval '
       (async () => {
         const { Client } = require("pg");
         if (!process.env.DATABASE_URL) process.exit(1);
@@ -111,7 +68,7 @@ docker_compose() {
 }
 
 can_reach_mailpit() {
-  node --eval '
+  "$BUN_BINARY" --eval '
     (async () => {
       const baseUrl = process.env.MAILPIT_BASE_URL;
 
@@ -229,7 +186,7 @@ fi
 echo "ℹ️ Waiting for Postgres readiness..."
 (
   cd "$APP_ROOT"
-  node --eval '
+  "$BUN_BINARY" --eval '
     (async () => {
       const { Client } = require("pg");
       const timeoutSeconds = Number(process.env.DB_BOOTSTRAP_TIMEOUT_SECONDS ?? "90");
@@ -257,7 +214,7 @@ echo "ℹ️ Waiting for Postgres readiness..."
 )
 
 echo "ℹ️ Waiting for Mailpit readiness..."
-node --eval '
+"$BUN_BINARY" --eval '
   (async () => {
     const timeoutSeconds = Number(process.env.DB_BOOTSTRAP_TIMEOUT_SECONDS ?? "90");
     const start = Date.now();
