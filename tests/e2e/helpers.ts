@@ -1,3 +1,5 @@
+import { deflateSync } from 'node:zlib';
+
 import { expect, type Page } from '@playwright/test';
 
 import { TEST_USERS } from '@/src/testing/test-users';
@@ -5,6 +7,19 @@ import { TEST_USERS } from '@/src/testing/test-users';
 const DEFAULT_MAILPIT_BASE_URL = 'http://127.0.0.1:8025';
 const DEFAULT_E2E_BASE_URL = 'http://127.0.0.1:3006';
 const DEFAULT_INTERNAL_CRON_SECRET = 'e2e-internal-cron-secret';
+
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const CRC32_TABLE = new Uint32Array(256);
+
+for (let index = 0; index < CRC32_TABLE.length; index += 1) {
+  let value = index;
+
+  for (let bit = 0; bit < 8; bit += 1) {
+    value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+  }
+
+  CRC32_TABLE[index] = value >>> 0;
+}
 
 export async function waitForAppHydration(page: Page) {
   await page.waitForFunction(() => document.documentElement.dataset.appHydrated === 'true');
@@ -59,6 +74,63 @@ export async function logoutFromProfileMenu(page: Page) {
   await page.getByRole('button', { name: 'Log out' }).click();
   await expect(page).toHaveURL('/en');
   await waitForAppHydration(page);
+}
+
+function toPngChunk(type: string, data: Uint8Array) {
+  const typeBuffer = Buffer.from(type, 'ascii');
+  const lengthBuffer = Buffer.alloc(4);
+  lengthBuffer.writeUInt32BE(data.byteLength, 0);
+
+  const crcInput = Buffer.concat([typeBuffer, Buffer.from(data)]);
+  let crc = 0xffffffff;
+
+  for (const byte of crcInput) {
+    crc = CRC32_TABLE[(crc ^ byte) & 0xff]! ^ (crc >>> 8);
+  }
+
+  const crcBuffer = Buffer.alloc(4);
+  crcBuffer.writeUInt32BE((crc ^ 0xffffffff) >>> 0, 0);
+
+  return Buffer.concat([lengthBuffer, typeBuffer, Buffer.from(data), crcBuffer]);
+}
+
+export function createSolidPngBuffer(input: {
+  width: number;
+  height: number;
+  rgba?: readonly [number, number, number, number];
+}) {
+  const { width, height } = input;
+  const [red, green, blue, alpha] = input.rgba ?? [41, 121, 255, 255];
+  const rawRows = Buffer.alloc(height * (1 + width * 4));
+
+  for (let y = 0; y < height; y += 1) {
+    const rowOffset = y * (1 + width * 4);
+    rawRows[rowOffset] = 0;
+
+    for (let x = 0; x < width; x += 1) {
+      const pixelOffset = rowOffset + 1 + x * 4;
+      rawRows[pixelOffset] = red;
+      rawRows[pixelOffset + 1] = green;
+      rawRows[pixelOffset + 2] = blue;
+      rawRows[pixelOffset + 3] = alpha;
+    }
+  }
+
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 6;
+  ihdr[10] = 0;
+  ihdr[11] = 0;
+  ihdr[12] = 0;
+
+  return Buffer.concat([
+    PNG_SIGNATURE,
+    toPngChunk('IHDR', ihdr),
+    toPngChunk('IDAT', deflateSync(rawRows)),
+    toPngChunk('IEND', Buffer.alloc(0)),
+  ]);
 }
 
 function getMailpitBaseURL() {

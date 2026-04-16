@@ -9,6 +9,17 @@ MARKER_FILE="${TMPDIR:-/tmp}/next-template-e2e-db-bootstrap.started"
 export POSTGRES_PORT="${POSTGRES_PORT:-55433}"
 export DB_BOOTSTRAP_TIMEOUT_SECONDS="${DB_BOOTSTRAP_TIMEOUT_SECONDS:-90}"
 export MAILPIT_BASE_URL="${MAILPIT_BASE_URL:-http://127.0.0.1:8025}"
+export MINIO_API_PORT="${MINIO_API_PORT:-9000}"
+export MINIO_CONSOLE_PORT="${MINIO_CONSOLE_PORT:-9001}"
+export MINIO_ROOT_USER="${MINIO_ROOT_USER:-minioadmin}"
+export MINIO_ROOT_PASSWORD="${MINIO_ROOT_PASSWORD:-minioadmin}"
+export PROFILE_IMAGE_STORAGE_BUCKET="${PROFILE_IMAGE_STORAGE_BUCKET:-profile-images}"
+export PROFILE_IMAGE_STORAGE_REGION="${PROFILE_IMAGE_STORAGE_REGION:-us-east-1}"
+export PROFILE_IMAGE_STORAGE_ENDPOINT="${PROFILE_IMAGE_STORAGE_ENDPOINT:-http://127.0.0.1:${MINIO_API_PORT}}"
+export PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID="${PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID:-$MINIO_ROOT_USER}"
+export PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY="${PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY:-$MINIO_ROOT_PASSWORD}"
+export PROFILE_IMAGE_PUBLIC_BASE_URL="${PROFILE_IMAGE_PUBLIC_BASE_URL:-${PROFILE_IMAGE_STORAGE_ENDPOINT%/}/${PROFILE_IMAGE_STORAGE_BUCKET}}"
+export PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE="${PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE:-true}"
 BUN_BINARY="${BUN_BINARY:-bun}"
 
 resolve_node_binary() {
@@ -61,6 +72,7 @@ fi
 
 BOOTSTRAP_STARTED=0
 STARTED_SERVICES=()
+OBJECT_STORAGE_MANAGED=0
 
 can_reach_database() {
   (
@@ -111,6 +123,10 @@ can_reach_mailpit() {
       }
     })();
   ' >/dev/null 2>&1
+}
+
+can_reach_object_storage() {
+  curl --silent --show-error --fail --max-time 5 "${PROFILE_IMAGE_STORAGE_ENDPOINT%/}/minio/health/live" >/dev/null 2>&1
 }
 
 teardown() {
@@ -170,6 +186,13 @@ if can_reach_mailpit; then
   echo "ℹ️ Reusing already-reachable Mailpit instance from ${MAILPIT_BASE_URL}."
 else
   STARTED_SERVICES+=("mailpit")
+fi
+
+if can_reach_object_storage; then
+  echo "ℹ️ Reusing already-reachable object storage instance from ${PROFILE_IMAGE_STORAGE_ENDPOINT}."
+else
+  STARTED_SERVICES+=("minio")
+  OBJECT_STORAGE_MANAGED=1
 fi
 
 if (( ${#STARTED_SERVICES[@]} > 0 )); then
@@ -256,6 +279,15 @@ node --eval '
     process.exit(1);
   })();
 '
+
+if [[ "$OBJECT_STORAGE_MANAGED" -eq 1 ]] && docker_available && docker_compose_available; then
+  echo "ℹ️ Ensuring object storage bucket exists..."
+  (
+    cd "$APP_ROOT"
+    docker_compose run --rm -T minio-create-bucket
+  )
+  echo "✅ Object storage bucket is ready."
+fi
 
 echo "ℹ️ Applying migrations..."
 (
