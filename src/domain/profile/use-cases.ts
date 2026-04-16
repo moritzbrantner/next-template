@@ -1,7 +1,8 @@
 import { and, asc, count, eq, ilike, isNull, ne, or } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 
 import { getDb } from '@/src/db/client';
-import { userFollows, users } from '@/src/db/schema';
+import { userBlocks, userFollows, users } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
 import { ImageValidationError, validateImageUpload } from '@/src/profile/image-validation';
 import { buildProfileImageUrl, deleteProfileImage, uploadProfileImage } from '@/src/profile/object-storage';
@@ -25,6 +26,7 @@ export type ProfileViewPayload = {
   followerCount: number;
   isOwnProfile: boolean;
   isFollowing: boolean;
+  isBlockedByViewer: boolean;
 };
 
 export type UpdateDisplayNamePayload = {
@@ -59,6 +61,10 @@ export type ProfileFollowerVisibilityPayload = {
   followerVisibility: FollowerVisibilityRole;
 };
 
+export type ProfileBlockMutationPayload = {
+  blocked: boolean;
+};
+
 export type ProfileFollowersPayload = {
   profile: {
     userId: string;
@@ -81,6 +87,11 @@ type ProfileUserRecord = {
   followerVisibility: FollowerVisibilityRole;
 };
 
+type BlockRelationshipState = {
+  isBlockedByViewer: boolean;
+  hasBlockedViewer: boolean;
+};
+
 export type ProfileUseCaseDeps = {
   findUserById: (userId: string) => Promise<ProfileUserRecord | undefined>;
   findUserByTag: (tag: string) => Promise<ProfileUserRecord | undefined>;
@@ -89,7 +100,12 @@ export type ProfileUseCaseDeps = {
   hasFollowRelationship: (followerId: string, followingId: string) => Promise<boolean>;
   createFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
   deleteFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
+  deleteFollowRelationshipsBetweenUsers: (firstUserId: string, secondUserId: string) => Promise<void>;
+  getBlockRelationshipState: (viewerUserId: string, otherUserId: string) => Promise<BlockRelationshipState>;
+  createBlockRelationship: (blockerId: string, blockedId: string) => Promise<void>;
+  deleteBlockRelationship: (blockerId: string, blockedId: string) => Promise<void>;
   listFollowingUsers: (followerId: string) => Promise<ProfileUserRecord[]>;
+  listBlockedUsers: (blockerId: string) => Promise<ProfileUserRecord[]>;
   listFollowersForUser: (followingId: string) => Promise<ProfileUserRecord[]>;
   searchUsersToFollow: (viewerUserId: string, query: string) => Promise<ProfileUserRecord[]>;
   updateUserSearchVisibility: (userId: string, isSearchable: boolean) => Promise<void>;
@@ -98,6 +114,9 @@ export type ProfileUseCaseDeps = {
 };
 
 function getProfileUseCaseDeps(): ProfileUseCaseDeps {
+  const viewerBlocks = alias(userBlocks, 'viewerBlocks');
+  const targetBlocks = alias(userBlocks, 'targetBlocks');
+
   return {
     findUserById: (userId) =>
       getDb().query.users.findFirst({
@@ -142,6 +161,47 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .delete(userFollows)
         .where(and(eq(userFollows.followerId, followerId), eq(userFollows.followingId, followingId)));
     },
+    deleteFollowRelationshipsBetweenUsers: async (firstUserId, secondUserId) => {
+      await getDb()
+        .delete(userFollows)
+        .where(
+          or(
+            and(eq(userFollows.followerId, firstUserId), eq(userFollows.followingId, secondUserId)),
+            and(eq(userFollows.followerId, secondUserId), eq(userFollows.followingId, firstUserId)),
+          ),
+        );
+    },
+    getBlockRelationshipState: async (viewerUserId, otherUserId) => {
+      const [isBlockedByViewer, hasBlockedViewer] = await Promise.all([
+        getDb().query.userBlocks.findFirst({
+          where: (table, { and: innerAnd, eq: innerEq }) =>
+            innerAnd(innerEq(table.blockerId, viewerUserId), innerEq(table.blockedId, otherUserId)),
+        }),
+        getDb().query.userBlocks.findFirst({
+          where: (table, { and: innerAnd, eq: innerEq }) =>
+            innerAnd(innerEq(table.blockerId, otherUserId), innerEq(table.blockedId, viewerUserId)),
+        }),
+      ]);
+
+      return {
+        isBlockedByViewer: Boolean(isBlockedByViewer),
+        hasBlockedViewer: Boolean(hasBlockedViewer),
+      };
+    },
+    createBlockRelationship: async (blockerId, blockedId) => {
+      await getDb()
+        .insert(userBlocks)
+        .values({
+          blockerId,
+          blockedId,
+        })
+        .onConflictDoNothing();
+    },
+    deleteBlockRelationship: async (blockerId, blockedId) => {
+      await getDb()
+        .delete(userBlocks)
+        .where(and(eq(userBlocks.blockerId, blockerId), eq(userBlocks.blockedId, blockedId)));
+    },
     listFollowingUsers: async (followerId) => {
       const rows = await getDb()
         .select({
@@ -156,6 +216,24 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .from(userFollows)
         .innerJoin(users, eq(userFollows.followingId, users.id))
         .where(eq(userFollows.followerId, followerId))
+        .orderBy(asc(users.name), asc(users.tag), asc(users.email));
+
+      return rows;
+    },
+    listBlockedUsers: async (blockerId) => {
+      const rows = await getDb()
+        .select({
+          id: users.id,
+          email: users.email,
+          tag: users.tag,
+          name: users.name,
+          image: users.image,
+          isSearchable: users.isSearchable,
+          followerVisibility: users.followerVisibility,
+        })
+        .from(userBlocks)
+        .innerJoin(users, eq(userBlocks.blockedId, users.id))
+        .where(eq(userBlocks.blockerId, blockerId))
         .orderBy(asc(users.name), asc(users.tag), asc(users.email));
 
       return rows;
@@ -194,11 +272,21 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           userFollows,
           and(eq(userFollows.followingId, users.id), eq(userFollows.followerId, viewerUserId)),
         )
+        .leftJoin(
+          viewerBlocks,
+          and(eq(viewerBlocks.blockerId, viewerUserId), eq(viewerBlocks.blockedId, users.id)),
+        )
+        .leftJoin(
+          targetBlocks,
+          and(eq(targetBlocks.blockerId, users.id), eq(targetBlocks.blockedId, viewerUserId)),
+        )
         .where(
           and(
             eq(users.isSearchable, true),
             ne(users.id, viewerUserId),
             isNull(userFollows.followingId),
+            isNull(viewerBlocks.blockerId),
+            isNull(targetBlocks.blockerId),
             or(ilike(users.name, `%${query}%`), ilike(users.email, `%${query}%`), ilike(users.tag, `%${query}%`)),
           ),
         )
@@ -261,9 +349,26 @@ async function buildProfileView(
   deps: ProfileUseCaseDeps,
 ): Promise<ServiceResult<ProfileViewPayload, ProfileError>> {
   const isOwnProfile = Boolean(viewerUserId && viewerUserId === user.id);
+  const blockState =
+    viewerUserId && !isOwnProfile
+      ? await deps.getBlockRelationshipState(viewerUserId, user.id)
+      : {
+          isBlockedByViewer: false,
+          hasBlockedViewer: false,
+        };
+
+  if (blockState.hasBlockedViewer) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You cannot view this profile.',
+    });
+  }
+
   const [followerCount, isFollowing] = await Promise.all([
     deps.countFollowers(user.id),
-    viewerUserId && !isOwnProfile ? deps.hasFollowRelationship(viewerUserId, user.id) : Promise.resolve(false),
+    viewerUserId && !isOwnProfile && !blockState.isBlockedByViewer
+      ? deps.hasFollowRelationship(viewerUserId, user.id)
+      : Promise.resolve(false),
   ]);
 
   return success({
@@ -274,6 +379,7 @@ async function buildProfileView(
     followerCount,
     isOwnProfile,
     isFollowing,
+    isBlockedByViewer: blockState.isBlockedByViewer,
   });
 }
 
@@ -334,6 +440,24 @@ async function updateFollowRelationship(
   }
 
   if (shouldFollow) {
+    const blockState = await deps.getBlockRelationshipState(actorUserId, targetUserId);
+
+    if (blockState.isBlockedByViewer) {
+      return failure({
+        code: 'FORBIDDEN',
+        message: 'Unblock this user before following them.',
+      });
+    }
+
+    if (blockState.hasBlockedViewer) {
+      return failure({
+        code: 'FORBIDDEN',
+        message: 'You cannot follow this user.',
+      });
+    }
+  }
+
+  if (shouldFollow) {
     await deps.createFollowRelationship(actorUserId, targetUserId);
     return success({ following: true });
   }
@@ -358,6 +482,54 @@ export function unfollowUserUseCase(
   return updateFollowRelationship(actorUserId, targetUserId, false, deps);
 }
 
+async function updateBlockRelationship(
+  actorUserId: string,
+  targetUserId: string,
+  shouldBlock: boolean,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileBlockMutationPayload, ProfileError>> {
+  if (actorUserId === targetUserId) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: `You cannot ${shouldBlock ? 'block' : 'unblock'} your own profile.`,
+    });
+  }
+
+  const targetUser = await deps.findUserById(targetUserId);
+
+  if (!targetUser) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  if (shouldBlock) {
+    await deps.createBlockRelationship(actorUserId, targetUserId);
+    await deps.deleteFollowRelationshipsBetweenUsers(actorUserId, targetUserId);
+    return success({ blocked: true });
+  }
+
+  await deps.deleteBlockRelationship(actorUserId, targetUserId);
+  return success({ blocked: false });
+}
+
+export function blockUserUseCase(
+  actorUserId: string,
+  targetUserId: string,
+  deps?: ProfileUseCaseDeps,
+) {
+  return updateBlockRelationship(actorUserId, targetUserId, true, deps);
+}
+
+export function unblockUserUseCase(
+  actorUserId: string,
+  targetUserId: string,
+  deps?: ProfileUseCaseDeps,
+) {
+  return updateBlockRelationship(actorUserId, targetUserId, false, deps);
+}
+
 export async function listFollowingProfilesUseCase(
   userId: string,
   deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
@@ -372,6 +544,26 @@ export async function listFollowingProfilesUseCase(
   }
 
   const profiles = await deps.listFollowingUsers(userId);
+
+  return success({
+    profiles: profiles.map(toProfileDirectoryEntry),
+  });
+}
+
+export async function listBlockedProfilesUseCase(
+  userId: string,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<{ profiles: ProfileDirectoryEntry[] }, ProfileError>> {
+  const user = await deps.findUserById(userId);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const profiles = await deps.listBlockedUsers(userId);
 
   return success({
     profiles: profiles.map(toProfileDirectoryEntry),
@@ -502,6 +694,17 @@ export async function listProfileFollowersByTagUseCase(
       code: 'NOT_FOUND',
       message: 'User account was not found.',
     });
+  }
+
+  if (viewerUserId && viewerUserId !== user.id) {
+    const blockState = await deps.getBlockRelationshipState(viewerUserId, user.id);
+
+    if (blockState.hasBlockedViewer) {
+      return failure({
+        code: 'FORBIDDEN',
+        message: 'You cannot view this profile.',
+      });
+    }
   }
 
   const followers = await deps.listFollowersForUser(user.id);

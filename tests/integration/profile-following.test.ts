@@ -1,14 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  blockUserUseCase,
   followUserUseCase,
   getProfileFollowerVisibilityUseCase,
   getProfileViewByTagUseCase,
   getProfileViewUseCase,
   getProfileSearchVisibilityUseCase,
+  listBlockedProfilesUseCase,
   listProfileFollowersByTagUseCase,
   listFollowingProfilesUseCase,
   searchUsersToFollowUseCase,
+  unblockUserUseCase,
   unfollowUserUseCase,
   updateProfileFollowerVisibilityUseCase,
   updateProfileSearchVisibilityUseCase,
@@ -25,7 +28,15 @@ function createDeps(overrides: Partial<ProfileUseCaseDeps> = {}): ProfileUseCase
     hasFollowRelationship: vi.fn().mockResolvedValue(false),
     createFollowRelationship: vi.fn().mockResolvedValue(undefined),
     deleteFollowRelationship: vi.fn().mockResolvedValue(undefined),
+    deleteFollowRelationshipsBetweenUsers: vi.fn().mockResolvedValue(undefined),
+    getBlockRelationshipState: vi.fn().mockResolvedValue({
+      isBlockedByViewer: false,
+      hasBlockedViewer: false,
+    }),
+    createBlockRelationship: vi.fn().mockResolvedValue(undefined),
+    deleteBlockRelationship: vi.fn().mockResolvedValue(undefined),
     listFollowingUsers: vi.fn().mockResolvedValue([]),
+    listBlockedUsers: vi.fn().mockResolvedValue([]),
     listFollowersForUser: vi.fn().mockResolvedValue([]),
     searchUsersToFollow: vi.fn().mockResolvedValue([]),
     updateUserSearchVisibility: vi.fn().mockResolvedValue(undefined),
@@ -63,6 +74,7 @@ describe('profile follow use cases', () => {
         followerCount: 14,
         isOwnProfile: false,
         isFollowing: true,
+        isBlockedByViewer: false,
       },
     });
   });
@@ -93,9 +105,41 @@ describe('profile follow use cases', () => {
         followerCount: 3,
         isOwnProfile: true,
         isFollowing: false,
+        isBlockedByViewer: false,
       },
     });
     expect(deps.hasFollowRelationship).not.toHaveBeenCalled();
+  });
+
+  it('blocks and unblocks a user while removing follow relationships in both directions', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_2',
+        email: 'person@example.com',
+        tag: 'person',
+        name: 'Person',
+        image: null,
+        isSearchable: true,
+        followerVisibility: 'PUBLIC',
+      }),
+    });
+
+    await expect(blockUserUseCase('user_1', 'user_2', deps)).resolves.toEqual({
+      ok: true,
+      data: {
+        blocked: true,
+      },
+    });
+    expect(deps.createBlockRelationship).toHaveBeenCalledWith('user_1', 'user_2');
+    expect(deps.deleteFollowRelationshipsBetweenUsers).toHaveBeenCalledWith('user_1', 'user_2');
+
+    await expect(unblockUserUseCase('user_1', 'user_2', deps)).resolves.toEqual({
+      ok: true,
+      data: {
+        blocked: false,
+      },
+    });
+    expect(deps.deleteBlockRelationship).toHaveBeenCalledWith('user_1', 'user_2');
   });
 
   it('creates and removes follow relationships idempotently', async () => {
@@ -126,6 +170,60 @@ describe('profile follow use cases', () => {
       },
     });
     expect(deps.deleteFollowRelationship).toHaveBeenCalledWith('user_1', 'user_2');
+  });
+
+  it('rejects follow attempts when the actor has already blocked the target', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_2',
+        email: 'person@example.com',
+        tag: 'person',
+        name: 'Person',
+        image: null,
+        isSearchable: true,
+        followerVisibility: 'PUBLIC',
+      }),
+      getBlockRelationshipState: vi.fn().mockResolvedValue({
+        isBlockedByViewer: true,
+        hasBlockedViewer: false,
+      }),
+    });
+
+    await expect(followUserUseCase('user_1', 'user_2', deps)).resolves.toEqual({
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'Unblock this user before following them.',
+      },
+    });
+    expect(deps.createFollowRelationship).not.toHaveBeenCalled();
+  });
+
+  it('rejects profile access when the target user has blocked the viewer', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_2',
+        email: 'person@example.com',
+        tag: 'person',
+        name: 'Person',
+        image: null,
+        isSearchable: true,
+        followerVisibility: 'PUBLIC',
+      }),
+      getBlockRelationshipState: vi.fn().mockResolvedValue({
+        isBlockedByViewer: false,
+        hasBlockedViewer: true,
+      }),
+    });
+
+    await expect(getProfileViewUseCase('user_2', 'user_1', deps)).resolves.toEqual({
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'You cannot view this profile.',
+      },
+    });
+    expect(deps.countFollowers).not.toHaveBeenCalled();
   });
 
   it('rejects attempts to follow yourself', async () => {
@@ -193,6 +291,45 @@ describe('profile follow use cases', () => {
             tag: 'bravo',
             displayName: 'bravo',
             imageUrl: '/local-profile-images/user_3/avatar.jpg',
+          },
+        ],
+      },
+    });
+  });
+
+  it('lists the profiles a user has blocked', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'viewer@example.com',
+        tag: 'viewer',
+        name: 'Viewer',
+        image: null,
+        isSearchable: true,
+        followerVisibility: 'PUBLIC',
+      }),
+      listBlockedUsers: vi.fn().mockResolvedValue([
+        {
+          id: 'user_2',
+          email: 'alpha@example.com',
+          tag: 'alpha',
+          name: 'Alpha',
+          image: null,
+          isSearchable: true,
+          followerVisibility: 'PUBLIC',
+        },
+      ]),
+    });
+
+    await expect(listBlockedProfilesUseCase('user_1', deps)).resolves.toEqual({
+      ok: true,
+      data: {
+        profiles: [
+          {
+            userId: 'user_2',
+            tag: 'alpha',
+            displayName: 'Alpha',
+            imageUrl: null,
           },
         ],
       },
@@ -442,6 +579,7 @@ describe('profile follow use cases', () => {
         followerCount: 2,
         isOwnProfile: false,
         isFollowing: false,
+        isBlockedByViewer: false,
       },
     });
   });

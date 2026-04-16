@@ -10,6 +10,10 @@ function createDeps(overrides: Partial<BlogUseCaseDeps> = {}): BlogUseCaseDeps {
   return {
     findUserById: vi.fn(),
     findUserByTag: vi.fn(),
+    getBlockRelationshipState: vi.fn().mockResolvedValue({
+      isBlockedByViewer: false,
+      hasBlockedViewer: false,
+    }),
     listPostsByUserId: vi.fn().mockResolvedValue([]),
     listFollowerIdsByUserId: vi.fn().mockResolvedValue([]),
     createPost: vi.fn(),
@@ -43,7 +47,7 @@ describe('blog post use cases', () => {
       ]),
     });
 
-    const result = await getUserBlogUseCase('user_2', deps);
+    const result = await getUserBlogUseCase('user_2', null, deps);
 
     expect(result).toEqual({
       ok: true,

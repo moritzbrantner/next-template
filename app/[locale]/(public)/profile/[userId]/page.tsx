@@ -54,8 +54,10 @@ export default async function PublicProfilePage({
         imageUrl={profile.imageUrl}
         initialFollowerCount={profile.followerCount}
         initialIsFollowing={profile.isFollowing}
+        initialIsBlockedByViewer={profile.isBlockedByViewer}
         isOwnProfile={profile.isOwnProfile}
         canManageFollowState={Boolean(viewerUserId) && followEnabled}
+        canManageBlockState={Boolean(viewerUserId)}
         canViewFollowersPage={followEnabled}
         labels={{
           followers: t('view.followers'),
@@ -63,6 +65,11 @@ export default async function PublicProfilePage({
           unfollow: t('view.unfollow'),
           following: t('view.following'),
           unfollowing: t('view.unfollowing'),
+          block: t('view.block'),
+          unblock: t('view.unblock'),
+          blocking: t('view.blocking'),
+          unblocking: t('view.unblocking'),
+          blockedDescription: t('view.blockedDescription'),
           editProfile: t('view.editProfile'),
           error: t('view.error'),
         }}

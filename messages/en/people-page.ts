@@ -20,6 +20,9 @@ export const peoplePage = {
     unfollow: 'Unfollow',
     following: 'Following…',
     unfollowing: 'Unfollowing…',
+    block: 'Block',
+    blocking: 'Blocking…',
     error: 'Unable to update follow status right now. Please try again.',
+    blockError: 'Unable to update block status right now. Please try again.',
   },
 };

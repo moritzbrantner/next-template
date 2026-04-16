@@ -7,6 +7,7 @@ import { DayPicker } from 'react-day-picker';
 
 import { AccountDeleteForm } from '@/components/account-delete-form';
 import { AccountEmailForm } from '@/components/account-email-form';
+import { ProfileBlockedUsersForm } from '@/components/profile-blocked-users-form';
 import { ProfileFollowerVisibilityForm } from '@/components/profile-follower-visibility-form';
 import { ConsentSettingsCard } from '@/components/privacy/consent-settings-card';
 import { ProfileImageForm } from '@/components/profile-image-form';
@@ -22,6 +23,7 @@ import {
   canViewReports,
 } from '@/lib/authorization';
 import type { AppSession } from '@/src/auth';
+import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { useTranslations } from '@/src/i18n';
 import type { ConsentState } from '@/src/privacy/contracts';
 import type { FollowerVisibilityRole } from '@/src/profile/follower-visibility';
@@ -48,12 +50,14 @@ export function SettingsClient({
   consent,
   initialSearchVisibility,
   initialFollowerVisibility,
+  initialBlockedProfiles,
 }: {
   locale: string;
   session: AppSession;
   consent: ConsentState;
   initialSearchVisibility: boolean;
   initialFollowerVisibility: FollowerVisibilityRole;
+  initialBlockedProfiles: ProfileDirectoryEntry[];
 }) {
   const t = useTranslations('SettingsPage');
   const { settings, updateSettings } = useAppSettings();
@@ -312,6 +316,25 @@ export function SettingsClient({
                       description: t('followerVisibility.options.PRIVATE.description'),
                     },
                   },
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-col gap-2">
+              <CardTitle>{t('blockedUsers.title')}</CardTitle>
+              <CardDescription>{t('blockedUsers.description')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProfileBlockedUsersForm
+                initialProfiles={initialBlockedProfiles}
+                labels={{
+                  empty: t('blockedUsers.empty'),
+                  unblock: t('blockedUsers.unblock'),
+                  unblocking: t('blockedUsers.unblocking'),
+                  error: t('blockedUsers.error'),
+                  success: t('blockedUsers.success'),
                 }}
               />
             </CardContent>

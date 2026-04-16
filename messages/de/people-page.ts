@@ -20,6 +20,9 @@ export const peoplePage = {
     unfollow: 'Nicht mehr folgen',
     following: 'Wird gefolgt…',
     unfollowing: 'Wird entfolgt…',
+    block: 'Blockieren',
+    blocking: 'Wird blockiert…',
     error: 'Der Follow-Status konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+    blockError: 'Der Block-Status konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
   },
 };

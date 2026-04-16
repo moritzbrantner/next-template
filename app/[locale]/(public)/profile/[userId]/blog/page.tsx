@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
+import { getAuthSession } from '@/src/auth.server';
 import { createTranslator } from '@/src/i18n/messages';
 import { getUserBlogByTagUseCase } from '@/src/domain/blog/use-cases';
 import { buildPublicProfilePath, parseProfileTagSegment } from '@/src/profile/tags';
@@ -31,7 +32,8 @@ export default async function PublicUserBlogPage({
   }
 
   const t = createTranslator(locale, 'BlogPage');
-  const result = await getUserBlogByTagUseCase(profileTag);
+  const session = await getAuthSession();
+  const result = await getUserBlogByTagUseCase(profileTag, session?.user.id ?? null);
 
   if (!result.ok) {
     notFound();

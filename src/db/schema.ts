@@ -71,6 +71,24 @@ export const userFollows = pgTable(
   ],
 );
 
+export const userBlocks = pgTable(
+  "UserBlock",
+  {
+    blockerId: text("blockerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    blockedId: text("blockedId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.blockerId, table.blockedId], name: "UserBlock_pkey" }),
+    index("UserBlock_blockerId_idx").on(table.blockerId),
+    index("UserBlock_blockedId_idx").on(table.blockedId),
+  ],
+);
+
 export const blogPosts = pgTable(
   "BlogPost",
   {
