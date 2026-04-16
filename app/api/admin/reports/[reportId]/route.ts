@@ -6,6 +6,7 @@ import {
 } from '@/src/domain/admin-reports/use-cases';
 import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import { createProblemResponse, invalidQueryProblem, notFoundProblem } from '@/src/http/errors';
+import { getAdminAnalyticsSettings } from '@/src/site-config/service';
 import { secureRoute } from '@/src/api/route-security';
 
 function resolveFormat(value: string | null): AdminReportFormat {
@@ -38,7 +39,9 @@ export async function GET(
   }
 
   const url = new URL(request.url);
-  const window = url.searchParams.get('window') ?? '7d';
+  const requestedWindow = url.searchParams.get('window');
+  const analyticsSettings = await getAdminAnalyticsSettings();
+  const window = requestedWindow ?? analyticsSettings.defaultAdminReportWindow;
   const format = resolveFormat(url.searchParams.get('format'));
 
   if (!isAdminReportWindow(window)) {

@@ -51,6 +51,7 @@ describe('admin reports', () => {
             action: 'admin.dataStudio.createRecord',
             outcome: 'denied',
             statusCode: 403,
+            metadata: { tableName: 'users' },
             timestamp: new Date('2026-04-16T08:00:00.000Z'),
           },
         ],
@@ -70,8 +71,22 @@ describe('admin reports', () => {
     );
 
     expect(detail.cards.find((card) => card.label === 'Failed jobs')?.value).toBe('1');
-    expect(detail.table.rows).toContainEqual(['job', 'publishAnnouncement', 'failed', '2', '2026-04-16T07:05:00.000Z']);
-    expect(detail.table.rows).toContainEqual(['audit', 'admin.dataStudio.createRecord', 'denied', '403', '2026-04-16T08:00:00.000Z']);
+    expect(detail.table.rows).toContainEqual([
+      '2026-04-16T07:05:00.000Z',
+      'job',
+      'publishAnnouncement',
+      'failed',
+      'attempts 2',
+      'database unavailable',
+    ]);
+    expect(detail.table.rows).toContainEqual([
+      '2026-04-16T08:00:00.000Z',
+      'write',
+      'users',
+      'denied',
+      '403',
+      'admin_1',
+    ]);
   });
 
   it('exports report data as JSON and CSV', async () => {
@@ -82,7 +97,7 @@ describe('admin reports', () => {
         {
           id: 'visit_1',
           userId: 'admin_1',
-          pathname: '/admin/reports',
+          pathname: '/en/admin/reports',
           href: 'http://localhost/en/admin/reports',
           visitedAt: new Date('2026-04-16T08:00:00.000Z'),
         },
@@ -94,7 +109,51 @@ describe('admin reports', () => {
     const csvExport = await exportAdminReportUseCase('workspaceAdoption', '7d', 'csv', deps);
 
     expect(jsonExport.contentType).toContain('application/json');
-    expect(csvExport.body.split('\n')[0]).toBe('Date,Visits,Unique visitors');
+    expect(jsonExport.body).toContain('"series"');
+    expect(jsonExport.body).toContain('"breakdowns"');
+    expect(csvExport.body.split('\n')[0]).toBe('Path,Workspace,Visits,Unique admins');
+  });
+
+  it('aggregates localized workspace visits by normalized workspace key', async () => {
+    const detail = await getAdminReportDetailUseCase(
+      'workspaceAdoption',
+      '7d',
+      Promise.resolve({
+        listUsers: async () => [],
+        listAuditLogsSince: async () => [],
+        listPageVisitsSince: async () => [
+          {
+            id: 'visit_1',
+            userId: 'admin_1',
+            pathname: '/en/admin/reports',
+            href: '/en/admin/reports',
+            visitedAt: new Date('2026-04-16T08:00:00.000Z'),
+          },
+          {
+            id: 'visit_2',
+            userId: 'admin_1',
+            pathname: '/de/admin/users/123',
+            href: '/de/admin/users/123',
+            visitedAt: new Date('2026-04-16T09:00:00.000Z'),
+          },
+        ],
+        listJobsSince: async () => [],
+      }),
+    );
+
+    expect(detail.cards.find((card) => card.label === 'Admin visits')?.value).toBe('2');
+    expect(detail.breakdowns.find((breakdown) => breakdown.id === 'workspace-visits')?.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Reports', value: '1' }),
+        expect.objectContaining({ label: 'Users', value: '1' }),
+      ]),
+    );
+    expect(detail.table.rows).toEqual(
+      expect.arrayContaining([
+        ['/admin/reports', 'Reports', '1', '1'],
+        ['/admin/users/123', 'Users', '1', '1'],
+      ]),
+    );
   });
 
   it('enforces auth and feature gates for the reports export API', async () => {

@@ -1,4 +1,4 @@
-export const siteSettingKeys = [
+export const publicSiteSettingKeys = [
   'site.name',
   'site.url',
   'seo.defaultTitle',
@@ -8,7 +8,16 @@ export const siteSettingKeys = [
   'contact.supportEmail',
 ] as const;
 
+export const analyticsSiteSettingKeys = [
+  'analytics.pageVisitRetentionDays',
+  'analytics.defaultAdminReportWindow',
+] as const;
+
+export const siteSettingKeys = [...publicSiteSettingKeys, ...analyticsSiteSettingKeys] as const;
+
 export type SiteSettingKey = (typeof siteSettingKeys)[number];
+export type PublicSiteSettingKey = (typeof publicSiteSettingKeys)[number];
+export type AnalyticsSiteSettingKey = (typeof analyticsSiteSettingKeys)[number];
 
 export const featureFlagKeys = [
   'marketing.blog',

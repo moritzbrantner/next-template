@@ -1,4 +1,5 @@
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
+import { AdminReportChart } from '@/components/admin/admin-report-chart';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,10 +8,10 @@ import { LocalizedLink } from '@/i18n/server-link';
 import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
 import { getAdminReportSummaryUseCase } from '@/src/domain/admin-reports/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
+import { getAdminAnalyticsSettings } from '@/src/site-config/service';
 import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
 
 const reportCatalogKeys = ['securityAccess', 'auditActivity', 'workspaceAdoption', 'schemaHealth'] as const;
-const reportAlertKeys = ['dailyDigest', 'weeklyExecutive', 'failedIngestion'] as const;
 
 export default async function ReportsPage({
   params,
@@ -22,29 +23,64 @@ export default async function ReportsPage({
   notFoundUnlessFeatureEnabled('admin.reports');
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = getEnabledAdminPageDefinitions();
-  const summary = await getAdminReportSummaryUseCase('7d').catch(() => ({
-    metrics: [
-      { label: 'Admin accounts', value: '0', detail: 'Report data is temporarily unavailable.' },
-      { label: 'Denied admin actions', value: '0', detail: 'Report data is temporarily unavailable.' },
-      { label: 'Admin visits', value: '0', detail: 'Report data is temporarily unavailable.' },
-    ],
-  }));
+  const analyticsSettings = await getAdminAnalyticsSettings();
+  const summary = await getAdminReportSummaryUseCase(analyticsSettings.defaultAdminReportWindow);
 
   return (
     <AdminPageShell title={t('reports.title')} description={t('reports.description')} adminPages={adminPages}>
-      <div className="grid gap-4 md:grid-cols-3">
-        {summary.metrics.map((metric) => (
-          <Card key={metric.label}>
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold text-zinc-950 dark:text-zinc-50">Live summary</h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">
+              {summary.window} vs previous {summary.window}. Refreshed {summary.generatedAt}.
+            </p>
+          </div>
+          <Badge
+            variant="secondary"
+            className={summary.status === 'degraded' ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100' : undefined}
+          >
+            {summary.status === 'degraded' ? 'Degraded data' : 'Live data'}
+          </Badge>
+        </div>
+
+        {summary.status === 'degraded' ? (
+          <div className="rounded-3xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+            {summary.message ?? 'Data unavailable.'}
+          </div>
+        ) : null}
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {summary.metrics.map((metric) => (
+              <Card key={metric.id} className="h-full">
+                <CardHeader className="space-y-2">
+                  <CardDescription>{metric.label}</CardDescription>
+                  <CardTitle className="text-3xl">{metric.value}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-300">{metric.detail}</p>
+                  {metric.change ? (
+                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+                      {metric.change.value} {metric.change.detail}
+                    </p>
+                  ) : null}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Card>
             <CardHeader>
-              <CardDescription>{metric.label}</CardDescription>
-              <CardTitle className="text-3xl">{metric.value}</CardTitle>
+              <CardDescription>Operational trend</CardDescription>
+              <CardTitle className="text-xl">Admin visits</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-zinc-600 dark:text-zinc-300">{metric.detail}</p>
+              <AdminReportChart series={summary.series[0]} />
             </CardContent>
           </Card>
-        ))}
-      </div>
+        </div>
+      </section>
 
       <Card>
         <CardHeader>
@@ -77,14 +113,14 @@ export default async function ReportsPage({
                   <TableCell>
                     <div className="flex justify-end gap-2">
                       <LocalizedLink
-                        href={`/admin/reports/${reportKey}`}
+                        href={`/admin/reports/${reportKey}?window=${analyticsSettings.defaultAdminReportWindow}`}
                         locale={locale}
                         className={buttonVariants({ variant: 'outline', size: 'sm' })}
                       >
                         {t('reports.actions.open')}
                       </LocalizedLink>
                       <a
-                        href={`/api/admin/reports/${reportKey}?window=7d&format=csv`}
+                        href={`/api/admin/reports/${reportKey}?window=${analyticsSettings.defaultAdminReportWindow}&format=csv`}
                         className={buttonVariants({ variant: 'ghost', size: 'sm' })}
                         download
                       >
@@ -96,24 +132,6 @@ export default async function ReportsPage({
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('reports.alertsTitle')}</CardTitle>
-          <CardDescription>{t('reports.alertsDescription')}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3">
-          {reportAlertKeys.map((alertKey) => (
-            <div key={alertKey} className="rounded-2xl border p-4 dark:border-zinc-800">
-              <div className="flex items-center justify-between gap-3">
-                <p className="font-medium">{t(`reports.alerts.${alertKey}.title`)}</p>
-                <Badge variant="outline">{t(`reports.alerts.${alertKey}.channel`)}</Badge>
-              </div>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{t(`reports.alerts.${alertKey}.description`)}</p>
-            </div>
-          ))}
         </CardContent>
       </Card>
     </AdminPageShell>
