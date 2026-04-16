@@ -11,7 +11,7 @@ type TestUserSeed = {
   tag: string;
   password: string;
   name: string;
-  role: "ADMIN" | "MANAGER" | "USER";
+  role: "SUPERADMIN" | "ADMIN" | "MANAGER" | "USER";
   isSearchable: boolean;
   emailVerified: boolean;
   profile: {
@@ -47,6 +47,20 @@ type TestUserPageVisitSeed = {
 };
 
 export const TEST_USERS: readonly TestUserSeed[] = [
+  {
+    email: "superadmin@example.com",
+    tag: "test-superadmin",
+    password: "superadmin",
+    name: "Test Superadmin",
+    role: "SUPERADMIN",
+    isSearchable: false,
+    emailVerified: true,
+    profile: {
+      bio: "Owns privileged workspace access and can assign or revoke elevated roles.",
+      locale: "en",
+      timezone: "Europe/Berlin",
+    },
+  },
   {
     email: "admin@example.com",
     tag: "test-admin",
@@ -222,7 +236,7 @@ export const TEST_USER_NOTIFICATIONS: readonly TestUserNotificationSeed[] = [
 const TEST_USER_PAGE_VISITS: readonly TestUserPageVisitSeed[] = [
   {
     id: "seed-page-visit-admin-users",
-    userEmail: "admin@example.com",
+    userEmail: "superadmin@example.com",
     href: "/en/admin/users",
     pathname: "/en/admin/users",
     minutesAgo: 4,

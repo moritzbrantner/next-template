@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const guard = await secureRoute({
     request,
     action: 'admin.dataStudio.createRecord',
-    allowedRoles: ['ADMIN'],
+    allowedRoles: ['ADMIN', 'SUPERADMIN'],
   });
 
   if (!guard.ok) {

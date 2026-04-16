@@ -66,7 +66,7 @@ export default async function UsersPage({
                         <p className="text-sm text-zinc-600 dark:text-zinc-300">{user.email}</p>
                       </div>
                     </TableCell>
-                    <TableCell><Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>{user.role}</Badge></TableCell>
+                    <TableCell><Badge variant={user.role === 'ADMIN' || user.role === 'SUPERADMIN' ? 'default' : 'secondary'}>{user.role}</Badge></TableCell>
                     <TableCell><Badge variant={user.status === 'active' ? 'secondary' : 'outline'}>{t(`users.status.${user.status}`)}</Badge></TableCell>
                     <TableCell>{formatDateTime(user.lastActivityAt, locale, t('users.lastActivityFallback'))}</TableCell>
                     <TableCell>

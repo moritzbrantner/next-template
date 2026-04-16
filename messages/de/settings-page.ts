@@ -10,6 +10,7 @@ export const settingsPage = {
     account: 'Konto',
   },
   roles: {
+    superadmin: 'Superadmin',
     admin: 'Admin',
     manager: 'Manager',
     user: 'Benutzer',
@@ -22,6 +23,7 @@ export const settingsPage = {
     permissions: {
       viewReports: 'Berichte ansehen',
       manageUsers: 'Benutzer verwalten',
+      manageRoles: 'Rollen verwalten',
       adminWorkspace: 'Admin-Bereich öffnen',
       systemSettings: 'Systemeinstellungen verwalten',
     },

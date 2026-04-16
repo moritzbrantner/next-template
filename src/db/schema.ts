@@ -1,7 +1,7 @@
 
 import { pgEnum, pgTable, primaryKey, text, timestamp, integer, index, uniqueIndex, jsonb, boolean } from "drizzle-orm/pg-core";
 
-export const roleEnum = pgEnum("Role", ["ADMIN", "MANAGER", "USER"]);
+export const roleEnum = pgEnum("Role", ["SUPERADMIN", "ADMIN", "MANAGER", "USER"]);
 export const notificationStatusEnum = pgEnum("NotificationStatus", ["unread", "read"]);
 export const notificationAudienceEnum = pgEnum("NotificationAudience", ["user", "role", "all"]);
 export const siteAnnouncementStatusEnum = pgEnum("SiteAnnouncementStatus", ["draft", "scheduled", "published", "archived"]);

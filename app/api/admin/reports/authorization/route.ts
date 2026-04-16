@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const guard = await secureRoute({
     request,
     action: 'admin.reports.authorization',
-    allowedRoles: ['ADMIN'],
+    allowedRoles: ['ADMIN', 'SUPERADMIN'],
   });
 
   if (!guard.ok) {

@@ -76,6 +76,7 @@ The GitHub Actions Pages workflow uses this build path, so the published Pages s
 
 ## Seeded users
 
+- `superadmin@example.com` / `superadmin`
 - `admin@example.com` / `admin`
 - `manager@example.com` / `manager`
 - `user@example.com` / `user`

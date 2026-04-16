@@ -1,5 +1,6 @@
 import {
   canAccessAdminArea,
+  canManageRoles,
   canManageSystemSettings,
   canManageUsers,
   canViewReports,
@@ -8,7 +9,7 @@ import {
 import type { AppSession } from "@/src/auth";
 import { failure, success, type ServiceResult } from "@/src/domain/shared/result";
 
-export const adminActionKeys = ["viewReports", "manageUsers", "manageSystemSettings"] as const;
+export const adminActionKeys = ["viewReports", "manageUsers", "manageRoles", "manageSystemSettings"] as const;
 
 export type AdminActionKey = (typeof adminActionKeys)[number];
 
@@ -40,6 +41,10 @@ export function getAdminActionPermissions(role: AppRole | null | undefined): rea
     {
       key: "manageUsers",
       allowed: canManageUsers(role),
+    },
+    {
+      key: "manageRoles",
+      allowed: canManageRoles(role),
     },
     {
       key: "manageSystemSettings",

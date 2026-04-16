@@ -4,6 +4,7 @@ import {
   canAccessAdminArea,
   canAccessDataEntryWorkspace,
   canEditOwnProfile,
+  canManageRoles,
   canManageSystemSettings,
   canManageUsers,
   canViewDashboard,
@@ -11,10 +12,12 @@ import {
   forbidUnless,
   hasRole,
   isAdmin,
+  isSuperAdmin,
 } from "@/lib/authorization";
 
 describe("authorization helpers", () => {
   it("evaluates role hierarchy via hasRole", () => {
+    expect(hasRole("SUPERADMIN", "ADMIN")).toBe(true);
     expect(hasRole("ADMIN", "USER")).toBe(true);
     expect(hasRole("MANAGER", "USER")).toBe(true);
     expect(hasRole("ADMIN", "MANAGER")).toBe(true);
@@ -23,7 +26,10 @@ describe("authorization helpers", () => {
   });
 
   it("detects admin role", () => {
+    expect(isAdmin("SUPERADMIN")).toBe(true);
+    expect(isSuperAdmin("SUPERADMIN")).toBe(true);
     expect(isAdmin("ADMIN")).toBe(true);
+    expect(isSuperAdmin("ADMIN")).toBe(false);
     expect(isAdmin("USER")).toBe(false);
   });
 
@@ -37,9 +43,11 @@ describe("authorization helpers", () => {
     expect(canViewReports("MANAGER")).toBe(false);
     expect(canManageUsers("MANAGER")).toBe(false);
     expect(canAccessAdminArea("MANAGER")).toBe(false);
+    expect(canManageRoles("ADMIN")).toBe(false);
     expect(canViewReports("ADMIN")).toBe(true);
     expect(canManageUsers("ADMIN")).toBe(true);
     expect(canManageSystemSettings("ADMIN")).toBe(true);
+    expect(canManageRoles("SUPERADMIN")).toBe(true);
   });
 
   it("throws when forbidUnless condition is false", () => {

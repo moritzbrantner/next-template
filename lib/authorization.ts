@@ -1,6 +1,6 @@
 import { createAccessControl } from 'better-auth/plugins/access';
 
-export type AppRole = 'ADMIN' | 'MANAGER' | 'USER';
+export type AppRole = 'SUPERADMIN' | 'ADMIN' | 'MANAGER' | 'USER';
 
 type BusinessAction =
   | 'viewDashboard'
@@ -9,12 +9,14 @@ type BusinessAction =
   | 'accessAdminArea'
   | 'viewReports'
   | 'manageUsers'
-  | 'manageSystemSettings';
+  | 'manageSystemSettings'
+  | 'manageRoles';
 
 const roleHierarchy: Record<AppRole, number> = {
   USER: 0,
   MANAGER: 1,
   ADMIN: 2,
+  SUPERADMIN: 3,
 };
 
 const appAccessControl = createAccessControl({
@@ -25,6 +27,7 @@ const appAccessControl = createAccessControl({
   reports: ['view'],
   users: ['manage'],
   system: ['manage'],
+  roles: ['manage'],
 });
 
 const appRoles = {
@@ -47,9 +50,19 @@ const appRoles = {
     users: ['manage'],
     system: ['manage'],
   }),
+  SUPERADMIN: appAccessControl.newRole({
+    dashboard: ['view'],
+    profile: ['update'],
+    workspace: ['access'],
+    admin: ['access'],
+    reports: ['view'],
+    users: ['manage'],
+    system: ['manage'],
+    roles: ['manage'],
+  }),
 } as const;
 
-type PermissionRequest = Parameters<(typeof appRoles)['ADMIN']['authorize']>[0];
+type PermissionRequest = Parameters<(typeof appRoles)['SUPERADMIN']['authorize']>[0];
 
 const actionPermissions: Record<BusinessAction, PermissionRequest> = {
   viewDashboard: {
@@ -73,6 +86,9 @@ const actionPermissions: Record<BusinessAction, PermissionRequest> = {
   manageSystemSettings: {
     system: ['manage'],
   },
+  manageRoles: {
+    roles: ['manage'],
+  },
 };
 
 export function hasRole(currentRole: AppRole | null | undefined, minimumRole: AppRole): boolean {
@@ -87,12 +103,16 @@ export function isAdmin(role: AppRole | null | undefined): boolean {
   return hasRole(role, 'ADMIN');
 }
 
+export function isSuperAdmin(role: AppRole | null | undefined): boolean {
+  return hasRole(role, 'SUPERADMIN');
+}
+
 function canPerform(role: AppRole | null | undefined, action: BusinessAction): boolean {
   if (!role) {
     return false;
   }
 
-  return (appRoles[role] as (typeof appRoles)['ADMIN']).authorize(actionPermissions[action]).success;
+  return (appRoles[role] as (typeof appRoles)['SUPERADMIN']).authorize(actionPermissions[action]).success;
 }
 
 export function canViewDashboard(role: AppRole | null | undefined): boolean {
@@ -121,6 +141,10 @@ export function canManageUsers(role: AppRole | null | undefined): boolean {
 
 export function canManageSystemSettings(role: AppRole | null | undefined): boolean {
   return canPerform(role, 'manageSystemSettings');
+}
+
+export function canManageRoles(role: AppRole | null | undefined): boolean {
+  return canPerform(role, 'manageRoles');
 }
 
 export function forbidUnless(condition: unknown, message = 'Forbidden'): asserts condition {

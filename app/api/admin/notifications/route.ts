@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const guard = await secureRoute({
     request,
     action: 'admin.notifications.send',
-    allowedRoles: ['ADMIN'],
+    allowedRoles: ['ADMIN', 'SUPERADMIN'],
   });
 
   if (!guard.ok) {
