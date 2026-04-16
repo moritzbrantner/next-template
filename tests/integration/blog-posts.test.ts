@@ -171,6 +171,61 @@ describe('blog post use cases', () => {
     }
   });
 
+  it('deduplicates follower notifications and excludes the author from fanout', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'author@example.com',
+        tag: 'author',
+        name: 'Author',
+        image: null,
+      }),
+      listFollowerIdsByUserId: vi.fn().mockResolvedValue(['user_2', 'user_1', 'user_2', 'user_3']),
+      createPost: vi.fn().mockResolvedValue({
+        id: 'post_4',
+        userId: 'user_1',
+        title: 'Fanout title',
+        content: 'This body has enough content to pass the minimum validation.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    });
+
+    const result = await createBlogPostUseCase(
+      'user_1',
+      {
+        title: 'Fanout title',
+        content: 'This body has enough content to pass the minimum validation.',
+      },
+      deps,
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        id: 'post_4',
+        title: 'Fanout title',
+        content: 'This body has enough content to pass the minimum validation.',
+      },
+    });
+    expect(deps.createNotifications).toHaveBeenCalledWith([
+      {
+        userId: 'user_2',
+        actorId: 'user_1',
+        title: 'Author published a new blog post',
+        body: 'Fanout title',
+        href: '/profile/@author/blog#post-post_4',
+      },
+      {
+        userId: 'user_3',
+        actorId: 'user_1',
+        title: 'Author published a new blog post',
+        body: 'Fanout title',
+        href: '/profile/@author/blog#post-post_4',
+      },
+    ]);
+  });
+
   it('rejects posts that are too short', async () => {
     const deps = createDeps();
 

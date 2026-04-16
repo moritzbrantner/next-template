@@ -133,7 +133,7 @@ async function getMailpitMessageRaw(messageId: string) {
   return response.text();
 }
 
-async function runQueuedJobs() {
+export async function runQueuedJobs() {
   const response = await fetch(`${getE2EBaseURL()}/api/internal/jobs/run`, {
     method: 'POST',
     headers: {

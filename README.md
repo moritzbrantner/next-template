@@ -79,6 +79,13 @@ The GitHub Actions Pages workflow uses this build path, so the published Pages s
 - `admin@example.com` / `admin`
 - `manager@example.com` / `manager`
 - `user@example.com` / `user`
+- `alice@example.com` / `alice`
+- `bob@example.com` / `bob`
+- `casey@example.com` / `casey`
+- `dana@example.com` / `dana`
+- `private@example.com` / `private`
+
+The seed also creates baseline profiles, follow relationships, notification history, and recent page visits so the test database is immediately useful for social and admin workflows.
 
 ## Notes
 
