@@ -70,15 +70,27 @@ export default async function ProfileBlogPage({
 
         <CardContent>
           <BlogPostComposer
+            userId={session.user.id}
+            locale={locale}
             labels={{
               title: t('composer.form.title'),
               titlePlaceholder: t('composer.form.titlePlaceholder'),
               content: t('composer.form.content'),
               contentPlaceholder: t('composer.form.contentPlaceholder'),
+              draftsTitle: t('composer.drafts.title'),
+              draftsEmpty: t('composer.drafts.empty'),
+              untitledDraft: t('composer.drafts.untitled'),
+              emptyEditor: t('composer.editor.empty'),
+              publishedReadonly: t('composer.editor.publishedReadonly'),
+              newDraft: t('composer.actions.newDraft'),
+              deleteDraft: t('composer.actions.deleteDraft'),
               publish: t('composer.form.publish'),
               publishing: t('composer.form.publishing'),
-              success: t('composer.form.success'),
-              error: t('composer.form.error'),
+              savedLocally: t('composer.status.savedLocally'),
+              queuedToPublish: t('composer.status.queuedToPublish'),
+              publishFailed: t('composer.status.publishFailed'),
+              published: t('composer.status.published'),
+              genericError: t('composer.form.error'),
             }}
           />
         </CardContent>

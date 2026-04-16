@@ -76,12 +76,14 @@ export const blogPosts = pgTable(
   {
     id: text("id").primaryKey(),
     userId: text("userId").notNull().references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    clientRequestId: text("clientRequestId").notNull(),
     title: text("title").notNull(),
     content: text("content").notNull(),
     createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
     updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
   },
   (table) => [
+    uniqueIndex("BlogPost_userId_clientRequestId_key").on(table.userId, table.clientRequestId),
     index("BlogPost_userId_createdAt_idx").on(table.userId, table.createdAt),
     index("BlogPost_userId_updatedAt_idx").on(table.userId, table.updatedAt),
   ],

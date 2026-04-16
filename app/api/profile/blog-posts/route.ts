@@ -1,33 +1,26 @@
-import { secureRoute } from '@/src/api/route-security';
+import { blogPostCreateSchema, type CreateBlogPostResponse } from '@/src/domain/blog/contracts';
 import { createBlogPostUseCase } from '@/src/domain/blog/use-cases';
+import { createApiRoute } from '@/src/http/route';
 
-export async function POST(request: Request) {
-  const guard = await secureRoute({
-    request,
-    action: 'blog.createPost',
-    requireAuth: true,
-  });
-
-  if (!guard.ok) {
-    return guard.response;
-  }
-
-  const formData = await request.formData();
-  const rawTitle = formData.get('title');
-  const rawContent = formData.get('content');
-  const title = typeof rawTitle === 'string' ? rawTitle : '';
-  const content = typeof rawContent === 'string' ? rawContent : '';
-
-  try {
-    const result = await createBlogPostUseCase(guard.session!.user.id, { title, content });
+export const POST = createApiRoute({
+  action: 'blog.createPost',
+  auth: true,
+  bodySchema: blogPostCreateSchema,
+  async handler({ actorId, body }) {
+    const result = await createBlogPostUseCase(actorId!, body);
 
     if (!result.ok) {
       const status = result.error.code === 'NOT_FOUND' ? 404 : 400;
-      return guard.json({ error: result.error.message }, { status });
+      return Response.json({ error: result.error.message }, { status });
     }
 
-    return guard.json({ ok: true, postId: result.data.id }, { status: 201 });
-  } catch {
-    return guard.json({ error: 'Unable to publish your blog post right now. Please try again.' }, { status: 500 });
-  }
-}
+    const response: CreateBlogPostResponse = {
+      ok: true,
+      postId: result.data.id,
+      title: result.data.title,
+      contentMarkdown: result.data.contentMarkdown,
+    };
+
+    return response;
+  },
+});

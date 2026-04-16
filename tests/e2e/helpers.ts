@@ -25,6 +25,10 @@ export async function waitForAppHydration(page: Page) {
   await page.waitForFunction(() => document.documentElement.dataset.appHydrated === 'true');
 }
 
+export async function waitForServiceWorkerReady(page: Page) {
+  await page.waitForFunction(() => document.documentElement.dataset.serviceWorker === 'ready');
+}
+
 export async function dismissConsentBanner(page: Page) {
   const necessaryOnlyButton = page.getByRole('button', { name: 'Necessary only' });
 
