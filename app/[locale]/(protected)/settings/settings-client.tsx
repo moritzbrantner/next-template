@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import {
   canAccessAdminArea,
+  canManageRoles,
   canManageSystemSettings,
   canManageUsers,
   canViewReports,
@@ -81,9 +82,10 @@ export function SettingsClient({
           <CardTitle>{t('rbac.title')}</CardTitle>
           <CardDescription>{t('rbac.description')}</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           <PermissionCard title={t('rbac.permissions.viewReports')} enabled={canViewReports(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
           <PermissionCard title={t('rbac.permissions.manageUsers')} enabled={canManageUsers(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
+          <PermissionCard title={t('rbac.permissions.manageRoles')} enabled={canManageRoles(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
           <PermissionCard title={t('rbac.permissions.adminWorkspace')} enabled={canAccessAdminArea(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
           <PermissionCard title={t('rbac.permissions.systemSettings')} enabled={canManageSystemSettings(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
         </CardContent>

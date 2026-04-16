@@ -3,12 +3,12 @@ import { describe, expect, it } from "vitest";
 import type { AppSession } from "@/src/auth";
 import { getAdminActionPermissions, getAdminAuthorization } from "@/src/domain/authorization/use-cases";
 
-function createSession(role: "ADMIN" | "MANAGER" | "USER"): AppSession {
+function createSession(role: "SUPERADMIN" | "ADMIN" | "MANAGER" | "USER"): AppSession {
   return {
     user: {
-      id: role === "ADMIN" ? "admin_1" : role === "MANAGER" ? "manager_1" : "user_1",
+      id: role === "SUPERADMIN" ? "superadmin_1" : role === "ADMIN" ? "admin_1" : role === "MANAGER" ? "manager_1" : "user_1",
       email: `${role.toLowerCase()}@example.com`,
-      tag: role === "ADMIN" ? "admin" : role === "MANAGER" ? "manager" : "user",
+      tag: role === "SUPERADMIN" ? "superadmin" : role === "ADMIN" ? "admin" : role === "MANAGER" ? "manager" : "user",
       image: null,
       name: null,
       role,
@@ -65,6 +65,24 @@ describe("authorization domain use-cases", () => {
     expect(result.data.actions).toEqual([
       { key: "viewReports", allowed: true },
       { key: "manageUsers", allowed: true },
+      { key: "manageRoles", allowed: false },
+      { key: "manageSystemSettings", allowed: true },
+    ]);
+  });
+
+  it("returns elevated actions for superadmin", () => {
+    const result = getAdminAuthorization(createSession("SUPERADMIN"));
+
+    expect(result.ok).toBe(true);
+
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.data.actions).toEqual([
+      { key: "viewReports", allowed: true },
+      { key: "manageUsers", allowed: true },
+      { key: "manageRoles", allowed: true },
       { key: "manageSystemSettings", allowed: true },
     ]);
   });
@@ -73,12 +91,14 @@ describe("authorization domain use-cases", () => {
     expect(getAdminActionPermissions("USER")).toEqual([
       { key: "viewReports", allowed: false },
       { key: "manageUsers", allowed: false },
+      { key: "manageRoles", allowed: false },
       { key: "manageSystemSettings", allowed: false },
     ]);
 
     expect(getAdminActionPermissions("MANAGER")).toEqual([
       { key: "viewReports", allowed: false },
       { key: "manageUsers", allowed: false },
+      { key: "manageRoles", allowed: false },
       { key: "manageSystemSettings", allowed: false },
     ]);
   });

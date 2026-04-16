@@ -20,26 +20,26 @@ export const tablePermissions: readonly TablePermission[] = [
   {
     table: 'User',
     label: 'User',
-    readRoles: ['MANAGER', 'ADMIN'],
-    writeRoles: ['ADMIN'],
+    readRoles: ['MANAGER', 'ADMIN', 'SUPERADMIN'],
+    writeRoles: ['ADMIN', 'SUPERADMIN'],
   },
   {
     table: 'Profile',
     label: 'Profile',
-    readRoles: ['USER', 'MANAGER', 'ADMIN'],
-    writeRoles: ['USER', 'MANAGER', 'ADMIN'],
+    readRoles: ['USER', 'MANAGER', 'ADMIN', 'SUPERADMIN'],
+    writeRoles: ['USER', 'MANAGER', 'ADMIN', 'SUPERADMIN'],
   },
   {
     table: 'SecurityAuditLog',
     label: 'SecurityAuditLog',
-    readRoles: ['MANAGER', 'ADMIN'],
-    writeRoles: ['ADMIN'],
+    readRoles: ['MANAGER', 'ADMIN', 'SUPERADMIN'],
+    writeRoles: ['ADMIN', 'SUPERADMIN'],
   },
   {
     table: 'SecurityRateLimitCounter',
     label: 'SecurityRateLimitCounter',
-    readRoles: ['ADMIN'],
-    writeRoles: ['ADMIN'],
+    readRoles: ['ADMIN', 'SUPERADMIN'],
+    writeRoles: ['ADMIN', 'SUPERADMIN'],
   },
 ] as const;
 

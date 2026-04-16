@@ -1,3 +1,4 @@
+import type { AppRole } from '@/lib/authorization';
 import { getDb } from '@/src/db/client';
 import { shouldUseDatabaseReadFallback } from '@/src/site-config/service';
 
@@ -19,7 +20,7 @@ export function isAdminReportWindow(value: string): value is AdminReportWindow {
 
 type ReportUser = {
   id: string;
-  role: 'ADMIN' | 'MANAGER' | 'USER';
+  role: AppRole;
   lockoutUntil: Date | null;
 };
 
@@ -121,6 +122,10 @@ function isAdminAction(action: string) {
   return action.startsWith('admin.');
 }
 
+function isPrivilegedAdminRole(role: AppRole) {
+  return role === 'ADMIN' || role === 'SUPERADMIN';
+}
+
 function isAdminPagePath(pathname: string) {
   return pathname.startsWith('/admin');
 }
@@ -190,7 +195,7 @@ function buildSecurityAccessDetail(input: {
   return {
     reportId: 'securityAccess',
     cards: [
-      { label: 'Admin accounts', value: formatNumber(input.users.filter((user) => user.role === 'ADMIN').length) },
+      { label: 'Admin accounts', value: formatNumber(input.users.filter((user) => isPrivilegedAdminRole(user.role)).length) },
       { label: 'Manager accounts', value: formatNumber(input.users.filter((user) => user.role === 'MANAGER').length) },
       { label: 'Locked accounts', value: formatNumber(lockedUsers.length) },
       { label: 'Denied admin actions', value: formatNumber(deniedAdminActions.length) },
@@ -348,7 +353,7 @@ export async function getAdminReportSummaryUseCase(
     metrics: [
       {
         label: 'Admin accounts',
-        value: formatNumber(usersData.filter((user) => user.role === 'ADMIN').length),
+        value: formatNumber(usersData.filter((user) => isPrivilegedAdminRole(user.role)).length),
         detail: `Locked accounts: ${formatNumber(usersData.filter((user) => user.lockoutUntil && user.lockoutUntil.getTime() > Date.now()).length)}`,
       },
       {

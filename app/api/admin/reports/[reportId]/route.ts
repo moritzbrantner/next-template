@@ -29,7 +29,7 @@ export async function GET(
   const guard = await secureRoute({
     request,
     action: 'admin.reports.export',
-    allowedRoles: ['ADMIN'],
+    allowedRoles: ['ADMIN', 'SUPERADMIN'],
     metadata: { reportId },
   });
 

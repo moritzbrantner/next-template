@@ -10,7 +10,7 @@ type VisibilityCase = {
   label: string;
   input: {
     isAuthenticated: boolean;
-    role: 'USER' | 'MANAGER' | 'ADMIN' | null;
+    role: 'USER' | 'MANAGER' | 'ADMIN' | 'SUPERADMIN' | null;
   };
   visibleKeys: readonly AppPageKey[];
   hiddenKeys: readonly AppPageKey[];
@@ -58,6 +58,12 @@ describe('app routes', () => {
     {
       label: 'admins',
       input: { isAuthenticated: true, role: 'ADMIN' as const },
+      visibleKeys: ['people', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
+      hiddenKeys: ['login', 'register'],
+    },
+    {
+      label: 'superadmins',
+      input: { isAuthenticated: true, role: 'SUPERADMIN' as const },
       visibleKeys: ['people', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
       hiddenKeys: ['login', 'register'],
     },

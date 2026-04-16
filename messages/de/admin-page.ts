@@ -1,5 +1,5 @@
 export const adminPage = {
-  accessBadge: 'Nur ADMIN',
+  accessBadge: 'ADMIN oder SUPERADMIN',
   navigation: {
     overview: 'Übersicht',
     content: 'Inhalte',
@@ -12,6 +12,15 @@ export const adminPage = {
     title: 'Admin-Übersicht',
     description:
       'Nutze diese Bereiche für privilegierte Berichte, Benutzeroperationen, Plattform-Konfiguration und schema-gesteuerte Werkzeuge.',
+    layoutTitle: 'Bereichs-Layout',
+    layoutDescription: 'Ordne die Übersichtskarten so an, wie dein Team die Bereiche am häufigsten nutzt.',
+    editHint: 'Ziehe die Karten am Handle an die gewünschte Position und speichere dann die Reihenfolge.',
+    editLayout: 'Layout bearbeiten',
+    saveLayout: 'Layout speichern',
+    cancelEditing: 'Abbrechen',
+    resetLayout: 'Reihenfolge zurücksetzen',
+    dragAction: 'Ziehen',
+    dragHandle: 'Bereichskarte ziehen',
     openWorkspace: 'Bereich öffnen',
   },
   content: {
@@ -37,7 +46,7 @@ export const adminPage = {
       coverage: {
         label: 'Autorisierungsabdeckung',
         value: '100%',
-        detail: 'Alle privilegierten Admin-Routen verlangen jetzt die Rolle ADMIN.',
+        detail: 'Alle privilegierten Admin-Routen verlangen jetzt die Rolle ADMIN oder SUPERADMIN.',
       },
       auditTrail: {
         label: 'Audit-Fenster',
@@ -153,6 +162,7 @@ export const adminPage = {
         all: 'Alle Nutzer',
       },
       roles: {
+        SUPERADMIN: 'Superadmins',
         ADMIN: 'Admins',
         MANAGER: 'Manager',
         USER: 'Mitglieder',
@@ -205,6 +215,17 @@ export const adminPage = {
       noNotifications: 'Bisher wurden keine Benachrichtigungen zugestellt.',
       directNotificationTitle: 'Direkte Benachrichtigung senden',
       directNotificationDescription: 'Erstelle eine Nachricht, die direkt im Postfach dieses Nutzers landet.',
+      roleManager: {
+        title: 'Rollenverwaltung',
+        description: 'Superadmins können hier privilegierten Workspace-Zugriff vergeben oder entziehen.',
+        currentRole: 'Aktuelle Rolle',
+        nextRole: 'Zugewiesene Rolle',
+        submit: 'Rolle speichern',
+        saving: 'Wird gespeichert...',
+        success: 'Rolle auf {role} gesetzt.',
+        genericError: 'Die Rolle konnte gerade nicht aktualisiert werden.',
+        selfChangeHint: 'Nutze ein anderes Superadmin-Konto, um deine eigene Rolle sicher zu ändern.',
+      },
       accountHealthTitle: 'Kontozustand',
       accountHealthDescription: 'Operative Signale, die mit diesem Konto verbunden sind.',
       summary: {
@@ -268,7 +289,7 @@ export const adminPage = {
       },
       mfaPolicy: {
         label: 'MFA-Richtlinie',
-        value: 'Pflicht für ADMIN-Konten und optional für alle anderen.',
+        value: 'Pflicht für ADMIN- und SUPERADMIN-Konten und optional für alle anderen.',
         scope: 'Zugriff',
       },
       digestCadence: {
@@ -312,7 +333,7 @@ export const adminPage = {
   },
   dataStudio: {
     title: 'Data Studio',
-    description: 'Erstelle Datensätze über schema-gesteuerte Formulare aus db-schema.json. Der Zugriff ist auf ADMIN beschränkt.',
+    description: 'Erstelle Datensätze über schema-gesteuerte Formulare aus db-schema.json. Der Zugriff ist auf ADMIN und SUPERADMIN beschränkt.',
     summary: {
       tables: 'Schreibbare Tabellen',
       fields: 'Verfügbare Felder',

@@ -147,7 +147,7 @@ export function AdminNotificationComposer({
             className={selectClassName}
             required
           >
-            {(['ADMIN', 'MANAGER', 'USER'] as const).map((role) => (
+            {(['SUPERADMIN', 'ADMIN', 'MANAGER', 'USER'] as const).map((role) => (
               <option key={role} value={role}>
                 {t(`users.notifications.roles.${role}`)}
               </option>

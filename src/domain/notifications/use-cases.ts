@@ -291,7 +291,7 @@ export async function getAdminUsersPageDataUseCase(): Promise<AdminUsersPageData
 
   return {
     metrics: {
-      privileged: rows.filter((user) => user.role === 'ADMIN').length,
+      privileged: rows.filter((user) => user.role === 'ADMIN' || user.role === 'SUPERADMIN').length,
       operational: rows.filter((user) => user.role === 'MANAGER').length,
       member: rows.filter((user) => user.role === 'USER').length,
     },

@@ -3,13 +3,15 @@ import { notFound } from 'next/navigation';
 
 import { AdminNotificationComposer } from '@/components/admin/admin-notification-composer';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
+import { AdminRoleManager } from '@/components/admin/admin-role-manager';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
+import { canManageRoles } from '@/lib/authorization';
 import { getAdminUserDetailUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, requireAdmin, resolveLocale } from '@/src/server/page-guards';
 
 export default async function AdminUserDetailPage({
   params,
@@ -18,6 +20,7 @@ export default async function AdminUserDetailPage({
 }) {
   const { locale: rawLocale, userId } = await params;
   const locale = resolveLocale(rawLocale);
+  const session = await requireAdmin(locale);
   notFoundUnlessFeatureEnabled('admin.users');
   const t = createTranslator(locale, 'AdminPage');
   const user = await getAdminUserDetailUseCase(userId);
@@ -139,6 +142,22 @@ export default async function AdminUserDetailPage({
               />
             </CardContent>
           </Card>
+
+          {canManageRoles(session.user.role) ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('users.detail.roleManager.title')}</CardTitle>
+                <CardDescription>{t('users.detail.roleManager.description')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdminRoleManager
+                  userId={user.id}
+                  currentRole={user.role}
+                  disabled={session.user.id === user.id}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardHeader>

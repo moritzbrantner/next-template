@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import type { AppRole } from '@/lib/authorization';
 import { exportAdminReportUseCase, getAdminReportDetailUseCase } from '@/src/domain/admin-reports/use-cases';
 
-function createApiMocks(session: { user?: { id: string; role: 'ADMIN' | 'MANAGER' | 'USER' } } | null) {
+function createApiMocks(session: { user?: { id: string; role: AppRole } } | null) {
   vi.doMock('@/src/api/security', () => ({
     auditAction: vi.fn().mockResolvedValue(undefined),
     enforceRateLimit: vi.fn().mockResolvedValue({ ok: true, remaining: 10, resetAt: 0 }),

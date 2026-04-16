@@ -1,5 +1,5 @@
 export const adminPage = {
-  accessBadge: 'ADMIN only',
+  accessBadge: 'ADMIN or SUPERADMIN',
   navigation: {
     overview: 'Overview',
     content: 'Content',
@@ -11,6 +11,15 @@ export const adminPage = {
   overview: {
     title: 'Admin overview',
     description: 'Use these workspaces for privileged reporting, user operations, platform configuration, and schema-driven tools.',
+    layoutTitle: 'Workspace layout',
+    layoutDescription: 'Arrange the overview cards to match the order your team uses most.',
+    editHint: 'Drag cards by their handle, then save the arrangement when the layout feels right.',
+    editLayout: 'Edit layout',
+    saveLayout: 'Save layout',
+    cancelEditing: 'Cancel',
+    resetLayout: 'Reset order',
+    dragAction: 'Drag',
+    dragHandle: 'Drag workspace card',
     openWorkspace: 'Open workspace',
   },
   content: {
@@ -36,7 +45,7 @@ export const adminPage = {
       coverage: {
         label: 'Authorization coverage',
         value: '100%',
-        detail: 'All privileged admin routes now require the ADMIN role.',
+        detail: 'All privileged admin routes now require the ADMIN or SUPERADMIN role.',
       },
       auditTrail: {
         label: 'Audit trail window',
@@ -150,6 +159,7 @@ export const adminPage = {
         all: 'All users',
       },
       roles: {
+        SUPERADMIN: 'Superadmins',
         ADMIN: 'Admins',
         MANAGER: 'Managers',
         USER: 'Members',
@@ -202,6 +212,17 @@ export const adminPage = {
       noNotifications: 'No notifications have been delivered yet.',
       directNotificationTitle: 'Send a direct notification',
       directNotificationDescription: 'Compose a message that will land directly in this user’s notification inbox.',
+      roleManager: {
+        title: 'Role management',
+        description: 'Superadmins can assign and revoke privileged workspace access here.',
+        currentRole: 'Current role',
+        nextRole: 'Assigned role',
+        submit: 'Save role',
+        saving: 'Saving...',
+        success: 'Role updated to {role}.',
+        genericError: 'Unable to update the role right now.',
+        selfChangeHint: 'Use another superadmin account to change your own role safely.',
+      },
       accountHealthTitle: 'Account health',
       accountHealthDescription: 'Operational signals tied to this account.',
       summary: {
@@ -265,7 +286,7 @@ export const adminPage = {
       },
       mfaPolicy: {
         label: 'MFA policy',
-        value: 'Required for ADMIN accounts and optional for all others.',
+        value: 'Required for ADMIN and SUPERADMIN accounts and optional for all others.',
         scope: 'Access',
       },
       digestCadence: {
@@ -309,7 +330,7 @@ export const adminPage = {
   },
   dataStudio: {
     title: 'Data studio',
-    description: 'Insert records through schema-driven forms generated from db-schema.json. Access is restricted to ADMIN users.',
+    description: 'Insert records through schema-driven forms generated from db-schema.json. Access is restricted to ADMIN and SUPERADMIN users.',
     summary: {
       tables: 'Writable tables',
       fields: 'Available fields',
