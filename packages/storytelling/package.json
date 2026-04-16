@@ -63,7 +63,7 @@
   },
   "scripts": {
     "build": "tsup src/index.ts src/remotion.tsx src/three.tsx --format esm --dts --clean --out-dir dist",
-    "lint": "node ../../scripts/verify-package-imports.mjs ./src @/ next/ next-intl",
+    "lint": "bun ../../scripts/verify-package-imports.mjs ./src @/ next/ next-intl",
     "typecheck": "tsc --noEmit",
     "test": "cd ../.. && vitest run packages/storytelling/tests/storytelling.test.tsx"
   }

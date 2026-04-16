@@ -24,7 +24,7 @@ function walkFiles(root) {
 const [scanRoot, ...blockedPrefixes] = process.argv.slice(2);
 
 if (!scanRoot) {
-  console.error('Usage: node scripts/verify-package-imports.mjs <root> <blocked-prefix> [...]');
+  console.error('Usage: bun ./scripts/verify-package-imports.mjs <root> <blocked-prefix> [...]');
   process.exit(1);
 }
 

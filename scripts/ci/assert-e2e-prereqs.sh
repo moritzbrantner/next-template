@@ -39,7 +39,7 @@ if (( ${#AUTH_SECRET} < 32 )); then
   exit 1
 fi
 
-node --eval '
+bun --eval '
   (async () => {
     const { Client } = require("pg");
 

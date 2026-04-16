@@ -5,7 +5,7 @@ import { spawnSync } from 'node:child_process';
 const [scriptName] = process.argv.slice(2);
 
 if (!scriptName) {
-  console.error('Usage: node scripts/run-workspace-command.mjs <script>');
+  console.error('Usage: bun ./scripts/run-workspace-command.mjs <script>');
   process.exit(1);
 }
 
