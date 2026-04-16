@@ -8,6 +8,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
 import { withLocalePath, type AppLocale } from '@/i18n/routing';
+import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
 import { createTranslator } from '@/src/i18n/messages';
 import { enqueueJob } from '@/src/jobs/service';
 import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
@@ -200,6 +201,7 @@ export default async function AdminContentPage({
   const locale = resolveLocale(rawLocale);
   notFoundUnlessFeatureEnabled('admin.content');
   const t = createTranslator(locale, 'AdminPage');
+  const adminPages = getEnabledAdminPageDefinitions();
   const editingAnnouncementId = typeof rawSearchParams.announcementId === 'string' ? rawSearchParams.announcementId : undefined;
   const [announcements, editingAnnouncement] = await Promise.all([
     listAnnouncements(locale),
@@ -208,7 +210,7 @@ export default async function AdminContentPage({
   const initialValues = buildInitialValues(locale, editingAnnouncement);
 
   return (
-    <AdminPageShell title={t('content.title')} description={t('content.description')}>
+    <AdminPageShell title={t('content.title')} description={t('content.description')} adminPages={adminPages}>
       <Card>
         <CardHeader>
           <CardTitle>{editingAnnouncement ? 'Edit announcement' : 'Create announcement'}</CardTitle>

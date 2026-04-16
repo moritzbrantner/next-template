@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
 import { createTranslator } from '@/src/i18n/messages';
 import type { FeatureFlagKey, SiteSettingKey } from '@/src/site-config/contracts';
 import { listFeatureFlags, listSiteSettings, upsertFeatureFlag, upsertSiteSetting } from '@/src/site-config/service';
@@ -40,10 +41,11 @@ export default async function SystemSettingsPage({
   const locale = resolveLocale(rawLocale);
   notFoundUnlessFeatureEnabled('admin.systemSettings');
   const t = createTranslator(locale, 'AdminPage');
+  const adminPages = getEnabledAdminPageDefinitions();
   const [settings, flags] = await Promise.all([listSiteSettings(), listFeatureFlags()]);
 
   return (
-    <AdminPageShell title={t('systemSettings.title')} description={t('systemSettings.description')}>
+    <AdminPageShell title={t('systemSettings.title')} description={t('systemSettings.description')} adminPages={adminPages}>
       <Card>
         <CardHeader>
           <CardTitle>Site settings</CardTitle>

@@ -4,19 +4,23 @@ import type { ReactNode } from 'react';
 
 import { Link, usePathname } from '@/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
-import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
 import { useTranslations } from '@/src/i18n';
+
+export type AdminPageNavigationItem = {
+  key: string;
+  href: string;
+};
 
 type AdminPageShellProps = {
   title: string;
   description: string;
+  adminPages: readonly AdminPageNavigationItem[];
   children: ReactNode;
 };
 
-export function AdminPageShell({ title, description, children }: AdminPageShellProps) {
+export function AdminPageShell({ title, description, adminPages, children }: AdminPageShellProps) {
   const pathname = usePathname();
   const t = useTranslations('AdminPage');
-  const adminPages = getEnabledAdminPageDefinitions();
 
   return (
     <section className="mx-auto max-w-6xl space-y-6">

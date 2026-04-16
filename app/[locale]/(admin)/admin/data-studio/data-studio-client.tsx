@@ -3,14 +3,18 @@
 import { useState } from 'react';
 
 import dbSchema from '@/db-schema.json';
-import { AdminPageShell } from '@/components/admin/admin-page-shell';
+import { AdminPageShell, type AdminPageNavigationItem } from '@/components/admin/admin-page-shell';
 import { SchemaTableForm } from '@/components/dynamic-db/schema-table-form';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { parseDbSchemaDocument } from '@/src/dynamic-db/schema';
 import { useTranslations } from '@/src/i18n';
 
-export function DataStudioClient() {
+export function DataStudioClient({
+  adminPages,
+}: {
+  adminPages: readonly AdminPageNavigationItem[];
+}) {
   const t = useTranslations('AdminPage');
   const parsedSchema = parseDbSchemaDocument(dbSchema);
   const totalFields = parsedSchema.tables.reduce((sum, table) => sum + table.fields.length, 0);
@@ -19,7 +23,7 @@ export function DataStudioClient() {
   const requiredFieldCount = activeTable?.fields.filter((field) => field.required).length ?? 0;
 
   return (
-    <AdminPageShell title={t('dataStudio.title')} description={t('dataStudio.description')}>
+    <AdminPageShell title={t('dataStudio.title')} description={t('dataStudio.description')} adminPages={adminPages}>
       <div className="grid gap-4 md:grid-cols-3">
         <Card><CardHeader><CardDescription>{t('dataStudio.summary.tables')}</CardDescription><CardTitle>{String(parsedSchema.tables.length)}</CardTitle></CardHeader></Card>
         <Card><CardHeader><CardDescription>{t('dataStudio.summary.fields')}</CardDescription><CardTitle>{String(totalFields)}</CardTitle></CardHeader></Card>

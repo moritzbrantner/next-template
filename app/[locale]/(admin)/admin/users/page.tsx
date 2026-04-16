@@ -5,6 +5,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LocalizedLink } from '@/i18n/server-link';
+import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
 import { getAdminUsersPageDataUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
@@ -21,10 +22,11 @@ export default async function UsersPage({
   const locale = resolveLocale(rawLocale);
   notFoundUnlessFeatureEnabled('admin.users');
   const t = createTranslator(locale, 'AdminPage');
+  const adminPages = getEnabledAdminPageDefinitions();
   const data = await getAdminUsersPageDataUseCase();
 
   return (
-    <AdminPageShell title={t('users.title')} description={t('users.description')}>
+    <AdminPageShell title={t('users.title')} description={t('users.description')} adminPages={adminPages}>
       <div className="grid gap-4 md:grid-cols-3">
         {userMetricKeys.map((metricKey) => (
           <Card key={metricKey}>
