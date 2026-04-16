@@ -12,6 +12,15 @@ export const adminPage = {
     title: 'Admin-Übersicht',
     description:
       'Nutze diese Bereiche für privilegierte Berichte, Benutzeroperationen, Plattform-Konfiguration und schema-gesteuerte Werkzeuge.',
+    layoutTitle: 'Bereichs-Layout',
+    layoutDescription: 'Ordne die Übersichtskarten so an, wie dein Team die Bereiche am häufigsten nutzt.',
+    editHint: 'Ziehe die Karten am Handle an die gewünschte Position und speichere dann die Reihenfolge.',
+    editLayout: 'Layout bearbeiten',
+    saveLayout: 'Layout speichern',
+    cancelEditing: 'Abbrechen',
+    resetLayout: 'Reihenfolge zurücksetzen',
+    dragAction: 'Ziehen',
+    dragHandle: 'Bereichskarte ziehen',
     openWorkspace: 'Bereich öffnen',
   },
   content: {

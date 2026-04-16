@@ -11,6 +11,15 @@ export const adminPage = {
   overview: {
     title: 'Admin overview',
     description: 'Use these workspaces for privileged reporting, user operations, platform configuration, and schema-driven tools.',
+    layoutTitle: 'Workspace layout',
+    layoutDescription: 'Arrange the overview cards to match the order your team uses most.',
+    editHint: 'Drag cards by their handle, then save the arrangement when the layout feels right.',
+    editLayout: 'Edit layout',
+    saveLayout: 'Save layout',
+    cancelEditing: 'Cancel',
+    resetLayout: 'Reset order',
+    dragAction: 'Drag',
+    dragHandle: 'Drag workspace card',
     openWorkspace: 'Open workspace',
   },
   content: {
