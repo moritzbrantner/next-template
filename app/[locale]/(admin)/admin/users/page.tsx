@@ -5,10 +5,11 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LocalizedLink } from '@/i18n/server-link';
-import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
+import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
+import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { getAdminUsersPageDataUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, requirePermission, resolveLocale } from '@/src/server/page-guards';
 
 const userMetricKeys = ['privileged', 'operational', 'member'] as const;
 const workflowKeys = ['inspect', 'broadcast', 'suspend'] as const;
@@ -20,9 +21,11 @@ export default async function UsersPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
+  const session = await requirePermission(locale, 'admin.users.read');
   notFoundUnlessFeatureEnabled('admin.users');
   const t = createTranslator(locale, 'AdminPage');
-  const adminPages = getEnabledAdminPageDefinitions();
+  const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
+  const canNotifyUsers = await hasPermissionForRole(session.user.role, 'admin.users.notify');
   const data = await getAdminUsersPageDataUseCase();
 
   return (
@@ -91,15 +94,17 @@ export default async function UsersPage({
           </CardContent>
         </Card>
 
-        <Card className="rounded-[1.75rem]">
-          <CardHeader>
-            <CardTitle>{t('users.notifications.title')}</CardTitle>
-            <CardDescription>{t('users.notifications.description')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AdminNotificationComposer userOptions={data.users.map((user) => ({ id: user.id, displayName: user.displayName, email: user.email, role: user.role }))} />
-          </CardContent>
-        </Card>
+        {canNotifyUsers ? (
+          <Card className="rounded-[1.75rem]">
+            <CardHeader>
+              <CardTitle>{t('users.notifications.title')}</CardTitle>
+              <CardDescription>{t('users.notifications.description')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminNotificationComposer userOptions={data.users.map((user) => ({ id: user.id, displayName: user.displayName, email: user.email, role: user.role }))} />
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
 
       <Card>

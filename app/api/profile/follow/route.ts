@@ -17,6 +17,7 @@ export const POST = createApiRoute({
   action: 'profile.follow',
   featureKey: 'profiles.follow',
   auth: true,
+  permission: 'profile.follow',
   bodySchema: followBodySchema,
   async handler({ actorId, body }) {
     const result = await followUserUseCase(actorId!, body.userId);
@@ -33,6 +34,7 @@ export const DELETE = createApiRoute({
   action: 'profile.unfollow',
   featureKey: 'profiles.follow',
   auth: true,
+  permission: 'profile.follow',
   bodySchema: followBodySchema,
   async handler({ actorId, body }) {
     const result = await unfollowUserUseCase(actorId!, body.userId);

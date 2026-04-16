@@ -9,6 +9,7 @@ import { createApiRoute } from '@/src/http/route';
 export const POST = createApiRoute({
   action: 'profile.updateImage',
   auth: true,
+  permission: 'profile.manageOwnImage',
   bodySchema: z.object({
     image: z.instanceof(File),
   }),

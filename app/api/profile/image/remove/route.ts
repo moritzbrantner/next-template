@@ -6,6 +6,7 @@ import { createApiRoute } from '@/src/http/route';
 export const POST = createApiRoute({
   action: 'profile.removeImage',
   auth: true,
+  permission: 'profile.manageOwnImage',
   async handler({ actorId, session }) {
     const result = await removeProfileImageUseCase(actorId!);
 

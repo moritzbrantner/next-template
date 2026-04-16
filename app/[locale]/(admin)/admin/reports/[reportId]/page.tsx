@@ -7,7 +7,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LocalizedLink } from '@/i18n/server-link';
-import { getEnabledAdminPageDefinitions } from '@/src/admin/pages';
+import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import {
   adminReportWindows,
   getAdminReportDetailUseCase,
@@ -17,7 +17,7 @@ import {
 } from '@/src/domain/admin-reports/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import { getAdminAnalyticsSettings } from '@/src/site-config/service';
-import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabled, requirePermission, resolveLocale } from '@/src/server/page-guards';
 
 function buildReportSearchParams(input: {
   window: string;
@@ -51,6 +51,7 @@ export default async function AdminReportDetailPage({
 }) {
   const [{ locale: rawLocale, reportId }, rawSearchParams] = await Promise.all([params, searchParams]);
   const locale = resolveLocale(rawLocale);
+  const session = await requirePermission(locale, 'admin.reports.read');
   notFoundUnlessFeatureEnabled('admin.reports');
 
   if (!isAdminReportId(reportId)) {
@@ -66,7 +67,7 @@ export default async function AdminReportDetailPage({
     path: rawSearchParams.path,
   });
   const t = createTranslator(locale, 'AdminPage');
-  const adminPages = getEnabledAdminPageDefinitions();
+  const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
   const detail = await getAdminReportDetailUseCase(reportId, window, undefined, navigationFilters);
   const currentQuery = buildReportSearchParams({
     window,

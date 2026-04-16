@@ -16,11 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
-  canAccessAdminArea,
-  canManageRoles,
-  canManageSystemSettings,
-  canManageUsers,
-  canViewReports,
+  type AppPermissionKey,
 } from '@/lib/authorization';
 import type { AppSession } from '@/src/auth';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
@@ -48,6 +44,7 @@ export function SettingsClient({
   locale,
   session,
   consent,
+  currentPermissions,
   initialSearchVisibility,
   initialFollowerVisibility,
   initialBlockedProfiles,
@@ -55,6 +52,7 @@ export function SettingsClient({
   locale: string;
   session: AppSession;
   consent: ConsentState;
+  currentPermissions: AppPermissionKey[];
   initialSearchVisibility: boolean;
   initialFollowerVisibility: FollowerVisibilityRole;
   initialBlockedProfiles: ProfileDirectoryEntry[];
@@ -65,6 +63,7 @@ export function SettingsClient({
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance');
 
   const role = session.user.role ?? 'USER';
+  const permissionSet = new Set(currentPermissions);
   const formattedPreviewDate = formatDatePreview(previewDate ?? initialPreviewDate, settings, locale);
   const updateNotificationSettings = (nextSettings: Partial<(typeof settings.notifications)>) => {
     updateSettings((currentSettings) => ({
@@ -91,11 +90,11 @@ export function SettingsClient({
           <CardDescription>{t('rbac.description')}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <PermissionCard title={t('rbac.permissions.viewReports')} enabled={canViewReports(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
-          <PermissionCard title={t('rbac.permissions.manageUsers')} enabled={canManageUsers(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
-          <PermissionCard title={t('rbac.permissions.manageRoles')} enabled={canManageRoles(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
-          <PermissionCard title={t('rbac.permissions.adminWorkspace')} enabled={canAccessAdminArea(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
-          <PermissionCard title={t('rbac.permissions.systemSettings')} enabled={canManageSystemSettings(role)} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
+          <PermissionCard title={t('rbac.permissions.viewReports')} enabled={permissionSet.has('admin.reports.read')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
+          <PermissionCard title={t('rbac.permissions.manageUsers')} enabled={permissionSet.has('admin.users.read')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
+          <PermissionCard title={t('rbac.permissions.manageRoles')} enabled={permissionSet.has('admin.roles.edit')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
+          <PermissionCard title={t('rbac.permissions.adminWorkspace')} enabled={permissionSet.has('admin.access')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
+          <PermissionCard title={t('rbac.permissions.systemSettings')} enabled={permissionSet.has('admin.systemSettings.edit')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
         </CardContent>
       </Card>
 

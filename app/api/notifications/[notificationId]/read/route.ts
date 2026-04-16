@@ -8,7 +8,7 @@ export async function POST(
   const guard = await secureRoute({
     request,
     action: 'notifications.markItemRead',
-    requireAuth: true,
+    requiredPermission: 'notifications.readOwn',
   });
 
   if (!guard.ok) {

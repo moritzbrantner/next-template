@@ -16,6 +16,7 @@ function mapSearchProblem(code: 'NOT_FOUND' | 'VALIDATION_ERROR' | 'FORBIDDEN' |
 export const GET = createApiRoute({
   action: 'profile.search',
   auth: true,
+  permission: 'profile.follow',
   querySchema: searchQuerySchema,
   async handler({ actorId, query }) {
     const result = await searchUsersToFollowUseCase(actorId!, query.query ?? '');

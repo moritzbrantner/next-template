@@ -1,9 +1,10 @@
 import type { ZodType } from 'zod';
 
-import type { AppRole } from '@/lib/authorization';
+import type { AppPermissionKey, AppRole } from '@/lib/authorization';
 import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import type { AppSession } from '@/src/auth';
 import { getAuthSession } from '@/src/auth.server';
+import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import { auditAction, enforceRateLimit, getRateLimitKey } from '@/src/api/security';
 import { errorReporter, getLogger } from '@/src/observability/logger';
@@ -40,6 +41,7 @@ type CreateApiRouteOptions<TBody, TQuery, TResult> = {
   featureKey?: FoundationFeatureKey;
   auth?: boolean;
   roles?: readonly AppRole[];
+  permission?: AppPermissionKey;
   bodySchema?: BodySchema<TBody>;
   querySchema?: QuerySchema<TQuery>;
   handler: (context: HandlerContext<TBody, TQuery>) => Promise<Response | TResult> | Response | TResult;
@@ -212,6 +214,28 @@ export function createApiRoute<TBody = undefined, TQuery = undefined, TResult = 
           }
 
           if (!session?.user.role || !options.roles.includes(session.user.role)) {
+            await audit(403);
+            return createProblemResponse(forbiddenProblem(), {
+              headers: new Headers({
+                ...Object.fromEntries(rateLimitHeaders.entries()),
+                'x-request-id': requestContext.requestId,
+              }),
+            });
+          }
+        }
+
+        if (options.permission) {
+          if (!actorId) {
+            await audit(401);
+            return createProblemResponse(authenticationRequiredProblem(), {
+              headers: new Headers({
+                ...Object.fromEntries(rateLimitHeaders.entries()),
+                'x-request-id': requestContext.requestId,
+              }),
+            });
+          }
+
+          if (!await hasPermissionForRole(session?.user.role, options.permission)) {
             await audit(403);
             return createProblemResponse(forbiddenProblem(), {
               headers: new Headers({
