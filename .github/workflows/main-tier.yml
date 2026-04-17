@@ -13,10 +13,11 @@ permissions:
 jobs:
   main-tier:
     name: Main Tier
-    uses: ./.github/workflows/tier-checks.yml
     permissions:
       contents: read
       packages: read
+    uses: moritzbrantner/reusable-workflows/.github/workflows/validate-repo.yml@scaffold-v2-initial
     with:
-      tier-name: main
-      check-command: checks:main
+      test_command: bun run checks:main
+    secrets:
+      node_auth_token: ${{ secrets.GH_PACKAGES_TOKEN }}

@@ -8,6 +8,8 @@ import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
+import type { AuthProvider } from '@/src/auth';
 import { readProblemDetail } from '@/src/http/problem-client';
 
 type RegisterFormValues = {
@@ -36,12 +38,16 @@ type RegisterFormProps = {
     genericError: string;
     loginPrompt: string;
     loginCta: string;
+    socialDivider: string;
+    socialProviders: Record<AuthProvider, string>;
   };
+  oauthErrorMessage?: string | null;
+  returnTo: '/register';
 };
 
 const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{10,}$/;
 
-export function RegisterForm({ locale, labels }: RegisterFormProps) {
+export function RegisterForm({ locale, labels, oauthErrorMessage, returnTo }: RegisterFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const {
@@ -129,6 +135,16 @@ export function RegisterForm({ locale, labels }: RegisterFormProps) {
 
   return (
     <form className="space-y-5" onSubmit={onSubmit} noValidate>
+      <SocialAuthButtons
+        locale={locale}
+        returnTo={returnTo}
+        errorMessage={oauthErrorMessage}
+        labels={{
+          divider: labels.socialDivider,
+          providers: labels.socialProviders,
+        }}
+      />
+
       <div className="space-y-2">
         <Label htmlFor="name">{labels.name}</Label>
         <Input

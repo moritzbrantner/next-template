@@ -19,6 +19,7 @@ import {
   type AppPermissionKey,
 } from '@/lib/authorization';
 import type { AppSession } from '@/src/auth';
+import type { AccountCapabilities } from '@/src/auth/oauth/types';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { useTranslations } from '@/src/i18n';
 import type { ConsentState } from '@/src/privacy/contracts';
@@ -43,6 +44,7 @@ const initialPreviewDate = new Date(2026, 5, 15, 12, 0, 0);
 export function SettingsClient({
   locale,
   session,
+  accountCapabilities,
   consent,
   currentPermissions,
   initialSearchVisibility,
@@ -51,6 +53,7 @@ export function SettingsClient({
 }: {
   locale: string;
   session: AppSession;
+  accountCapabilities: AccountCapabilities;
   consent: ConsentState;
   currentPermissions: AppPermissionKey[];
   initialSearchVisibility: boolean;
@@ -64,6 +67,7 @@ export function SettingsClient({
 
   const role = session.user.role ?? 'USER';
   const permissionSet = new Set(currentPermissions);
+  const passwordManagementDisabled = !accountCapabilities.hasPassword;
   const formattedPreviewDate = formatDatePreview(previewDate ?? initialPreviewDate, settings, locale);
   const updateNotificationSettings = (nextSettings: Partial<(typeof settings.notifications)>) => {
     updateSettings((currentSettings) => ({
@@ -351,10 +355,15 @@ export function SettingsClient({
               <CardDescription>{t('account.email.description')}</CardDescription>
             </CardHeader>
             <CardContent>
+              {passwordManagementDisabled ? (
+                <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">{t('account.passwordlessNotice')}</p>
+              ) : null}
               <AccountEmailForm
                 currentEmail={session.user.email}
+                disabled={!accountCapabilities.canManageEmailWithPassword}
                 labels={{
                   currentEmail: t('account.email.currentEmail'),
+                  currentEmailMissing: t('account.email.currentEmailMissing'),
                   newEmail: t('account.email.newEmail'),
                   currentPassword: t('account.email.currentPassword'),
                   save: t('account.email.save'),
@@ -376,7 +385,11 @@ export function SettingsClient({
             </CardHeader>
             <CardContent>
               <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">{t('account.deletion.warning')}</p>
+              {passwordManagementDisabled ? (
+                <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">{t('account.passwordlessNotice')}</p>
+              ) : null}
               <AccountDeleteForm
+                disabled={!accountCapabilities.canDeleteWithPassword}
                 labels={{
                   currentPassword: t('account.deletion.currentPassword'),
                   remove: t('account.deletion.remove'),

@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -9,10 +9,13 @@ if (!scriptName) {
   process.exit(1);
 }
 
+const packageJson = JSON.parse(
+  readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
+);
 const packagesRoot = path.join(process.cwd(), 'packages');
-const workspaces = readdirSync(packagesRoot, { withFileTypes: true })
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => entry.name)
+const workspaces = (packageJson.workspaces ?? [])
+  .filter((workspace) => typeof workspace === 'string' && workspace.startsWith('packages/'))
+  .map((workspace) => workspace.replace(/^packages\//, ''))
   .sort();
 
 for (const workspace of workspaces) {

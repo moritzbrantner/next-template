@@ -1,25 +1,25 @@
-# Updating From Upstream
+# Updating the Scaffold
 
-This repo is structured for subtree-based downstream repos.
+This repo no longer assumes subtree sync or upstream folder merges.
 
-## Expected workflow
+## Update order
 
-1. Keep downstream-only changes in `app.config.ts` and `apps/<app>/**`.
-2. Pull upstream foundation changes into your downstream repo with your normal subtree merge flow.
-3. Resolve conflicts in foundation-owned paths first.
-4. Re-run `bun run typecheck` and the relevant test suites after the merge.
+1. Adopt released runtime package updates from `platform-packages`, starting with `@moritzbrantner/ui` and `@moritzbrantner/storytelling`.
+2. Adopt pinned reusable workflow updates when the shared workflow repo publishes a newer ref.
+3. Apply structural repo migrations through `@moritzbrantner/platform-upgrader`.
+4. Re-run `bun run typecheck` and the relevant test suites after each contract change.
 
-## Why this layout helps
+## What to review
 
-- Foundation route files stay thin and stable.
-- Public pages and app navigation live behind `AppManifest`.
-- Feature enablement is explicit in code and can be diffed during merges.
-- Public content and message catalogs stay app-local instead of leaking into root template paths.
+- `app.manifest.ts` for standalone repo metadata changes.
+- `app.config.ts` and `apps/<app>/manifest.ts` for internal `AppManifest` feature changes.
+- `docs/releasing-packages.md` when the local app-pack packages change.
+- CI refs and upgrader config when workflow or scaffold migrations land.
 
-## Recommended downstream checks
+## Recommended checks
 
 - Confirm `app.config.ts` still points at the intended app pack.
 - Review `apps/<app>/manifest.ts` for new feature keys or contract changes.
-- Reconcile any new foundation feature modules with your app manifest.
+- Review `app.manifest.ts` for package, deployment, or shared-package changes.
 - Run `bun run typecheck`.
 - Run the unit and integration tests that cover manifest routing and feature gates.

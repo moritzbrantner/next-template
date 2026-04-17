@@ -1086,11 +1086,9 @@ function formatDecimal(value: number, maximumFractionDigits = 1) {
   }).format(value);
 }
 
-function formatNavigationPathLabel(path: string) {
+function formatNavigationDisplayLabel(path: string) {
   const classification = classifyNavigationPathname(path);
-  return classification.displayLabel === classification.canonicalPath
-    ? classification.displayLabel
-    : `${classification.displayLabel} (${classification.canonicalPath})`;
+  return classification.displayLabel;
 }
 
 function listNavigationReportPathOptions(visits: ReportPageVisit[]) {
@@ -1305,7 +1303,7 @@ export function buildNavigationJourneyDetail(
         id: 'uniqueVisitors',
         label: 'Unique visitors',
         value: formatNumber(uniqueVisitors),
-        detail: filters.path ? `Sessions that included ${filters.path}` : 'Distinct pseudonymous visitors.',
+        detail: filters.path ? 'Sessions that included the selected page.' : 'Distinct pseudonymous visitors.',
       },
       {
         id: 'sessions',
@@ -1334,9 +1332,8 @@ export function buildNavigationJourneyDetail(
         'Top entry pages',
         'First page seen in each tracked session.',
         sortedEntries.slice(0, 8).map(([path, count]) => ({
-          label: formatNavigationPathLabel(path),
+          label: formatNavigationDisplayLabel(path),
           value: formatNumber(count),
-          detail: path,
         })),
         'No entry pages in the selected window.',
       ),
@@ -1345,22 +1342,22 @@ export function buildNavigationJourneyDetail(
         'Top exit pages',
         'Last page seen in each tracked session.',
         sortedExits.slice(0, 8).map(([path, count]) => ({
-          label: formatNavigationPathLabel(path),
+          label: formatNavigationDisplayLabel(path),
           value: formatNumber(count),
-          detail: `${path} • ${formatPercent(count / Math.max(pageViewsByPath.get(path) ?? 0, 1), 1)} exit rate`,
+          detail: `${formatPercent(count / Math.max(pageViewsByPath.get(path) ?? 0, 1), 1)} exit rate`,
         })),
         'No exit pages in the selected window.',
       ),
       buildRankedBreakdown(
         'navigation-transitions',
         'Top transitions',
-        filters.path ? `Most common next steps from ${filters.path}.` : 'Most common page-to-page transitions.',
+        filters.path ? 'Most common next steps from the selected page.' : 'Most common page-to-page transitions.',
         sortedTransitions.slice(0, 8).map((transition) => ({
-          label: `${formatNavigationPathLabel(transition.from)} -> ${formatNavigationPathLabel(transition.to)}`,
+          label: `${formatNavigationDisplayLabel(transition.from)} -> ${formatNavigationDisplayLabel(transition.to)}`,
           value: formatNumber(transition.count),
           detail: formatPercent(transition.count / (outgoingTransitionCounts.get(transition.from) ?? transition.count), 1),
         })),
-        filters.path ? `No outbound transitions from ${filters.path} in the selected window.` : 'No page transitions in the selected window.',
+        filters.path ? 'No outbound transitions from the selected page in the selected window.' : 'No page transitions in the selected window.',
       ),
       buildRankedBreakdown(
         'navigation-external-referrers',
@@ -1374,22 +1371,34 @@ export function buildNavigationJourneyDetail(
       ),
     ],
     table: {
-      columns: ['From', 'To', 'Transitions', 'Transition share', 'From page views', 'Exit rate after from'],
-      rows: sortedTransitions.slice(0, 20).map((transition) => [
-        transition.from,
-        transition.to,
-        formatNumber(transition.count),
-        formatPercent(transition.count / (outgoingTransitionCounts.get(transition.from) ?? transition.count), 1),
-        formatNumber(pageViewsByPath.get(transition.from) ?? 0),
-        formatPercent((exitCounts.get(transition.from) ?? 0) / (pageViewsByPath.get(transition.from) ?? 1), 1),
-      ]),
+      columns: filters.path
+        ? ['Next page', 'Transitions', 'Transition share', 'Selected page views', 'Exit rate after selected page']
+        : ['From', 'To', 'Transitions', 'Transition share', 'From page views', 'Exit rate after from'],
+      rows: sortedTransitions.slice(0, 20).map((transition) =>
+        filters.path
+          ? [
+              transition.to,
+              formatNumber(transition.count),
+              formatPercent(transition.count / (outgoingTransitionCounts.get(transition.from) ?? transition.count), 1),
+              formatNumber(pageViewsByPath.get(transition.from) ?? 0),
+              formatPercent((exitCounts.get(transition.from) ?? 0) / (pageViewsByPath.get(transition.from) ?? 1), 1),
+            ]
+          : [
+              transition.from,
+              transition.to,
+              formatNumber(transition.count),
+              formatPercent(transition.count / (outgoingTransitionCounts.get(transition.from) ?? transition.count), 1),
+              formatNumber(pageViewsByPath.get(transition.from) ?? 0),
+              formatPercent((exitCounts.get(transition.from) ?? 0) / (pageViewsByPath.get(transition.from) ?? 1), 1),
+            ],
+      ),
       emptyMessage: filters.path
-        ? `No outbound transitions from ${filters.path} in the selected window.`
+        ? 'No outbound transitions from the selected page in the selected window.'
         : 'No navigation transitions in the selected window.',
     },
     tableTitle: 'Journey transitions',
     tableDescription: filters.path
-      ? `Transitions from ${filters.path}, with share of outgoing transitions and exit rate after the source page.`
+      ? 'Transitions from the selected page, with share of outgoing transitions and exit rate after the source page.'
       : 'Transitions between canonical pages, including transition share and exit rate after the source page.',
     filters: {
       ...filters,

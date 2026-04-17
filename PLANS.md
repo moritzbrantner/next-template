@@ -2,12 +2,13 @@
 
 ## Current objective
 
-Ship a consistent Next.js App Router platform repo where the documentation, package topology, CI, and app-pack contracts all agree on one canonical architecture.
+Ship a consistent Next.js App Router platform scaffold where the documentation, package topology, CI, repo manifest, and app-pack contracts all agree on one canonical architecture.
 
-## Active milestone: platform-repo alignment
+## Active milestone: scaffold-v2 alignment
 
 - Make Next.js 16 App Router the single documented runtime
-- Promote `ui` and `storytelling` into real `packages/*` workspaces
+- Keep `app.manifest.ts` aligned with the standalone scaffold contract
+- Consume `ui` and `storytelling` from `platform-packages`
 - Add contract coverage around the showcase app-pack seam
 - Split oversized service modules behind stable barrel exports
 

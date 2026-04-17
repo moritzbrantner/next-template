@@ -13,11 +13,12 @@ The repository now treats Next.js App Router as the only canonical runtime and `
 ## Current extension seams
 
 - `AppManifest` remains the phase-1 app-pack contract
-- `packages/ui` supports `.` and `./styles.css`
-- `packages/storytelling` supports `.`, `./remotion`, and `./three`
+- `app.manifest.ts` is the standalone repo metadata contract
+- `@moritzbrantner/ui` and `@moritzbrantner/storytelling` now resolve from `platform-packages`
+- `packages/app-pack` and `packages/app-pack-react` remain the local extension seam
 
 ## Result
 
 - Runtime code, docs, tests, and CI now target the same Next.js + Bun platform model.
-- Shared libraries live as workspaces instead of ad hoc vendored directories.
+- Shared runtime packages no longer live as local workspaces in this repo.
 - Showcase-owned contract tests can live beside the showcase app pack under `apps/showcase/tests`.

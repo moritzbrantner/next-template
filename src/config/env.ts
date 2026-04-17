@@ -40,6 +40,12 @@ const rawEnvSchema = z.object({
   ANALYTICS_ENABLED: booleanStringSchema.optional(),
   INTERNAL_CRON_SECRET: z.string().optional(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).optional(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  FACEBOOK_CLIENT_ID: z.string().optional(),
+  FACEBOOK_CLIENT_SECRET: z.string().optional(),
+  X_CLIENT_ID: z.string().optional(),
+  X_CLIENT_SECRET: z.string().optional(),
 });
 
 export type AppEnv = {
@@ -54,6 +60,23 @@ export type AppEnv = {
   auth: {
     secret: string;
     url: string;
+    oauth: {
+      google: {
+        clientId?: string;
+        clientSecret?: string;
+        configured: boolean;
+      };
+      facebook: {
+        clientId?: string;
+        clientSecret?: string;
+        configured: boolean;
+      };
+      x: {
+        clientId?: string;
+        clientSecret?: string;
+        configured: boolean;
+      };
+    };
   };
   site: {
     url: string;
@@ -93,6 +116,21 @@ function trimOptional(value?: string) {
 
 function deriveSiteUrl(raw: z.infer<typeof rawEnvSchema>) {
   return trimOptional(raw.SITE_URL) ?? trimOptional(raw.AUTH_URL) ?? trimOptional(raw.NEXTAUTH_URL) ?? DEFAULT_SITE_URL;
+}
+
+function resolveOAuthProviderConfig(provider: string, clientId?: string, clientSecret?: string) {
+  const normalizedClientId = trimOptional(clientId);
+  const normalizedClientSecret = trimOptional(clientSecret);
+
+  if (Boolean(normalizedClientId) !== Boolean(normalizedClientSecret)) {
+    throw new Error(`Invalid environment configuration: ${provider} OAuth requires both client id and client secret.`);
+  }
+
+  return {
+    clientId: normalizedClientId,
+    clientSecret: normalizedClientSecret,
+    configured: Boolean(normalizedClientId && normalizedClientSecret),
+  };
 }
 
 export function resetEnvForTests() {
@@ -146,6 +184,11 @@ export function getEnv(): AppEnv {
     auth: {
       secret: authSecret,
       url: trimOptional(raw.AUTH_URL) ?? trimOptional(raw.NEXTAUTH_URL) ?? siteUrl,
+      oauth: {
+        google: resolveOAuthProviderConfig('Google', raw.GOOGLE_CLIENT_ID, raw.GOOGLE_CLIENT_SECRET),
+        facebook: resolveOAuthProviderConfig('Facebook', raw.FACEBOOK_CLIENT_ID, raw.FACEBOOK_CLIENT_SECRET),
+        x: resolveOAuthProviderConfig('X', raw.X_CLIENT_ID, raw.X_CLIENT_SECRET),
+      },
     },
     site: {
       url: siteUrl,

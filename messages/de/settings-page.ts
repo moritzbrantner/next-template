@@ -100,10 +100,13 @@ export const settingsPage = {
     description: 'Lege fest, ob andere dein Profil finden können und wie sichtbar deine Profilaktivität ist.',
   },
   account: {
+    passwordlessNotice:
+      'Passwortbasierte E-Mail-Aenderungen und Kontoloeschungen stehen fuer Social-Login-Konten in v1 nicht zur Verfuegung.',
     email: {
       title: 'E-Mail-Adresse',
       description: 'Ändere die E-Mail-Adresse, mit der du dich bei diesem Konto anmeldest.',
       currentEmail: 'Aktuelle E-Mail-Adresse',
+      currentEmailMissing: 'Keine E-Mail fuer dieses Konto',
       newEmail: 'Neue E-Mail-Adresse',
       currentPassword: 'Aktuelles Passwort',
       save: 'E-Mail aktualisieren',

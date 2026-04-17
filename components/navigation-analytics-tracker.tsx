@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useEffectEvent } from 'react';
+import { useEffectEvent, useLayoutEffect } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
 import { parseConsentCookie, CONSENT_COOKIE_NAME } from '@/src/privacy/contracts';
@@ -33,10 +33,53 @@ function hasAnalyticsConsent(cookieString: string) {
   return parseConsentCookie(consentCookie?.slice(CONSENT_COOKIE_NAME.length + 1)).analytics;
 }
 
+function dispatchPageVisit(payload: {
+  href: string;
+  visitorId: string;
+  sessionId: string;
+  previousHref: string | null;
+  occurredAt: string;
+  documentReferrer?: string;
+}) {
+  const requestBody = {
+    href: payload.href,
+    visitorId: payload.visitorId,
+    sessionId: payload.sessionId,
+    occurredAt: payload.occurredAt,
+    ...(payload.previousHref ? { previousHref: payload.previousHref } : {}),
+    ...(payload.documentReferrer ? { documentReferrer: payload.documentReferrer } : {}),
+  };
+  const body = JSON.stringify(requestBody);
+
+  if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+    const queued = navigator.sendBeacon(
+      '/api/analytics/page-visits',
+      new Blob([body], { type: 'application/json' }),
+    );
+
+    if (queued) {
+      return;
+    }
+  }
+
+  void fetch('/api/analytics/page-visits', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body,
+    keepalive: true,
+    credentials: 'same-origin',
+  }).catch(() => {
+    // Tracking should never block route rendering.
+  });
+}
+
 export function NavigationAnalyticsTracker({ enabled }: NavigationAnalyticsTrackerProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const search = searchParams.toString();
+  const currentHref = getCurrentHref(pathname, search);
 
   const trackNavigation = useEffectEvent(async (href: string) => {
     if (!enabled || typeof window === 'undefined' || typeof document === 'undefined') {
@@ -74,31 +117,31 @@ export function NavigationAnalyticsTracker({ enabled }: NavigationAnalyticsTrack
       NAVIGATION_SESSION_TTL_SECONDS,
     );
 
-    try {
-      await fetch('/api/analytics/page-visits', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          href,
-          visitorId: trackerState.visitorId,
-          sessionId: trackerState.sessionId,
-          previousHref: trackerState.previousHref,
-          occurredAt: new Date(now).toISOString(),
-          documentReferrer: document.referrer || undefined,
-        }),
-        keepalive: true,
-        credentials: 'same-origin',
-      });
-    } catch {
-      // Tracking should never block route rendering.
-    }
+    dispatchPageVisit({
+      href,
+      visitorId: trackerState.visitorId,
+      sessionId: trackerState.sessionId,
+      previousHref: trackerState.previousHref,
+      occurredAt: new Date(now).toISOString(),
+      documentReferrer: document.referrer || undefined,
+    });
   });
 
-  useEffect(() => {
-    void trackNavigation(getCurrentHref(pathname, search));
-  }, [pathname, search]);
+  useLayoutEffect(() => {
+    void trackNavigation(currentHref);
+  }, [currentHref]);
+
+  useLayoutEffect(() => {
+    const flushCurrentPageVisit = () => {
+      void trackNavigation(currentHref);
+    };
+
+    window.addEventListener('pagehide', flushCurrentPageVisit);
+
+    return () => {
+      window.removeEventListener('pagehide', flushCurrentPageVisit);
+    };
+  }, [currentHref]);
 
   return null;
 }

@@ -1,8 +1,12 @@
 'use client';
 
-import { useOptimistic, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
+import {
+  NOTIFICATION_MARK_ALL_READ_EVENT,
+  NOTIFICATION_MARK_READ_EVENT,
+} from '@/components/notifications/events';
 import { MarkNotificationReadButton } from '@/components/notifications/mark-notification-read-button';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
@@ -19,26 +23,71 @@ type NotificationBellState = {
   unreadCount: number;
 };
 
+function markNotificationRead(state: NotificationBellState, notificationId: string): NotificationBellState {
+  const target = state.items.find((item) => item.id === notificationId);
+
+  if (!target || target.status === 'read') {
+    return state;
+  }
+
+  return {
+    items: state.items.map((item) =>
+      item.id === notificationId ? { ...item, status: 'read' } : item,
+    ),
+    unreadCount: Math.max(0, state.unreadCount - 1),
+  };
+}
+
 export function NotificationBell({ items, unreadCount }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const navigationT = useTranslations('NavigationBar');
-  const [state, applyOptimisticUpdate] = useOptimistic<NotificationBellState, string>(
-    { items, unreadCount },
-    (currentState, notificationId) => {
-      const target = currentState.items.find((item) => item.id === notificationId);
+  const [state, setState] = useState<NotificationBellState>({ items, unreadCount });
+  const visibleItems = useMemo(() => {
+    const seenTitles = new Set<string>();
 
-      if (!target || target.status === 'read') {
-        return currentState;
+    return state.items.filter((item) => {
+      if (seenTitles.has(item.title)) {
+        return false;
       }
 
-      return {
+      seenTitles.add(item.title);
+      return true;
+    });
+  }, [state.items]);
+
+  useEffect(() => {
+    setState({ items, unreadCount });
+  }, [items, unreadCount]);
+
+  useEffect(() => {
+    function handleMarkRead(event: Event) {
+      const detail = (event as CustomEvent<{ notificationId?: string }>).detail;
+      const notificationId = detail?.notificationId;
+
+      if (!notificationId) {
+        return;
+      }
+
+      setState((currentState) => markNotificationRead(currentState, notificationId));
+    }
+
+    function handleMarkAllRead() {
+      setState((currentState) => ({
         items: currentState.items.map((item) =>
-          item.id === notificationId ? { ...item, status: 'read' } : item,
+          item.status === 'unread' ? { ...item, status: 'read' } : item,
         ),
-        unreadCount: Math.max(0, currentState.unreadCount - 1),
-      };
-    },
-  );
+        unreadCount: 0,
+      }));
+    }
+
+    window.addEventListener(NOTIFICATION_MARK_READ_EVENT, handleMarkRead);
+    window.addEventListener(NOTIFICATION_MARK_ALL_READ_EVENT, handleMarkAllRead);
+
+    return () => {
+      window.removeEventListener(NOTIFICATION_MARK_READ_EVENT, handleMarkRead);
+      window.removeEventListener(NOTIFICATION_MARK_ALL_READ_EVENT, handleMarkAllRead);
+    };
+  }, []);
 
   return (
     <div
@@ -80,8 +129,8 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
           </div>
 
           <div className="mt-3 space-y-2">
-            {state.items.length > 0 ? (
-              state.items.map((item) => {
+            {visibleItems.length > 0 ? (
+              visibleItems.map((item) => {
                 const content = (
                   <>
                     <div className="flex items-start justify-between gap-3">
@@ -125,7 +174,7 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
                         pendingLabel={navigationT('notifications.markingRead')}
                         errorLabel={navigationT('notifications.markReadError')}
                         onSuccess={() => {
-                          applyOptimisticUpdate(item.id);
+                          setState((currentState) => markNotificationRead(currentState, item.id));
                         }}
                         className="mt-3 px-0 text-xs"
                         errorClassName="text-xs text-red-600 dark:text-red-400"

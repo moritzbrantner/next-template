@@ -118,62 +118,69 @@ export default async function AdminReportDetailPage({
       </div>
 
       {detail.filters ? (
-        <form method="GET" className="grid gap-3 rounded-3xl border border-zinc-200 bg-white/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/50 md:grid-cols-4">
-          <input type="hidden" name="window" value={window} />
-          <label className="space-y-1 text-sm">
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">Audience</span>
-            <select
-              name="audience"
-              defaultValue={detail.filters.audience}
-              className="w-full rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-            >
-              <option value="all">All visitors</option>
-              <option value="anonymous">Anonymous</option>
-              <option value="authenticated">Authenticated</option>
-            </select>
-          </label>
-          <label className="space-y-1 text-sm">
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">Route group</span>
-            <select
-              name="routeGroup"
-              defaultValue={detail.filters.routeGroup}
-              className="w-full rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-            >
-              <option value="all">All groups</option>
-              <option value="public">Public</option>
-              <option value="guest">Guest</option>
-              <option value="authenticated">Authenticated</option>
-              <option value="workspace">Workspace</option>
-              <option value="admin">Admin</option>
-              <option value="unknown">Unknown</option>
-            </select>
-          </label>
-          <label className="space-y-1 text-sm">
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">Page drill-down</span>
-            <input
-              name="path"
-              list="navigation-report-paths"
-              defaultValue={detail.filters.path ?? ''}
-              placeholder="/blog/[slug]"
-              className="w-full rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-            />
-            <datalist id="navigation-report-paths">
-              {detail.filters.pathOptions.map((path) => (
-                <option key={path} value={path} />
-              ))}
-            </datalist>
-          </label>
-          <div className="flex items-end gap-2">
-            <button type="submit" className={buttonVariants({ variant: 'default', size: 'sm' })}>Apply filters</button>
-            <LocalizedLink
-              href={`/admin/reports/${reportId}?window=${window}`}
-              locale={locale}
-              className={buttonVariants({ variant: 'outline', size: 'sm' })}
-            >
-              Reset
-            </LocalizedLink>
-          </div>
-        </form>
+        <div className="space-y-3 rounded-3xl border border-zinc-200 bg-white/80 p-4 dark:border-zinc-800 dark:bg-zinc-950/50">
+          <form method="GET" className="grid gap-3 md:grid-cols-4">
+            <input type="hidden" name="window" value={window} />
+            <label className="space-y-1 text-sm">
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">Audience</span>
+              <select
+                name="audience"
+                defaultValue={detail.filters.audience}
+                className="w-full rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+              >
+                <option value="all">All visitors</option>
+                <option value="anonymous">Anonymous</option>
+                <option value="authenticated">Authenticated</option>
+              </select>
+            </label>
+            <label className="space-y-1 text-sm">
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">Route group</span>
+              <select
+                name="routeGroup"
+                defaultValue={detail.filters.routeGroup}
+                className="w-full rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+              >
+                <option value="all">All groups</option>
+                <option value="public">Public</option>
+                <option value="guest">Guest</option>
+                <option value="authenticated">Authenticated</option>
+                <option value="workspace">Workspace</option>
+                <option value="admin">Admin</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </label>
+            <label className="space-y-1 text-sm">
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">Page drill-down</span>
+              <input
+                name="path"
+                list="navigation-report-paths"
+                defaultValue={detail.filters.path ?? ''}
+                placeholder="/blog/[slug]"
+                className="w-full rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+              />
+              <datalist id="navigation-report-paths">
+                {detail.filters.pathOptions.map((path) => (
+                  <option key={path} value={path} />
+                ))}
+              </datalist>
+            </label>
+            <div className="flex items-end gap-2">
+              <button type="submit" className={buttonVariants({ variant: 'default', size: 'sm' })}>Apply filters</button>
+              <LocalizedLink
+                href={`/admin/reports/${reportId}?window=${window}`}
+                locale={locale}
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                Reset
+              </LocalizedLink>
+            </div>
+          </form>
+          {detail.filters.path ? (
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">
+              Page drill-down active for <span className="font-mono text-zinc-950 dark:text-zinc-50">{detail.filters.path}</span>.
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-zinc-200 bg-white/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950/50">

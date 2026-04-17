@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
+import { dispatchNotificationMarkedRead } from '@/components/notifications/events';
 import { Button } from '@/components/ui/button';
 import { readProblemDetail } from '@/src/http/problem-client';
 
@@ -52,6 +53,7 @@ export function MarkNotificationReadButton({
     }
 
     onSuccess?.();
+    dispatchNotificationMarkedRead(notificationId);
     setPending(false);
     router.refresh();
   }

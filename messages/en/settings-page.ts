@@ -99,10 +99,13 @@ export const settingsPage = {
     description: 'Decide whether other people can find your profile and how your profile activity is exposed.',
   },
   account: {
+    passwordlessNotice:
+      'Password-based email changes and account deletion are unavailable for social sign-in accounts in v1.',
     email: {
       title: 'Email address',
       description: 'Change the email address used to sign in to this account.',
       currentEmail: 'Current email address',
+      currentEmailMissing: 'No email on this account',
       newEmail: 'New email address',
       currentPassword: 'Current password',
       save: 'Update email',

@@ -24,6 +24,7 @@ App packs own public pages, public navigation, public message namespaces, public
 - App packs must not import from sibling app packs.
 - Public route ownership lives in the active `AppManifest`, not in foundation route files or database settings.
 - Structural feature availability is code-owned through `AppManifest.enabledFeatures`.
+- `app.manifest.ts` is the standalone repo metadata contract; it does not replace the internal `AppManifest` app-pack seam.
 
 ## Safe edit zones for downstream repos
 

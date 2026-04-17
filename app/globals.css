@@ -1,6 +1,6 @@
 @import "@moritzbrantner/ui/styles.css";
 
-@source "../packages/storytelling/src/**/*.{ts,tsx}";
+@source "../node_modules/@moritzbrantner/storytelling/dist/**/*.{js,mjs}";
 
 :root {
   --background: #ffffff;

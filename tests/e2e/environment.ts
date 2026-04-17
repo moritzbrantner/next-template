@@ -16,6 +16,7 @@ const DEFAULT_PROFILE_IMAGE_STORAGE_REGION = 'us-east-1';
 const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 let cachedExampleEnvironment: Record<string, string> | null = null;
+let cachedE2EExampleEnvironment: Record<string, string> | null = null;
 
 function parseEnvFile(contents: string) {
   const environment: Record<string, string> = {};
@@ -51,14 +52,23 @@ function parseEnvFile(contents: string) {
   return environment;
 }
 
-function loadExampleEnvironment() {
-  if (cachedExampleEnvironment) {
-    return cachedExampleEnvironment;
+function loadExampleEnvironment(filename: '.env.example' | '.env.e2e.example') {
+  const cache = filename === '.env.example' ? cachedExampleEnvironment : cachedE2EExampleEnvironment;
+
+  if (cache) {
+    return cache;
   }
 
-  const examplePath = path.join(APP_ROOT, '.env.example');
-  cachedExampleEnvironment = parseEnvFile(readFileSync(examplePath, 'utf8'));
-  return cachedExampleEnvironment;
+  const examplePath = path.join(APP_ROOT, filename);
+  const environment = parseEnvFile(readFileSync(examplePath, 'utf8'));
+
+  if (filename === '.env.example') {
+    cachedExampleEnvironment = environment;
+  } else {
+    cachedE2EExampleEnvironment = environment;
+  }
+
+  return environment;
 }
 
 function getEnvironmentValue(
@@ -69,30 +79,62 @@ function getEnvironmentValue(
   return process.env[key] ?? exampleEnvironment[key] ?? fallback;
 }
 
+function getE2EEnvironmentValue(
+  key: string,
+  e2eExampleEnvironment: Record<string, string>,
+  exampleEnvironment: Record<string, string>,
+  fallback?: string,
+) {
+  return e2eExampleEnvironment[key] ?? process.env[key] ?? exampleEnvironment[key] ?? fallback;
+}
+
 export function getE2EBaseURL() {
   return process.env.E2E_BASE_URL ?? DEFAULT_E2E_BASE_URL;
 }
 
 export function createE2EEnvironment(baseURL = getE2EBaseURL()) {
-  const exampleEnvironment = loadExampleEnvironment();
-  const minioApiPort = getEnvironmentValue('MINIO_API_PORT', exampleEnvironment, DEFAULT_MINIO_API_PORT);
+  const exampleEnvironment = loadExampleEnvironment('.env.example');
+  const e2eExampleEnvironment = loadExampleEnvironment('.env.e2e.example');
+  const minioApiPort = getE2EEnvironmentValue(
+    'MINIO_API_PORT',
+    e2eExampleEnvironment,
+    exampleEnvironment,
+    DEFAULT_MINIO_API_PORT,
+  );
   const storageBucket = getEnvironmentValue(
     'MINIO_BUCKET',
-    exampleEnvironment,
-    getEnvironmentValue('PROFILE_IMAGE_STORAGE_BUCKET', exampleEnvironment, DEFAULT_PROFILE_IMAGE_STORAGE_BUCKET),
+    e2eExampleEnvironment,
+    getE2EEnvironmentValue(
+      'PROFILE_IMAGE_STORAGE_BUCKET',
+      e2eExampleEnvironment,
+      exampleEnvironment,
+      DEFAULT_PROFILE_IMAGE_STORAGE_BUCKET,
+    ),
   );
-  const storageEndpoint = getEnvironmentValue(
+  const storageEndpoint = getE2EEnvironmentValue(
     'PROFILE_IMAGE_STORAGE_ENDPOINT',
+    e2eExampleEnvironment,
     exampleEnvironment,
     `http://${DEFAULT_MINIO_HOST}:${minioApiPort}`,
   );
-  const storagePublicBaseUrl = getEnvironmentValue(
+  const storagePublicBaseUrl = getE2EEnvironmentValue(
     'PROFILE_IMAGE_PUBLIC_BASE_URL',
+    e2eExampleEnvironment,
     exampleEnvironment,
     `${storageEndpoint.replace(/\/$/u, '')}/${storageBucket}`,
   );
-  const minioRootUser = getEnvironmentValue('MINIO_ROOT_USER', exampleEnvironment, DEFAULT_MINIO_ROOT_USER);
-  const minioRootPassword = getEnvironmentValue('MINIO_ROOT_PASSWORD', exampleEnvironment, DEFAULT_MINIO_ROOT_PASSWORD);
+  const minioRootUser = getE2EEnvironmentValue(
+    'MINIO_ROOT_USER',
+    e2eExampleEnvironment,
+    exampleEnvironment,
+    DEFAULT_MINIO_ROOT_USER,
+  );
+  const minioRootPassword = getE2EEnvironmentValue(
+    'MINIO_ROOT_PASSWORD',
+    e2eExampleEnvironment,
+    exampleEnvironment,
+    DEFAULT_MINIO_ROOT_PASSWORD,
+  );
 
   return {
     ...exampleEnvironment,
@@ -104,38 +146,53 @@ export function createE2EEnvironment(baseURL = getE2EBaseURL()) {
     AUTH_URL: baseURL,
     NEXTAUTH_URL: baseURL,
     EMAIL_PROVIDER: 'mailpit',
-    MAILPIT_BASE_URL: getEnvironmentValue('MAILPIT_BASE_URL', exampleEnvironment, DEFAULT_MAILPIT_BASE_URL),
+    MAILPIT_BASE_URL: getE2EEnvironmentValue(
+      'MAILPIT_BASE_URL',
+      e2eExampleEnvironment,
+      exampleEnvironment,
+      DEFAULT_MAILPIT_BASE_URL,
+    ),
     INTERNAL_CRON_SECRET: getEnvironmentValue('INTERNAL_CRON_SECRET', exampleEnvironment),
     POSTGRES_PORT: process.env.POSTGRES_PORT ?? getComposePostgresPort(),
     MINIO_API_PORT: minioApiPort,
-    MINIO_CONSOLE_PORT: getEnvironmentValue('MINIO_CONSOLE_PORT', exampleEnvironment, DEFAULT_MINIO_CONSOLE_PORT),
+    MINIO_CONSOLE_PORT: getE2EEnvironmentValue(
+      'MINIO_CONSOLE_PORT',
+      e2eExampleEnvironment,
+      exampleEnvironment,
+      DEFAULT_MINIO_CONSOLE_PORT,
+    ),
     MINIO_ROOT_USER: minioRootUser,
     MINIO_ROOT_PASSWORD: minioRootPassword,
     MINIO_BUCKET: storageBucket,
-    PROFILE_IMAGE_STORAGE_BUCKET: getEnvironmentValue(
+    PROFILE_IMAGE_STORAGE_BUCKET: getE2EEnvironmentValue(
       'PROFILE_IMAGE_STORAGE_BUCKET',
+      e2eExampleEnvironment,
       exampleEnvironment,
       storageBucket,
     ),
-    PROFILE_IMAGE_STORAGE_REGION: getEnvironmentValue(
+    PROFILE_IMAGE_STORAGE_REGION: getE2EEnvironmentValue(
       'PROFILE_IMAGE_STORAGE_REGION',
+      e2eExampleEnvironment,
       exampleEnvironment,
       DEFAULT_PROFILE_IMAGE_STORAGE_REGION,
     ),
     PROFILE_IMAGE_STORAGE_ENDPOINT: storageEndpoint,
-    PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID: getEnvironmentValue(
+    PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID: getE2EEnvironmentValue(
       'PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID',
+      e2eExampleEnvironment,
       exampleEnvironment,
       minioRootUser,
     ),
-    PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY: getEnvironmentValue(
+    PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY: getE2EEnvironmentValue(
       'PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY',
+      e2eExampleEnvironment,
       exampleEnvironment,
       minioRootPassword,
     ),
     PROFILE_IMAGE_PUBLIC_BASE_URL: storagePublicBaseUrl,
-    PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE: getEnvironmentValue(
+    PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE: getE2EEnvironmentValue(
       'PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE',
+      e2eExampleEnvironment,
       exampleEnvironment,
       'true',
     ),

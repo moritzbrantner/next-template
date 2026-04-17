@@ -9,7 +9,11 @@ on:
 jobs:
   beta-tier:
     name: Beta Tier
-    uses: ./.github/workflows/tier-checks.yml
+    permissions:
+      contents: read
+      packages: read
+    uses: moritzbrantner/reusable-workflows/.github/workflows/validate-repo.yml@scaffold-v2-initial
     with:
-      tier-name: beta
-      check-command: checks:beta
+      test_command: bun run checks:beta
+    secrets:
+      node_auth_token: ${{ secrets.GH_PACKAGES_TOKEN }}
