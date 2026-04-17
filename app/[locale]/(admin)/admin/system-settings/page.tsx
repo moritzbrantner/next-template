@@ -105,8 +105,8 @@ export default async function SystemSettingsPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  const session = await requirePermission(locale, 'admin.systemSettings.read');
   notFoundUnlessFeatureEnabled('admin.systemSettings');
+  const session = await requirePermission(locale, 'admin.systemSettings.read');
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
   const canEditAuthorization = await hasPermissionForRole(session.user.role, 'admin.systemSettings.edit');

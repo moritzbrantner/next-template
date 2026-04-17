@@ -21,8 +21,8 @@ export default async function AdminUserDetailPage({
 }) {
   const { locale: rawLocale, userId } = await params;
   const locale = resolveLocale(rawLocale);
-  const session = await requirePermission(locale, 'admin.users.read');
   notFoundUnlessFeatureEnabled('admin.users');
+  const session = await requirePermission(locale, 'admin.users.read');
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
   const user = await getAdminUserDetailUseCase(userId);
