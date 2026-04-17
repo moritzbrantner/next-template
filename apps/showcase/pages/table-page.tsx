@@ -1,4 +1,4 @@
-import type { AppLocale } from '@/i18n/routing';
+import type { AppLocale } from '@moritzbrantner/app-pack';
 
 import { RestDataTable, type RestDataColumn } from '@/apps/showcase/components/rest-data-table';
 

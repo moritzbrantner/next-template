@@ -1,13 +1,15 @@
-import type { AppLocale } from '@/i18n/routing';
+import type { AppLocale } from '@moritzbrantner/app-pack';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@moritzbrantner/ui';
 
 import { NewsletterSignup } from '@/components/newsletter/newsletter-signup';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { AppLocale as RoutingLocale } from '@/i18n/routing';
 import { createTranslator } from '@/src/i18n/messages';
 
 const sectionKeys = ['websockets', 'crdts'] as const;
 
 export default async function CommunicationPage({ locale }: { locale: AppLocale }) {
   const t = createTranslator(locale, 'CommunicationPage');
+  const routingLocale = locale as RoutingLocale;
 
   return (
     <div className="space-y-8">
@@ -25,7 +27,7 @@ export default async function CommunicationPage({ locale }: { locale: AppLocale 
       </Card>
 
       <NewsletterSignup
-        locale={locale}
+        locale={routingLocale}
         labels={{
           eyebrow: t('newsletter.eyebrow'),
           title: t('newsletter.title'),

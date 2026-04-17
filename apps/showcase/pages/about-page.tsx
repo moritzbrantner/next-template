@@ -1,6 +1,7 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { AppLocale } from '@moritzbrantner/app-pack';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@moritzbrantner/ui';
+
 import { createTranslator } from '@/src/i18n/messages';
-import type { AppLocale } from '@/i18n/routing';
 
 export default async function AboutPage({ locale }: { locale: AppLocale }) {
   const t = createTranslator(locale, 'AboutPage');

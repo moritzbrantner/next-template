@@ -1,9 +1,8 @@
 import { createElement } from 'react';
 
-import type { AppManifest } from '@/src/app-config/contracts';
-import { withLocalePath } from '@/i18n/routing';
-import { isGithubPagesBuild } from '@/src/runtime/build-target';
-import { StaticRedirectPage } from '@/components/static-redirect-page';
+import type { AppManifest } from '@moritzbrantner/app-pack';
+import { isGithubPagesBuild, withLocalePath } from '@moritzbrantner/app-pack';
+import { StaticRedirectPage } from '@moritzbrantner/app-pack-react';
 
 import { loadShowcaseMessages } from './messages';
 

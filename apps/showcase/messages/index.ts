@@ -1,4 +1,4 @@
-import type { AppLocale } from '@/i18n/routing';
+import type { AppLocale } from '@moritzbrantner/app-pack';
 
 import deMessages from './de';
 import enMessages from './en';
@@ -9,5 +9,5 @@ const showcaseMessagesByLocale = {
 } as const;
 
 export function loadShowcaseMessages(locale: AppLocale) {
-  return showcaseMessagesByLocale[locale] ?? showcaseMessagesByLocale.en;
+  return locale === 'de' ? showcaseMessagesByLocale.de : showcaseMessagesByLocale.en;
 }

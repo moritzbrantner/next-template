@@ -15,6 +15,8 @@ emails/                  React Email source
 i18n/                    Routing and navigation adapters
 messages/                Foundation localization dictionaries
 packages/
+  app-pack/              Public app-pack contracts and route helpers
+  app-pack-react/        Public React helpers exposed to app packs
   storytelling/          Internal storytelling workspace package
   ui/                    Internal UI workspace package
 src/
@@ -41,7 +43,7 @@ src/
 - Domain rules live in `src/domain/**`.
 - Database access lives in `src/db/**`.
 - Cross-cutting HTTP protections live in `src/api/**`.
-- Workspace package public APIs are `@moritzbrantner/ui`, `@moritzbrantner/ui/styles.css`, `@moritzbrantner/storytelling`, `@moritzbrantner/storytelling/remotion`, and `@moritzbrantner/storytelling/three`.
+- Workspace package public APIs are `@moritzbrantner/app-pack`, `@moritzbrantner/app-pack-react`, `@moritzbrantner/ui`, `@moritzbrantner/ui/styles.css`, `@moritzbrantner/storytelling`, `@moritzbrantner/storytelling/remotion`, and `@moritzbrantner/storytelling/three`.
 
 ## Import rules
 
