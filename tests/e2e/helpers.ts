@@ -6,7 +6,7 @@ import { TEST_USERS } from '@/src/testing/test-users';
 
 const DEFAULT_MAILPIT_BASE_URL = 'http://127.0.0.1:8025';
 const DEFAULT_E2E_BASE_URL = 'http://127.0.0.1:3006';
-const DEFAULT_INTERNAL_CRON_SECRET = 'e2e-internal-cron-secret';
+const DEFAULT_INTERNAL_CRON_SECRET = 'replace-with-an-internal-cron-secret';
 
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const CRC32_TABLE = new Uint32Array(256);
@@ -175,7 +175,7 @@ function getE2EBaseURL() {
 }
 
 function getInternalCronSecret() {
-  return DEFAULT_INTERNAL_CRON_SECRET;
+  return process.env.INTERNAL_CRON_SECRET ?? DEFAULT_INTERNAL_CRON_SECRET;
 }
 
 function getMessageList(payload: unknown) {
