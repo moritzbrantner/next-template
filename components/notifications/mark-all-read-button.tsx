@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
+import { dispatchAllNotificationsMarkedRead } from '@/components/notifications/events';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
 
@@ -34,6 +35,7 @@ export function MarkAllReadButton({ disabled = false, onSuccess }: MarkAllReadBu
     }
 
     onSuccess?.();
+    dispatchAllNotificationsMarkedRead();
     setPending(false);
     router.refresh();
   }

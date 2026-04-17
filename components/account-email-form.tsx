@@ -9,9 +9,11 @@ import { Label } from '@/components/ui/label';
 import { readProblemDetail } from '@/src/http/problem-client';
 
 type AccountEmailFormProps = {
-  currentEmail: string;
+  currentEmail: string | null;
+  disabled?: boolean;
   labels: {
     currentEmail: string;
+    currentEmailMissing: string;
     newEmail: string;
     currentPassword: string;
     save: string;
@@ -21,14 +23,19 @@ type AccountEmailFormProps = {
   };
 };
 
-export function AccountEmailForm({ currentEmail, labels }: AccountEmailFormProps) {
+export function AccountEmailForm({ currentEmail, disabled = false, labels }: AccountEmailFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [displayEmail, setDisplayEmail] = useState(currentEmail);
+  const [displayEmail, setDisplayEmail] = useState(currentEmail ?? '');
   const [state, setState] = useState<{ error?: string; success?: boolean }>({});
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (disabled) {
+      return;
+    }
+
     setPending(true);
     setState({});
 
@@ -60,7 +67,15 @@ export function AccountEmailForm({ currentEmail, labels }: AccountEmailFormProps
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="current-account-email">{labels.currentEmail}</Label>
-        <Input id="current-account-email" type="email" value={displayEmail} readOnly className="bg-zinc-50 dark:bg-zinc-900" />
+        <Input
+          id="current-account-email"
+          type="email"
+          value={displayEmail}
+          readOnly
+          disabled={disabled}
+          placeholder={labels.currentEmailMissing}
+          className="bg-zinc-50 dark:bg-zinc-900"
+        />
       </div>
 
       <div className="space-y-2">
@@ -72,6 +87,7 @@ export function AccountEmailForm({ currentEmail, labels }: AccountEmailFormProps
           autoComplete="email"
           placeholder="name@example.com"
           required
+          disabled={disabled}
         />
       </div>
 
@@ -83,10 +99,11 @@ export function AccountEmailForm({ currentEmail, labels }: AccountEmailFormProps
           type="password"
           autoComplete="current-password"
           required
+          disabled={disabled}
         />
       </div>
 
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending || disabled}>
         {pending ? labels.saving : labels.save}
       </Button>
 

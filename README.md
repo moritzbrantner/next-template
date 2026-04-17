@@ -1,6 +1,6 @@
 # next-template
 
-Next.js 16 App Router platform template with localized routing, credential auth, account lifecycle flows, MDX + Postgres content foundations, internal workspace packages, and app-pack seams built around `AppManifest`.
+Next.js 16 App Router platform scaffold with localized routing, credential auth, account lifecycle flows, MDX + Postgres content foundations, released shared packages, and an internal app-pack seam built around `AppManifest`.
 
 ## Stack
 
@@ -13,12 +13,13 @@ Next.js 16 App Router platform template with localized routing, credential auth,
 
 ## Repository layout
 
+- `app.manifest.ts`: standalone repo/app metadata for scaffold tooling and cross-repo alignment
 - `app/`: canonical Next.js App Router entrypoints, pages, and route handlers
 - `apps/showcase/`: showcase app-pack manifest, content, messages, example pages, and contract tests
-- `packages/ui/`: shared UI workspace package
-- `packages/storytelling/`: storytelling workspace package
+- `packages/app-pack/`: local package that defines the internal `AppManifest` seam
+- `packages/app-pack-react/`: local React helpers for app-pack routing and rendering
 - `src/`: domain, infrastructure, and foundation code used by the root app runtime
-- `docs/`: platform repo guidance for package and app-pack contributors
+- `docs/`: scaffold guidance for package, app-pack, and update-model contributors
 
 ## Local setup
 
@@ -83,6 +84,8 @@ bun run packages:test
 bun run packages:build
 ```
 
+These package commands only target the local app-pack packages. `@moritzbrantner/ui` and `@moritzbrantner/storytelling` now resolve from `platform-packages`.
+
 ## GitHub Pages build with Unlighthouse
 
 ```bash
@@ -109,4 +112,5 @@ The GitHub Pages workflow uses Bun end to end. It builds the static export, runs
 - [ARCHITECTURE.md](/home/moenarch/moritzbrantner/next-template/ARCHITECTURE.md)
 - [docs/platform-layout.md](/home/moenarch/moritzbrantner/next-template/docs/platform-layout.md)
 - [docs/adding-an-app-pack.md](/home/moenarch/moritzbrantner/next-template/docs/adding-an-app-pack.md)
+- [docs/updating-from-upstream.md](/home/moenarch/moritzbrantner/next-template/docs/updating-from-upstream.md)
 - [docs/releasing-packages.md](/home/moenarch/moritzbrantner/next-template/docs/releasing-packages.md)

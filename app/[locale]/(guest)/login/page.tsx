@@ -1,17 +1,26 @@
 import { LoginForm } from '@/components/auth/login-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { resolveOAuthPageError } from '@/src/auth/oauth/page-state';
 import { createTranslator } from '@/src/i18n/messages';
 import { requireGuest, resolveLocale } from '@/src/server/page-guards';
 
 export default async function LoginPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
   await requireGuest(locale);
   const t = createTranslator(locale, 'AuthPages.login');
+  const oauthErrorState = resolveOAuthPageError(searchParams ? await searchParams : undefined);
+  const oauthErrorMessage = oauthErrorState
+    ? t(`form.socialErrors.${oauthErrorState.error}`, {
+        provider: t(`form.social.providers.${oauthErrorState.provider}`),
+      })
+    : null;
 
   return (
     <div className="mx-auto grid min-h-[calc(100vh-10rem)] max-w-5xl items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
@@ -31,6 +40,8 @@ export default async function LoginPage({
         <CardContent>
           <LoginForm
             locale={locale}
+            oauthErrorMessage={oauthErrorMessage}
+            returnTo="/login"
             labels={{
               email: t('form.email'),
               password: t('form.password'),
@@ -42,6 +53,12 @@ export default async function LoginPage({
               requiredPassword: t('form.requiredPassword'),
               registerPrompt: t('form.registerPrompt'),
               registerCta: t('form.registerCta'),
+              socialDivider: t('form.social.divider'),
+              socialProviders: {
+                google: t('form.social.providers.google'),
+                facebook: t('form.social.providers.facebook'),
+                x: t('form.social.providers.x'),
+              },
             }}
           />
         </CardContent>

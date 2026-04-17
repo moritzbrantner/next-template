@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { readProblemDetail } from '@/src/http/problem-client';
 
 type AccountDeleteFormProps = {
+  disabled?: boolean;
   labels: {
     currentPassword: string;
     remove: string;
@@ -18,13 +19,18 @@ type AccountDeleteFormProps = {
   };
 };
 
-export function AccountDeleteForm({ labels }: AccountDeleteFormProps) {
+export function AccountDeleteForm({ disabled = false, labels }: AccountDeleteFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<{ error?: string; redirecting?: boolean }>({});
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (disabled) {
+      return;
+    }
+
     setPending(true);
     setState({});
 
@@ -56,12 +62,13 @@ export function AccountDeleteForm({ labels }: AccountDeleteFormProps) {
           type="password"
           autoComplete="current-password"
           required
+          disabled={disabled}
         />
       </div>
 
       <Button
         type="submit"
-        disabled={pending}
+        disabled={pending || disabled}
         className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:text-white dark:hover:bg-red-400"
       >
         {pending ? labels.removing : labels.remove}

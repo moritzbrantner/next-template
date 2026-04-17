@@ -13,7 +13,7 @@ export const defaultConsentState: ConsentState = {
 };
 
 export function serializeConsentState(state: ConsentState) {
-  return encodeURIComponent(JSON.stringify(state));
+  return JSON.stringify(state);
 }
 
 export function parseConsentCookie(value?: string | null): ConsentState {
@@ -21,15 +21,31 @@ export function parseConsentCookie(value?: string | null): ConsentState {
     return defaultConsentState;
   }
 
-  try {
-    const parsed = JSON.parse(decodeURIComponent(value)) as Partial<ConsentState>;
+  let decodedValue = value;
 
-    return {
-      necessary: true,
-      analytics: parsed.analytics === true,
-      marketing: parsed.marketing === true,
-    };
-  } catch {
-    return defaultConsentState;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const parsed = JSON.parse(decodedValue) as Partial<ConsentState>;
+
+      return {
+        necessary: true,
+        analytics: parsed.analytics === true,
+        marketing: parsed.marketing === true,
+      };
+    } catch {
+      try {
+        const nextValue = decodeURIComponent(decodedValue);
+
+        if (nextValue === decodedValue) {
+          break;
+        }
+
+        decodedValue = nextValue;
+      } catch {
+        break;
+      }
+    }
   }
+
+  return defaultConsentState;
 }

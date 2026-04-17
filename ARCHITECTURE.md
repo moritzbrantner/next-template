@@ -2,11 +2,12 @@
 
 ## Canonical runtime
 
-This repository ships a Next.js 16 App Router application at the repo root. `app/` is the only canonical runtime entrypoint for pages and route handlers.
+This repository ships a Next.js 16 App Router application at the repo root. `app/` is the only canonical runtime entrypoint for pages and route handlers, while `app.manifest.ts` describes the standalone repository metadata used by scaffold tooling.
 
 ## Canonical structure
 
 ```text
+app.manifest.ts          Standalone repo/app metadata for scaffold tooling
 app/                     Next.js App Router pages, layouts, route handlers
 apps/showcase/           App-pack manifest, content, messages, examples, tests
 components/              Shared app-facing React components
@@ -17,8 +18,6 @@ messages/                Foundation localization dictionaries
 packages/
   app-pack/              Public app-pack contracts and route helpers
   app-pack-react/        Public React helpers exposed to app packs
-  storytelling/          Internal storytelling workspace package
-  ui/                    Internal UI workspace package
 src/
   admin/                 Admin page composition helpers
   analytics/             Analytics use-cases and adapters
@@ -39,11 +38,13 @@ src/
 ## Runtime boundaries
 
 - Route handlers and pages live in `app/**`.
+- `app.manifest.ts` describes standalone repo metadata such as package identity, entry workspace, deployment runtime, and shared package dependencies.
 - App-pack extension data lives behind `AppManifest` in `apps/**`.
 - Domain rules live in `src/domain/**`.
 - Database access lives in `src/db/**`.
 - Cross-cutting HTTP protections live in `src/api/**`.
-- Workspace package public APIs are `@moritzbrantner/app-pack`, `@moritzbrantner/app-pack-react`, `@moritzbrantner/ui`, `@moritzbrantner/ui/styles.css`, `@moritzbrantner/storytelling`, `@moritzbrantner/storytelling/remotion`, and `@moritzbrantner/storytelling/three`.
+- Local workspace package public APIs are `@moritzbrantner/app-pack` and `@moritzbrantner/app-pack-react`.
+- Shared runtime package public APIs come from `platform-packages`, starting with `@moritzbrantner/ui`, `@moritzbrantner/ui/styles.css`, `@moritzbrantner/storytelling`, `@moritzbrantner/storytelling/remotion`, and `@moritzbrantner/storytelling/three`.
 
 ## Import rules
 
@@ -56,5 +57,7 @@ src/
 ## Platform direction
 
 - Keep the deployable Next.js app at the repo root for now.
+- Keep `app.manifest.ts` as the standalone repo/app metadata contract.
 - Treat `AppManifest` as the public app-pack extension seam in phase 1.
-- Promote shared code into real workspace packages before considering an `apps/web` relocation.
+- Keep `packages/app-pack` and `packages/app-pack-react` local until cross-repo reuse is proven.
+- Consume long-lived shared runtime code from `platform-packages` instead of keeping duplicate local workspace packages.

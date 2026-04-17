@@ -90,10 +90,12 @@ export function getFallbackProfileTag(userId: string) {
 
 export function getInitialProfileTagCandidates(input: {
   userId: string;
-  email: string;
+  email?: string | null;
   name?: string | null;
+  username?: string | null;
 }) {
-  const baseCandidates = [input.name ?? '', input.email.split('@')[0] ?? '', 'user']
+  const emailPrefix = input.email?.split('@')[0] ?? '';
+  const baseCandidates = [input.name ?? '', input.username ?? '', emailPrefix, 'user']
     .map(sanitizeProfileTagBase)
     .filter((candidate) => candidate.length > 0);
   const fallbackTag = getFallbackProfileTag(input.userId);

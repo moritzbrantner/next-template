@@ -1,6 +1,7 @@
 import { eq, like, or } from 'drizzle-orm';
 
 import { verifyPassword } from '@/lib/password';
+import type { AccountCapabilities } from '@/src/auth/oauth/types';
 import {
   requestPasswordReset,
   resetPasswordWithToken,
@@ -139,6 +140,21 @@ export async function verifyAccountEmailUseCase(token: string): Promise<ServiceR
   }
 
   return success({ verified: true });
+}
+
+export async function getAccountCapabilitiesUseCase(
+  userId: string,
+  deps?: Pick<AccountMutationDependencies, 'findUserById'>,
+): Promise<AccountCapabilities> {
+  const resolvedDeps = deps ?? (await resolveMutationDependencies());
+  const user = await resolvedDeps.findUserById(userId);
+  const hasPassword = Boolean(user?.passwordHash);
+
+  return {
+    hasPassword,
+    canManageEmailWithPassword: hasPassword,
+    canDeleteWithPassword: hasPassword,
+  };
 }
 
 export type UpdateAccountEmailInput = {

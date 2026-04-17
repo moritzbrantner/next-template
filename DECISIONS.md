@@ -40,22 +40,22 @@ Keep `src/` as the sole canonical application namespace for the root app and kee
 - Trade-offs:
   - The manifest shape stays conservative in phase 1 instead of being redesigned immediately
 
-## DEC-0003: Shared libraries are first-class Bun workspaces
-- **Date:** 2026-04-16
+## DEC-0003: Local app-pack packages stay in-repo while shared runtime packages move to platform-packages
+- **Date:** 2026-04-18
 - **Status:** accepted
 
 ### Context
 
-`ui` and `storytelling` were stored as vendored packages with build artifacts and partial package-manager wiring, but the repository did not behave like a real workspace.
+The repository needs two different contracts: a standalone repo/app manifest for cross-repo tooling, and an internal `AppManifest` seam for app-pack behavior. It also needs to stop treating `ui` and `storytelling` as local runtime workspaces now that `platform-packages` is the shared-package source of truth.
 
 ### Decision
 
-Promote shared libraries into `packages/*` Bun workspaces and treat their package entrypoints as the only supported public APIs.
+Keep `packages/app-pack` and `packages/app-pack-react` local, add a root `app.manifest.ts` for standalone repo metadata, and consume `@moritzbrantner/ui` plus `@moritzbrantner/storytelling` from `platform-packages`.
 
 ### Consequences
 
 - Positive:
-  - Clear package boundaries for CI, publishing, and import verification
-  - Less ambiguity between app code and shared package code
+  - The repo-level scaffold contract is separate from the app-pack routing contract
+  - Shared runtime dependencies now converge with the rest of the maintained template family
 - Trade-offs:
-  - Package checks are now an explicit part of the repository verification surface
+  - Only the app-pack seam remains locally releasable from this repo

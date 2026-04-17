@@ -3,7 +3,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 
 import type { AppRole } from '@/lib/authorization';
-import { useRouter } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,7 +43,6 @@ export function AdminNotificationComposer({
   className,
 }: AdminNotificationComposerProps) {
   const t = useTranslations('AdminPage');
-  const router = useRouter();
   const defaultAudience = allowedAudiences.includes(initialAudience) ? initialAudience : allowedAudiences[0] ?? 'user';
   const [audience, setAudience] = useState<NotificationAudience>(defaultAudience);
   const [pending, setPending] = useState(false);
@@ -55,10 +53,11 @@ export function AdminNotificationComposer({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setPending(true);
     setState({});
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     formData.set('audience', audience);
 
     const response = await fetch('/api/admin/notifications', {
@@ -75,7 +74,7 @@ export function AdminNotificationComposer({
 
     const body = (await response.json().catch(() => null)) as { recipientCount?: number } | null;
 
-    event.currentTarget.reset();
+    form.reset();
 
     setState({
       success: t('users.notifications.success', {
@@ -83,7 +82,6 @@ export function AdminNotificationComposer({
       }),
     });
     setPending(false);
-    router.refresh();
   }
 
   const showAudienceSelector = allowedAudiences.length > 1;

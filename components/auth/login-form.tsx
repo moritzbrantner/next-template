@@ -8,6 +8,8 @@ import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
+import type { AuthProvider } from '@/src/auth';
 import { readProblemDetail } from '@/src/http/problem-client';
 
 type LoginFormValues = {
@@ -28,10 +30,14 @@ type LoginFormProps = {
     requiredPassword: string;
     registerPrompt: string;
     registerCta: string;
+    socialDivider: string;
+    socialProviders: Record<AuthProvider, string>;
   };
+  oauthErrorMessage?: string | null;
+  returnTo: '/login';
 };
 
-export function LoginForm({ locale, labels }: LoginFormProps) {
+export function LoginForm({ locale, labels, oauthErrorMessage, returnTo }: LoginFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const {
@@ -94,6 +100,16 @@ export function LoginForm({ locale, labels }: LoginFormProps) {
 
   return (
     <form className="space-y-5" onSubmit={onSubmit} noValidate>
+      <SocialAuthButtons
+        locale={locale}
+        returnTo={returnTo}
+        errorMessage={oauthErrorMessage}
+        labels={{
+          divider: labels.socialDivider,
+          providers: labels.socialProviders,
+        }}
+      />
+
       <div className="space-y-2">
         <Label htmlFor="email">{labels.email}</Label>
         <Input
