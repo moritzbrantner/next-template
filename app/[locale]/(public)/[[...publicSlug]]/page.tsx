@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import { routing } from '@/i18n/routing';
 import { I18nProvider } from '@/src/i18n';
 import { getMessages } from '@/src/i18n/messages';
+import { isPublicPageRedirectResult } from '@/src/app-config/contracts';
 import { loadActiveApp } from '@/src/app-config/load-active-app';
 import { generatePublicRouteParams, resolveEnabledPublicRoute } from '@/src/app-config/public-route-resolver';
 import { resolveLocale } from '@/src/server/page-guards';
@@ -55,6 +56,10 @@ export default async function PublicPageResolver({
     matchedSlug: resolvedRoute.matchedSlug,
     pathname: resolvedRoute.pathname,
   });
+
+  if (isPublicPageRedirectResult(renderedPage)) {
+    redirect(renderedPage.href);
+  }
 
   return (
     <I18nProvider locale={locale} messages={pageMessages}>
