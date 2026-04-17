@@ -28,6 +28,16 @@ export type PublicPageRenderProps = {
   pathname: string;
 };
 
+export type PublicPageRedirectResult = {
+  kind: 'redirect';
+  href: string;
+};
+
+export function isPublicPageRedirectResult(value: unknown): value is PublicPageRedirectResult {
+  return typeof value === 'object' && value !== null && 'kind' in value && 'href' in value
+    && value.kind === 'redirect' && typeof value.href === 'string';
+}
+
 export type PublicPageDefinition = {
   id: string;
   slug: string;
@@ -35,7 +45,7 @@ export type PublicPageDefinition = {
   featureKey?: FoundationFeatureKey;
   namespace: string;
   aliases?: string[];
-  render: (props: PublicPageRenderProps) => ReactNode | Promise<ReactNode>;
+  render: (props: PublicPageRenderProps) => ReactNode | PublicPageRedirectResult | Promise<ReactNode | PublicPageRedirectResult>;
   generateMetadata?: (props: PublicPageRenderProps) => Metadata | Promise<Metadata>;
 };
 
