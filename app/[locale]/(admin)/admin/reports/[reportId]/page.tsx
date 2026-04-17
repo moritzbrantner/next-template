@@ -51,8 +51,8 @@ export default async function AdminReportDetailPage({
 }) {
   const [{ locale: rawLocale, reportId }, rawSearchParams] = await Promise.all([params, searchParams]);
   const locale = resolveLocale(rawLocale);
-  const session = await requirePermission(locale, 'admin.reports.read');
   notFoundUnlessFeatureEnabled('admin.reports');
+  const session = await requirePermission(locale, 'admin.reports.read');
 
   if (!isAdminReportId(reportId)) {
     notFound();
