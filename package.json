@@ -94,7 +94,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.12",
     "@playwright/test": "^1.58.2",
-    "@react-email/preview-server": "5.2.8",
+    "@react-email/preview-server": "5.2.10",
     "@tailwindcss/postcss": "^4.2.2",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20.19.37",
