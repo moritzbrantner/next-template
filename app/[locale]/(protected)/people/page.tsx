@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { PeopleDirectory } from '@/components/people-directory';
 import { createTranslator } from '@/src/i18n/messages';
 import { listFollowingProfilesUseCase } from '@/src/domain/profile/use-cases';
-import { notFoundUnlessFeatureEnabled, requireAuth, resolveLocale } from '@/src/server/page-guards';
+import { notFoundUnlessFeatureEnabledForUser, requireAuth, resolveLocale } from '@/src/server/page-guards';
 
 export default async function PeoplePage({
   params,
@@ -12,8 +12,8 @@ export default async function PeoplePage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('people.directory');
   const session = await requireAuth(locale);
+  await notFoundUnlessFeatureEnabledForUser('people.directory', session.user);
   const t = createTranslator(locale, 'PeoplePage');
   const followingResult = await listFollowingProfilesUseCase(session.user.id);
 

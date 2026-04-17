@@ -12,7 +12,7 @@ export default async function VerifyEmailPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('account.register');
+  await notFoundUnlessFeatureEnabled('account.register');
   const t = createTranslator(locale, 'AuthPages.verifyEmail');
 
   return (

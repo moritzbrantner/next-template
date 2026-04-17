@@ -20,7 +20,7 @@ export default async function ReportsPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('admin.reports');
+  await notFoundUnlessFeatureEnabled('admin.reports');
   const session = await requirePermission(locale, 'admin.reports.read');
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);

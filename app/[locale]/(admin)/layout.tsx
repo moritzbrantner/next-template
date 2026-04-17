@@ -17,7 +17,7 @@ export default async function AdminLocaleLayout({
 }>) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('admin.workspace');
+  await notFoundUnlessFeatureEnabled('admin.workspace');
   const activeApp = loadActiveApp();
   const [appContext, siteConfig, announcements] = await Promise.all([
     loadAppContext(),

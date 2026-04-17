@@ -4,6 +4,7 @@ import { LocalizedLink } from '@/i18n/server-link';
 import type { AppLocale } from '@/i18n/routing';
 import type { AppSession } from '@/src/auth';
 import type { NotificationPreview } from '@/src/domain/notifications/use-cases';
+import { getFoundationFeatureAvailabilityMap } from '@/src/foundation/features/access';
 import { formatAppHotkey, getVisibleAppPages } from '@/src/navigation/app-routes';
 import { buildNavigationCategories } from '@/src/navigation/navigation-categories';
 import { createTranslator } from '@/src/i18n/messages';
@@ -85,27 +86,40 @@ export function NavigationBar({ locale, siteName, session, notificationCenter }:
         </LocalizedLink>
 
         {session !== undefined || notificationCenter !== undefined ? (
-          <NavigationBarContent
-            locale={locale}
-            navigationCategories={buildNavigationCategories({
-              isAuthenticated: Boolean(session?.user?.id),
-              role: session?.user?.role,
-            }).map((category) => ({
-              key: category.key,
-              label: t(`categories.${category.key}`),
-              links: category.links.map((link) => ({
-                href: link.href,
-                label: t(link.translationKey),
-                hotkey: formatAppHotkey(link.hotkey),
-                prefetch: link.prefetch,
-              })),
-            }))}
-            authLabels={authLabels}
-            profileLabels={profileLabels}
-            hotkeyLabels={hotkeyLabels}
-            session={session ?? null}
-            notificationCenter={notificationCenter ?? null}
-          />
+          <Suspense
+            fallback={
+              <NavigationBarContent
+                locale={locale}
+                navigationCategories={buildNavigationCategories({
+                  isAuthenticated: Boolean(session?.user?.id),
+                  role: session?.user?.role,
+                }).map((category) => ({
+                  key: category.key,
+                  label: t(`categories.${category.key}`),
+                  links: category.links.map((link) => ({
+                    href: link.href,
+                    label: t(link.translationKey),
+                    hotkey: formatAppHotkey(link.hotkey),
+                    prefetch: link.prefetch,
+                  })),
+                }))}
+                authLabels={authLabels}
+                profileLabels={profileLabels}
+                hotkeyLabels={hotkeyLabels}
+                session={session ?? null}
+                notificationCenter={notificationCenter ?? null}
+              />
+            }
+          >
+            <NavigationBarProvidedContextResolved
+              locale={locale}
+              authLabels={authLabels}
+              profileLabels={profileLabels}
+              hotkeyLabels={hotkeyLabels}
+              session={session ?? null}
+              notificationCenter={notificationCenter ?? null}
+            />
+          </Suspense>
         ) : (
           <Suspense
             fallback={
@@ -159,12 +173,16 @@ async function NavigationBarResolved({
   };
 }) {
   const { session, notificationCenter } = await loadAppContext();
-  const permissionSet = await getPermissionSetForRole(session?.user.role);
+  const [permissionSet, featureStateByKey] = await Promise.all([
+    getPermissionSetForRole(session?.user.role),
+    getFoundationFeatureAvailabilityMap(session?.user ?? null),
+  ]);
   const t = createTranslator(locale, 'NavigationBar');
   const navigationCategories = buildNavigationCategories({
     isAuthenticated: Boolean(session?.user?.id),
     role: session?.user?.role,
     permissionSet,
+    featureStateByKey,
   }).map((category) => ({
     key: category.key,
     label: t(`categories.${category.key}`),
@@ -186,6 +204,72 @@ async function NavigationBarResolved({
       session={session}
       notificationCenter={notificationCenter}
       permissionSet={permissionSet}
+      featureStateByKey={featureStateByKey}
+    />
+  );
+}
+
+async function NavigationBarProvidedContextResolved({
+  locale,
+  authLabels,
+  profileLabels,
+  hotkeyLabels,
+  session,
+  notificationCenter,
+}: {
+  locale: AppLocale;
+  authLabels: {
+    login: string;
+    register: string;
+  };
+  profileLabels: {
+    profile: string;
+    settings: string;
+    logout: string;
+    openMenu: string;
+  };
+  hotkeyLabels: {
+    button: string;
+    title: string;
+    description: string;
+    searchPlaceholder: string;
+    empty: string;
+  };
+  session: AppSession | null;
+  notificationCenter: NotificationPreview | null;
+}) {
+  const [permissionSet, featureStateByKey] = await Promise.all([
+    getPermissionSetForRole(session?.user.role),
+    getFoundationFeatureAvailabilityMap(session?.user ?? null),
+  ]);
+  const t = createTranslator(locale, 'NavigationBar');
+  const navigationCategories = buildNavigationCategories({
+    isAuthenticated: Boolean(session?.user?.id),
+    role: session?.user?.role,
+    permissionSet,
+    featureStateByKey,
+  }).map((category) => ({
+    key: category.key,
+    label: t(`categories.${category.key}`),
+    links: category.links.map((link) => ({
+      href: link.href,
+      label: t(link.translationKey),
+      hotkey: formatAppHotkey(link.hotkey),
+      prefetch: link.prefetch,
+    })),
+  }));
+
+  return (
+    <NavigationBarContent
+      locale={locale}
+      navigationCategories={navigationCategories}
+      authLabels={authLabels}
+      profileLabels={profileLabels}
+      hotkeyLabels={hotkeyLabels}
+      session={session}
+      notificationCenter={notificationCenter}
+      permissionSet={permissionSet}
+      featureStateByKey={featureStateByKey}
     />
   );
 }
@@ -199,6 +283,7 @@ function NavigationBarContent({
   session,
   notificationCenter,
   permissionSet,
+  featureStateByKey,
 }: {
   locale: AppLocale;
   navigationCategories: Array<{
@@ -231,12 +316,14 @@ function NavigationBarContent({
   session: AppSession | null;
   notificationCenter: NotificationPreview | null;
   permissionSet?: ReadonlySet<import('@/lib/authorization').AppPermissionKey>;
+  featureStateByKey?: Partial<Record<import('@/src/app-config/feature-keys').FoundationFeatureKey, boolean>>;
 }) {
   const t = createTranslator(locale, 'NavigationBar');
   const hotkeyItems = getVisibleAppPages({
     isAuthenticated: Boolean(session?.user?.id),
     role: session?.user?.role,
     permissionSet,
+    featureStateByKey,
   }).map((page) => {
     const label = t(page.translationKey);
     const groupLabel = getHotkeyGroupLabel(page.navigationCategory, t);

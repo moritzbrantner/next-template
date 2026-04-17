@@ -12,7 +12,7 @@ export default async function ReportProblemPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('reportProblem');
+  await notFoundUnlessFeatureEnabled('reportProblem');
   const t = createTranslator(locale, 'ReportProblemPage');
 
   return (

@@ -30,7 +30,7 @@ export default async function BlogIndexPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('content.blog');
+  await notFoundUnlessFeatureEnabled('content.blog');
   const posts = await listBlogPosts(locale);
 
   return (

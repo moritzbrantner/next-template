@@ -1,7 +1,9 @@
 import type { AppRole } from '@/lib/authorization';
-import { isSuperAdmin } from '@/lib/authorization';
+import { isAdmin, isSuperAdmin } from '@/lib/authorization';
+import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import { getDb } from '@/src/db/client';
 import { users } from '@/src/db/schema';
+import { canApplyUserFeatureOverrides, saveUserFeatureOverride } from '@/src/foundation/features/access';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
 import { eq } from 'drizzle-orm';
 
@@ -24,10 +26,33 @@ type UserRoleRecord = {
   role: AppRole;
 };
 
+export type UserFeatureManagementError =
+  | {
+      code: 'FORBIDDEN';
+      message: string;
+    }
+  | {
+      code: 'NOT_FOUND';
+      message: string;
+    }
+  | {
+      code: 'CONFLICT';
+      message: string;
+    }
+  | {
+      code: 'VALIDATION_ERROR';
+      message: string;
+    };
+
 type UpdateAdminUserRoleDependencies = {
   findUserById: (userId: string) => Promise<UserRoleRecord | undefined>;
   countUsersByRole: (role: AppRole) => Promise<number>;
   updateUserRole: (userId: string, nextRole: AppRole) => Promise<void>;
+};
+
+type UpdateAdminUserFeatureDependencies = {
+  findUserById: (userId: string) => Promise<UserRoleRecord | undefined>;
+  saveUserFeatureOverride: (input: { userId: string; featureKey: FoundationFeatureKey; enabled: boolean }) => Promise<void>;
 };
 
 async function createDefaultDependencies(): Promise<UpdateAdminUserRoleDependencies> {
@@ -58,6 +83,21 @@ async function createDefaultDependencies(): Promise<UpdateAdminUserRoleDependenc
         })
         .where(eq(users.id, userId));
     },
+  };
+}
+
+async function createFeatureDependencies(): Promise<UpdateAdminUserFeatureDependencies> {
+  return {
+    findUserById: async (userId) => {
+      return getDb().query.users.findFirst({
+        where: (table, { eq: innerEq }) => innerEq(table.id, userId),
+        columns: {
+          id: true,
+          role: true,
+        },
+      });
+    },
+    saveUserFeatureOverride,
   };
 }
 
@@ -113,5 +153,59 @@ export async function updateAdminUserRoleUseCase(
 
   return success({
     role: input.nextRole,
+  });
+}
+
+export async function updateAdminUserFeatureAccessUseCase(
+  input: {
+    actorUserId: string;
+    targetUserId: string;
+    featureKey: FoundationFeatureKey;
+    enabled: boolean;
+  },
+  depsPromise: Promise<UpdateAdminUserFeatureDependencies> = createFeatureDependencies(),
+): Promise<ServiceResult<{ enabled: boolean }, UserFeatureManagementError>> {
+  const deps = await depsPromise;
+  const [actor, target] = await Promise.all([
+    deps.findUserById(input.actorUserId),
+    deps.findUserById(input.targetUserId),
+  ]);
+
+  if (!actor || !isAdmin(actor.role)) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'Only admins and superadmins can manage per-user functionality.',
+    });
+  }
+
+  if (!target) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'The selected user could not be found.',
+    });
+  }
+
+  if (isAdmin(target.role)) {
+    return failure({
+      code: 'CONFLICT',
+      message: 'Per-user functionality controls are only available for non-admin accounts.',
+    });
+  }
+
+  if (!canApplyUserFeatureOverrides(input.featureKey, target.role)) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: 'This functionality cannot be overridden for individual users.',
+    });
+  }
+
+  await deps.saveUserFeatureOverride({
+    userId: target.id,
+    featureKey: input.featureKey,
+    enabled: input.enabled,
+  });
+
+  return success({
+    enabled: input.enabled,
   });
 }

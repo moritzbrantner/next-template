@@ -5,7 +5,7 @@ import {
   normalizeNavigationReportFilters,
   type AdminReportFormat,
 } from '@/src/domain/admin-reports/use-cases';
-import { isFeatureEnabled } from '@/src/foundation/features/runtime';
+import { isSiteFeatureEnabled } from '@/src/foundation/features/access';
 import { createProblemResponse, invalidQueryProblem, notFoundProblem } from '@/src/http/errors';
 import { getAdminAnalyticsSettings } from '@/src/site-config/service';
 import { secureRoute } from '@/src/api/route-security';
@@ -18,7 +18,7 @@ export async function GET(
   request: Request,
   context: { params: Promise<{ reportId: string }> },
 ) {
-  if (!isFeatureEnabled('admin.reports')) {
+  if (!await isSiteFeatureEnabled('admin.reports')) {
     return createProblemResponse(notFoundProblem());
   }
 

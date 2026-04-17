@@ -9,7 +9,7 @@ export default async function DataStudioPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('admin.dataStudio');
+  await notFoundUnlessFeatureEnabled('admin.dataStudio');
   const session = await requirePermission(locale, 'admin.dataStudio.read');
   return <DataStudioClient adminPages={await getAuthorizedAdminPageDefinitions(session.user.role)} />;
 }

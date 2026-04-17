@@ -228,7 +228,7 @@ export default async function AdminContentPage({
 }) {
   const [{ locale: rawLocale }, rawSearchParams] = await Promise.all([params, searchParams]);
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('admin.content');
+  await notFoundUnlessFeatureEnabled('admin.content');
   const session = await requirePermission(locale, 'admin.content.read');
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);

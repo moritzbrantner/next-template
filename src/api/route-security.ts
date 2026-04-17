@@ -1,4 +1,5 @@
 import type { AppPermissionKey, AppRole } from '@/lib/authorization';
+import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import { getAuthSession } from '@/src/auth.server';
 import {
   auditAction,
@@ -10,6 +11,7 @@ import {
 } from '@/src/api/security';
 import type { AppSession } from '@/src/auth';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
+import { isFeatureEnabledForUser } from '@/src/foundation/features/access';
 
 type SecurityDependencies = {
   getSession: () => Promise<AppSession | null>;
@@ -22,6 +24,7 @@ type SecurityDependencies = {
 type RouteSecurityOptions = {
   request: Request;
   action: string;
+  requiredFeatureKey?: FoundationFeatureKey;
   requireAuth?: boolean;
   allowedRoles?: readonly AppRole[];
   requiredPermission?: AppPermissionKey;
@@ -139,6 +142,33 @@ export function createRouteSecurity(deps: SecurityDependencies) {
             headers: withRateLimitHeaders(rateLimit),
           },
         ),
+      };
+    }
+
+    if (
+      options.requiredFeatureKey &&
+      !await isFeatureEnabledForUser(
+        options.requiredFeatureKey,
+        session?.user?.id ? { id: session.user.id, role: session.user.role } : null,
+      )
+    ) {
+      await deps.auditAction({
+        actorId,
+        action: options.action,
+        outcome: 'denied',
+        statusCode: 404,
+        metadata: {
+          ...(options.metadata ?? {}),
+          featureKey: options.requiredFeatureKey,
+        },
+      });
+
+      return {
+        ok: false,
+        response: new Response('Not found', {
+          status: 404,
+          headers: withRateLimitHeaders(rateLimit),
+        }),
       };
     }
 

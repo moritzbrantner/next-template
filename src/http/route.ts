@@ -5,7 +5,7 @@ import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import type { AppSession } from '@/src/auth';
 import { getAuthSession } from '@/src/auth.server';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
-import { isFeatureEnabled } from '@/src/foundation/features/runtime';
+import { isFeatureEnabledForUser } from '@/src/foundation/features/access';
 import { auditAction, enforceRateLimit, getRateLimitKey } from '@/src/api/security';
 import { errorReporter, getLogger } from '@/src/observability/logger';
 import { createRequestContext, setRequestActorId, withRequestContext } from '@/src/observability/request-context';
@@ -182,7 +182,13 @@ export function createApiRoute<TBody = undefined, TQuery = undefined, TResult = 
           });
         }
 
-        if (options.featureKey && !isFeatureEnabled(options.featureKey)) {
+        if (
+          options.featureKey &&
+          !await isFeatureEnabledForUser(
+            options.featureKey,
+            session?.user?.id ? { id: session.user.id, role: session.user.role } : null,
+          )
+        ) {
           await audit(404);
           return createProblemResponse(notFoundProblem(), {
             headers: new Headers({

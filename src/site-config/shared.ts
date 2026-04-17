@@ -89,6 +89,7 @@ const siteConfigDefaults: Record<SiteSettingKey, string> = {
   'analytics.pageVisitRetentionDays': '365',
   'analytics.defaultAdminReportWindow': '7d',
   'authorization.rolePermissions': JSON.stringify(defaultRolePermissionAssignments),
+  'foundation.featureOverrides': JSON.stringify({}),
 };
 
 const featureFlagDefaults: Record<FeatureFlagKey, boolean> = {

@@ -27,7 +27,7 @@ export default async function ChangelogIndexPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('content.changelog');
+  await notFoundUnlessFeatureEnabled('content.changelog');
   const entries = await listChangelogEntries(locale);
 
   return (

@@ -2,9 +2,12 @@ import { revalidatePath } from 'next/cache';
 
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { Badge } from '@/components/ui/badge';
+import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { AppRole } from '@/lib/authorization';
+import { isSuperAdmin } from '@/lib/authorization';
 import { appPermissionKeys, appPermissionMetadata } from '@/lib/authorization';
+import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import { adminReportWindows, isAdminReportWindow } from '@/src/domain/admin-reports/use-cases';
@@ -105,7 +108,7 @@ export default async function SystemSettingsPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('admin.systemSettings');
+  await notFoundUnlessFeatureEnabled('admin.systemSettings');
   const session = await requirePermission(locale, 'admin.systemSettings.read');
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
@@ -120,6 +123,16 @@ export default async function SystemSettingsPage({
 
   return (
     <AdminPageShell title={t('systemSettings.title')} description={t('systemSettings.description')} adminPages={adminPages}>
+      {isSuperAdmin(session.user.role) ? (
+        <LocalizedLink
+          href="/admin/system-settings/functionality"
+          locale={locale}
+          className={buttonVariants({ variant: 'outline', size: 'sm', className: 'w-fit' })}
+        >
+          Open functionality controls
+        </LocalizedLink>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle>Analytics settings</CardTitle>
