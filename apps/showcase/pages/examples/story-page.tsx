@@ -1,7 +1,7 @@
-import type { AppLocale } from '@/i18n/routing';
+import type { AppLocale } from '@moritzbrantner/app-pack';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@moritzbrantner/ui';
 
 import { StorytellingExperience, type StoryScene } from '@/apps/showcase/components/storytelling-experience';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createTranslator } from '@/src/i18n/messages';
 
 const storyScenes: StoryScene[] = [

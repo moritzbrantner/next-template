@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { resolveEnabledPublicRoute, resolvePublicRoute } from '@moritzbrantner/app-pack';
+
 import showcaseManifest from '@/apps/showcase/manifest';
-import { routing } from '@/i18n/routing';
-import { resolveEnabledPublicRoute, resolvePublicRoute } from '@/src/app-config/public-route-resolver';
+
+const supportedLocales = ['en', 'de'] as const;
 
 function slugToSegments(slug: string) {
   return slug.length > 0 ? slug.split('/') : undefined;
@@ -48,7 +50,7 @@ describe('showcase manifest contract', () => {
   });
 
   it('supports every configured locale', () => {
-    for (const locale of routing.locales) {
+    for (const locale of supportedLocales) {
       const messages = showcaseManifest.loadMessages(locale);
       expect(messages.NavigationBar).toBeDefined();
     }

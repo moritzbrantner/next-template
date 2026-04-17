@@ -1,4 +1,4 @@
-import type { AppLocale } from '@/i18n/routing';
+import type { AppLocale } from '@moritzbrantner/app-pack';
 
 import { RemocnShowcase } from '@/apps/showcase/components/remocn-showcase';
 

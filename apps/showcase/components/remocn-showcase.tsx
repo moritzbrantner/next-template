@@ -3,9 +3,8 @@
 import type { ReactNode } from 'react';
 
 import { Player } from '@remotion/player';
+import { Badge, buttonVariants } from '@moritzbrantner/ui';
 
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import { useTranslations } from '@/src/i18n';
 import { BlurReveal } from '@/src/components/remocn/blur-reveal';
 import { MatrixDecode } from '@/src/components/remocn/matrix-decode';

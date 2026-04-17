@@ -10,9 +10,7 @@ import {
   uploadLifecycle,
   uploadTypeGroups,
 } from '@/src/domain/uploads/template-playbook';
-
-import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { buttonVariants, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@moritzbrantner/ui';
 
 type UploadQueueItem = {
   id: string;

@@ -4,7 +4,8 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import showcaseManifest from '@/apps/showcase/manifest';
-import { routing } from '@/i18n/routing';
+
+const supportedLocales = ['en', 'de'] as const;
 
 describe('showcase content roots contract', () => {
   it('points every configured content root at real locale directories', () => {
@@ -13,7 +14,7 @@ describe('showcase content roots contract', () => {
         const absoluteRoot = path.join(process.cwd(), root);
         expect(existsSync(absoluteRoot)).toBe(true);
 
-        for (const locale of routing.locales) {
+        for (const locale of supportedLocales) {
           expect(existsSync(path.join(absoluteRoot, locale))).toBe(true);
         }
       }

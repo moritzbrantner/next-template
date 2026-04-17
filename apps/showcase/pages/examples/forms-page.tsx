@@ -1,7 +1,7 @@
-import type { AppLocale } from '@/i18n/routing';
+import type { AppLocale } from '@moritzbrantner/app-pack';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@moritzbrantner/ui';
 
 import { EmployeeProfileForm } from '@/apps/showcase/components/forms/employee-profile-form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createTranslator } from '@/src/i18n/messages';
 
 const overviewKeys = ['useForm', 'register', 'controller', 'reset'] as const;

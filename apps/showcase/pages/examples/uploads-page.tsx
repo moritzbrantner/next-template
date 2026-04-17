@@ -1,7 +1,7 @@
-import type { AppLocale } from '@/i18n/routing';
+import type { AppLocale } from '@moritzbrantner/app-pack';
+import { Card, CardDescription, CardHeader, CardTitle } from '@moritzbrantner/ui';
 
 import { UploadPlayground } from '@/apps/showcase/components/uploads/upload-playground';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createTranslator } from '@/src/i18n/messages';
 
 export default async function UploadsPage({ locale }: { locale: AppLocale }) {

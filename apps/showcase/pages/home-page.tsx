@@ -1,10 +1,13 @@
-import { buttonVariants } from '@/components/ui/button';
+import type { AppLocale } from '@moritzbrantner/app-pack';
+import { buttonVariants } from '@moritzbrantner/ui';
+
+import type { AppLocale as RoutingLocale } from '@/i18n/routing';
 import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
-import type { AppLocale } from '@/i18n/routing';
 
 export default async function HomePage({ locale }: { locale: AppLocale }) {
   const t = createTranslator(locale, 'HomePage');
+  const routingLocale = locale as RoutingLocale;
 
   return (
     <section className="space-y-8">
@@ -20,16 +23,16 @@ export default async function HomePage({ locale }: { locale: AppLocale }) {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <LocalizedLink href="/examples/forms" locale={locale} prefetch={false} className={buttonVariants({ variant: 'default' })}>
+          <LocalizedLink href="/examples/forms" locale={routingLocale} prefetch={false} className={buttonVariants({ variant: 'default' })}>
             {t('visitForm')}
           </LocalizedLink>
-          <LocalizedLink href="/examples/story" locale={locale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
+          <LocalizedLink href="/examples/story" locale={routingLocale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
             {t('visitStory')}
           </LocalizedLink>
-          <LocalizedLink href="/examples/communication" locale={locale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
+          <LocalizedLink href="/examples/communication" locale={routingLocale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
             {t('visitCommunication')}
           </LocalizedLink>
-          <LocalizedLink href="/examples/uploads" locale={locale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
+          <LocalizedLink href="/examples/uploads" locale={routingLocale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
             {t('visitUploads')}
           </LocalizedLink>
         </div>
