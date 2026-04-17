@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
@@ -34,13 +34,13 @@ export function ProfileMenu({
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
   const router = useRouter();
 
-  const closeMenu = () => {
+  const closeMenu = useEffectEvent(() => {
     if (detailsRef.current) {
       detailsRef.current.open = false;
     }
 
     setOpen(false);
-  };
+  });
 
   useEffect(() => {
     if (!open) {

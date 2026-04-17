@@ -265,7 +265,7 @@ describe('admin report exports', () => {
 
     expect(detail.cards.find((card) => card.id === 'uniqueVisitors')?.value).toBe('1');
     expect(detail.cards.find((card) => card.id === 'sessions')?.value).toBe('1');
-    expect(detail.table.rows).toContainEqual(['/blog', '/login', '1', '100%', '1', '0%']);
+    expect(detail.table.rows).toContainEqual(['/login', '1', '100%', '1', '0%']);
     expect(detail.filters?.path).toBe('/blog');
   });
 
@@ -314,7 +314,9 @@ describe('admin report exports', () => {
       },
     );
 
-    expect(exported.body.split('\n')[0]).toBe('From,To,Transitions,Transition share,From page views,Exit rate after from');
-    expect(exported.body).toContain('/,/blog,1,100%,1,0%');
+    expect(exported.body.split('\n')[0]).toBe(
+      'Next page,Transitions,Transition share,Selected page views,Exit rate after selected page',
+    );
+    expect(exported.body).toContain('/blog,1,100%,1,0%');
   });
 });
