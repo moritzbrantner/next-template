@@ -36,7 +36,9 @@ export function LocaleShell({
 }: LocaleShellProps) {
   return (
     <>
-      <NavigationAnalyticsTracker enabled={analyticsEnabled} />
+      <Suspense fallback={null}>
+        <NavigationAnalyticsTracker enabled={analyticsEnabled} />
+      </Suspense>
       <NavigationBar
         locale={locale}
         siteName={siteName}
