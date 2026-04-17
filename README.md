@@ -101,6 +101,7 @@ The GitHub Pages workflow uses Bun end to end. It builds the static export, runs
 - `casey@example.com` / `casey`
 - `dana@example.com` / `dana`
 - `private@example.com` / `private`
+- `delete-account@example.com` / `DeleteAccount123`
 
 ## Further docs
 
