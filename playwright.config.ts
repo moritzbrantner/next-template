@@ -5,6 +5,8 @@ const baseURL = getE2EBaseURL();
 const e2eEnvironment = createE2EEnvironment(baseURL);
 const port = Number(new URL(baseURL).port);
 
+Object.assign(process.env, e2eEnvironment);
+
 export default defineConfig({
   tsconfig: './playwright.tsconfig.json',
   globalSetup: './tests/e2e/global-setup.cts',

@@ -26,7 +26,6 @@ Next.js 16 App Router platform template with localized routing, credential auth,
 
 ```bash
 cp .env.example .env
-cp .env.e2e.example .env.e2e
 ```
 
 2. Set at least:
@@ -44,6 +43,8 @@ bun run dev
 ```
 
 `bun run dev` starts an ephemeral Postgres database, applies migrations, seeds baseline users, regenerates `db-schema.json`, and launches the app.
+
+Playwright e2e runs use `.env.example` as their baseline and then apply a small set of test-specific overrides such as the dedicated base URL, Mailpit email delivery, and the compose-backed test database port.
 
 ## Long-lived local services
 
