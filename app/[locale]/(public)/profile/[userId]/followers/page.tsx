@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
 import { listProfileFollowersByTagUseCase } from '@/src/domain/profile/use-cases';
-import { isFeatureEnabled } from '@/src/foundation/features/runtime';
+import { isSiteFeatureEnabled } from '@/src/foundation/features/access';
 import { createTranslator } from '@/src/i18n/messages';
 import { buildPublicProfilePath, parseProfileTagSegment } from '@/src/profile/tags';
 import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
@@ -17,9 +17,9 @@ export default async function PublicProfileFollowersPage({
 }) {
   const { locale: rawLocale, userId: rawTagSegment } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('profiles.public');
+  await notFoundUnlessFeatureEnabled('profiles.public');
 
-  if (!isFeatureEnabled('profiles.follow')) {
+  if (!await isSiteFeatureEnabled('profiles.follow')) {
     notFound();
   }
 

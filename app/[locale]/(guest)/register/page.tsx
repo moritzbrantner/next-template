@@ -11,7 +11,7 @@ export default async function RegisterPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('account.register');
+  await notFoundUnlessFeatureEnabled('account.register');
   await requireGuest(locale);
   const t = createTranslator(locale, 'AuthPages.register');
 

@@ -5,6 +5,7 @@ import { createApiRoute } from '@/src/http/route';
 export const POST = createApiRoute({
   action: 'blog.createPost',
   auth: true,
+  featureKey: 'profiles.blog',
   permission: 'profile.editOwn',
   bodySchema: blogPostCreateSchema,
   async handler({ actorId, body }) {

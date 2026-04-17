@@ -285,6 +285,23 @@ export const featureFlags = pgTable(
   (table) => [index("FeatureFlag_enabled_idx").on(table.enabled)],
 );
 
+export const userFeatureOverrides = pgTable(
+  "UserFeatureOverride",
+  {
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    featureKey: text("featureKey").notNull(),
+    enabled: boolean("enabled").notNull().default(false),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.featureKey], name: "UserFeatureOverride_pkey" }),
+    index("UserFeatureOverride_userId_idx").on(table.userId),
+    index("UserFeatureOverride_featureKey_idx").on(table.featureKey),
+  ],
+);
+
 export const siteAnnouncements = pgTable(
   "SiteAnnouncement",
   {

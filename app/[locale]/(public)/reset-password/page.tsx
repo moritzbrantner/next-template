@@ -12,7 +12,7 @@ export default async function ResetPasswordPage({
 }) {
   const { locale: rawLocale } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('account.passwordRecovery');
+  await notFoundUnlessFeatureEnabled('account.passwordRecovery');
   const t = createTranslator(locale, 'AuthPages.resetPassword');
   const labels = {
     password: t('form.password'),

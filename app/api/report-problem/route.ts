@@ -1,5 +1,4 @@
 import { secureRoute } from '@/src/api/route-security';
-import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 
 const allowedAreas = new Set(['bug', 'performance', 'account', 'billing', 'other']);
 
@@ -26,13 +25,10 @@ function isValidOptionalUrl(value: string) {
 }
 
 export async function POST(request: Request) {
-  if (!isFeatureEnabled('reportProblem')) {
-    return new Response('Not found', { status: 404 });
-  }
-
   const guard = await secureRoute({
     request,
     action: 'support.reportProblem',
+    requiredFeatureKey: 'reportProblem',
   });
 
   if (!guard.ok) {

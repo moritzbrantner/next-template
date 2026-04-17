@@ -81,4 +81,22 @@ describe('app routes', () => {
     }
     },
   );
+
+  it('filters pages whose dynamic feature state is disabled for the active user', () => {
+    const visiblePageKeys = new Set(
+      getVisibleAppPages({
+        isAuthenticated: true,
+        role: 'USER',
+        featureStateByKey: {
+          notifications: false,
+          'people.directory': false,
+          'workspace.dataEntry': true,
+        },
+      }).map((page) => page.key),
+    );
+
+    expect(visiblePageKeys.has('notifications')).toBe(false);
+    expect(visiblePageKeys.has('people')).toBe(false);
+    expect(visiblePageKeys.has('dataEntry')).toBe(true);
+  });
 });

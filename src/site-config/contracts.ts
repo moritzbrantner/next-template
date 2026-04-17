@@ -17,12 +17,22 @@ export const authorizationSiteSettingKeys = [
   'authorization.rolePermissions',
 ] as const;
 
-export const siteSettingKeys = [...publicSiteSettingKeys, ...analyticsSiteSettingKeys, ...authorizationSiteSettingKeys] as const;
+export const foundationSiteSettingKeys = [
+  'foundation.featureOverrides',
+] as const;
+
+export const siteSettingKeys = [
+  ...publicSiteSettingKeys,
+  ...analyticsSiteSettingKeys,
+  ...authorizationSiteSettingKeys,
+  ...foundationSiteSettingKeys,
+] as const;
 
 export type SiteSettingKey = (typeof siteSettingKeys)[number];
 export type PublicSiteSettingKey = (typeof publicSiteSettingKeys)[number];
 export type AnalyticsSiteSettingKey = (typeof analyticsSiteSettingKeys)[number];
 export type AuthorizationSiteSettingKey = (typeof authorizationSiteSettingKeys)[number];
+export type FoundationSiteSettingKey = (typeof foundationSiteSettingKeys)[number];
 
 export const featureFlagKeys = [
   'marketing.blog',

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
 import { getProfileViewByTagUseCase } from '@/src/domain/profile/use-cases';
-import { isFeatureEnabled } from '@/src/foundation/features/runtime';
+import { isFeatureEnabledForUser, isSiteFeatureEnabled } from '@/src/foundation/features/access';
 import { createTranslator } from '@/src/i18n/messages';
 import { buildPublicProfileBlogPath, parseProfileTagSegment } from '@/src/profile/tags';
 import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
@@ -18,7 +18,7 @@ export default async function PublicProfilePage({
 }) {
   const { locale: rawLocale, userId: rawTagSegment } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('profiles.public');
+  await notFoundUnlessFeatureEnabled('profiles.public');
   const profileTag = parseProfileTagSegment(rawTagSegment);
 
   if (!profileTag) {
@@ -29,8 +29,8 @@ export default async function PublicProfilePage({
   const blogT = createTranslator(locale, 'BlogPage');
   const session = await getAuthSession();
   const viewerUserId = session?.user.id ?? null;
-  const followEnabled = isFeatureEnabled('profiles.follow');
-  const blogEnabled = isFeatureEnabled('profiles.blog');
+  const followEnabled = await isFeatureEnabledForUser('profiles.follow', session?.user ?? null);
+  const blogEnabled = await isSiteFeatureEnabled('profiles.blog');
   const result = await getProfileViewByTagUseCase(profileTag, viewerUserId);
 
   if (!result.ok) {

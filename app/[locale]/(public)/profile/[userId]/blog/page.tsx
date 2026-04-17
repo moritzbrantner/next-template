@@ -24,7 +24,7 @@ export default async function PublicUserBlogPage({
 }) {
   const { locale: rawLocale, userId: rawTagSegment } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('profiles.blog');
+  await notFoundUnlessFeatureEnabled('profiles.blog');
   const profileTag = parseProfileTagSegment(rawTagSegment);
 
   if (!profileTag) {

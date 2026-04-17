@@ -3,10 +3,11 @@ import { notFound, redirect } from 'next/navigation';
 import type { AppPermissionKey } from '@/lib/authorization';
 import { canAccessDataEntryWorkspace } from '@/lib/authorization';
 import { type AppLocale, hasLocale, withLocalePath } from '@/i18n/routing';
+import type { AppSessionUser } from '@/src/auth';
 import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import { getAuthSession } from '@/src/auth.server';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
-import { isFeatureEnabled } from '@/src/foundation/features/runtime';
+import { isFeatureEnabledForUser, isSiteFeatureEnabled } from '@/src/foundation/features/access';
 import { isGithubPagesBuild } from '@/src/runtime/build-target';
 
 export function resolveLocale(locale: string): AppLocale {
@@ -69,8 +70,17 @@ export async function requirePermission(locale: AppLocale, permission: AppPermis
   return session;
 }
 
-export function notFoundUnlessFeatureEnabled(featureKey: FoundationFeatureKey) {
-  if (!isFeatureEnabled(featureKey)) {
+export async function notFoundUnlessFeatureEnabled(featureKey: FoundationFeatureKey) {
+  if (!await isSiteFeatureEnabled(featureKey)) {
+    notFound();
+  }
+}
+
+export async function notFoundUnlessFeatureEnabledForUser(
+  featureKey: FoundationFeatureKey,
+  user: Pick<AppSessionUser, 'id' | 'role'> | null | undefined,
+) {
+  if (!await isFeatureEnabledForUser(featureKey, user ? { id: user.id, role: user.role } : null)) {
     notFound();
   }
 }

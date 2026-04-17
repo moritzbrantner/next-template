@@ -120,6 +120,13 @@
       "when": 1776370335933,
       "tag": "0016_marvelous_otto_octavius",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1776429524526,
+      "tag": "0017_volatile_rafael_vega",
+      "breakpoints": true
     }
   ]
 }

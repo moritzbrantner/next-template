@@ -53,7 +53,7 @@ export default async function BlogDetailPage({
 }) {
   const { locale: rawLocale, slug } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('content.blog');
+  await notFoundUnlessFeatureEnabled('content.blog');
   const entry = await getContentEntry('blog', locale, slug);
 
   if (!entry) {

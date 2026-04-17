@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
+import { isAdmin } from '@/lib/authorization';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { getAdminUserDetailUseCase } from '@/src/domain/notifications/use-cases';
@@ -21,7 +22,7 @@ export default async function AdminUserDetailPage({
 }) {
   const { locale: rawLocale, userId } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('admin.users');
+  await notFoundUnlessFeatureEnabled('admin.users');
   const session = await requirePermission(locale, 'admin.users.read');
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
@@ -165,6 +166,24 @@ export default async function AdminUserDetailPage({
                   currentRole={user.role}
                   disabled={session.user.id === user.id}
                 />
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {!isAdmin(user.role) ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Functionality controls</CardTitle>
+                <CardDescription>Enable or disable supported functionality for this non-admin account.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <LocalizedLink
+                  href={`/admin/users/${user.id}/functionality`}
+                  locale={locale}
+                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                >
+                  Manage functionality
+                </LocalizedLink>
               </CardContent>
             </Card>
           ) : null}

@@ -53,7 +53,7 @@ export default async function ChangelogDetailPage({
 }) {
   const { locale: rawLocale, slug } = await params;
   const locale = resolveLocale(rawLocale);
-  notFoundUnlessFeatureEnabled('content.changelog');
+  await notFoundUnlessFeatureEnabled('content.changelog');
   const entry = await getContentEntry('changelog', locale, slug);
 
   if (!entry) {

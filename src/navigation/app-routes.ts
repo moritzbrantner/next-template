@@ -7,7 +7,7 @@ import {
 } from '@/lib/authorization';
 import { loadActiveApp } from '@/src/app-config/load-active-app';
 import type { AppHotkey } from '@/src/app-config/contracts';
-import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
+import { foundationFeatureKeys, type FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import type { NavigationCategoryKey } from '@/src/navigation/navigation-categories';
 
@@ -221,10 +221,20 @@ export function getVisibleAppPages({
   isAuthenticated,
   role,
   permissionSet,
+  featureStateByKey,
 }: {
   isAuthenticated: boolean;
   role: AppRole | null | undefined;
   permissionSet?: ReadonlySet<AppPermissionKey>;
+  featureStateByKey?: Partial<Record<FoundationFeatureKey, boolean>>;
 }) {
-  return appPageDefinitions.filter((page) => canViewAppPage(page, { isAuthenticated, role, permissionSet }));
+  const normalizedFeatureStates = featureStateByKey
+    ? Object.fromEntries(
+        foundationFeatureKeys.map((featureKey) => [featureKey, featureStateByKey[featureKey] !== false]),
+      ) as Record<FoundationFeatureKey, boolean>
+    : undefined;
+
+  return appPageDefinitions
+    .filter((page) => !page.featureKey || normalizedFeatureStates?.[page.featureKey] !== false)
+    .filter((page) => canViewAppPage(page, { isAuthenticated, role, permissionSet }));
 }
