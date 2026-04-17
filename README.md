@@ -110,6 +110,7 @@ The GitHub Pages workflow uses Bun end to end. It builds the static export, runs
 ## Further docs
 
 - [ARCHITECTURE.md](/home/moenarch/moritzbrantner/next-template/ARCHITECTURE.md)
+- [SCAFFOLD_ALIGNMENT.md](./SCAFFOLD_ALIGNMENT.md)
 - [docs/platform-layout.md](/home/moenarch/moritzbrantner/next-template/docs/platform-layout.md)
 - [docs/adding-an-app-pack.md](/home/moenarch/moritzbrantner/next-template/docs/adding-an-app-pack.md)
 - [docs/updating-from-upstream.md](/home/moenarch/moritzbrantner/next-template/docs/updating-from-upstream.md)
