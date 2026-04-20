@@ -5,6 +5,7 @@ export const adminPage = {
     content: 'Content',
     reports: 'Reports',
     users: 'Users',
+    emailTemplates: 'Email templates',
     systemSettings: 'System settings',
     dataStudio: 'Data studio',
   },
@@ -130,7 +131,7 @@ export const adminPage = {
       },
     },
     tableTitle: 'User directory',
-    tableDescription: 'Use the live directory to inspect account state, recent activity, and notification delivery for each user.',
+    tableDescription: 'Search the directory to inspect account state, recent activity, and notification delivery for a user.',
     columns: {
       user: 'User',
       role: 'Role',
@@ -147,6 +148,16 @@ export const adminPage = {
     },
     actions: {
       inspect: 'Inspect user',
+    },
+    search: {
+      label: 'Search users',
+      placeholder: 'Search by name, email, handle, or user ID',
+      idle: 'Search for a user before opening account details.',
+      short: 'Enter at least 2 characters.',
+      loading: 'Searching users...',
+      empty: 'No users matched your search.',
+      error: 'Unable to search users right now.',
+      resultLimit: 'Showing up to {count} matches',
     },
     notifications: {
       title: 'Send notifications',
@@ -177,6 +188,12 @@ export const adminPage = {
       },
       hrefHint: 'Optional. Use an in-app path like /profile or /settings.',
       directRecipient: 'This notification will be sent to',
+      selectedRecipient: 'Selected recipient',
+      changeRecipient: 'Change',
+      recipientSearchPlaceholder: 'Search by name, email, handle, or user ID',
+      recipientSearchLoading: 'Searching recipients...',
+      recipientSearchEmpty: 'No users matched your search.',
+      recipientSearchError: 'Unable to search recipients right now.',
       submit: 'Send notification',
       sending: 'Sending...',
       success: 'Notification sent to {count} recipients.',
@@ -257,6 +274,10 @@ export const adminPage = {
         read: 'Read',
       },
     },
+  },
+  emailTemplates: {
+    title: 'Email templates',
+    description: 'Review, edit, preview, and send React Email templates from the admin workspace.',
   },
   systemSettings: {
     title: 'System settings',

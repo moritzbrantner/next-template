@@ -3,7 +3,8 @@ import { eq } from 'drizzle-orm';
 import { withLocalePath, type AppLocale, hasLocale, routing } from '@/i18n/routing';
 import { getEnv } from '@/src/config/env';
 import { sendEmail } from '@/src/email/service';
-import { createNewsletterWelcomeEmail } from '@/src/email/templates';
+import { getEmailTemplateContentForLifecycle } from '@/src/email/admin-template-service';
+import { renderEmailTemplate } from '@/src/email/templates';
 import { getDb } from '@/src/db/client';
 import { newsletterSubscriptions } from '@/src/db/schema';
 import { getLogger } from '@/src/observability/logger';
@@ -58,7 +59,11 @@ export async function subscribeToNewsletter(input: { email: string; locale?: str
   const manageUrl = `${getBaseUrl()}${withLocalePath('/examples/communication', locale)}`;
 
   try {
-    const message = createNewsletterWelcomeEmail({ manageUrl });
+    const message = await renderEmailTemplate(
+      'newsletterWelcome',
+      { manageUrl },
+      await getEmailTemplateContentForLifecycle('newsletterWelcome'),
+    );
 
     await sendEmail({
       to: email,

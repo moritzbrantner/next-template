@@ -3,7 +3,8 @@ import { eq, like } from 'drizzle-orm';
 import { hashPassword } from '@/lib/password';
 import { withLocalePath, type AppLocale, hasLocale, routing } from '@/i18n/routing';
 import { getEnv } from '@/src/config/env';
-import { createPasswordResetEmail, createVerificationEmail } from '@/src/email/templates';
+import { getEmailTemplateContentForLifecycle } from '@/src/email/admin-template-service';
+import { renderEmailTemplate } from '@/src/email/templates';
 import { getDb } from '@/src/db/client';
 import { users, verificationTokens } from '@/src/db/schema';
 import { enqueueJob } from '@/src/jobs/service';
@@ -187,10 +188,14 @@ export async function signUpWithCredentials(input: SignupInput, deps?: Lifecycle
   }, 'Email verification token issued');
 
   try {
-    const message = createVerificationEmail({
-      verificationUrl,
-      name: input.name,
-    });
+    const message = await renderEmailTemplate(
+      'accountVerification',
+      {
+        verificationUrl,
+        name: input.name?.trim() || 'there',
+      },
+      await getEmailTemplateContentForLifecycle('accountVerification'),
+    );
 
     void enqueueJob('sendEmail', {
       to: email,
@@ -251,7 +256,11 @@ export async function requestPasswordReset(
   }, 'Password reset token issued');
 
   try {
-    const message = createPasswordResetEmail({ resetUrl });
+    const message = await renderEmailTemplate(
+      'passwordReset',
+      { resetUrl },
+      await getEmailTemplateContentForLifecycle('passwordReset'),
+    );
 
     await enqueueJob('sendEmail', {
       to: email,

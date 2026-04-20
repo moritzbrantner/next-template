@@ -5,6 +5,7 @@ export const adminPage = {
     content: 'Inhalte',
     reports: 'Berichte',
     users: 'Benutzer',
+    emailTemplates: 'E-Mail-Templates',
     systemSettings: 'Systemeinstellungen',
     dataStudio: 'Data Studio',
   },
@@ -133,7 +134,7 @@ export const adminPage = {
     },
     tableTitle: 'Benutzerverzeichnis',
     tableDescription:
-      'Nutze das Live-Verzeichnis, um Kontostatus, letzte Aktivitaeten und den Versand von Benachrichtigungen pro Nutzer zu pruefen.',
+      'Durchsuche das Verzeichnis, um Kontostatus, letzte Aktivitaeten und den Versand von Benachrichtigungen fuer einen Nutzer zu pruefen.',
     columns: {
       user: 'Benutzer',
       role: 'Rolle',
@@ -150,6 +151,16 @@ export const adminPage = {
     },
     actions: {
       inspect: 'Nutzer pruefen',
+    },
+    search: {
+      label: 'Benutzer suchen',
+      placeholder: 'Nach Name, E-Mail, Handle oder Nutzer-ID suchen',
+      idle: 'Suche nach einem Nutzer, bevor du Kontodetails oeffnest.',
+      short: 'Gib mindestens 2 Zeichen ein.',
+      loading: 'Benutzer werden gesucht...',
+      empty: 'Keine Benutzer fuer diese Suche gefunden.',
+      error: 'Benutzer koennen gerade nicht gesucht werden.',
+      resultLimit: 'Bis zu {count} Treffer werden angezeigt',
     },
     notifications: {
       title: 'Benachrichtigungen senden',
@@ -180,6 +191,12 @@ export const adminPage = {
       },
       hrefHint: 'Optional. Nutze einen In-App-Pfad wie /profile oder /settings.',
       directRecipient: 'Diese Benachrichtigung wird gesendet an',
+      selectedRecipient: 'Ausgewaehlter Empfaenger',
+      changeRecipient: 'Aendern',
+      recipientSearchPlaceholder: 'Nach Name, E-Mail, Handle oder Nutzer-ID suchen',
+      recipientSearchLoading: 'Empfaenger werden gesucht...',
+      recipientSearchEmpty: 'Keine Benutzer fuer diese Suche gefunden.',
+      recipientSearchError: 'Empfaenger koennen gerade nicht gesucht werden.',
       submit: 'Benachrichtigung senden',
       sending: 'Wird gesendet...',
       success: 'Benachrichtigung an {count} Empfaenger gesendet.',
@@ -260,6 +277,10 @@ export const adminPage = {
         read: 'Gelesen',
       },
     },
+  },
+  emailTemplates: {
+    title: 'E-Mail-Templates',
+    description: 'Pruefe, bearbeite, zeige Vorschauen an und versende React-Email-Templates im Admin-Bereich.',
   },
   systemSettings: {
     title: 'Systemeinstellungen',

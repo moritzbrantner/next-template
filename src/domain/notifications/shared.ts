@@ -1,8 +1,8 @@
 import type { AppRole } from '@/lib/authorization';
-import { and, count, eq, gte, inArray, sql } from 'drizzle-orm';
+import { and, asc, count, eq, gte, ilike, inArray, or, sql } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
-import { notifications, pageVisits, userFollows } from '@/src/db/schema';
+import { notifications, pageVisits, userFollows, users } from '@/src/db/schema';
 import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
 
@@ -35,7 +35,6 @@ export type AdminUsersPageData = {
     operational: number;
     member: number;
   };
-  users: AdminUserListItem[];
 };
 
 export type AdminUserListItem = {
@@ -49,6 +48,8 @@ export type AdminUserListItem = {
   totalNotifications: number;
   unreadNotifications: number;
 };
+
+export type AdminUserSearchResult = AdminUserListItem;
 
 export type AdminUserDetail = {
   id: string;
@@ -293,9 +294,60 @@ export async function markNotificationReadUseCase(
 }
 
 export async function getAdminUsersPageDataUseCase(): Promise<AdminUsersPageData> {
-  const userRecords = await getDb().query.users.findMany({
-    orderBy: (table, { desc: innerDesc }) => [innerDesc(table.createdAt)],
-  });
+  const [privilegedCount, operationalCount, memberCount] = await Promise.all([
+    getDb()
+      .select({ value: count() })
+      .from(users)
+      .where(inArray(users.role, ['ADMIN', 'SUPERADMIN'])),
+    getDb().select({ value: count() }).from(users).where(eq(users.role, 'MANAGER')),
+    getDb().select({ value: count() }).from(users).where(eq(users.role, 'USER')),
+  ]);
+
+  return {
+    metrics: {
+      privileged: privilegedCount[0]?.value ?? 0,
+      operational: operationalCount[0]?.value ?? 0,
+      member: memberCount[0]?.value ?? 0,
+    },
+  };
+}
+
+export async function searchAdminUsersUseCase(query: string, limit = 12): Promise<AdminUserSearchResult[]> {
+  const trimmedQuery = query.trim();
+  const normalizedQuery = trimmedQuery.startsWith('@') ? trimmedQuery.slice(1).trim() : trimmedQuery;
+  const resultLimit = Math.min(Math.max(Math.trunc(limit), 1), 25);
+
+  if (normalizedQuery.length < 2) {
+    return [];
+  }
+
+  const pattern = `%${normalizedQuery}%`;
+  const idPattern = `%${trimmedQuery}%`;
+
+  const userRecords = await getDb()
+    .select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      role: users.role,
+      image: users.image,
+      emailVerified: users.emailVerified,
+      lockoutUntil: users.lockoutUntil,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+    })
+    .from(users)
+    .where(
+      or(
+        ilike(users.name, pattern),
+        ilike(users.email, pattern),
+        ilike(users.tag, pattern),
+        ilike(users.id, idPattern),
+      ),
+    )
+    .orderBy(asc(users.name), asc(users.email), asc(users.id))
+    .limit(resultLimit);
+
   const userIds = userRecords.map((user) => user.id);
   const [latestVisitMap, notificationCountMap] = await Promise.all([
     getLatestVisitMap(userIds),
@@ -324,14 +376,7 @@ export async function getAdminUsersPageDataUseCase(): Promise<AdminUsersPageData
       return rightActivity - leftActivity || left.displayName.localeCompare(right.displayName);
     });
 
-  return {
-    metrics: {
-      privileged: rows.filter((user) => user.role === 'ADMIN' || user.role === 'SUPERADMIN').length,
-      operational: rows.filter((user) => user.role === 'MANAGER').length,
-      member: rows.filter((user) => user.role === 'USER').length,
-    },
-    users: rows,
-  };
+  return rows;
 }
 
 export async function getAdminUserDetailUseCase(userId: string): Promise<AdminUserDetail | null> {

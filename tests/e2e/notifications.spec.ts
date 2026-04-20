@@ -165,15 +165,12 @@ async function sendNotificationFromAdminUsersPage(
   page: Page,
   input: { recipientEmail: string; title: string; body: string; href?: string },
 ) {
-  const recipientSelect = page.getByLabel('Recipient');
-  const recipientOption = recipientSelect.locator('option').filter({ hasText: input.recipientEmail }).first();
-  const recipientValue = await recipientOption.getAttribute('value');
+  await page.getByLabel('Recipient').fill(input.recipientEmail);
+  const recipientResult = page.locator('button').filter({ hasText: input.recipientEmail }).first();
+  await expect(recipientResult).toBeVisible();
+  await recipientResult.click();
+  await expect(page.getByText(input.recipientEmail)).toBeVisible();
 
-  if (!recipientValue) {
-    throw new Error(`Unable to find admin notification recipient for ${input.recipientEmail}.`);
-  }
-
-  await recipientSelect.selectOption(recipientValue);
   await page.getByLabel('Title').fill(input.title);
   await page.getByLabel('Message').fill(input.body);
 

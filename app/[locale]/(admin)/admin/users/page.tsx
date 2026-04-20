@@ -1,10 +1,7 @@
 import { AdminNotificationComposer } from '@/components/admin/admin-notification-composer';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
+import { AdminUserSearch } from '@/components/admin/admin-user-search';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { getAdminUsersPageDataUseCase } from '@/src/domain/notifications/use-cases';
@@ -51,46 +48,7 @@ export default async function UsersPage({
             <CardDescription>{t('users.tableDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('users.columns.user')}</TableHead>
-                  <TableHead>{t('users.columns.role')}</TableHead>
-                  <TableHead>{t('users.columns.status')}</TableHead>
-                  <TableHead>{t('users.columns.lastSeen')}</TableHead>
-                  <TableHead>{t('users.columns.notifications')}</TableHead>
-                  <TableHead className="text-right">{t('users.columns.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <p className="font-medium">{user.displayName}</p>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-300">{user.email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell><Badge variant={user.role === 'ADMIN' || user.role === 'SUPERADMIN' ? 'default' : 'secondary'}>{user.role}</Badge></TableCell>
-                    <TableCell><Badge variant={user.status === 'active' ? 'secondary' : 'outline'}>{t(`users.status.${user.status}`)}</Badge></TableCell>
-                    <TableCell>{formatDateTime(user.lastActivityAt, locale, t('users.lastActivityFallback'))}</TableCell>
-                    <TableCell>
-                      <div className="space-y-1 text-sm">
-                        <p>{t('users.notifications.total', { count: user.totalNotifications })}</p>
-                        <p className="text-zinc-600 dark:text-zinc-300">{t('users.notifications.unread', { count: user.unreadNotifications })}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end">
-                        <LocalizedLink href={`/admin/users/${user.id}`} locale={locale} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-                          {t('users.actions.inspect')}
-                        </LocalizedLink>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <AdminUserSearch locale={locale} />
           </CardContent>
         </Card>
 
@@ -101,7 +59,7 @@ export default async function UsersPage({
               <CardDescription>{t('users.notifications.description')}</CardDescription>
             </CardHeader>
             <CardContent>
-              <AdminNotificationComposer userOptions={data.users.map((user) => ({ id: user.id, displayName: user.displayName, email: user.email, role: user.role }))} />
+              <AdminNotificationComposer />
             </CardContent>
           </Card>
         ) : null}
@@ -123,12 +81,4 @@ export default async function UsersPage({
       </Card>
     </AdminPageShell>
   );
-}
-
-function formatDateTime(value: string | null, locale: string, fallback: string) {
-  if (!value) {
-    return fallback;
-  }
-
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }
