@@ -40,17 +40,9 @@ describe('scaffold-v2 contract', () => {
       'packages/app-pack',
       'packages/app-pack-react',
     ]);
-    expect(packageJson.dependencies['@moritzbrantner/ui']).toBe(
-      'file:../platform-packages/packages/ui',
-    );
-    expect(packageJson.dependencies['@moritzbrantner/storytelling']).toBe(
-      'file:../platform-packages/packages/storytelling',
-    );
-    expect(packageJson).toMatchObject({
-      overrides: {
-        '@moritzbrantner/ui': 'file:../platform-packages/packages/ui',
-      },
-    });
+    expect(packageJson.dependencies['@moritzbrantner/ui']).toBe('^0.3.0');
+    expect(packageJson.dependencies['@moritzbrantner/storytelling']).toBe('^0.2.0');
+    expect(packageJson).not.toHaveProperty('overrides');
   });
 
   it('removes subtree-sync guidance and workflow hooks from the public contract', () => {
