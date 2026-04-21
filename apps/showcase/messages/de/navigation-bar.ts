@@ -6,6 +6,7 @@ export const navigationBar = {
     remocn: 'remocn',
     forms: 'Formular-Demo',
     story: 'Story-Demo',
+    chat: 'Chat',
     communication: 'Kommunikation',
     table: 'Tabelle',
     uploads: 'Uploads',

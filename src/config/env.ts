@@ -46,6 +46,8 @@ const rawEnvSchema = z.object({
   FACEBOOK_CLIENT_SECRET: z.string().optional(),
   X_CLIENT_ID: z.string().optional(),
   X_CLIENT_SECRET: z.string().optional(),
+  TENOR_API_KEY: z.string().optional(),
+  TENOR_CLIENT_KEY: z.string().optional(),
 });
 
 export type AppEnv = {
@@ -104,6 +106,11 @@ export type AppEnv = {
   };
   observability: {
     logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
+  };
+  tenor: {
+    apiKey?: string;
+    clientKey: string;
+    configured: boolean;
   };
 };
 
@@ -216,6 +223,11 @@ export function getEnv(): AppEnv {
     },
     observability: {
       logLevel: raw.LOG_LEVEL ?? (raw.NODE_ENV === 'production' ? 'info' : 'debug'),
+    },
+    tenor: {
+      apiKey: trimOptional(raw.TENOR_API_KEY),
+      clientKey: trimOptional(raw.TENOR_CLIENT_KEY) ?? 'next-template-chat',
+      configured: Boolean(trimOptional(raw.TENOR_API_KEY)),
     },
   };
 

@@ -141,6 +141,31 @@ const showcaseManifest: AppManifest = {
       },
     },
     {
+      id: 'chat',
+      slug: 'examples/chat',
+      kind: 'component',
+      namespace: 'ChatPage',
+      featureKey: 'showcase.communication',
+      aliases: ['chat'],
+      generateMetadata: async () => ({
+        title: 'Team Chat',
+        description: 'A chat room interface with Tenor GIF search and share support.',
+      }),
+      render: async ({ locale, matchedSlug }) => {
+        if (matchedSlug === 'chat') {
+          if (isGithubPagesBuild) {
+            return createElement(StaticRedirectPage, { href: '../examples/chat/' });
+          }
+
+          return { kind: 'redirect', href: withLocalePath('/examples/chat', locale) };
+        }
+
+        const pageModule = await import('./pages/examples/chat-page');
+        const ChatPage = pageModule.default;
+        return createElement(ChatPage, { locale });
+      },
+    },
+    {
       id: 'table',
       slug: 'table',
       kind: 'component',
@@ -180,9 +205,10 @@ const showcaseManifest: AppManifest = {
     { pageId: 'remocn', category: 'discover', hotkey: ['alt', 'v'], prefetch: false, order: 30 },
     { pageId: 'story', category: 'discover', hotkey: ['alt', 's'], prefetch: false, order: 40 },
     { pageId: 'communication', category: 'discover', hotkey: ['alt', 'c'], prefetch: false, order: 50 },
-    { pageId: 'forms', category: 'workspace', hotkey: ['alt', 'f'], prefetch: false, order: 60 },
-    { pageId: 'table', category: 'workspace', hotkey: ['alt', 't'], order: 70 },
-    { pageId: 'uploads', category: 'workspace', hotkey: ['alt', 'u'], prefetch: false, order: 80 },
+    { pageId: 'chat', category: 'workspace', hotkey: ['alt', 'x'], prefetch: false, order: 60 },
+    { pageId: 'forms', category: 'workspace', hotkey: ['alt', 'f'], prefetch: false, order: 70 },
+    { pageId: 'table', category: 'workspace', hotkey: ['alt', 't'], order: 80 },
+    { pageId: 'uploads', category: 'workspace', hotkey: ['alt', 'u'], prefetch: false, order: 90 },
   ],
   contentRoots: {
     pages: ['apps/showcase/content/pages'],

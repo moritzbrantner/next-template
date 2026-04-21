@@ -1,4 +1,5 @@
 import { aboutPage } from './about-page';
+import { chatPage } from './chat-page';
 import { communicationPage } from './communication-page';
 import { formsPage } from './forms-page';
 import { homePage } from './home-page';
@@ -11,6 +12,7 @@ const showcaseMessages = {
   NavigationBar: navigationBar,
   HomePage: homePage,
   AboutPage: aboutPage,
+  ChatPage: chatPage,
   CommunicationPage: communicationPage,
   FormsPage: formsPage,
   RemocnPage: remocnPage,
