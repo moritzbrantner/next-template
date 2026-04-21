@@ -30,6 +30,7 @@ function createDeps() {
     clearFailureState: vi.fn(),
     hashPassword: vi.fn().mockResolvedValue('hashed-password'),
     verifyPassword: vi.fn(),
+    enqueueEmailJob: vi.fn().mockResolvedValue('queued-email-job'),
   };
 }
 
@@ -58,6 +59,13 @@ describe('account lifecycle', () => {
       }),
     );
     expect(deps.issueToken).toHaveBeenCalledTimes(1);
+    expect(deps.enqueueEmailJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'newuser@example.com',
+        subject: 'Verify your email address',
+        tags: ['account-verification'],
+      }),
+    );
   });
 
   it('rejects invalid and duplicate account creation attempts', async () => {
@@ -184,6 +192,13 @@ describe('account lifecycle', () => {
     expect(requestResult.ok).toBe(true);
     expect(requestResult.token).toBeDefined();
     expect(deps.issueToken).toHaveBeenCalledTimes(1);
+    expect(deps.enqueueEmailJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'person@example.com',
+        subject: 'Reset your password',
+        tags: ['password-reset'],
+      }),
+    );
 
     deps.findToken.mockResolvedValue({
       identifier: 'password-reset:user_2',

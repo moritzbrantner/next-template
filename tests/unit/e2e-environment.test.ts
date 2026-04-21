@@ -72,4 +72,17 @@ describe('e2e environment', () => {
     expect(environment.EMAIL_PROVIDER).toBe('mailpit');
     expect(environment.DATABASE_URL).toBe('postgresql://postgres:postgres@127.0.0.1:55433/next_template?schema=public');
   });
+
+  it('lets caller-provided e2e service endpoints override example defaults', () => {
+    clearE2EEnvironment();
+    process.env.MAILPIT_BASE_URL = 'http://127.0.0.1:18025';
+    process.env.MINIO_API_PORT = '19000';
+    process.env.PROFILE_IMAGE_STORAGE_ENDPOINT = 'http://127.0.0.1:19000';
+
+    const environment = createE2EEnvironment();
+
+    expect(environment.MAILPIT_BASE_URL).toBe('http://127.0.0.1:18025');
+    expect(environment.MINIO_API_PORT).toBe('19000');
+    expect(environment.PROFILE_IMAGE_STORAGE_ENDPOINT).toBe('http://127.0.0.1:19000');
+  });
 });

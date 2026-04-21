@@ -16,38 +16,19 @@ cleanup() {
   fi
 }
 
-ensure_e2e_port_available() {
-  "$BUN_BINARY" --eval '
-    const net = require("node:net");
-
-    const baseUrl = process.env.E2E_BASE_URL ?? "http://127.0.0.1:3006";
-    const url = new URL(baseUrl);
-    const host = url.hostname === "localhost" ? "127.0.0.1" : url.hostname;
-
-    if (!["127.0.0.1", "::1", "localhost"].includes(url.hostname)) {
-      process.exit(0);
-    }
-
-    const port = Number(url.port || (url.protocol === "https:" ? 443 : 80));
-    const server = net.createServer();
-
-    server.once("error", (error) => {
-      console.error(`E2E app port ${port} on ${host} is unavailable: ${error.message}`);
-      console.error("Stop the existing process or set E2E_BASE_URL to a free local port.");
-      process.exit(1);
-    });
-
-    server.once("listening", () => {
-      server.close(() => process.exit(0));
-    });
-
-    server.listen(port, host);
-  '
+resolve_e2e_base_url() {
+  "$BUN_BINARY" "${SCRIPT_DIR}/resolve-e2e-base-url.mjs"
 }
 
 trap cleanup EXIT
 
 cd "$APP_ROOT"
+
+E2E_BASE_URL="$(resolve_e2e_base_url)"
+export E2E_BASE_URL
+export SITE_URL="$E2E_BASE_URL"
+export AUTH_URL="$E2E_BASE_URL"
+export NEXTAUTH_URL="$E2E_BASE_URL"
 
 if [[ "${SKIP_PLAYWRIGHT_INSTALL:-false}" != "true" ]]; then
   if [[ "${CI:-false}" == "true" ]] || sudo -n true >/dev/null 2>&1; then
@@ -60,5 +41,4 @@ fi
 
 "${SCRIPT_DIR}/bootstrap-e2e-db.sh"
 "${SCRIPT_DIR}/assert-e2e-prereqs.sh"
-ensure_e2e_port_available
 E2E_SKIP_GLOBAL_BOOTSTRAP=true E2E_SKIP_GLOBAL_TEARDOWN=true E2E_SKIP_PLAYWRIGHT_INSTALL=true "$BUN_BINARY" run test:e2e

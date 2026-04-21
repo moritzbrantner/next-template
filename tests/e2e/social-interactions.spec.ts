@@ -129,7 +129,8 @@ test.describe('social interactions', () => {
     await page.getByRole('button', { name: 'Publish post' }).click();
 
     await expect(page.getByRole('status')).toContainText('Published');
-    await expect(page.locator('article').filter({ hasText: postTitle }).first()).toContainText(postContent);
+    await expect(page.getByLabel('Title')).toHaveValue(postTitle);
+    await expect(page.getByLabel('Post content')).toHaveValue(postContent);
     await runQueuedJobs();
     await logoutFromProfileMenu(page);
 

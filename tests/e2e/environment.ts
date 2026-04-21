@@ -85,7 +85,7 @@ function getE2EEnvironmentValue(
   exampleEnvironment: Record<string, string>,
   fallback?: string,
 ) {
-  return e2eExampleEnvironment[key] ?? process.env[key] ?? exampleEnvironment[key] ?? fallback;
+  return process.env[key] ?? e2eExampleEnvironment[key] ?? exampleEnvironment[key] ?? fallback;
 }
 
 export function getE2EBaseURL() {

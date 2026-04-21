@@ -154,7 +154,7 @@ exit 0
         },
       });
 
-      expect(result.status).toBe(0);
+      expect(result.status, result.stderr || result.stdout).toBe(0);
 
       const dockerLog = readFileSync(dockerLogPath, 'utf8');
       const bunLog = readFileSync(bunLogPath, 'utf8');

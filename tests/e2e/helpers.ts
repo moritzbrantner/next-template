@@ -104,8 +104,20 @@ export async function loginWithCredentials(page: Page, email: string, password: 
 
 export async function logoutFromProfileMenu(page: Page) {
   await page.getByRole('button', { name: 'Open user menu' }).click();
-  await page.getByRole('button', { name: 'Log out' }).click();
-  await expect(page).toHaveURL('/en');
+  const profileMenu = page.getByRole('menu');
+  await expect(profileMenu).toBeVisible();
+
+  const logoutButton = profileMenu.getByRole('button', { name: 'Log out' });
+  await expect(logoutButton).toBeVisible();
+
+  const logoutResponsePromise = page.waitForResponse(
+    (response) => response.url().endsWith('/api/auth/logout') && response.request().method() === 'POST',
+    { timeout: 15_000 },
+  );
+  await logoutButton.click();
+  const logoutResponse = await logoutResponsePromise;
+  expect(logoutResponse.ok()).toBeTruthy();
+  await expect(page).toHaveURL('/en', { timeout: 15_000 });
   await waitForAppHydration(page);
 }
 

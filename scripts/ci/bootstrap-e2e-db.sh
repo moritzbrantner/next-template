@@ -51,6 +51,39 @@ docker_compose() {
   env -u COMPOSE_FILE docker compose -f "$COMPOSE_FILE_PATH" --project-directory "$APP_ROOT" "$@"
 }
 
+container_name_for_service() {
+  case "$1" in
+    postgres)
+      printf 'next-template-postgres'
+      ;;
+    minio)
+      printf 'next-template-minio'
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+remove_stale_named_containers() {
+  local service container_name container_ids
+
+  for service in "$@"; do
+    if ! container_name="$(container_name_for_service "$service")"; then
+      continue
+    fi
+
+    container_ids="$(docker ps -aq --filter "name=^/${container_name}$" 2>/dev/null || true)"
+
+    if [[ -z "$container_ids" ]]; then
+      continue
+    fi
+
+    echo "ℹ️ Removing stale e2e container ${container_name} before compose startup."
+    docker rm -f $container_ids >/dev/null
+  done
+}
+
 can_reach_mailpit() {
   "$BUN_BINARY" --eval '
     (async () => {
@@ -178,6 +211,7 @@ if (( ${#STARTED_SERVICES[@]} > 0 )); then
   done
 
   echo "ℹ️ Starting compose services for e2e bootstrap: ${STARTED_SERVICES[*]}"
+  remove_stale_named_containers "${STARTED_SERVICES[@]}"
   (
     cd "$APP_ROOT"
     docker_compose up -d "${STARTED_SERVICES[@]}"
@@ -236,6 +270,31 @@ echo "ℹ️ Waiting for Mailpit readiness..."
     }
 
     console.error("❌ Timed out waiting for Mailpit after " + timeoutSeconds + "s.");
+    process.exit(1);
+  })();
+'
+
+echo "ℹ️ Waiting for object storage readiness..."
+"$BUN_BINARY" --eval '
+  (async () => {
+    const timeoutSeconds = Number(process.env.DB_BOOTSTRAP_TIMEOUT_SECONDS ?? "90");
+    const endpoint = process.env.PROFILE_IMAGE_STORAGE_ENDPOINT.replace(/\/$/u, "");
+    const start = Date.now();
+
+    while (Date.now() - start < timeoutSeconds * 1_000) {
+      try {
+        const response = await fetch(endpoint + "/minio/health/live");
+
+        if (response.ok) {
+          console.log("✅ Object storage is ready.");
+          process.exit(0);
+        }
+      } catch {}
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    console.error("❌ Timed out waiting for object storage after " + timeoutSeconds + "s.");
     process.exit(1);
   })();
 '

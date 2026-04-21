@@ -8,6 +8,7 @@ import { renderEmailTemplate } from '@/src/email/templates';
 import { getDb } from '@/src/db/client';
 import { users, verificationTokens } from '@/src/db/schema';
 import { enqueueJob } from '@/src/jobs/service';
+import type { JobPayloadMap } from '@/src/jobs/contracts';
 import { getLogger } from '@/src/observability/logger';
 import { getInitialProfileTagCandidates } from '@/src/profile/tags';
 
@@ -65,6 +66,7 @@ type LifecycleDependencies = {
   clearFailureState: (userId: string) => Promise<void>;
   findUserById: (userId: string) => Promise<DbUser | undefined>;
   hashPassword: (password: string) => Promise<string>;
+  enqueueEmailJob?: (payload: JobPayloadMap['sendEmail']) => Promise<string | void>;
 };
 
 function isLifecycleDependencies(value: unknown): value is LifecycleDependencies {
@@ -115,6 +117,9 @@ async function resolveDependencies(): Promise<LifecycleDependencies> {
     },
     findUserById: async (userId) => {
       return getDb().query.users.findFirst({ where: (table, { eq }) => eq(table.id, userId) });
+    },
+    enqueueEmailJob: async (payload) => {
+      return enqueueJob('sendEmail', payload);
     },
     updateFailureState: async (userId, failedSignInAttempts, lockoutUntil) => {
       await getDb().update(users).set({ failedSignInAttempts, lockoutUntil, updatedAt: new Date() }).where(eq(users.id, userId));
@@ -197,7 +202,7 @@ export async function signUpWithCredentials(input: SignupInput, deps?: Lifecycle
       await getEmailTemplateContentForLifecycle('accountVerification'),
     );
 
-    void enqueueJob('sendEmail', {
+    void (d.enqueueEmailJob ?? ((payload) => enqueueJob('sendEmail', payload)))({
       to: email,
       subject: message.subject,
       html: message.html,
@@ -262,7 +267,7 @@ export async function requestPasswordReset(
       await getEmailTemplateContentForLifecycle('passwordReset'),
     );
 
-    await enqueueJob('sendEmail', {
+    await (d.enqueueEmailJob ?? ((payload) => enqueueJob('sendEmail', payload)))({
       to: email,
       subject: message.subject,
       html: message.html,

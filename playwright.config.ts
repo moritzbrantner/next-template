@@ -8,7 +8,7 @@ const workers = process.env.PLAYWRIGHT_WORKERS
   ? Number(process.env.PLAYWRIGHT_WORKERS)
   : process.env.CI
     ? 1
-    : undefined;
+    : 1;
 
 Object.assign(process.env, e2eEnvironment);
 
