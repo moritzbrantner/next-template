@@ -10,6 +10,7 @@ export const foundationFeatureKeys = [
   'profiles.follow',
   'profiles.blog',
   'people.directory',
+  'groups',
   'notifications',
   'newsletter',
   'reportProblem',

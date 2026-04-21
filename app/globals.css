@@ -109,13 +109,3 @@ html[data-motion='reduced'] *::after {
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
-
-@keyframes spin-cube {
-  from {
-    transform: rotateX(-18deg) rotateY(0deg);
-  }
-
-  to {
-    transform: rotateX(-18deg) rotateY(360deg);
-  }
-}

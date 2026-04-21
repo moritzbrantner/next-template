@@ -41,30 +41,30 @@ describe('app routes', () => {
       label: 'guests',
       input: { isAuthenticated: false, role: null },
       visibleKeys: ['home', 'about', 'forms', 'login', 'register'],
-      hiddenKeys: ['people', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
+      hiddenKeys: ['people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
     },
     {
       label: 'signed-in users',
       input: { isAuthenticated: true, role: 'USER' as const },
-      visibleKeys: ['home', 'people', 'notifications', 'dataEntry', 'profile', 'settings'],
+      visibleKeys: ['home', 'people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings'],
       hiddenKeys: ['login', 'register', 'admin'],
     },
     {
       label: 'managers',
       input: { isAuthenticated: true, role: 'MANAGER' as const },
-      visibleKeys: ['home', 'people', 'notifications', 'dataEntry', 'profile', 'settings'],
+      visibleKeys: ['home', 'people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings'],
       hiddenKeys: ['login', 'register', 'admin'],
     },
     {
       label: 'admins',
       input: { isAuthenticated: true, role: 'ADMIN' as const },
-      visibleKeys: ['people', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
+      visibleKeys: ['people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
       hiddenKeys: ['login', 'register'],
     },
     {
       label: 'superadmins',
       input: { isAuthenticated: true, role: 'SUPERADMIN' as const },
-      visibleKeys: ['people', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
+      visibleKeys: ['people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
       hiddenKeys: ['login', 'register'],
     },
   ] satisfies readonly VisibilityCase[])(
@@ -88,6 +88,7 @@ describe('app routes', () => {
         isAuthenticated: true,
         role: 'USER',
         featureStateByKey: {
+          groups: false,
           notifications: false,
           'people.directory': false,
           'workspace.dataEntry': true,
@@ -95,6 +96,7 @@ describe('app routes', () => {
       }).map((page) => page.key),
     );
 
+    expect(visiblePageKeys.has('groups')).toBe(false);
     expect(visiblePageKeys.has('notifications')).toBe(false);
     expect(visiblePageKeys.has('people')).toBe(false);
     expect(visiblePageKeys.has('dataEntry')).toBe(true);

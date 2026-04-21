@@ -13,6 +13,7 @@ const enabledFeatures = {
   'profiles.follow': true,
   'profiles.blog': true,
   'people.directory': true,
+  'groups': true,
   'notifications': true,
   'newsletter': true,
   'reportProblem': true,

@@ -7,6 +7,7 @@ export const foundationFeatureModules: readonly FoundationFeatureModule[] = [
   { featureKey: 'profiles.follow', requiredMessageNamespaces: ['ProfilePage'], requiredContentCollections: [] },
   { featureKey: 'profiles.blog', requiredMessageNamespaces: ['BlogPage'], requiredContentCollections: [] },
   { featureKey: 'people.directory', requiredMessageNamespaces: ['PeoplePage'], requiredContentCollections: [] },
+  { featureKey: 'groups', requiredMessageNamespaces: ['GroupsPage'], requiredContentCollections: [] },
   { featureKey: 'notifications', requiredMessageNamespaces: ['NotificationsPage'], requiredContentCollections: [] },
   { featureKey: 'newsletter', requiredMessageNamespaces: [], requiredContentCollections: [] },
   { featureKey: 'reportProblem', requiredMessageNamespaces: ['ReportProblemPage'], requiredContentCollections: [] },

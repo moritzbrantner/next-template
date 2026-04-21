@@ -171,36 +171,6 @@
           }
         }
       }
-    },
-    {
-      "includes": ["lib/validation/**/*.{ts,tsx}"],
-      "linter": {
-        "rules": {
-          "style": {
-            "noRestrictedImports": {
-              "level": "error",
-              "options": {
-                "patterns": [
-                  {
-                    "group": [
-                      "@/app/*",
-                      "@/components/*",
-                      "@/src/*",
-                      "@features/*",
-                      "@/features/*",
-                      "@stores/*",
-                      "@/stores/*",
-                      "@services/*",
-                      "@/lib/services/*"
-                    ],
-                    "message": "Validation helpers must remain independent from app, UI, and deprecated module aliases."
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
     }
   ]
 }

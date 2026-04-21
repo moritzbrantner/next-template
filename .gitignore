@@ -46,3 +46,4 @@ yarn-error.log*
 
 test-results/
 /.generated/
+public/local-profile-images/

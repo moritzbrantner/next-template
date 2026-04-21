@@ -9,6 +9,8 @@ export const notificationStatusEnum = pgEnum("NotificationStatus", ["unread", "r
 export const notificationAudienceEnum = pgEnum("NotificationAudience", ["user", "role", "all"]);
 export const siteAnnouncementStatusEnum = pgEnum("SiteAnnouncementStatus", ["draft", "scheduled", "published", "archived"]);
 export const jobOutboxStatusEnum = pgEnum("JobOutboxStatus", ["pending", "running", "retrying", "completed", "failed"]);
+export const groupMemberRoleEnum = pgEnum("GroupMemberRole", ["OWNER", "ADMIN", "MEMBER"]);
+export const groupInvitationStatusEnum = pgEnum("GroupInvitationStatus", ["pending", "accepted", "declined", "revoked"]);
 
 export const users = pgTable(
   "User",
@@ -86,6 +88,66 @@ export const userBlocks = pgTable(
     primaryKey({ columns: [table.blockerId, table.blockedId], name: "UserBlock_pkey" }),
     index("UserBlock_blockerId_idx").on(table.blockerId),
     index("UserBlock_blockedId_idx").on(table.blockedId),
+  ],
+);
+
+export const groups = pgTable(
+  "Group",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    description: text("description"),
+    ownerId: text("ownerId").notNull().references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("Group_ownerId_idx").on(table.ownerId),
+    index("Group_name_idx").on(table.name),
+  ],
+);
+
+export const groupMemberships = pgTable(
+  "GroupMembership",
+  {
+    groupId: text("groupId")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    role: groupMemberRoleEnum("role").notNull().default("MEMBER"),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updatedAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.groupId, table.userId], name: "GroupMembership_pkey" }),
+    index("GroupMembership_groupId_role_idx").on(table.groupId, table.role),
+    index("GroupMembership_userId_idx").on(table.userId),
+  ],
+);
+
+export const groupInvitations = pgTable(
+  "GroupInvitation",
+  {
+    id: text("id").primaryKey(),
+    groupId: text("groupId")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    invitedUserId: text("invitedUserId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    invitedByUserId: text("invitedByUserId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    status: groupInvitationStatusEnum("status").notNull().default("pending"),
+    createdAt: timestamp("createdAt", { withTimezone: false, mode: "date" }).notNull().defaultNow(),
+    respondedAt: timestamp("respondedAt", { withTimezone: false, mode: "date" }),
+  },
+  (table) => [
+    index("GroupInvitation_groupId_status_idx").on(table.groupId, table.status),
+    index("GroupInvitation_invitedUserId_status_idx").on(table.invitedUserId, table.status),
+    index("GroupInvitation_invitedByUserId_idx").on(table.invitedByUserId),
   ],
 );
 

@@ -71,6 +71,16 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     featureKey: 'people.directory',
   },
   {
+    key: 'groups',
+    href: '/groups',
+    translationKey: 'links.groups',
+    visibility: 'authenticated',
+    navigationCategory: 'workspace',
+    hotkey: ['alt', 'o'],
+    order: 215,
+    featureKey: 'groups',
+  },
+  {
     key: 'notifications',
     href: '/notifications',
     translationKey: 'links.notifications',

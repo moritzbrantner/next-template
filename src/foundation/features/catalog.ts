@@ -3,6 +3,7 @@ import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 export type FoundationFeatureCategory =
   | 'account'
   | 'profiles'
+  | 'collaboration'
   | 'workspace'
   | 'content'
   | 'admin'
@@ -51,6 +52,12 @@ export const foundationFeatureMetadata: Record<FoundationFeatureKey, FoundationF
     label: 'People directory',
     description: 'Open the authenticated people directory.',
     category: 'profiles',
+    supportsUserOverrides: true,
+  },
+  groups: {
+    label: 'Groups',
+    description: 'Let signed-in users create groups, invite members, and manage group roles.',
+    category: 'collaboration',
     supportsUserOverrides: true,
   },
   notifications: {
