@@ -39,12 +39,42 @@ type IndexedCollection = {
   records: ContentEntry[];
 };
 
-function resolveContentRoot(root: string) {
-  return path.isAbsolute(root) ? root : path.join(process.cwd(), root);
+function normalizeContentRoot(root: string) {
+  if (path.isAbsolute(root)) {
+    return null;
+  }
+
+  const normalized = path.posix.normalize(root.replaceAll(path.sep, '/'));
+
+  if (normalized === '.' || normalized.startsWith('../')) {
+    throw new Error(`Content root must stay inside the repository: ${root}`);
+  }
+
+  return normalized;
+}
+
+function resolveContentRoot(collection: ContentCollection, root: string) {
+  const normalizedRoot = normalizeContentRoot(root);
+
+  if (!normalizedRoot) {
+    return root;
+  }
+
+  const appRootMatch = /^apps\/([^/]+)\/content\/(blog|changelog|pages)$/.exec(normalizedRoot);
+
+  if (appRootMatch && appRootMatch[2] === collection) {
+    return path.join(process.cwd(), 'apps', appRootMatch[1], 'content', collection);
+  }
+
+  if (normalizedRoot === `content/${collection}`) {
+    return path.join(process.cwd(), 'content', collection);
+  }
+
+  return path.join(/* turbopackIgnore: true */ process.cwd(), normalizedRoot);
 }
 
 export function getConfiguredContentRoots(collection: ContentCollection) {
-  const configuredRoots = loadActiveApp().contentRoots[collection].map(resolveContentRoot);
+  const configuredRoots = loadActiveApp().contentRoots[collection].map((root) => resolveContentRoot(collection, root));
   const legacyRoot = path.join(LEGACY_CONTENT_ROOT, collection);
 
   if (existsSync(legacyRoot) && !configuredRoots.includes(legacyRoot)) {
