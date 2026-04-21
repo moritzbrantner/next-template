@@ -26,7 +26,7 @@ export const POST = createApiRoute({
       throw mapFollowProblem(result.error.code, result.error.message);
     }
 
-    return { ok: true, following: result.data.following };
+    return { ok: true, following: result.data.following, isFriend: result.data.isFriend };
   },
 });
 
@@ -43,6 +43,6 @@ export const DELETE = createApiRoute({
       throw mapFollowProblem(result.error.code, result.error.message);
     }
 
-    return { ok: true, following: result.data.following };
+    return { ok: true, following: result.data.following, isFriend: result.data.isFriend };
   },
 });

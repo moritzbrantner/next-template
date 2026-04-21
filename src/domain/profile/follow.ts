@@ -1,5 +1,6 @@
 export {
   followUserUseCase,
+  listFriendProfilesUseCase,
   listFollowingProfilesUseCase,
   searchUsersToFollowUseCase,
   unfollowUserUseCase,

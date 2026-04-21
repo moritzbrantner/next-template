@@ -15,6 +15,11 @@ export const peoplePage = {
     description: 'You are currently following {count} people.',
     empty: 'You are not following anyone yet.',
   },
+  friends: {
+    title: 'Friends',
+    description: 'You have {count} mutual follows.',
+    empty: 'You do not have any friends yet. Follow someone who follows you back.',
+  },
   actions: {
     follow: 'Follow',
     unfollow: 'Unfollow',

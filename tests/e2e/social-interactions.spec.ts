@@ -55,6 +55,8 @@ test.describe('social interactions', () => {
     await gotoAndWaitForHydration(page, '/en/people');
 
     await expect(page.getByRole('heading', { name: 'People', exact: true })).toBeVisible();
+    await expect(getFriendsCard(page)).toContainText('Alice Archer');
+    await expect(getFriendsCard(page)).toContainText('Bob Baker');
     await expect(getFollowingCard(page)).toContainText('Alice Archer');
     await expect(getFollowingCard(page)).toContainText('Bob Baker');
 
@@ -67,10 +69,12 @@ test.describe('social interactions', () => {
     await caseySearchResult.getByRole('button', { name: 'Follow' }).click();
 
     await expect(getFollowingCard(page)).toContainText('Casey Carter');
+    await expect(getFriendsCard(page)).toContainText('Casey Carter');
     await expect(page.getByText('No discoverable users matched your search.')).toBeVisible();
 
     await getFollowingEntry(page, 'Casey Carter').getByRole('button', { name: 'Unfollow' }).click();
     await expect(getFollowingEntry(page, 'Casey Carter')).toHaveCount(0);
+    await expect(getFriendsEntry(page, 'Casey Carter')).toHaveCount(0);
   });
 
   test('delivers a role-based admin notification to the seeded manager cohort', async ({ page }) => {
@@ -181,12 +185,20 @@ function getFollowingCard(page: Page) {
   return page.locator('section,div').filter({ has: page.getByRole('heading', { name: 'Following' }) }).first();
 }
 
+function getFriendsCard(page: Page) {
+  return page.locator('section,div').filter({ has: page.getByRole('heading', { name: 'Friends' }) }).first();
+}
+
 function getSearchResult(page: Page, displayName: string): Locator {
   return page.locator('div.rounded-2xl').filter({ hasText: displayName }).filter({ has: page.getByRole('button', { name: 'Follow' }) }).first();
 }
 
 function getFollowingEntry(page: Page, displayName: string): Locator {
   return page.locator('div.rounded-2xl').filter({ hasText: displayName }).filter({ has: page.getByRole('button', { name: 'Unfollow' }) }).first();
+}
+
+function getFriendsEntry(page: Page, displayName: string): Locator {
+  return getFriendsCard(page).locator('div.rounded-2xl').filter({ hasText: displayName }).first();
 }
 
 function getNotificationBell(page: Page) {

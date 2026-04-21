@@ -2,6 +2,7 @@ export type {
   ProfileBlockMutationPayload,
   ProfileDirectoryEntry,
   ProfileError,
+  ProfileFollowMutationPayload,
   ProfileFollowerEntry,
   ProfileFollowerVisibilityPayload,
   ProfileFollowersPayload,

@@ -65,6 +65,11 @@ export type ProfileBlockMutationPayload = {
   blocked: boolean;
 };
 
+export type ProfileFollowMutationPayload = {
+  following: boolean;
+  isFriend: boolean;
+};
+
 export type ProfileFollowersPayload = {
   profile: {
     userId: string;
@@ -105,6 +110,7 @@ export type ProfileUseCaseDeps = {
   createBlockRelationship: (blockerId: string, blockedId: string) => Promise<void>;
   deleteBlockRelationship: (blockerId: string, blockedId: string) => Promise<void>;
   listFollowingUsers: (followerId: string) => Promise<ProfileUserRecord[]>;
+  listFriendUsers: (userId: string) => Promise<ProfileUserRecord[]>;
   listBlockedUsers: (blockerId: string) => Promise<ProfileUserRecord[]>;
   listFollowersForUser: (followingId: string) => Promise<ProfileUserRecord[]>;
   searchUsersToFollow: (viewerUserId: string, query: string) => Promise<ProfileUserRecord[]>;
@@ -116,6 +122,7 @@ export type ProfileUseCaseDeps = {
 function getProfileUseCaseDeps(): ProfileUseCaseDeps {
   const viewerBlocks = alias(userBlocks, 'viewerBlocks');
   const targetBlocks = alias(userBlocks, 'targetBlocks');
+  const reciprocalFollows = alias(userFollows, 'reciprocalFollows');
 
   return {
     findUserById: (userId) =>
@@ -216,6 +223,28 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .from(userFollows)
         .innerJoin(users, eq(userFollows.followingId, users.id))
         .where(eq(userFollows.followerId, followerId))
+        .orderBy(asc(users.name), asc(users.tag), asc(users.email));
+
+      return rows;
+    },
+    listFriendUsers: async (userId) => {
+      const rows = await getDb()
+        .select({
+          id: users.id,
+          email: users.email,
+          tag: users.tag,
+          name: users.name,
+          image: users.image,
+          isSearchable: users.isSearchable,
+          followerVisibility: users.followerVisibility,
+        })
+        .from(userFollows)
+        .innerJoin(
+          reciprocalFollows,
+          and(eq(reciprocalFollows.followerId, userFollows.followingId), eq(reciprocalFollows.followingId, userId)),
+        )
+        .innerJoin(users, eq(userFollows.followingId, users.id))
+        .where(eq(userFollows.followerId, userId))
         .orderBy(asc(users.name), asc(users.tag), asc(users.email));
 
       return rows;
@@ -422,7 +451,7 @@ async function updateFollowRelationship(
   targetUserId: string,
   shouldFollow: boolean,
   deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
-): Promise<ServiceResult<{ following: boolean }, ProfileError>> {
+): Promise<ServiceResult<ProfileFollowMutationPayload, ProfileError>> {
   if (actorUserId === targetUserId) {
     return failure({
       code: 'VALIDATION_ERROR',
@@ -459,11 +488,14 @@ async function updateFollowRelationship(
 
   if (shouldFollow) {
     await deps.createFollowRelationship(actorUserId, targetUserId);
-    return success({ following: true });
+    return success({
+      following: true,
+      isFriend: await deps.hasFollowRelationship(targetUserId, actorUserId),
+    });
   }
 
   await deps.deleteFollowRelationship(actorUserId, targetUserId);
-  return success({ following: false });
+  return success({ following: false, isFriend: false });
 }
 
 export function followUserUseCase(
@@ -544,6 +576,26 @@ export async function listFollowingProfilesUseCase(
   }
 
   const profiles = await deps.listFollowingUsers(userId);
+
+  return success({
+    profiles: profiles.map(toProfileDirectoryEntry),
+  });
+}
+
+export async function listFriendProfilesUseCase(
+  userId: string,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<{ profiles: ProfileDirectoryEntry[] }, ProfileError>> {
+  const user = await deps.findUserById(userId);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const profiles = await deps.listFriendUsers(userId);
 
   return success({
     profiles: profiles.map(toProfileDirectoryEntry),

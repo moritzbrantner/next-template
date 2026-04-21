@@ -13,14 +13,20 @@ import { useTranslations } from '@/src/i18n';
 
 type PeopleDirectoryProps = {
   initialFollowing: ProfileDirectoryEntry[];
+  initialFriends: ProfileDirectoryEntry[];
 };
 
-export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
+type FollowMutationResponse = {
+  isFriend?: boolean;
+};
+
+export function PeopleDirectory({ initialFollowing, initialFriends }: PeopleDirectoryProps) {
   const t = useTranslations('PeoplePage');
   const searchErrorMessage = t('search.error');
   const followErrorMessage = t('actions.error');
   const blockErrorMessage = t('actions.blockError');
   const [followingProfiles, setFollowingProfiles] = useState(initialFollowing);
+  const [friendProfiles, setFriendProfiles] = useState(initialFriends);
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const [searchResults, setSearchResults] = useState<ProfileDirectoryEntry[]>([]);
@@ -112,12 +118,21 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
         return;
       }
 
+      const payload = (await response.json()) as FollowMutationResponse;
+
       if (shouldFollow) {
         setFollowingProfiles((current) =>
           current.some((currentProfile) => currentProfile.userId === profile.userId) ? current : [profile, ...current],
         );
+
+        if (payload.isFriend) {
+          setFriendProfiles((current) =>
+            current.some((currentProfile) => currentProfile.userId === profile.userId) ? current : [profile, ...current],
+          );
+        }
       } else {
         setFollowingProfiles((current) => current.filter((currentProfile) => currentProfile.userId !== profile.userId));
+        setFriendProfiles((current) => current.filter((currentProfile) => currentProfile.userId !== profile.userId));
       }
 
       setRefreshKey((current) => current + 1);
@@ -148,6 +163,7 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
       }
 
       setFollowingProfiles((current) => current.filter((currentProfile) => currentProfile.userId !== profile.userId));
+      setFriendProfiles((current) => current.filter((currentProfile) => currentProfile.userId !== profile.userId));
       setSearchResults((current) => current.filter((currentProfile) => currentProfile.userId !== profile.userId));
       setRefreshKey((current) => current + 1);
     } catch {
@@ -209,38 +225,71 @@ export function PeopleDirectory({ initialFollowing }: PeopleDirectoryProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('following.title')}</CardTitle>
-          <CardDescription>
-            {followingProfiles.length > 0
-              ? t('following.description', { count: followingProfiles.length })
-              : t('following.empty')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {followingProfiles.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-300 p-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
-              {t('following.empty')}
-            </div>
-          ) : null}
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('friends.title')}</CardTitle>
+            <CardDescription>
+              {friendProfiles.length > 0 ? t('friends.description', { count: friendProfiles.length }) : t('friends.empty')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {friendProfiles.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-zinc-300 p-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
+                {t('friends.empty')}
+              </div>
+            ) : null}
 
-          {followingProfiles.map((profile) => (
-            <ProfileRow
-              key={profile.userId}
-              profile={profile}
-              actionLabel={t('actions.unfollow')}
-              pendingLabel={t('actions.unfollowing')}
-              actionVariant="outline"
-              isPending={pendingUserIds.includes(profile.userId)}
-              onAction={() => updateFollowState(profile, false)}
-              secondaryActionLabel={t('actions.block')}
-              secondaryPendingLabel={t('actions.blocking')}
-              onSecondaryAction={() => blockProfile(profile)}
-            />
-          ))}
-        </CardContent>
-      </Card>
+            {friendProfiles.map((profile) => (
+              <ProfileRow
+                key={profile.userId}
+                profile={profile}
+                actionLabel={t('actions.unfollow')}
+                pendingLabel={t('actions.unfollowing')}
+                actionVariant="outline"
+                isPending={pendingUserIds.includes(profile.userId)}
+                onAction={() => updateFollowState(profile, false)}
+                secondaryActionLabel={t('actions.block')}
+                secondaryPendingLabel={t('actions.blocking')}
+                onSecondaryAction={() => blockProfile(profile)}
+              />
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('following.title')}</CardTitle>
+            <CardDescription>
+              {followingProfiles.length > 0
+                ? t('following.description', { count: followingProfiles.length })
+                : t('following.empty')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {followingProfiles.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-zinc-300 p-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
+                {t('following.empty')}
+              </div>
+            ) : null}
+
+            {followingProfiles.map((profile) => (
+              <ProfileRow
+                key={profile.userId}
+                profile={profile}
+                actionLabel={t('actions.unfollow')}
+                pendingLabel={t('actions.unfollowing')}
+                actionVariant="outline"
+                isPending={pendingUserIds.includes(profile.userId)}
+                onAction={() => updateFollowState(profile, false)}
+                secondaryActionLabel={t('actions.block')}
+                secondaryPendingLabel={t('actions.blocking')}
+                onSecondaryAction={() => blockProfile(profile)}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

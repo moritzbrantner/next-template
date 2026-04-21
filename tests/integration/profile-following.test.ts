@@ -8,6 +8,7 @@ import {
   getProfileViewUseCase,
   getProfileSearchVisibilityUseCase,
   listBlockedProfilesUseCase,
+  listFriendProfilesUseCase,
   listProfileFollowersByTagUseCase,
   listFollowingProfilesUseCase,
   searchUsersToFollowUseCase,
@@ -36,6 +37,7 @@ function createDeps(overrides: Partial<ProfileUseCaseDeps> = {}): ProfileUseCase
     createBlockRelationship: vi.fn().mockResolvedValue(undefined),
     deleteBlockRelationship: vi.fn().mockResolvedValue(undefined),
     listFollowingUsers: vi.fn().mockResolvedValue([]),
+    listFriendUsers: vi.fn().mockResolvedValue([]),
     listBlockedUsers: vi.fn().mockResolvedValue([]),
     listFollowersForUser: vi.fn().mockResolvedValue([]),
     searchUsersToFollow: vi.fn().mockResolvedValue([]),
@@ -159,6 +161,7 @@ describe('profile follow use cases', () => {
       ok: true,
       data: {
         following: true,
+        isFriend: false,
       },
     });
     expect(deps.createFollowRelationship).toHaveBeenCalledWith('user_1', 'user_2');
@@ -167,9 +170,34 @@ describe('profile follow use cases', () => {
       ok: true,
       data: {
         following: false,
+        isFriend: false,
       },
     });
     expect(deps.deleteFollowRelationship).toHaveBeenCalledWith('user_1', 'user_2');
+  });
+
+  it('marks a follow mutation as a friend when the target already follows the actor', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_2',
+        email: 'person@example.com',
+        tag: 'person',
+        name: 'Person',
+        image: null,
+        isSearchable: true,
+        followerVisibility: 'PUBLIC',
+      }),
+      hasFollowRelationship: vi.fn().mockResolvedValue(true),
+    });
+
+    await expect(followUserUseCase('user_1', 'user_2', deps)).resolves.toEqual({
+      ok: true,
+      data: {
+        following: true,
+        isFriend: true,
+      },
+    });
+    expect(deps.hasFollowRelationship).toHaveBeenCalledWith('user_2', 'user_1');
   });
 
   it('rejects follow attempts when the actor has already blocked the target', async () => {
@@ -275,6 +303,62 @@ describe('profile follow use cases', () => {
     });
 
     const result = await listFollowingProfilesUseCase('user_1', deps);
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        profiles: [
+          {
+            userId: 'user_2',
+            tag: 'alpha',
+            displayName: 'Alpha',
+            imageUrl: null,
+          },
+          {
+            userId: 'user_3',
+            tag: 'bravo',
+            displayName: 'bravo',
+            imageUrl: '/local-profile-images/user_3/avatar.jpg',
+          },
+        ],
+      },
+    });
+  });
+
+  it('lists friends as profiles with mutual follow relationships', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'viewer@example.com',
+        tag: 'viewer',
+        name: 'Viewer',
+        image: null,
+        isSearchable: true,
+        followerVisibility: 'PUBLIC',
+      }),
+      listFriendUsers: vi.fn().mockResolvedValue([
+        {
+          id: 'user_2',
+          email: 'alpha@example.com',
+          tag: 'alpha',
+          name: 'Alpha',
+          image: null,
+          isSearchable: true,
+          followerVisibility: 'PUBLIC',
+        },
+        {
+          id: 'user_3',
+          email: 'bravo@example.com',
+          tag: 'bravo',
+          name: null,
+          image: 'local-profile-images/user_3/avatar.jpg',
+          isSearchable: true,
+          followerVisibility: 'MEMBERS',
+        },
+      ]),
+    });
+
+    const result = await listFriendProfilesUseCase('user_1', deps);
 
     expect(result).toEqual({
       ok: true,

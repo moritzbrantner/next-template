@@ -15,6 +15,11 @@ export const peoplePage = {
     description: 'Du folgst aktuell {count} Personen.',
     empty: 'Du folgst noch niemandem.',
   },
+  friends: {
+    title: 'Freunde',
+    description: 'Du hast {count} gegenseitige Follow-Verbindungen.',
+    empty: 'Du hast noch keine Freunde. Folge jemandem, der dir auch folgt.',
+  },
   actions: {
     follow: 'Folgen',
     unfollow: 'Nicht mehr folgen',

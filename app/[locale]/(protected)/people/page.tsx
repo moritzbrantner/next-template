@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 
 import { PeopleDirectory } from '@/components/people-directory';
 import { createTranslator } from '@/src/i18n/messages';
-import { listFollowingProfilesUseCase } from '@/src/domain/profile/use-cases';
+import { listFriendProfilesUseCase, listFollowingProfilesUseCase } from '@/src/domain/profile/use-cases';
 import { notFoundUnlessFeatureEnabledForUser, requireAuth, resolveLocale } from '@/src/server/page-guards';
 
 export default async function PeoplePage({
@@ -15,9 +15,12 @@ export default async function PeoplePage({
   const session = await requireAuth(locale);
   await notFoundUnlessFeatureEnabledForUser('people.directory', session.user);
   const t = createTranslator(locale, 'PeoplePage');
-  const followingResult = await listFollowingProfilesUseCase(session.user.id);
+  const [followingResult, friendsResult] = await Promise.all([
+    listFollowingProfilesUseCase(session.user.id),
+    listFriendProfilesUseCase(session.user.id),
+  ]);
 
-  if (!followingResult.ok) {
+  if (!followingResult.ok || !friendsResult.ok) {
     notFound();
   }
 
@@ -28,7 +31,7 @@ export default async function PeoplePage({
         <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">{t('description')}</p>
       </header>
 
-      <PeopleDirectory initialFollowing={followingResult.data.profiles} />
+      <PeopleDirectory initialFollowing={followingResult.data.profiles} initialFriends={friendsResult.data.profiles} />
     </section>
   );
 }
