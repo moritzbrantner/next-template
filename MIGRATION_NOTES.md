@@ -14,7 +14,7 @@ The repository now treats Next.js App Router as the only canonical runtime and `
 
 - `AppManifest` remains the phase-1 app-pack contract
 - `app.manifest.ts` is the standalone repo metadata contract
-- `@moritzbrantner/ui` and `@moritzbrantner/storytelling` now resolve from `platform-packages`
+- `@moritzbrantner/ui` and `@moritzbrantner/storytelling` now resolve from GitHub Packages
 - `packages/app-pack` and `packages/app-pack-react` remain the local extension seam
 
 ## Result

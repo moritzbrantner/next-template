@@ -6,26 +6,10 @@ APP_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 COMPOSE_FILE_PATH="${APP_ROOT}/docker-compose.yml"
 MARKER_FILE="${TMPDIR:-/tmp}/next-template-e2e-db-bootstrap.started"
 
-export POSTGRES_PORT="${POSTGRES_PORT:-55433}"
-export DB_BOOTSTRAP_TIMEOUT_SECONDS="${DB_BOOTSTRAP_TIMEOUT_SECONDS:-90}"
-export MAILPIT_BASE_URL="${MAILPIT_BASE_URL:-http://127.0.0.1:8025}"
-export MINIO_API_PORT="${MINIO_API_PORT:-9000}"
-export MINIO_CONSOLE_PORT="${MINIO_CONSOLE_PORT:-9001}"
-export MINIO_ROOT_USER="${MINIO_ROOT_USER:-minioadmin}"
-export MINIO_ROOT_PASSWORD="${MINIO_ROOT_PASSWORD:-minioadmin}"
-export PROFILE_IMAGE_STORAGE_BUCKET="${PROFILE_IMAGE_STORAGE_BUCKET:-profile-images}"
-export PROFILE_IMAGE_STORAGE_REGION="${PROFILE_IMAGE_STORAGE_REGION:-us-east-1}"
-export PROFILE_IMAGE_STORAGE_ENDPOINT="${PROFILE_IMAGE_STORAGE_ENDPOINT:-http://127.0.0.1:${MINIO_API_PORT}}"
-export PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID="${PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID:-$MINIO_ROOT_USER}"
-export PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY="${PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY:-$MINIO_ROOT_PASSWORD}"
-export PROFILE_IMAGE_PUBLIC_BASE_URL="${PROFILE_IMAGE_PUBLIC_BASE_URL:-${PROFILE_IMAGE_STORAGE_ENDPOINT%/}/${PROFILE_IMAGE_STORAGE_BUCKET}}"
-export PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE="${PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE:-true}"
-BUN_BINARY="${BUN_BINARY:-bun}"
+source "${SCRIPT_DIR}/e2e-env.sh"
+load_e2e_env_defaults "$APP_ROOT"
 
-if [[ -z "${DATABASE_URL:-}" ]]; then
-  export DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:${POSTGRES_PORT}/next_template?schema=public"
-  echo "ℹ️ DATABASE_URL was not set; defaulting to ${DATABASE_URL}"
-fi
+BUN_BINARY="${BUN_BINARY:-bun}"
 
 BOOTSTRAP_STARTED=0
 STARTED_SERVICES=()
@@ -86,22 +70,35 @@ can_reach_object_storage() {
   curl --silent --show-error --fail --max-time 5 "${PROFILE_IMAGE_STORAGE_ENDPOINT%/}/minio/health/live" >/dev/null 2>&1
 }
 
+force_managed_services() {
+  [[ "${E2E_REUSE_SERVICES:-false}" != "true" ]] \
+    && { [[ "${CI:-false}" == "true" ]] || [[ "${E2E_FORCE_MANAGED_SERVICES:-false}" == "true" ]]; }
+}
+
+cleanup_services() {
+  if docker_available && docker_compose_available; then
+    (
+      cd "$APP_ROOT"
+      docker_compose stop "${STARTED_SERVICES[@]}"
+      docker_compose rm -f "${STARTED_SERVICES[@]}"
+    )
+    echo "✅ Compose cleanup complete."
+  else
+    echo "⚠️ Docker is not available for cleanup. Remove the services manually if still running."
+  fi
+}
+
 teardown() {
   if [[ -f "$MARKER_FILE" ]]; then
     mapfile -t STARTED_SERVICES <"$MARKER_FILE"
 
     echo "ℹ️ Cleaning up compose services started by bootstrap script: ${STARTED_SERVICES[*]}"
-    if docker_available && docker_compose_available; then
-      (
-        cd "$APP_ROOT"
-        docker_compose stop "${STARTED_SERVICES[@]}"
-        docker_compose rm -f "${STARTED_SERVICES[@]}"
-      )
-      echo "✅ Compose cleanup complete."
-    else
-      echo "⚠️ Marker file exists, but Docker is not available for cleanup. Remove the services manually if still running."
-    fi
+    cleanup_services
     rm -f "$MARKER_FILE"
+  elif force_managed_services; then
+    STARTED_SERVICES=("postgres" "mailpit" "minio")
+    echo "ℹ️ No marker file found; cleaning compose-managed e2e services: ${STARTED_SERVICES[*]}"
+    cleanup_services
   else
     echo "ℹ️ No bootstrap-owned compose services detected; skipping cleanup."
   fi
@@ -133,23 +130,29 @@ fi
 
 trap cleanup_on_error EXIT
 
-if can_reach_database; then
-  echo "ℹ️ Reusing already-reachable Postgres instance from DATABASE_URL."
-else
-  STARTED_SERVICES+=("postgres")
-fi
-
-if can_reach_mailpit; then
-  echo "ℹ️ Reusing already-reachable Mailpit instance from ${MAILPIT_BASE_URL}."
-else
-  STARTED_SERVICES+=("mailpit")
-fi
-
-if can_reach_object_storage; then
-  echo "ℹ️ Reusing already-reachable object storage instance from ${PROFILE_IMAGE_STORAGE_ENDPOINT}."
-else
-  STARTED_SERVICES+=("minio")
+if force_managed_services; then
+  echo "ℹ️ Using compose-managed e2e services."
+  STARTED_SERVICES+=("postgres" "mailpit" "minio")
   OBJECT_STORAGE_MANAGED=1
+else
+  if can_reach_database; then
+    echo "ℹ️ Reusing already-reachable Postgres instance from DATABASE_URL."
+  else
+    STARTED_SERVICES+=("postgres")
+  fi
+
+  if can_reach_mailpit; then
+    echo "ℹ️ Reusing already-reachable Mailpit instance from ${MAILPIT_BASE_URL}."
+  else
+    STARTED_SERVICES+=("mailpit")
+  fi
+
+  if can_reach_object_storage; then
+    echo "ℹ️ Reusing already-reachable object storage instance from ${PROFILE_IMAGE_STORAGE_ENDPOINT}."
+  else
+    STARTED_SERVICES+=("minio")
+    OBJECT_STORAGE_MANAGED=1
+  fi
 fi
 
 if (( ${#STARTED_SERVICES[@]} > 0 )); then

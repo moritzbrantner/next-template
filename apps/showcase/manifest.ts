@@ -29,7 +29,7 @@ const enabledFeatures = {
   'showcase.story': true,
   'showcase.communication': true,
   'showcase.uploads': true,
-  'showcase.remocn': true,
+  'showcase.remocn': !isGithubPagesBuild,
   'showcase.employeeTable': true,
   'showcase.unlighthouse': true,
 } as const;

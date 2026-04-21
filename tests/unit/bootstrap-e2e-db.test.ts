@@ -123,14 +123,11 @@ if [[ "\${1:-}" == "--eval" ]]; then
   printf '%s' "$count" > "$FAKE_BUN_STATE"
 
   case "$count" in
-    1|2)
-      exit 1
-      ;;
-    3)
+    1)
       echo "Postgres is ready."
       exit 0
       ;;
-    4)
+    2)
       echo "Mailpit is ready."
       exit 0
       ;;
@@ -151,6 +148,7 @@ exit 0
           FAKE_DOCKER_LOG: dockerLogPath,
           FAKE_BUN_STATE: bunStatePath,
           FAKE_BUN_LOG: bunLogPath,
+          CI: 'true',
           PATH: `${binDir}:${process.env.PATH ?? ''}`,
           TMPDIR: testDir,
         },

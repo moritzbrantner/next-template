@@ -84,7 +84,7 @@ bun run packages:test
 bun run packages:build
 ```
 
-These package commands only target the local app-pack packages. `@moritzbrantner/ui` and `@moritzbrantner/storytelling` now resolve from `platform-packages`.
+These package commands only target the local app-pack packages. `@moritzbrantner/ui` and `@moritzbrantner/storytelling` resolve from GitHub Packages through the committed `.npmrc`.
 
 ## GitHub Pages build with Unlighthouse
 

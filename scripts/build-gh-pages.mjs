@@ -14,6 +14,7 @@ const previewCheckUrl = `${previewOrigin}${githubPagesBasePath}/en/`;
 const excludedPaths = [
   'app/api',
   'app/[locale]/(admin)',
+  'app/[locale]/(guest)',
   'app/[locale]/(protected)',
   'app/[locale]/(public)/profile',
 ];
@@ -26,8 +27,6 @@ const scannedRoutes = [
   '/de/blog',
   '/en/changelog',
   '/de/changelog',
-  '/en/remocn',
-  '/de/remocn',
   '/en/report-problem',
   '/de/report-problem',
   '/en/table',
@@ -219,7 +218,7 @@ async function waitForStaticExport(url, timeoutMs = 60_000) {
 
 function runNextBuild() {
   return new Promise((resolve, reject) => {
-    const child = spawn('bun', ['run', 'build'], {
+    const child = spawn('bun', ['run', 'build:app'], {
       cwd: repoRoot,
       stdio: 'inherit',
       env: {
@@ -234,7 +233,7 @@ function runNextBuild() {
         return;
       }
 
-      reject(new Error(`gh-pages build failed with code ${code ?? 'null'} and signal ${signal ?? 'null'}`));
+      reject(new Error(`gh-pages app build failed with code ${code ?? 'null'} and signal ${signal ?? 'null'}`));
     });
 
     child.on('error', reject);

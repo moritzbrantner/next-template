@@ -40,17 +40,17 @@ Keep `src/` as the sole canonical application namespace for the root app and kee
 - Trade-offs:
   - The manifest shape stays conservative in phase 1 instead of being redesigned immediately
 
-## DEC-0003: Local app-pack packages stay in-repo while shared runtime packages move to platform-packages
+## DEC-0003: Local app-pack packages stay in-repo while shared runtime packages move to GitHub Packages
 - **Date:** 2026-04-18
 - **Status:** accepted
 
 ### Context
 
-The repository needs two different contracts: a standalone repo/app manifest for cross-repo tooling, and an internal `AppManifest` seam for app-pack behavior. It also needs to stop treating `ui` and `storytelling` as local runtime workspaces now that `platform-packages` is the shared-package source of truth.
+The repository needs two different contracts: a standalone repo/app manifest for cross-repo tooling, and an internal `AppManifest` seam for app-pack behavior. It also needs to stop treating `ui` and `storytelling` as local runtime workspaces now that those packages are published shared runtime dependencies.
 
 ### Decision
 
-Keep `packages/app-pack` and `packages/app-pack-react` local, add a root `app.manifest.ts` for standalone repo metadata, and consume `@moritzbrantner/ui` plus `@moritzbrantner/storytelling` from `platform-packages`.
+Keep `packages/app-pack` and `packages/app-pack-react` local, add a root `app.manifest.ts` for standalone repo metadata, and consume `@moritzbrantner/ui` plus `@moritzbrantner/storytelling` from GitHub Packages.
 
 ### Consequences
 

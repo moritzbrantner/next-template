@@ -44,7 +44,7 @@ src/
 - Database access lives in `src/db/**`.
 - Cross-cutting HTTP protections live in `src/api/**`.
 - Local workspace package public APIs are `@moritzbrantner/app-pack` and `@moritzbrantner/app-pack-react`.
-- Shared runtime package public APIs come from `platform-packages`, starting with `@moritzbrantner/ui`, `@moritzbrantner/ui/styles.css`, `@moritzbrantner/storytelling`, `@moritzbrantner/storytelling/remotion`, and `@moritzbrantner/storytelling/three`.
+- Shared runtime package public APIs come from GitHub Packages, starting with `@moritzbrantner/ui`, `@moritzbrantner/ui/styles.css`, `@moritzbrantner/storytelling`, `@moritzbrantner/storytelling/remotion`, and `@moritzbrantner/storytelling/three`.
 
 ## Import rules
 
@@ -60,4 +60,4 @@ src/
 - Keep `app.manifest.ts` as the standalone repo/app metadata contract.
 - Treat `AppManifest` as the public app-pack extension seam in phase 1.
 - Keep `packages/app-pack` and `packages/app-pack-react` local until cross-repo reuse is proven.
-- Consume long-lived shared runtime code from `platform-packages` instead of keeping duplicate local workspace packages.
+- Consume long-lived shared runtime code from published GitHub Packages instead of keeping duplicate local workspace packages.

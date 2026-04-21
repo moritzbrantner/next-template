@@ -28,29 +28,25 @@ describe('scaffold-v2 contract', () => {
     expect(showcaseManifest.publicNavigation.length).toBeGreaterThan(0);
   });
 
-  it('uses platform-packages for shared runtime dependencies and keeps only the app-pack seam local', () => {
+  it('uses GitHub Packages for shared runtime dependencies and keeps only the app-pack seam local', () => {
     const packageJson = JSON.parse(
       readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
     ) as {
       workspaces: string[];
       dependencies: Record<string, string>;
+      overrides?: Record<string, string>;
     };
+    const npmrc = readFileSync(path.join(process.cwd(), '.npmrc'), 'utf8');
 
     expect(packageJson.workspaces).toEqual([
       'packages/app-pack',
       'packages/app-pack-react',
     ]);
-    expect(packageJson.dependencies['@moritzbrantner/ui']).toBe(
-      'file:../platform-packages/packages/ui',
-    );
-    expect(packageJson.dependencies['@moritzbrantner/storytelling']).toBe(
-      'file:../platform-packages/packages/storytelling',
-    );
-    expect(packageJson).toMatchObject({
-      overrides: {
-        '@moritzbrantner/ui': 'file:../platform-packages/packages/ui',
-      },
-    });
+    expect(packageJson.dependencies['@moritzbrantner/ui']).toBe('^0.3.0');
+    expect(packageJson.dependencies['@moritzbrantner/storytelling']).toBe('^0.2.0');
+    expect(packageJson.overrides?.['@moritzbrantner/ui']).toBeUndefined();
+    expect(npmrc).toContain('@moritzbrantner:registry=https://npm.pkg.github.com');
+    expect(npmrc).toContain('//npm.pkg.github.com/:_authToken=${GH_PACKAGES_TOKEN}');
   });
 
   it('removes subtree-sync guidance and workflow hooks from the public contract', () => {

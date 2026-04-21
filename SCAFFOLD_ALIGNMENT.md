@@ -17,9 +17,9 @@ Local:
 
 Shared:
 - scaffold contract from `monorepo`
-- pinned reusable workflow references
+- local GitHub Actions workflow conventions
 - structural migrations from `@moritzbrantner/platform-upgrader`
-- released packages from `platform-packages`
+- released packages from GitHub Packages
 
 ## Update path
 
@@ -32,7 +32,7 @@ Shared:
 
 - root `app.manifest.ts`
 - `.platform-upgrader.json`
-- pinned reusable workflow refs
+- package registry auth for shared `@moritzbrantner/*` packages
 - standalone repo semantics (`entryWorkspace: '.'`)
 - shared package contract for `@moritzbrantner/ui` and `@moritzbrantner/storytelling`
 
@@ -41,4 +41,3 @@ Shared:
 - `.platform-upgrader.json`
 - `app.manifest.ts`
 - `docs/updating-from-upstream.md`
-

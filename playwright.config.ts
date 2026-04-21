@@ -4,6 +4,11 @@ import { createE2EEnvironment, getE2EBaseURL } from '@/tests/e2e/environment';
 const baseURL = getE2EBaseURL();
 const e2eEnvironment = createE2EEnvironment(baseURL);
 const port = Number(new URL(baseURL).port);
+const workers = process.env.PLAYWRIGHT_WORKERS
+  ? Number(process.env.PLAYWRIGHT_WORKERS)
+  : process.env.CI
+    ? 1
+    : undefined;
 
 Object.assign(process.env, e2eEnvironment);
 
@@ -13,6 +18,7 @@ export default defineConfig({
   globalTeardown: './tests/e2e/global-teardown.cts',
   testDir: 'tests/e2e',
   timeout: 120_000,
+  workers,
   use: {
     baseURL,
     channel: 'chrome',

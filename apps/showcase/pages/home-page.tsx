@@ -1,9 +1,13 @@
 import type { AppLocale } from '@moritzbrantner/app-pack';
 
-import { buttonVariants } from '@/components/ui/button';
 import type { AppLocale as RoutingLocale } from '@/i18n/routing';
 import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
+
+const linkButtonBaseClassName =
+  'inline-flex h-10 items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 disabled:pointer-events-none disabled:opacity-50 dark:focus-visible:ring-zinc-50';
+const primaryLinkClassName = `${linkButtonBaseClassName} bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200`;
+const ghostLinkClassName = `${linkButtonBaseClassName} hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50`;
 
 export default async function HomePage({ locale }: { locale: AppLocale }) {
   const t = createTranslator(locale, 'HomePage');
@@ -23,16 +27,16 @@ export default async function HomePage({ locale }: { locale: AppLocale }) {
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <LocalizedLink href="/examples/forms" locale={routingLocale} prefetch={false} className={buttonVariants({ variant: 'default' })}>
+          <LocalizedLink href="/examples/forms" locale={routingLocale} prefetch={false} className={primaryLinkClassName}>
             {t('visitForm')}
           </LocalizedLink>
-          <LocalizedLink href="/examples/story" locale={routingLocale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
+          <LocalizedLink href="/examples/story" locale={routingLocale} prefetch={false} className={ghostLinkClassName}>
             {t('visitStory')}
           </LocalizedLink>
-          <LocalizedLink href="/examples/communication" locale={routingLocale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
+          <LocalizedLink href="/examples/communication" locale={routingLocale} prefetch={false} className={ghostLinkClassName}>
             {t('visitCommunication')}
           </LocalizedLink>
-          <LocalizedLink href="/examples/uploads" locale={routingLocale} prefetch={false} className={buttonVariants({ variant: 'ghost' })}>
+          <LocalizedLink href="/examples/uploads" locale={routingLocale} prefetch={false} className={ghostLinkClassName}>
             {t('visitUploads')}
           </LocalizedLink>
         </div>

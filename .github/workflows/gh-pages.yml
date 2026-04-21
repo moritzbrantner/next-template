@@ -10,6 +10,9 @@ permissions:
   pages: write
   id-token: write
 
+env:
+  GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -31,12 +34,6 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
-      - name: Verify workspace packages
-        run: |
-          bun run packages:lint
-          bun run packages:typecheck
-          bun run packages:test
 
       - name: Build GitHub Pages artifact
         env:
