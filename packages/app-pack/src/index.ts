@@ -26,7 +26,6 @@ export const foundationFeatureKeys = [
   'showcase.forms',
   'showcase.story',
   'showcase.communication',
-  'showcase.uploads',
   'showcase.remocn',
   'showcase.employeeTable',
   'showcase.unlighthouse',

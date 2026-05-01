@@ -29,7 +29,6 @@ const enabledFeatures = {
   'showcase.forms': true,
   'showcase.story': true,
   'showcase.communication': true,
-  'showcase.uploads': true,
   'showcase.remocn': !isGithubPagesBuild,
   'showcase.employeeTable': true,
   'showcase.unlighthouse': true,
@@ -178,27 +177,6 @@ const showcaseManifest: AppManifest = {
         return createElement(TablePage, { locale });
       },
     },
-    {
-      id: 'uploads',
-      slug: 'examples/uploads',
-      kind: 'component',
-      namespace: 'UploadsPage',
-      featureKey: 'showcase.uploads',
-      aliases: ['uploads'],
-      render: async ({ locale, matchedSlug }) => {
-        if (matchedSlug === 'uploads') {
-          if (isGithubPagesBuild) {
-            return createElement(StaticRedirectPage, { href: '../examples/uploads/' });
-          }
-
-          return { kind: 'redirect', href: withLocalePath('/examples/uploads', locale) };
-        }
-
-        const pageModule = await import('./pages/examples/uploads-page');
-        const UploadsPage = pageModule.default;
-        return createElement(UploadsPage, { locale });
-      },
-    },
   ],
   publicNavigation: [
     { pageId: 'home', category: 'discover', hotkey: ['alt', 'h'], order: 10 },
@@ -209,7 +187,6 @@ const showcaseManifest: AppManifest = {
     { pageId: 'chat', category: 'workspace', hotkey: ['alt', 'x'], prefetch: false, order: 60 },
     { pageId: 'forms', category: 'workspace', hotkey: ['alt', 'f'], prefetch: false, order: 70 },
     { pageId: 'table', category: 'workspace', hotkey: ['alt', 't'], order: 80 },
-    { pageId: 'uploads', category: 'workspace', hotkey: ['alt', 'u'], prefetch: false, order: 90 },
   ],
   contentRoots: {
     pages: ['apps/showcase/content/pages'],

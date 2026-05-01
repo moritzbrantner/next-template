@@ -1,5 +1,5 @@
 import { defineConfig } from '@playwright/test';
-import { createE2EEnvironment, getE2EBaseURL } from '@/tests/e2e/environment';
+import { createE2EEnvironment, getE2EBaseURL } from '@/scripts/e2e/environment';
 
 const baseURL = getE2EBaseURL();
 const e2eEnvironment = createE2EEnvironment(baseURL);
@@ -14,9 +14,10 @@ Object.assign(process.env, e2eEnvironment);
 
 export default defineConfig({
   tsconfig: './playwright.tsconfig.json',
-  globalSetup: './tests/e2e/global-setup.cts',
-  globalTeardown: './tests/e2e/global-teardown.cts',
-  testDir: 'tests/e2e',
+  globalSetup: './scripts/e2e/global-setup.cts',
+  globalTeardown: './scripts/e2e/global-teardown.cts',
+  testDir: '.',
+  testMatch: '**/*.e2e.spec.ts',
   timeout: 120_000,
   workers,
   use: {

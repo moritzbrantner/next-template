@@ -23,7 +23,6 @@ export const foundationFeatureModules: readonly FoundationFeatureModule[] = [
   { featureKey: 'showcase.forms', requiredMessageNamespaces: ['FormsPage'], requiredContentCollections: [] },
   { featureKey: 'showcase.story', requiredMessageNamespaces: ['StoryPage'], requiredContentCollections: [] },
   { featureKey: 'showcase.communication', requiredMessageNamespaces: ['CommunicationPage'], requiredContentCollections: [] },
-  { featureKey: 'showcase.uploads', requiredMessageNamespaces: ['UploadsPage'], requiredContentCollections: [] },
   { featureKey: 'showcase.remocn', requiredMessageNamespaces: ['RemocnPage'], requiredContentCollections: [] },
   { featureKey: 'showcase.employeeTable', requiredMessageNamespaces: [], requiredContentCollections: [] },
   { featureKey: 'showcase.unlighthouse', requiredMessageNamespaces: ['UnlighthousePage'], requiredContentCollections: [] },

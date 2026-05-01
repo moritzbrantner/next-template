@@ -12,7 +12,7 @@ This audit classifies the current uncommitted work before contract alignment. No
 ## Repo-local implementation detail to keep
 
 - Showcase content refinements in `apps/showcase/pages/*` that demonstrate the app-pack seam without changing the public scaffold contract.
-- Repo-local env wiring in `.env.example`, `.env.e2e.example`, and `tests/e2e/environment.ts` as long as it continues to support the reusable auth baseline.
+- Repo-local env wiring in `.env.example`, `.env.e2e.example`, and `scripts/e2e/environment.ts` as long as it continues to support the reusable auth baseline.
 
 ## Stale contract, docs, or tests to replace
 

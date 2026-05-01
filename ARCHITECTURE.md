@@ -48,11 +48,18 @@ src/
 
 ## Import rules
 
-- Use canonical aliases only: `@/src/*`, `@/components/*`, `@/lib/*`, `@/i18n/*`, `@/messages/*`, `@/emails/*`, `@/tests/*`.
+- Use canonical aliases only: `@/src/*`, `@/components/*`, `@/lib/*`, `@/i18n/*`, `@/messages/*`, `@/emails/*`, `@/scripts/*`.
 - Do not introduce `features/`, `stores/`, or `lib/services/` namespaces.
 - `src/domain/**` must not import app or component layer modules directly.
 - `src/db/**` stays infrastructure-only.
 - Foundation-owned code must not import `apps/**` directly except through the manifest loader seam.
+
+## Test and Story Placement
+
+- Unit tests live beside the source they exercise as `*.unit.test.ts` or `*.unit.test.tsx`.
+- Integration tests live beside the source or route boundary they exercise as `*.integration.test.ts` or `*.integration.test.tsx`.
+- E2E tests live beside the page, component, or workflow entrypoint they exercise as `*.e2e.spec.ts`.
+- Storybook stories live beside the component they document as `*.stories.tsx` or `*.stories.mdx`.
 
 ## Platform direction
 

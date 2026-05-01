@@ -1,8 +1,12 @@
 import { notFound } from 'next/navigation';
 
 import { PeopleDirectory } from '@/components/people-directory';
+
+import {
+  listFriendProfilesUseCase,
+  listFollowingProfilesUseCase,
+} from '@/src/domain/profile/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { listFriendProfilesUseCase, listFollowingProfilesUseCase } from '@/src/domain/profile/use-cases';
 import { notFoundUnlessFeatureEnabledForUser, requireAuth, resolveLocale } from '@/src/server/page-guards';
 
 export default async function PeoplePage({
@@ -25,13 +29,16 @@ export default async function PeoplePage({
   }
 
   return (
-    <section className="mx-auto max-w-5xl space-y-6">
-      <header className="space-y-2">
+    <section className="mx-auto max-w-6xl space-y-6">
+      <header className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight">{t('title')}</h1>
         <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">{t('description')}</p>
       </header>
 
-      <PeopleDirectory initialFollowing={followingResult.data.profiles} initialFriends={friendsResult.data.profiles} />
+      <PeopleDirectory
+        initialFollowing={followingResult.data.profiles}
+        initialFriends={friendsResult.data.profiles}
+      />
     </section>
   );
 }

@@ -18,7 +18,6 @@
       "@/src/*": ["./src/*"],
       "@/lib/*": ["./lib/*"],
       "@/i18n/*": ["./i18n/*"],
-      "@/tests/*": ["./tests/*"],
       "@/scripts/*": ["./scripts/*"],
       "@/messages/*": ["./messages/*"],
       "@/emails/*": ["./emails/*"],

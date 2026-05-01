@@ -150,12 +150,6 @@ export const foundationFeatureMetadata: Record<FoundationFeatureKey, FoundationF
     category: 'showcase',
     supportsUserOverrides: false,
   },
-  'showcase.uploads': {
-    label: 'Showcase uploads',
-    description: 'Expose the uploads example page.',
-    category: 'showcase',
-    supportsUserOverrides: false,
-  },
   'showcase.remocn': {
     label: 'Showcase Remocn',
     description: 'Expose the Remocn showcase page.',

@@ -1,9 +1,8 @@
 import { ReportProblemForm } from '@/components/report-problem-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { createTranslator } from '@/src/i18n/messages';
 import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
-
-const checklistKeys = ['summary', 'context', 'contact'] as const;
 
 export default async function ReportProblemPage({
   params,
@@ -16,53 +15,61 @@ export default async function ReportProblemPage({
   const t = createTranslator(locale, 'ReportProblemPage');
 
   return (
-    <section className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.85fr)]">
-      <Card className="rounded-[2rem] border-zinc-200 bg-[radial-gradient(circle_at_top_left,#dbeafe,transparent_32%),radial-gradient(circle_at_bottom_right,#dcfce7,transparent_28%),linear-gradient(150deg,#ffffff,#f4f4f5)] shadow-[0_24px_70px_-45px_rgba(15,23,42,0.45)] dark:border-zinc-800 dark:bg-[radial-gradient(circle_at_top_left,#1d4ed8,transparent_28%),radial-gradient(circle_at_bottom_right,#166534,transparent_26%),linear-gradient(150deg,#09090b,#18181b)]">
-        <CardHeader className="space-y-4">
-          <div className="inline-flex w-fit rounded-full border border-zinc-300/80 bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-zinc-600 dark:border-zinc-700 dark:bg-zinc-950/60 dark:text-zinc-300">
-            {t('eyebrow')}
-          </div>
-          <div className="space-y-3">
-            <CardTitle className="text-3xl leading-tight">{t('title')}</CardTitle>
-            <CardDescription className="max-w-2xl text-base leading-7 text-zinc-700 dark:text-zinc-300">
-              {t('description')}
-            </CardDescription>
-          </div>
+    <section className="mx-auto max-w-5xl space-y-6">
+      <header className="space-y-3">
+        <p className="text-sm font-medium uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+          {t('eyebrow')}
+        </p>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight">{t('title')}</h1>
+          <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">{t('description')}</p>
+        </div>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('checklistTitle')}</CardTitle>
+            <CardDescription>{t('checklistDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ChecklistItem title={t('checklist.summary.title')} description={t('checklist.summary.description')} />
+            <ChecklistItem title={t('checklist.context.title')} description={t('checklist.context.description')} />
+            <ChecklistItem title={t('checklist.contact.title')} description={t('checklist.contact.description')} />
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('responseTitle')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-zinc-600 dark:text-zinc-300">
+              <p>{t('responseBody')}</p>
+              <p>{t('privacyNote')}</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('title')}</CardTitle>
+          <CardDescription>{t('footnote')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ReportProblemForm />
         </CardContent>
       </Card>
-
-      <div className="space-y-6">
-        <Card className="rounded-[1.75rem]">
-          <CardHeader>
-            <CardTitle className="text-xl">{t('checklistTitle')}</CardTitle>
-            <CardDescription>{t('checklistDescription')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {checklistKeys.map((key) => (
-              <article
-                key={key}
-                className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-800 dark:bg-zinc-900/70"
-              >
-                <h2 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">{t(`checklist.${key}.title`)}</h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{t(`checklist.${key}.description`)}</p>
-              </article>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[1.75rem]">
-          <CardHeader>
-            <CardTitle className="text-xl">{t('responseTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
-            <p>{t('responseBody')}</p>
-            <p>{t('privacyNote')}</p>
-          </CardContent>
-        </Card>
-      </div>
     </section>
+  );
+}
+
+function ChecklistItem({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="rounded-2xl border p-4 dark:border-zinc-800">
+      <p className="font-medium">{title}</p>
+      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{description}</p>
+    </div>
   );
 }

@@ -5,18 +5,26 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
+      react: path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+      'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime.js'),
     },
   },
   test: {
     environment: 'node',
     include: [
-      'tests/**/*.test.ts',
-      'tests/**/*.test.tsx',
-      'apps/*/tests/**/*.test.ts',
-      'apps/*/tests/**/*.test.tsx',
-      'packages/app-pack/tests/**/*.test.ts',
-      'packages/app-pack-react/tests/**/*.test.tsx',
+      '**/*.unit.test.ts',
+      '**/*.unit.test.tsx',
+      '**/*.integration.test.ts',
+      '**/*.integration.test.tsx',
     ],
-    setupFiles: ['./tests/vitest.setup.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/.next/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/coverage/**',
+    ],
+    setupFiles: ['./src/testing/vitest.setup.ts'],
   },
 });

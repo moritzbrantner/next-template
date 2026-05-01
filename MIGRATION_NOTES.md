@@ -21,4 +21,4 @@ The repository now treats Next.js App Router as the only canonical runtime and `
 
 - Runtime code, docs, tests, and CI now target the same Next.js + Bun platform model.
 - Shared runtime packages no longer live as local workspaces in this repo.
-- Showcase-owned contract tests can live beside the showcase app pack under `apps/showcase/tests`.
+- Showcase-owned contract tests live beside the showcase app pack sources under `apps/showcase/**`.
