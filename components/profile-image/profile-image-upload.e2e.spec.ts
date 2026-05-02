@@ -2,6 +2,7 @@ import { expect, test, type Locator } from '@playwright/test';
 
 import {
   createSolidPngBuffer,
+  expectSignedInProfile,
   gotoAndWaitForHydration,
 } from '@/scripts/e2e/helpers';
 
@@ -41,21 +42,14 @@ test.describe('profile image uploads', () => {
     await page.getByLabel('Display name').fill(displayName);
     await page.getByRole('button', { name: 'Create account' }).click();
 
-    await expect(page).toHaveURL('/en/profile', { timeout: 20_000 });
-    await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible({
-      timeout: 20_000,
-    });
-
-    const publicProfileHref = await page
-      .getByRole('link', { name: 'View public profile' })
-      .getAttribute('href');
-    expect(publicProfileHref).toBeTruthy();
+    await expectSignedInProfile(page, displayName);
     await expect(page.getByLabel('Choose a profile picture')).toHaveCount(0);
 
     await gotoAndWaitForHydration(page, '/en/settings');
     await expect(
       page.getByRole('heading', { name: 'Profile picture' }),
     ).toBeVisible();
+    const publicProfileHref = '/en/profile';
 
     await page.getByLabel('Choose a profile picture').setInputFiles({
       name: 'avatar.png',
@@ -115,7 +109,7 @@ test.describe('profile image uploads', () => {
         src: privateImageState.src,
       });
 
-    await gotoAndWaitForHydration(page, publicProfileHref!);
+    await gotoAndWaitForHydration(page, publicProfileHref);
 
     const publicProfileImage = page
       .getByRole('main')

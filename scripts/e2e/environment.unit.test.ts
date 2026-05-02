@@ -91,4 +91,31 @@ describe('e2e environment', () => {
       'http://127.0.0.1:19000',
     );
   });
+
+  it('prefers e2e storage defaults over project .env placeholders', () => {
+    clearE2EEnvironment();
+    process.env.PROFILE_IMAGE_STORAGE_ENDPOINT =
+      'https://example.r2.cloudflarestorage.com';
+    process.env.PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID = 'replace-me';
+    process.env.PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY = 'replace-me';
+    process.env.PROFILE_IMAGE_PUBLIC_BASE_URL =
+      'https://cdn.example.com/profile-images';
+    process.env.PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE = 'false';
+    process.env.PROFILE_IMAGE_STORAGE_REGION = 'auto';
+
+    const environment = createE2EEnvironment();
+
+    expect(environment.PROFILE_IMAGE_STORAGE_ENDPOINT).toBe(
+      'http://127.0.0.1:9000',
+    );
+    expect(environment.PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID).toBe('minioadmin');
+    expect(environment.PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY).toBe(
+      'minioadmin',
+    );
+    expect(environment.PROFILE_IMAGE_PUBLIC_BASE_URL).toBe(
+      'http://127.0.0.1:9000/profile-images',
+    );
+    expect(environment.PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE).toBe('true');
+    expect(environment.PROFILE_IMAGE_STORAGE_REGION).toBe('us-east-1');
+  });
 });

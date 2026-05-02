@@ -33,7 +33,7 @@
     "test:e2e": "playwright test",
     "test:e2e:setup": "./scripts/ci/bootstrap-e2e-db.sh",
     "test:e2e:teardown": "./scripts/ci/bootstrap-e2e-db.sh --teardown",
-    "test:e2e:auth": "playwright test 'app/[locale]/(guest)/authentication.e2e.spec.ts'",
+    "test:e2e:auth": "playwright test authentication.e2e.spec.ts",
     "db:seed:test-users": "bun ./scripts/seed-test-users.ts",
     "db:seed:test-profile-images": "bun ./scripts/seed-test-profile-images.ts",
     "test:unit": "vitest run .unit.test.",

@@ -93,6 +93,7 @@ export default async function PublicProfilePage({
         initialFollowingCount={followingCount}
         initialFriendCount={friendCount}
         initialIsFollowing={profile.isFollowing}
+        initialIsFriend={profile.isFriend}
         initialIsBlockedByViewer={profile.isBlockedByViewer}
         isOwnProfile={profile.isOwnProfile}
         canManageFollowState={Boolean(viewerUserId) && followEnabled}
@@ -101,6 +102,7 @@ export default async function PublicProfilePage({
         canAddFriends={
           profile.isOwnProfile && Boolean(viewerUserId) && followEnabled
         }
+        canSendMessage={Boolean(viewerUserId) && followEnabled}
         labels={{
           followers: t('view.followers'),
           followingCount: t('view.followingCount'),
@@ -116,6 +118,15 @@ export default async function PublicProfilePage({
           unblocking: t('view.unblocking'),
           blockedDescription: t('view.blockedDescription'),
           error: t('view.error'),
+          sendMessage: t('view.sendMessage'),
+          sendMessageTitle: t('view.sendMessageTitle'),
+          sendMessageDescription: t('view.sendMessageDescription'),
+          sendMessagePlaceholder: t('view.sendMessagePlaceholder'),
+          sendMessageCancel: t('view.sendMessageCancel'),
+          sendMessageSubmit: t('view.sendMessageSubmit'),
+          sendMessageSending: t('view.sendMessageSending'),
+          sendMessageSent: t('view.sendMessageSent'),
+          sendMessageError: t('view.sendMessageError'),
         }}
       />
 

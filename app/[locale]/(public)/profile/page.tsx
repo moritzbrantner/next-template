@@ -49,12 +49,14 @@ export default async function ProfilePage({
         initialFollowingCount={followingCount}
         initialFriendCount={friendCount}
         initialIsFollowing={false}
+        initialIsFriend={false}
         initialIsBlockedByViewer={false}
         isOwnProfile={true}
         canManageFollowState={false}
         canManageBlockState={false}
         canViewFollowersPage={true}
         canAddFriends={followEnabled}
+        canSendMessage={false}
         labels={{
           followers: t('view.followers'),
           followingCount: t('view.followingCount'),
@@ -70,6 +72,15 @@ export default async function ProfilePage({
           unblocking: t('view.unblocking'),
           blockedDescription: t('view.blockedDescription'),
           error: t('view.error'),
+          sendMessage: t('view.sendMessage'),
+          sendMessageTitle: t('view.sendMessageTitle'),
+          sendMessageDescription: t('view.sendMessageDescription'),
+          sendMessagePlaceholder: t('view.sendMessagePlaceholder'),
+          sendMessageCancel: t('view.sendMessageCancel'),
+          sendMessageSubmit: t('view.sendMessageSubmit'),
+          sendMessageSending: t('view.sendMessageSending'),
+          sendMessageSent: t('view.sendMessageSent'),
+          sendMessageError: t('view.sendMessageError'),
         }}
       />
     </section>

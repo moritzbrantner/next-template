@@ -15,7 +15,7 @@ test('the user can open the report problem page and submit a report', async ({
 
   await expect(page).toHaveURL('/en/report-problem');
   await expect(
-    page.getByRole('heading', { name: 'Report a problem' }),
+    page.getByRole('heading', { name: 'Report a problem', level: 1 }),
   ).toBeVisible();
 
   await page.getByLabel('Email address').fill('alex@example.com');

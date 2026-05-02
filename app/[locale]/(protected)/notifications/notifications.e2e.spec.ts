@@ -50,9 +50,7 @@ test.describe('notifications', () => {
     await expect(page.getByText(title)).toBeVisible();
     await expect(page.getByText(body)).toBeVisible();
 
-    await page.getByRole('link', { name: 'View all notifications' }).click();
-    await expect(page).toHaveURL('/en/notifications');
-    await waitForAppHydration(page);
+    await gotoAndWaitForHydration(page, '/en/notifications');
 
     const notificationLink = page
       .locator('a')
@@ -82,10 +80,9 @@ test.describe('notifications', () => {
       .filter({ hasText: title })
       .first();
     await expect(notificationCard).toContainText('Unread');
-    await expect(getNotificationBell(page)).toHaveAttribute(
-      'aria-label',
-      /Open notifications \([1-9]\d* unread\)/,
-    );
+    await expect
+      .poll(() => getUnreadNotificationCount(page))
+      .toBeGreaterThan(0);
 
     await page.getByRole('button', { name: 'Mark all as read' }).click();
 
@@ -93,10 +90,7 @@ test.describe('notifications', () => {
       page.getByRole('button', { name: 'Mark all as read' }),
     ).toBeDisabled();
     await expect(notificationCard).toContainText('Read');
-    await expect(getNotificationBell(page)).toHaveAttribute(
-      'aria-label',
-      'Open notifications (0 unread)',
-    );
+    await expect.poll(() => getUnreadNotificationCount(page)).toBe(0);
   });
 
   test('marks a single notification as read from the notifications page', async ({
@@ -126,7 +120,7 @@ test.describe('notifications', () => {
       .toBe(Math.max(0, unreadBefore - 1));
   });
 
-  test('marks a single notification as read from the notifications component', async ({
+  test('marks notifications as read from the notifications component', async ({
     page,
   }) => {
     const token = createNotificationToken();
@@ -135,24 +129,19 @@ test.describe('notifications', () => {
 
     await deliverNotificationToRecipient(page, { title, body });
 
-    const unreadBefore = await getUnreadNotificationCount(page);
     await openNotificationBell(page);
 
     const notificationCard = page
-      .locator('article')
+      .getByRole('menuitem')
       .filter({ hasText: title })
       .first();
     await expect(notificationCard).toContainText(body);
 
-    await notificationCard
-      .getByRole('button', { name: 'Mark as read' })
-      .click();
+    await page.getByRole('menuitem', { name: 'Mark as read' }).click();
 
-    await expect
-      .poll(() => getUnreadNotificationCount(page))
-      .toBe(Math.max(0, unreadBefore - 1));
+    await expect.poll(() => getUnreadNotificationCount(page)).toBe(0);
     await expect(
-      notificationCard.getByRole('button', { name: 'Mark as read' }),
+      page.getByRole('menuitem', { name: 'Mark as read' }),
     ).toHaveCount(0);
   });
 });
@@ -163,27 +152,27 @@ function createNotificationToken() {
 
 function getNotificationBell(page: Page) {
   return page.getByRole('button', {
-    name: /Open notifications \(\d+ unread\)/,
+    name: /^Notifications(?:, \d+ unread)?$/,
   });
 }
 
 async function getUnreadNotificationCount(page: Page) {
   const label = await getNotificationBell(page).getAttribute('aria-label');
-  const match = label?.match(/\((\d+) unread\)/);
+  const match = label?.match(/Notifications(?:, (\d+) unread)?/);
 
-  if (!match) {
+  if (!match || !label?.startsWith('Notifications')) {
     throw new Error(
       `Unable to parse unread notification count from "${label ?? 'missing'}".`,
     );
   }
 
-  return Number(match[1]);
+  return Number(match[1] ?? 0);
 }
 
 async function openNotificationBell(page: Page) {
   await getNotificationBell(page).click();
   await expect(
-    page.getByRole('link', { name: 'View all notifications' }),
+    page.getByRole('menu', { name: /^Notifications(?:, \d+ unread)?$/ }),
   ).toBeVisible();
 }
 

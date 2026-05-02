@@ -12,6 +12,7 @@ import {
   listProfileFollowersByTagUseCase,
   listFollowingProfilesUseCase,
   searchUsersToFollowUseCase,
+  sendProfileMessageUseCase,
   unblockUserUseCase,
   unfollowUserUseCase,
   updateProfileFollowerVisibilityUseCase,
@@ -46,6 +47,9 @@ function createDeps(
     updateUserSearchVisibility: vi.fn().mockResolvedValue(undefined),
     updateUserFollowerVisibility: vi.fn().mockResolvedValue(undefined),
     updateUserTag: vi.fn().mockResolvedValue(undefined),
+    createProfileMessageNotification: vi
+      .fn()
+      .mockResolvedValue('notification_1'),
     ...overrides,
   };
 }
@@ -79,6 +83,7 @@ describe('profile follow use cases', () => {
         followerCount: 14,
         isOwnProfile: false,
         isFollowing: true,
+        isFriend: true,
         isBlockedByViewer: false,
       },
     });
@@ -111,6 +116,7 @@ describe('profile follow use cases', () => {
         followerCount: 3,
         isOwnProfile: true,
         isFollowing: false,
+        isFriend: false,
         isBlockedByViewer: false,
       },
     });
@@ -221,6 +227,83 @@ describe('profile follow use cases', () => {
       },
     });
     expect(deps.hasFollowRelationship).toHaveBeenCalledWith('user_2', 'user_1');
+  });
+
+  it('sends profile messages only between friends', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockImplementation((userId: string) =>
+        Promise.resolve(
+          userId === 'user_1'
+            ? {
+                id: 'user_1',
+                email: 'sender@example.com',
+                tag: 'sender',
+                name: 'Sender',
+                image: null,
+                isSearchable: true,
+                followerVisibility: 'PUBLIC',
+              }
+            : {
+                id: 'user_2',
+                email: 'target@example.com',
+                tag: 'target',
+                name: 'Target',
+                image: null,
+                isSearchable: true,
+                followerVisibility: 'PUBLIC',
+              },
+        ),
+      ),
+      hasFollowRelationship: vi.fn().mockResolvedValue(true),
+    });
+
+    await expect(
+      sendProfileMessageUseCase('user_1', 'user_2', '  Hello there  ', deps),
+    ).resolves.toEqual({
+      ok: true,
+      data: {
+        notificationId: 'notification_1',
+      },
+    });
+    expect(deps.createProfileMessageNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        senderUserId: 'user_1',
+        targetUserId: 'user_2',
+        title: 'Sender sent you a message',
+        body: 'Hello there',
+        href: '/profile/@sender',
+      }),
+    );
+  });
+
+  it('rejects profile messages when the users are not friends', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_2',
+        email: 'person@example.com',
+        tag: 'person',
+        name: 'Person',
+        image: null,
+        isSearchable: true,
+        followerVisibility: 'PUBLIC',
+      }),
+      hasFollowRelationship: vi
+        .fn()
+        .mockImplementation((followerId: string, followingId: string) =>
+          Promise.resolve(followerId === 'user_1' && followingId === 'user_2'),
+        ),
+    });
+
+    await expect(
+      sendProfileMessageUseCase('user_1', 'user_2', 'Hello', deps),
+    ).resolves.toEqual({
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'You can only message friends.',
+      },
+    });
+    expect(deps.createProfileMessageNotification).not.toHaveBeenCalled();
   });
 
   it('rejects follow attempts when the actor has already blocked the target', async () => {
@@ -711,6 +794,7 @@ describe('profile follow use cases', () => {
         followerCount: 2,
         isOwnProfile: false,
         isFollowing: false,
+        isFriend: false,
         isBlockedByViewer: false,
       },
     });

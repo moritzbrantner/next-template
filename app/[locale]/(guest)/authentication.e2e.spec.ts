@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 import {
+  expectSignedInProfile,
   extractFirstUrl,
   getSeededUser,
   gotoAndWaitForHydration,
@@ -86,8 +87,7 @@ test.describe('authentication', () => {
       password,
     });
 
-    await expect(page).toHaveURL('/en/profile');
-    await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
+    await expectSignedInProfile(page, 'Playwright User');
 
     const verificationMessage = await waitForMailpitMessage({
       to: email,
@@ -187,7 +187,7 @@ test.describe('authentication', () => {
     page,
   }) => {
     await loginWithCredentials(page, seededUser.email, seededUser.password);
-    await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
+    await expectSignedInProfile(page, seededUser.name);
 
     await logoutFromProfileMenu(page);
     await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible();

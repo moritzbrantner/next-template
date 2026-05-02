@@ -85,6 +85,7 @@ export function AppSettingsPanel() {
         <CardContent className="space-y-5">
           <FieldBlock label={t('dates.formatLabel')}>
             <select
+              aria-label={t('dates.formatLabel')}
               value={settings.dateFormat}
               onChange={(event) =>
                 updateSettings({
@@ -101,6 +102,7 @@ export function AppSettingsPanel() {
 
           <FieldBlock label={t('dates.weekStartsLabel')}>
             <select
+              aria-label={t('dates.weekStartsLabel')}
               value={String(settings.weekStartsOn)}
               onChange={(event) =>
                 updateSettings({
@@ -174,6 +176,7 @@ export function AppSettingsPanel() {
             description={t('notifications.typeDescription')}
           >
             <Input
+              aria-label={t('notifications.typeLabel')}
               value={settings.notifications.type}
               onChange={(event) =>
                 updateSettings((currentSettings) => ({

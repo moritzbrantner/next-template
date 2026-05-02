@@ -42,7 +42,7 @@ describe('scaffold-v2 contract', () => {
       'packages/app-pack',
       'packages/app-pack-react',
     ]);
-    expect(packageJson.dependencies['@moritzbrantner/ui']).toBe('^0.5.1');
+    expect(packageJson.dependencies['@moritzbrantner/ui']).toBe('^0.5.2');
     expect(packageJson.dependencies['@moritzbrantner/storytelling']).toBe(
       '^0.2.0',
     );

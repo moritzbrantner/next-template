@@ -16,6 +16,16 @@ export const profilePage = {
     unblock: 'Unblock',
     blocking: 'Blocking…',
     unblocking: 'Unblocking…',
+    sendMessage: 'Send message',
+    sendMessageTitle: 'Send message',
+    sendMessageDescription: 'Send a message to {name}.',
+    sendMessagePlaceholder: 'Write your message',
+    sendMessageCancel: 'Cancel',
+    sendMessageSubmit: 'Send',
+    sendMessageSending: 'Sending…',
+    sendMessageSent: 'Message sent.',
+    sendMessageError:
+      'Unable to send this message right now. Please try again.',
     blockedDescription:
       'You blocked this user. They can no longer follow you or appear in your directory.',
     editProfile: 'Edit profile',

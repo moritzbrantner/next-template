@@ -23,6 +23,7 @@ const APP_ROOT = path.resolve(
 
 let cachedExampleEnvironment: Record<string, string> | null = null;
 let cachedE2EExampleEnvironment: Record<string, string> | null = null;
+let cachedProjectEnvironment: Record<string, string> | null = null;
 
 function parseEnvFile(contents: string) {
   const environment: Record<string, string> = {};
@@ -82,6 +83,22 @@ function loadExampleEnvironment(filename: '.env.example' | '.env.e2e.example') {
   return environment;
 }
 
+function loadProjectEnvironment() {
+  if (cachedProjectEnvironment) {
+    return cachedProjectEnvironment;
+  }
+
+  const envPath = path.join(APP_ROOT, '.env');
+
+  try {
+    cachedProjectEnvironment = parseEnvFile(readFileSync(envPath, 'utf8'));
+  } catch {
+    cachedProjectEnvironment = {};
+  }
+
+  return cachedProjectEnvironment;
+}
+
 function getEnvironmentValue(
   key: string,
   exampleEnvironment: Record<string, string>,
@@ -96,9 +113,16 @@ function getE2EEnvironmentValue(
   exampleEnvironment: Record<string, string>,
   fallback?: string,
 ) {
+  const processValue = process.env[key];
+  const projectEnvironmentValue = loadProjectEnvironment()[key];
+
+  if (processValue !== undefined && processValue !== projectEnvironmentValue) {
+    return processValue;
+  }
+
   return (
-    process.env[key] ??
     e2eExampleEnvironment[key] ??
+    processValue ??
     exampleEnvironment[key] ??
     fallback
   );

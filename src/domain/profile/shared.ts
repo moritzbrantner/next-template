@@ -2,7 +2,7 @@ import { and, asc, count, eq, ilike, isNull, ne, or } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 import { getDb } from '@/src/db/client';
-import { userBlocks, userFollows, users } from '@/src/db/schema';
+import { notifications, userBlocks, userFollows, users } from '@/src/db/schema';
 import {
   failure,
   success,
@@ -24,6 +24,7 @@ import {
   type FollowerVisibilityRole,
 } from '@/src/profile/follower-visibility';
 import {
+  buildPublicProfilePath,
   normalizeProfileTagInput,
   validateProfileTag,
 } from '@/src/profile/tags';
@@ -46,6 +47,7 @@ export type ProfileViewPayload = {
   followerCount: number;
   isOwnProfile: boolean;
   isFollowing: boolean;
+  isFriend: boolean;
   isBlockedByViewer: boolean;
 };
 
@@ -93,6 +95,10 @@ export type ProfileBlockMutationPayload = {
 export type ProfileFollowMutationPayload = {
   following: boolean;
   isFriend: boolean;
+};
+
+export type ProfileMessagePayload = {
+  notificationId: string;
 };
 
 export type ProfileFollowersPayload = {
@@ -176,6 +182,14 @@ export type ProfileUseCaseDeps = {
     followerVisibility: FollowerVisibilityRole,
   ) => Promise<void>;
   updateUserTag: (userId: string, tag: string) => Promise<void>;
+  createProfileMessageNotification: (input: {
+    senderUserId: string;
+    targetUserId: string;
+    title: string;
+    body: string;
+    href: string;
+    createdAt: Date;
+  }) => Promise<string>;
 };
 
 function getProfileUseCaseDeps(): ProfileUseCaseDeps {
@@ -450,6 +464,23 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .set({ tag, updatedAt: new Date() })
         .where(eq(users.id, userId));
     },
+    createProfileMessageNotification: async (input) => {
+      const notificationId = crypto.randomUUID();
+
+      await getDb().insert(notifications).values({
+        id: notificationId,
+        userId: input.targetUserId,
+        actorId: input.senderUserId,
+        title: input.title,
+        body: input.body,
+        href: input.href,
+        audience: 'user',
+        audienceValue: input.targetUserId,
+        createdAt: input.createdAt,
+      });
+
+      return notificationId;
+    },
   };
 }
 
@@ -505,10 +536,13 @@ async function buildProfileView(
     });
   }
 
-  const [followerCount, isFollowing] = await Promise.all([
+  const [followerCount, isFollowing, isFollowedByProfile] = await Promise.all([
     deps.countFollowers(user.id),
     viewerUserId && !isOwnProfile && !blockState.isBlockedByViewer
       ? deps.hasFollowRelationship(viewerUserId, user.id)
+      : Promise.resolve(false),
+    viewerUserId && !isOwnProfile && !blockState.isBlockedByViewer
+      ? deps.hasFollowRelationship(user.id, viewerUserId)
       : Promise.resolve(false),
   ]);
 
@@ -521,6 +555,7 @@ async function buildProfileView(
     followerCount,
     isOwnProfile,
     isFollowing,
+    isFriend: isFollowing && isFollowedByProfile,
     isBlockedByViewer: blockState.isBlockedByViewer,
   });
 }
@@ -628,6 +663,77 @@ export function unfollowUserUseCase(
   deps?: ProfileUseCaseDeps,
 ) {
   return updateFollowRelationship(actorUserId, targetUserId, false, deps);
+}
+
+export async function sendProfileMessageUseCase(
+  actorUserId: string,
+  targetUserId: string,
+  rawMessage: string,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileMessagePayload, ProfileError>> {
+  const message = rawMessage.trim();
+
+  if (actorUserId === targetUserId) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: 'You cannot message your own profile.',
+    });
+  }
+
+  if (message.length < 1 || message.length > 500) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: 'Messages must be between 1 and 500 characters.',
+    });
+  }
+
+  const [senderUser, targetUser] = await Promise.all([
+    deps.findUserById(actorUserId),
+    deps.findUserById(targetUserId),
+  ]);
+
+  if (!senderUser || !targetUser) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const blockState = await deps.getBlockRelationshipState(
+    actorUserId,
+    targetUserId,
+  );
+
+  if (blockState.isBlockedByViewer || blockState.hasBlockedViewer) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You cannot message this user.',
+    });
+  }
+
+  const [actorFollowsTarget, targetFollowsActor] = await Promise.all([
+    deps.hasFollowRelationship(actorUserId, targetUserId),
+    deps.hasFollowRelationship(targetUserId, actorUserId),
+  ]);
+
+  if (!actorFollowsTarget || !targetFollowsActor) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You can only message friends.',
+    });
+  }
+
+  const senderName = resolveProfileDisplayName(senderUser);
+  const notificationId = await deps.createProfileMessageNotification({
+    senderUserId: actorUserId,
+    targetUserId,
+    title: `${senderName} sent you a message`,
+    body: message,
+    href: buildPublicProfilePath(senderUser.tag),
+    createdAt: new Date(),
+  });
+
+  return success({ notificationId });
 }
 
 async function updateBlockRelationship(

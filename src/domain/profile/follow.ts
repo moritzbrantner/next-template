@@ -3,6 +3,7 @@ export {
   listFriendProfilesUseCase,
   listFollowingProfilesUseCase,
   searchUsersToFollowUseCase,
+  sendProfileMessageUseCase,
   unfollowUserUseCase,
 } from './shared';
 

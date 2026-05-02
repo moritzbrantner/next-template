@@ -47,7 +47,6 @@ test.describe('account deletion', () => {
       );
 
       await gotoAndWaitForHydration(page, '/en/settings');
-      await page.getByRole('tab', { name: 'Account' }).click();
       await expect(
         page.getByRole('heading', { name: 'Delete account' }),
       ).toBeVisible();

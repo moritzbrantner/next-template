@@ -1,13 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import { UserPlus } from 'lucide-react';
-import { useState } from 'react';
+import { MessageSquare, Send, UserPlus, X } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
 
 import { ProfileFriendSearchDialog } from '@/components/profile-friend-search-dialog';
 import type { AppLocale } from '@/i18n/routing';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import {
@@ -26,12 +27,14 @@ type ProfileFollowPanelProps = {
   initialFollowingCount: number;
   initialFriendCount?: number;
   initialIsFollowing: boolean;
+  initialIsFriend: boolean;
   initialIsBlockedByViewer: boolean;
   isOwnProfile: boolean;
   canManageFollowState: boolean;
   canManageBlockState: boolean;
   canViewFollowersPage: boolean;
   canAddFriends: boolean;
+  canSendMessage: boolean;
   labels: {
     followers: string;
     followingCount: string;
@@ -47,6 +50,15 @@ type ProfileFollowPanelProps = {
     unblocking: string;
     blockedDescription: string;
     error: string;
+    sendMessage: string;
+    sendMessageTitle: string;
+    sendMessageDescription: string;
+    sendMessagePlaceholder: string;
+    sendMessageCancel: string;
+    sendMessageSubmit: string;
+    sendMessageSending: string;
+    sendMessageSent: string;
+    sendMessageError: string;
   };
 };
 
@@ -65,22 +77,30 @@ export function ProfileFollowPanel({
   initialFollowingCount,
   initialFriendCount,
   initialIsFollowing,
+  initialIsFriend,
   initialIsBlockedByViewer,
   isOwnProfile,
   canManageFollowState,
   canManageBlockState,
   canViewFollowersPage,
   canAddFriends,
+  canSendMessage,
   labels,
 }: ProfileFollowPanelProps) {
   const [followerCount, setFollowerCount] = useState(initialFollowerCount);
   const [followingCount, setFollowingCount] = useState(initialFollowingCount);
   const [friendCount, setFriendCount] = useState(initialFriendCount);
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+  const [isFriend, setIsFriend] = useState(initialIsFriend);
   const [isBlockedByViewer, setIsBlockedByViewer] = useState(
     initialIsBlockedByViewer,
   );
   const [isFriendSearchOpen, setIsFriendSearchOpen] = useState(false);
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messageFeedback, setMessageFeedback] = useState<string | null>(null);
+  const [messageError, setMessageError] = useState<string | null>(null);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [pendingAction, setPendingAction] = useState<'follow' | 'block' | null>(
     null,
   );
@@ -107,7 +127,9 @@ export function ProfileFollowPanel({
         return;
       }
 
+      const payload = (await response.json()) as FollowMutationResponse;
       setIsFollowing(nextIsFollowing);
+      setIsFriend(nextIsFollowing && Boolean(payload.isFriend));
       setFollowerCount((current) =>
         Math.max(0, current + (nextIsFollowing ? 1 : -1)),
       );
@@ -141,6 +163,7 @@ export function ProfileFollowPanel({
 
       if (nextIsBlocked && isFollowing) {
         setIsFollowing(false);
+        setIsFriend(false);
         setFollowerCount((current) => Math.max(0, current - 1));
       }
 
@@ -149,6 +172,40 @@ export function ProfileFollowPanel({
       setError(labels.error);
     } finally {
       setPendingAction(null);
+    }
+  }
+
+  async function handleMessageSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setIsSendingMessage(true);
+    setMessageFeedback(null);
+    setMessageError(null);
+
+    try {
+      const response = await fetch('/api/profile/message', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ userId: profileUserId, message }),
+      });
+
+      if (!response.ok) {
+        const problem = await readProblemDetail(
+          response,
+          labels.sendMessageError,
+        );
+        setMessageError(problem.message);
+        return;
+      }
+
+      setMessage('');
+      setMessageFeedback(labels.sendMessageSent);
+    } catch {
+      setMessageError(labels.sendMessageError);
+    } finally {
+      setIsSendingMessage(false);
     }
   }
 
@@ -252,6 +309,22 @@ export function ProfileFollowPanel({
 
             {!isOwnProfile && canManageFollowState ? (
               <div className="flex flex-wrap items-center justify-end gap-3">
+                {canSendMessage && isFriend && !isBlockedByViewer ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => {
+                      setIsMessageDialogOpen(true);
+                      setMessageFeedback(null);
+                      setMessageError(null);
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4" aria-hidden="true" />
+                    {labels.sendMessage}
+                  </Button>
+                ) : null}
+
                 {!isBlockedByViewer ? (
                   <Button
                     type="button"
@@ -321,7 +394,129 @@ export function ProfileFollowPanel({
         onOpenChange={setIsFriendSearchOpen}
         onProfileFollowed={handleProfileFollowed}
       />
+
+      <ProfileMessageDialog
+        isOpen={isMessageDialogOpen}
+        displayName={displayName}
+        message={message}
+        isSending={isSendingMessage}
+        feedback={messageFeedback}
+        error={messageError}
+        labels={labels}
+        onMessageChange={setMessage}
+        onSubmit={handleMessageSubmit}
+        onClose={() => {
+          setIsMessageDialogOpen(false);
+          setMessageFeedback(null);
+          setMessageError(null);
+        }}
+      />
     </>
+  );
+}
+
+function ProfileMessageDialog({
+  isOpen,
+  displayName,
+  message,
+  isSending,
+  feedback,
+  error,
+  labels,
+  onMessageChange,
+  onSubmit,
+  onClose,
+}: {
+  isOpen: boolean;
+  displayName: string;
+  message: string;
+  isSending: boolean;
+  feedback: string | null;
+  error: string | null;
+  labels: ProfileFollowPanelProps['labels'];
+  onMessageChange: (message: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  onClose: () => void;
+}) {
+  if (!isOpen) {
+    return null;
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-zinc-950/55 px-4 py-16 backdrop-blur-sm sm:items-center sm:py-8"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profile-message-title"
+        className="w-full max-w-lg overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
+        onSubmit={onSubmit}
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-zinc-200 p-5 dark:border-zinc-800">
+          <div className="space-y-1">
+            <h2
+              id="profile-message-title"
+              className="text-lg font-semibold text-zinc-950 dark:text-zinc-50"
+            >
+              {labels.sendMessageTitle}
+            </h2>
+            <p className="text-sm text-zinc-600 dark:text-zinc-300">
+              {labels.sendMessageDescription.replace('{name}', displayName)}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-9 w-9 px-0"
+            aria-label={labels.sendMessageCancel}
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
+
+        <div className="space-y-4 p-5">
+          <Textarea
+            value={message}
+            onChange={(event) => onMessageChange(event.target.value)}
+            placeholder={labels.sendMessagePlaceholder}
+            aria-label={labels.sendMessagePlaceholder}
+            maxLength={500}
+            autoFocus
+          />
+
+          {feedback ? (
+            <p className="text-sm text-emerald-700 dark:text-emerald-400">
+              {feedback}
+            </p>
+          ) : null}
+          {error ? (
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          ) : null}
+
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <Button type="button" variant="outline" onClick={onClose}>
+              {labels.sendMessageCancel}
+            </Button>
+            <Button
+              type="submit"
+              className="gap-2"
+              disabled={isSending || message.trim().length === 0}
+            >
+              <Send className="h-4 w-4" aria-hidden="true" />
+              {isSending ? labels.sendMessageSending : labels.sendMessageSubmit}
+            </Button>
+          </div>
+        </div>
+      </form>
+    </div>
   );
 }
 

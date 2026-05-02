@@ -6,6 +6,7 @@ export type {
   ProfileFollowerEntry,
   ProfileFollowerVisibilityPayload,
   ProfileFollowersPayload,
+  ProfileMessagePayload,
   ProfileSearchVisibilityPayload,
   ProfileUseCaseDeps,
   ProfileViewPayload,

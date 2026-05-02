@@ -120,12 +120,25 @@ export async function loginWithCredentials(
   await waitForAppHydration(page);
 }
 
+export async function expectSignedInProfile(page: Page, displayName?: string) {
+  await expect(page).toHaveURL('/en/profile', { timeout: 15_000 });
+  await expect(
+    page.getByRole('button', { name: 'Open user menu' }),
+  ).toBeVisible();
+
+  if (displayName) {
+    await expect(
+      page.getByRole('heading', { name: displayName }),
+    ).toBeVisible();
+  }
+}
+
 export async function logoutFromProfileMenu(page: Page) {
   await page.getByRole('button', { name: 'Open user menu' }).click();
   const profileMenu = page.getByRole('menu');
   await expect(profileMenu).toBeVisible();
 
-  const logoutButton = profileMenu.getByRole('button', { name: 'Log out' });
+  const logoutButton = profileMenu.getByRole('menuitem', { name: 'Log out' });
   await expect(logoutButton).toBeVisible();
 
   const logoutResponsePromise = page.waitForResponse(

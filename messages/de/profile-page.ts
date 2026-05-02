@@ -16,6 +16,16 @@ export const profilePage = {
     unblock: 'Entblockieren',
     blocking: 'Wird blockiert…',
     unblocking: 'Wird entblockiert…',
+    sendMessage: 'Nachricht senden',
+    sendMessageTitle: 'Nachricht senden',
+    sendMessageDescription: 'Sende eine Nachricht an {name}.',
+    sendMessagePlaceholder: 'Schreibe deine Nachricht',
+    sendMessageCancel: 'Abbrechen',
+    sendMessageSubmit: 'Senden',
+    sendMessageSending: 'Wird gesendet…',
+    sendMessageSent: 'Nachricht gesendet.',
+    sendMessageError:
+      'Diese Nachricht konnte gerade nicht gesendet werden. Bitte versuche es erneut.',
     blockedDescription:
       'Du hast dieses Profil blockiert. Diese Person kann dir nicht mehr folgen oder in deiner Suche erscheinen.',
     editProfile: 'Profil bearbeiten',

@@ -17,7 +17,7 @@ const aliceUser = getSeededUser('alice@example.com');
 const hiddenUser = getSeededUser('private@example.com');
 
 test.describe('social interactions', () => {
-  test('loads a logged-in user public profile by tag and exposes the edit action', async ({
+  test('loads a logged-in user public profile by tag and exposes own-profile actions', async ({
     page,
   }) => {
     await loginWithCredentials(page, aliceUser.email, aliceUser.password);
@@ -28,7 +28,7 @@ test.describe('social interactions', () => {
     await expect(page.getByText('@alice', { exact: true })).toBeVisible();
     await expect(page.getByText('/@alice', { exact: true })).toHaveCount(0);
     await expect(
-      page.getByRole('link', { name: 'Edit profile' }),
+      page.getByRole('button', { name: 'Add friend' }),
     ).toBeVisible();
     await expect(page.getByRole('button', { name: 'Follow' })).toHaveCount(0);
 
@@ -74,14 +74,20 @@ test.describe('social interactions', () => {
     await gotoAndWaitForHydration(page, '/en/friends');
 
     await expect(
-      page.getByRole('heading', { name: 'Friends', exact: true }),
+      page.getByRole('heading', {
+        name: 'Friends',
+        exact: true,
+        level: 1,
+      }),
     ).toBeVisible();
     await expect(getFriendsCard(page)).toContainText('Alice Archer');
     await expect(getFriendsCard(page)).toContainText('Bob Baker');
 
     await page.getByRole('button', { name: 'Add friend' }).click();
     const searchDialog = page.getByRole('dialog', { name: 'Add friends' });
-    await searchDialog.getByLabel('Search profiles').fill('Casey');
+    await searchDialog
+      .getByRole('textbox', { name: 'Search by name' })
+      .fill('Casey');
 
     const caseySearchResult = getSearchResult(page, 'Casey Carter');
     await expect(caseySearchResult).toBeVisible();
@@ -185,14 +191,16 @@ test.describe('social interactions', () => {
       .toBeGreaterThan(unreadBefore);
 
     await openNotificationBell(page);
-    await expect(
-      page.getByText('Test User published a new blog post'),
-    ).toBeVisible();
-    await expect(page.getByText(postTitle)).toBeVisible();
+    const notificationMenuItem = page
+      .getByRole('menuitem')
+      .filter({ hasText: postTitle })
+      .first();
+    await expect(notificationMenuItem).toContainText(
+      'Test User published a new blog post',
+    );
+    await expect(notificationMenuItem).toContainText(postTitle);
 
-    await page.getByRole('link', { name: 'View all notifications' }).click();
-    await expect(page).toHaveURL('/en/notifications');
-    await waitForAppHydration(page);
+    await gotoAndWaitForHydration(page, '/en/notifications');
 
     const notificationLink = page
       .locator('a')
@@ -259,26 +267,26 @@ function getFriendsEntry(page: Page, displayName: string): Locator {
 
 function getNotificationBell(page: Page) {
   return page.getByRole('button', {
-    name: /Open notifications \(\d+ unread\)/,
+    name: /^Notifications(?:, \d+ unread)?$/,
   });
 }
 
 async function getUnreadNotificationCount(page: Page) {
   const label = await getNotificationBell(page).getAttribute('aria-label');
-  const match = label?.match(/\((\d+) unread\)/);
+  const match = label?.match(/Notifications(?:, (\d+) unread)?/);
 
-  if (!match) {
+  if (!match || !label?.startsWith('Notifications')) {
     throw new Error(
       `Unable to parse unread notification count from "${label ?? 'missing'}".`,
     );
   }
 
-  return Number(match[1]);
+  return Number(match[1] ?? 0);
 }
 
 async function openNotificationBell(page: Page) {
   await getNotificationBell(page).click();
   await expect(
-    page.getByRole('link', { name: 'View all notifications' }),
+    page.getByRole('menu', { name: /^Notifications(?:, \d+ unread)?$/ }),
   ).toBeVisible();
 }
