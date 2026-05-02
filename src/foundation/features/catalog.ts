@@ -17,7 +17,10 @@ export type FoundationFeatureMetadata = {
   supportsUserOverrides: boolean;
 };
 
-export const foundationFeatureMetadata: Record<FoundationFeatureKey, FoundationFeatureMetadata> = {
+export const foundationFeatureMetadata: Record<
+  FoundationFeatureKey,
+  FoundationFeatureMetadata
+> = {
   'account.register': {
     label: 'Account registration',
     description: 'Allow new users to create accounts.',
@@ -49,14 +52,15 @@ export const foundationFeatureMetadata: Record<FoundationFeatureKey, FoundationF
     supportsUserOverrides: true,
   },
   'people.directory': {
-    label: 'People directory',
-    description: 'Open the authenticated people directory.',
+    label: 'Friends directory',
+    description: 'Open the authenticated friends page with profile search.',
     category: 'profiles',
     supportsUserOverrides: true,
   },
   groups: {
     label: 'Groups',
-    description: 'Let signed-in users create groups, invite members, and manage group roles.',
+    description:
+      'Let signed-in users create groups, invite members, and manage group roles.',
     category: 'collaboration',
     supportsUserOverrides: true,
   },
@@ -170,6 +174,8 @@ export const foundationFeatureMetadata: Record<FoundationFeatureKey, FoundationF
   },
 };
 
-export const userConfigurableFoundationFeatureKeys = Object.entries(foundationFeatureMetadata)
+export const userConfigurableFoundationFeatureKeys = Object.entries(
+  foundationFeatureMetadata,
+)
   .filter(([, metadata]) => metadata.supportsUserOverrides)
   .map(([featureKey]) => featureKey as FoundationFeatureKey);

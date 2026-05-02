@@ -1,6 +1,7 @@
 export const navigationBar = {
   categories: {
     discover: 'Discover',
+    social: 'Social',
     workspace: 'Workspace',
     admin: 'Admin',
   },
@@ -8,7 +9,7 @@ export const navigationBar = {
     blog: 'Blog',
     changelog: 'Changelog',
     reportProblem: 'Report a problem',
-    people: 'People',
+    friends: 'Friends',
     groups: 'Groups',
     notifications: 'Notifications',
     profile: 'Profile',
@@ -38,7 +39,8 @@ export const navigationBar = {
   hotkeys: {
     button: 'Hotkeys',
     title: 'Navigation hotkeys',
-    description: 'Jump between routes with Alt shortcuts without reaching for the menu.',
+    description:
+      'Jump between routes with Alt shortcuts without reaching for the menu.',
     searchPlaceholder: 'Search pages…',
     empty: 'No matching pages.',
     pending: 'Hold Alt while pressing a shortcut key',

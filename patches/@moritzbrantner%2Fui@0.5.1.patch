@@ -1,0 +1,448 @@
+--- a/dist/atlas.d.ts
++++ b/dist/atlas.d.ts
+@@ -13,7 +13,7 @@
+ export { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './components/breadcrumb.js';
+ export { Button, buttonVariants } from './components/button.js';
+ export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from './components/button-group.js';
+-export { Calendar, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarDayButton, CalendarDayComponentProps, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
++export { Calendar, CalendarAppointmentContextMenuContext, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarContextMenuItem, CalendarContextMenuItems, CalendarDayButton, CalendarDayComponentProps, CalendarDayContextMenuContext, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
+ export { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './components/card.js';
+ export { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, useCarousel } from './components/carousel.js';
+ export { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartStyle, ChartTooltip, ChartTooltipContent } from './components/chart.js';
+--- a/dist/bobba.d.ts
++++ b/dist/bobba.d.ts
+@@ -13,7 +13,7 @@
+ export { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './components/breadcrumb.js';
+ export { Button, buttonVariants } from './components/button.js';
+ export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from './components/button-group.js';
+-export { Calendar, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarDayButton, CalendarDayComponentProps, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
++export { Calendar, CalendarAppointmentContextMenuContext, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarContextMenuItem, CalendarContextMenuItems, CalendarDayButton, CalendarDayComponentProps, CalendarDayContextMenuContext, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
+ export { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './components/card.js';
+ export { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, useCarousel } from './components/carousel.js';
+ export { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartStyle, ChartTooltip, ChartTooltipContent } from './components/chart.js';
+--- a/dist/chunk-5TP2CXSJ.js
++++ b/dist/chunk-5TP2CXSJ.js
+@@ -9,6 +9,7 @@
+ // src/components/calendar.tsx
+ import * as React from "react";
+ import { DayPicker, getDefaultClassNames } from "react-day-picker";
++import { ContextMenu as ContextMenuPrimitive } from "radix-ui";
+ import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react";
+ import { jsx, jsxs } from "react/jsx-runtime";
+ function Calendar({
+@@ -24,6 +25,11 @@
+   month,
+   icsData,
+   maxEventsPerDay,
++  onCreateAppointment,
++  onOpenDay,
++  onOpenAppointment,
++  dayContextMenuItems,
++  appointmentContextMenuItems,
+   locale,
+   formatters,
+   components,
+@@ -43,6 +49,11 @@
+         locale,
+         events: dayEvents,
+         maxEventsPerDay: resolvedMaxEventsPerDay,
++        onCreateAppointment,
++        onOpenDay,
++        onOpenAppointment,
++        dayContextMenuItems,
++        appointmentContextMenuItems,
+         ...dayButtonProps
+       }
+     );
+@@ -189,6 +200,11 @@
+   day,
+   events = [],
+   maxEventsPerDay = 2,
++  onCreateAppointment,
++  onOpenDay,
++  onOpenAppointment,
++  dayContextMenuItems,
++  appointmentContextMenuItems,
+   modifiers,
+   locale,
+   ...props
+@@ -200,7 +216,17 @@
+   React.useEffect(() => {
+     if (modifiers.focused) ref.current?.focus();
+   }, [modifiers.focused]);
+-  return /* @__PURE__ */ jsxs(
++  const dayContext = {
++    date: day.date,
++    events
++  };
++  const menuItems = getCalendarDayContextMenuItems({
++    context: dayContext,
++    onCreateAppointment,
++    onOpenDay,
++    dayContextMenuItems
++  });
++  const button = /* @__PURE__ */ jsxs(
+     Button,
+     {
+       ref,
+@@ -222,11 +248,17 @@
+         /* @__PURE__ */ jsx("div", { className: "w-full text-left text-sm leading-none font-medium", children }),
+         visibleEvents.length > 0 ? /* @__PURE__ */ jsxs("div", { className: "flex w-full flex-col items-start gap-1 overflow-hidden", children: [
+           visibleEvents.map((event) => /* @__PURE__ */ jsx(
+-            "span",
++            CalendarAppointmentContextMenu,
+             {
++              event,
++              date: day.date,
++              onOpenAppointment,
++              appointmentContextMenuItems,
++              children: /* @__PURE__ */ jsx("span", {
+               className: "w-full truncate rounded-sm bg-accent/70 px-1.5 py-0.5 text-[0.625rem] leading-tight text-foreground/80",
+               title: getCalendarEventLabel(event, locale),
+               children: getCalendarEventLabel(event, locale)
++              })
+             },
+             getCalendarEventKey(event)
+           )),
+@@ -239,6 +271,7 @@
+       ]
+     }
+   );
++  return /* @__PURE__ */ jsx(CalendarDayContextMenu, { items: menuItems, children: button });
+ }
+ function CalendarCardDayButton({
+   className,
+@@ -246,6 +279,11 @@
+   day,
+   events = [],
+   maxEventsPerDay = 4,
++  onCreateAppointment,
++  onOpenDay,
++  onOpenAppointment,
++  dayContextMenuItems,
++  appointmentContextMenuItems,
+   modifiers,
+   locale,
+   ...props
+@@ -257,7 +295,17 @@
+   React.useEffect(() => {
+     if (modifiers.focused) ref.current?.focus();
+   }, [modifiers.focused]);
+-  return /* @__PURE__ */ jsxs(
++  const dayContext = {
++    date: day.date,
++    events
++  };
++  const menuItems = getCalendarDayContextMenuItems({
++    context: dayContext,
++    onCreateAppointment,
++    onOpenDay,
++    dayContextMenuItems
++  });
++  const button = /* @__PURE__ */ jsxs(
+     Button,
+     {
+       ref,
+@@ -287,18 +335,23 @@
+           visibleEvents.length > 0 ? visibleEvents.map((event) => {
+             const segment = getCalendarEventSegment(event, day.date);
+             const isMultiDaySegment = segment !== "single";
+-            return /* @__PURE__ */ jsxs(
+-              "span",
++            return /* @__PURE__ */ jsx(
++              CalendarAppointmentContextMenu,
+               {
+-                "data-calendar-event-segment": segment,
+-                "data-multi-day-event": isMultiDaySegment || void 0,
+-                className: cn(
+-                  "block min-w-0 rounded-sm border border-border/60 bg-background/70 px-2 py-1.5 text-left",
+-                  isMultiDaySegment && "relative z-20 rounded-none border-primary/35 bg-primary text-primary-foreground shadow-xs",
+-                  getCalendarEventSegmentClassName(segment)
+-                ),
+-                title: getCalendarEventLabel(event, locale),
+-                children: [
++                event,
++                date: day.date,
++                onOpenAppointment,
++                appointmentContextMenuItems,
++                children: /* @__PURE__ */ jsxs("span", {
++                  "data-calendar-event-segment": segment,
++                  "data-multi-day-event": isMultiDaySegment || void 0,
++                  className: cn(
++                    "block min-w-0 rounded-sm border border-border/60 bg-background/70 px-2 py-1.5 text-left",
++                    isMultiDaySegment && "relative z-20 rounded-none border-primary/35 bg-primary text-primary-foreground shadow-xs",
++                    getCalendarEventSegmentClassName(segment)
++                  ),
++                  title: getCalendarEventLabel(event, locale),
++                  children: [
+                   /* @__PURE__ */ jsx("span", { className: "block truncate text-xs leading-tight font-medium", children: event.summary ?? "Untitled event" }),
+                   /* @__PURE__ */ jsx(
+                     "span",
+@@ -310,7 +363,8 @@
+                       children: getCalendarEventMeta(event, locale)
+                     }
+                   )
+-                ]
++                  ]
++                })
+               },
+               getCalendarEventKey(event)
+             );
+@@ -324,6 +378,134 @@
+       ]
+     }
+   );
++  return /* @__PURE__ */ jsx(CalendarDayContextMenu, { items: menuItems, children: button });
++}
++function CalendarDayContextMenu({ items, children }) {
++  if (items.length === 0) {
++    return children;
++  }
++  return /* @__PURE__ */ jsxs(ContextMenuPrimitive.Root, { children: [
++    /* @__PURE__ */ jsx(ContextMenuPrimitive.Trigger, { asChild: true, children }),
++    /* @__PURE__ */ jsx(CalendarContextMenuContent, { children: items.map((item) => /* @__PURE__ */ jsx(CalendarContextMenuItem, { item, context: item.context }, item.id)) })
++  ] });
++}
++function CalendarAppointmentContextMenu({
++  event,
++  date,
++  onOpenAppointment,
++  appointmentContextMenuItems,
++  children
++}) {
++  const context = {
++    event,
++    date
++  };
++  const items = getCalendarAppointmentContextMenuItems({
++    context,
++    onOpenAppointment,
++    appointmentContextMenuItems
++  });
++  if (items.length === 0) {
++    return children;
++  }
++  return /* @__PURE__ */ jsxs(ContextMenuPrimitive.Root, { children: [
++    /* @__PURE__ */ jsx(ContextMenuPrimitive.Trigger, { asChild: true, onContextMenu: (contextMenuEvent) => contextMenuEvent.stopPropagation(), children }),
++    /* @__PURE__ */ jsx(CalendarContextMenuContent, { onContextMenu: (contextMenuEvent) => contextMenuEvent.stopPropagation(), children: items.map((item) => /* @__PURE__ */ jsx(CalendarContextMenuItem, { item, context: item.context }, item.id)) })
++  ] });
++}
++function CalendarContextMenuContent({ children, onContextMenu }) {
++  return /* @__PURE__ */ jsx(ContextMenuPrimitive.Portal, { children: /* @__PURE__ */ jsx(
++    ContextMenuPrimitive.Content,
++    {
++      "data-slot": "context-menu-content",
++      className: "z-50 max-h-(--radix-context-menu-content-available-height) min-w-36 origin-(--radix-context-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
++      onContextMenu,
++      children
++    }
++  ) });
++}
++function CalendarContextMenuItem({ item, context }) {
++  return /* @__PURE__ */ jsx(
++    ContextMenuPrimitive.Item,
++    {
++      "data-slot": "context-menu-item",
++      disabled: item.disabled,
++      className: cn(
++        "group/context-menu-item relative flex cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 focus:*:[svg]:text-accent-foreground",
++        item.className
++      ),
++      onSelect: () => item.onSelect?.(context),
++      children: item.label
++    }
++  );
++}
++function getCalendarDayContextMenuItems({
++  context,
++  onCreateAppointment,
++  onOpenDay,
++  dayContextMenuItems
++}) {
++  return [
++    onCreateAppointment ? {
++      id: "create-appointment",
++      label: "New appointment",
++      context,
++      onSelect: ({ date, events }) => onCreateAppointment(date, events)
++    } : null,
++    onOpenDay ? {
++      id: "open-day",
++      label: "Open day",
++      context,
++      onSelect: ({ date, events }) => onOpenDay(date, events)
++    } : null,
++    ...resolveCalendarContextMenuItems(dayContextMenuItems, context),
++    {
++      id: "copy-date",
++      label: "Copy date",
++      context,
++      onSelect: ({ date }) => copyCalendarDate(date)
++    }
++  ].filter(Boolean);
++}
++function getCalendarAppointmentContextMenuItems({
++  context,
++  onOpenAppointment,
++  appointmentContextMenuItems
++}) {
++  return [
++    {
++      id: "open-appointment",
++      label: "Open appointment",
++      context,
++      disabled: !onOpenAppointment && !context.event.url,
++      onSelect: (itemContext) => openCalendarAppointment(itemContext, onOpenAppointment)
++    },
++    ...resolveCalendarContextMenuItems(appointmentContextMenuItems, context)
++  ];
++}
++function resolveCalendarContextMenuItems(items, context) {
++  if (!items) {
++    return [];
++  }
++  return (typeof items === "function" ? items(context) : items).filter(Boolean).map((item) => ({
++    context,
++    ...item
++  }));
++}
++function openCalendarAppointment(context, onOpenAppointment) {
++  if (onOpenAppointment) {
++    onOpenAppointment(context.event, context.date);
++    return;
++  }
++  if (context.event.url && typeof window !== "undefined") {
++    window.open(context.event.url, "_blank", "noopener,noreferrer");
++  }
++}
++function copyCalendarDate(date) {
++  if (typeof navigator === "undefined" || !navigator.clipboard) {
++    return;
++  }
++  void navigator.clipboard.writeText(getDayKey(date));
+ }
+ function getCalendarEventsFromIcsData(icsData) {
+   if (!icsData || icsData[0].toLowerCase() !== "vcalendar") {
+@@ -350,6 +532,7 @@
+     summary: getCalendarTextProperty(properties, "summary"),
+     description: getCalendarTextProperty(properties, "description"),
+     location: getCalendarTextProperty(properties, "location"),
++    url: getCalendarTextProperty(properties, "url"),
+     start: start.value,
+     end: end?.value,
+     isAllDay: start.isAllDay
+--- a/dist/components/calendar.d.ts
++++ b/dist/components/calendar.d.ts
+@@ -22,18 +22,42 @@
+     summary?: string;
+     description?: string;
+     location?: string;
++    url?: string;
+     start: Date;
+     end?: Date;
+     isAllDay: boolean;
+ };
++type CalendarDayContextMenuContext = {
++    date: Date;
++    events: CalendarEvent[];
++};
++type CalendarAppointmentContextMenuContext = {
++    event: CalendarEvent;
++    date: Date;
++};
++type CalendarContextMenuItem<TContext> = {
++    id: string;
++    label: React.ReactNode;
++    disabled?: boolean;
++    className?: string;
++    onSelect?: (context: TContext) => void;
++};
++type CalendarContextMenuItems<TContext> = CalendarContextMenuItem<TContext>[] | ((context: TContext) => CalendarContextMenuItem<TContext>[]);
++type CalendarContextMenuProps = {
++    onCreateAppointment?: (date: Date, events: CalendarEvent[]) => void;
++    onOpenDay?: (date: Date, events: CalendarEvent[]) => void;
++    onOpenAppointment?: (event: CalendarEvent, date: Date) => void;
++    dayContextMenuItems?: CalendarContextMenuItems<CalendarDayContextMenuContext>;
++    appointmentContextMenuItems?: CalendarContextMenuItems<CalendarAppointmentContextMenuContext>;
++};
+ type CalendarCellComponentProps = React.ComponentProps<typeof DayButton> & {
+     locale?: Partial<Locale>;
+     events?: CalendarEvent[];
+     maxEventsPerDay?: number;
+-};
++} & CalendarContextMenuProps;
+ type CalendarDayComponentProps = CalendarCellComponentProps;
+ type CalendarVariant = "default" | "cards";
+-type CalendarProps = React.ComponentProps<typeof DayPicker> & {
++type CalendarProps = React.ComponentProps<typeof DayPicker> & CalendarContextMenuProps & {
+     buttonVariant?: React.ComponentProps<typeof Button>["variant"];
+     variant?: CalendarVariant;
+     dayComponent?: React.ComponentType<CalendarDayComponentProps>;
+@@ -42,17 +66,17 @@
+     maxEventsPerDay?: number;
+ };
+ type CalendarCardDaysProps = CalendarProps;
+-declare function Calendar({ className, classNames, showOutsideDays, captionLayout, buttonVariant, variant, dayComponent: DayComponent, cellComponent: CellComponent, defaultMonth, month, icsData, maxEventsPerDay, locale, formatters, components, ...props }: CalendarProps): react_jsx_runtime.JSX.Element;
++declare function Calendar({ className, classNames, showOutsideDays, captionLayout, buttonVariant, variant, dayComponent: DayComponent, cellComponent: CellComponent, defaultMonth, month, icsData, maxEventsPerDay, onCreateAppointment, onOpenDay, onOpenAppointment, dayContextMenuItems, appointmentContextMenuItems, locale, formatters, components, ...props }: CalendarProps): react_jsx_runtime.JSX.Element;
+ declare function CalendarCardDays(props: CalendarCardDaysProps): react_jsx_runtime.JSX.Element;
+-declare function CalendarDayButton({ className, children, day, events, maxEventsPerDay, modifiers, locale, ...props }: React.ComponentProps<typeof DayButton> & {
++declare function CalendarDayButton({ className, children, day, events, maxEventsPerDay, onCreateAppointment, onOpenDay, onOpenAppointment, dayContextMenuItems, appointmentContextMenuItems, modifiers, locale, ...props }: React.ComponentProps<typeof DayButton> & {
+     locale?: Partial<Locale>;
+     events?: CalendarEvent[];
+     maxEventsPerDay?: number;
+-}): react_jsx_runtime.JSX.Element;
+-declare function CalendarCardDayButton({ className, children, day, events, maxEventsPerDay, modifiers, locale, ...props }: React.ComponentProps<typeof DayButton> & {
++} & CalendarContextMenuProps): react_jsx_runtime.JSX.Element;
++declare function CalendarCardDayButton({ className, children, day, events, maxEventsPerDay, onCreateAppointment, onOpenDay, onOpenAppointment, dayContextMenuItems, appointmentContextMenuItems, modifiers, locale, ...props }: React.ComponentProps<typeof DayButton> & {
+     locale?: Partial<Locale>;
+     events?: CalendarEvent[];
+     maxEventsPerDay?: number;
+-}): react_jsx_runtime.JSX.Element;
++} & CalendarContextMenuProps): react_jsx_runtime.JSX.Element;
+ 
+-export { Calendar, CalendarCardDayButton, CalendarCardDays, type CalendarCardDaysProps, type CalendarCellComponentProps, CalendarDayButton, type CalendarDayComponentProps, type CalendarEvent, type CalendarIcsComponent, type CalendarIcsData, type CalendarIcsProperty, type CalendarProps, type CalendarVariant };
++export { Calendar, type CalendarAppointmentContextMenuContext, CalendarCardDayButton, CalendarCardDays, type CalendarCardDaysProps, type CalendarCellComponentProps, type CalendarContextMenuItem, type CalendarContextMenuItems, CalendarDayButton, type CalendarDayComponentProps, type CalendarDayContextMenuContext, type CalendarEvent, type CalendarIcsComponent, type CalendarIcsData, type CalendarIcsProperty, type CalendarProps, type CalendarVariant };
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -13,7 +13,7 @@
+ export { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './components/breadcrumb.js';
+ export { Button, buttonVariants } from './components/button.js';
+ export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from './components/button-group.js';
+-export { Calendar, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarDayButton, CalendarDayComponentProps, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
++export { Calendar, CalendarAppointmentContextMenuContext, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarContextMenuItem, CalendarContextMenuItems, CalendarDayButton, CalendarDayComponentProps, CalendarDayContextMenuContext, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
+ export { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './components/card.js';
+ export { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, useCarousel } from './components/carousel.js';
+ export { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartStyle, ChartTooltip, ChartTooltipContent } from './components/chart.js';
+--- a/dist/paper.d.ts
++++ b/dist/paper.d.ts
+@@ -13,7 +13,7 @@
+ export { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './components/breadcrumb.js';
+ export { Button, buttonVariants } from './components/button.js';
+ export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from './components/button-group.js';
+-export { Calendar, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarDayButton, CalendarDayComponentProps, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
++export { Calendar, CalendarAppointmentContextMenuContext, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarContextMenuItem, CalendarContextMenuItems, CalendarDayButton, CalendarDayComponentProps, CalendarDayContextMenuContext, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
+ export { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './components/card.js';
+ export { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, useCarousel } from './components/carousel.js';
+ export { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartStyle, ChartTooltip, ChartTooltipContent } from './components/chart.js';
+--- a/dist/studio.d.ts
++++ b/dist/studio.d.ts
+@@ -13,7 +13,7 @@
+ export { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './components/breadcrumb.js';
+ export { Button, buttonVariants } from './components/button.js';
+ export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from './components/button-group.js';
+-export { Calendar, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarDayButton, CalendarDayComponentProps, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
++export { Calendar, CalendarAppointmentContextMenuContext, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarContextMenuItem, CalendarContextMenuItems, CalendarDayButton, CalendarDayComponentProps, CalendarDayContextMenuContext, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
+ export { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './components/card.js';
+ export { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, useCarousel } from './components/carousel.js';
+ export { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartStyle, ChartTooltip, ChartTooltipContent } from './components/chart.js';
+--- a/dist/zleek.d.ts
++++ b/dist/zleek.d.ts
+@@ -13,7 +13,7 @@
+ export { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from './components/breadcrumb.js';
+ export { Button, buttonVariants } from './components/button.js';
+ export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants } from './components/button-group.js';
+-export { Calendar, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarDayButton, CalendarDayComponentProps, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
++export { Calendar, CalendarAppointmentContextMenuContext, CalendarCardDayButton, CalendarCardDays, CalendarCardDaysProps, CalendarCellComponentProps, CalendarContextMenuItem, CalendarContextMenuItems, CalendarDayButton, CalendarDayComponentProps, CalendarDayContextMenuContext, CalendarEvent, CalendarIcsComponent, CalendarIcsData, CalendarIcsProperty, CalendarProps, CalendarVariant } from './components/calendar.js';
+ export { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './components/card.js';
+ export { Carousel, CarouselApi, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, useCarousel } from './components/carousel.js';
+ export { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartStyle, ChartTooltip, ChartTooltipContent } from './components/chart.js';

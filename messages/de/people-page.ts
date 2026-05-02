@@ -1,14 +1,18 @@
 export const peoplePage = {
-  title: 'Personen',
-  description: 'Sieh, wem du bereits folgst, und finde weitere Profile, denen du folgen kannst.',
+  title: 'Freunde',
+  description:
+    'Verwalte gegenseitige Follow-Verbindungen und füge neue Freunde über die Suche hinzu.',
   search: {
-    title: 'Personen finden',
-    description: 'Suche nach Anzeigename oder E-Mail, um auffindbare Profile zu entdecken.',
-    placeholder: 'Personen suchen',
+    title: 'Freunde hinzufügen',
+    description:
+      'Suche nach Anzeigename oder E-Mail, um auffindbare Profile zu entdecken.',
+    placeholder: 'Profile suchen',
+    close: 'Freundesuche schließen',
     loading: 'Suche läuft…',
-    idle: 'Beginne zu tippen, um nach Personen zum Folgen zu suchen.',
+    idle: 'Beginne zu tippen, um jemanden hinzuzufügen.',
     empty: 'Keine auffindbaren Benutzer passen zu deiner Suche.',
-    error: 'Personen konnten gerade nicht gesucht werden. Bitte versuche es erneut.',
+    error:
+      'Profile konnten gerade nicht gesucht werden. Bitte versuche es erneut.',
   },
   following: {
     title: 'Du folgst',
@@ -18,16 +22,23 @@ export const peoplePage = {
   friends: {
     title: 'Freunde',
     description: 'Du hast {count} gegenseitige Follow-Verbindungen.',
-    empty: 'Du hast noch keine Freunde. Folge jemandem, der dir auch folgt.',
+    empty:
+      'Du hast noch keine Freunde. Füge jemanden hinzu, der dir auch folgt.',
   },
   actions: {
+    addFriend: 'Freund hinzufügen',
     follow: 'Folgen',
     unfollow: 'Nicht mehr folgen',
     following: 'Wird gefolgt…',
     unfollowing: 'Wird entfolgt…',
     block: 'Blockieren',
     blocking: 'Wird blockiert…',
-    error: 'Der Follow-Status konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
-    blockError: 'Der Block-Status konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+    friendAdded: '{name} ist jetzt ein Freund.',
+    followAdded:
+      'Du folgst {name}. Das Profil erscheint hier, sobald es dir zurückfolgt.',
+    error:
+      'Der Follow-Status konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+    blockError:
+      'Der Block-Status konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
   },
 };

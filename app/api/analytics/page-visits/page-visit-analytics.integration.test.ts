@@ -6,11 +6,14 @@ function createApiMocks(input: {
   analyticsEnabled: boolean;
   recordPageVisitImpl?: ReturnType<typeof vi.fn>;
 }) {
-  const recordPageVisit = input.recordPageVisitImpl ?? vi.fn().mockResolvedValue({ id: 'visit_1' });
+  const recordPageVisit =
+    input.recordPageVisitImpl ?? vi.fn().mockResolvedValue({ id: 'visit_1' });
 
   vi.doMock('@/src/api/security', () => ({
     auditAction: vi.fn().mockResolvedValue(undefined),
-    enforceRateLimit: vi.fn().mockResolvedValue({ ok: true, remaining: 10, resetAt: 0 }),
+    enforceRateLimit: vi
+      .fn()
+      .mockResolvedValue({ ok: true, remaining: 10, resetAt: 0 }),
     getRateLimitKey: vi.fn().mockReturnValue('test'),
   }));
   vi.doMock('@/src/auth.server', () => ({
@@ -25,9 +28,13 @@ function createApiMocks(input: {
     }),
   }));
   vi.doMock('@/src/observability/request-context', () => ({
-    createRequestContext: vi.fn().mockReturnValue({ requestId: 'test-request' }),
+    createRequestContext: vi
+      .fn()
+      .mockReturnValue({ requestId: 'test-request' }),
     setRequestActorId: vi.fn(),
-    withRequestContext: vi.fn(async (_context, callback: () => Promise<Response>) => callback()),
+    withRequestContext: vi.fn(
+      async (_context, callback: () => Promise<Response>) => callback(),
+    ),
   }));
   vi.doMock('@/src/privacy/consent', () => ({
     getConsentState: vi.fn().mockResolvedValue({
@@ -129,7 +136,7 @@ describe('page visit analytics route', () => {
           href: '/en/profile',
           visitorId: 'visitor_1',
           sessionId: 'session_1',
-          previousHref: '/en/people',
+          previousHref: '/en/friends',
           documentReferrer: 'https://search.example.net/results',
           occurredAt: '2026-04-16T09:00:00.000Z',
         }),
@@ -140,7 +147,7 @@ describe('page visit analytics route', () => {
     expect(recordPageVisit).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'user_1',
-        previousHref: '/en/people',
+        previousHref: '/en/friends',
         documentReferrer: 'https://search.example.net/results',
       }),
     );

@@ -41,36 +41,80 @@ describe('app routes', () => {
       label: 'guests',
       input: { isAuthenticated: false, role: null },
       visibleKeys: ['home', 'about', 'forms', 'login', 'register'],
-      hiddenKeys: ['people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
+      hiddenKeys: [
+        'friends',
+        'groups',
+        'notifications',
+        'dataEntry',
+        'profile',
+        'settings',
+        'admin',
+      ],
     },
     {
       label: 'signed-in users',
       input: { isAuthenticated: true, role: 'USER' as const },
-      visibleKeys: ['home', 'people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings'],
+      visibleKeys: [
+        'home',
+        'friends',
+        'groups',
+        'notifications',
+        'dataEntry',
+        'profile',
+        'settings',
+      ],
       hiddenKeys: ['login', 'register', 'admin'],
     },
     {
       label: 'managers',
       input: { isAuthenticated: true, role: 'MANAGER' as const },
-      visibleKeys: ['home', 'people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings'],
+      visibleKeys: [
+        'home',
+        'friends',
+        'groups',
+        'notifications',
+        'dataEntry',
+        'profile',
+        'settings',
+      ],
       hiddenKeys: ['login', 'register', 'admin'],
     },
     {
       label: 'admins',
       input: { isAuthenticated: true, role: 'ADMIN' as const },
-      visibleKeys: ['people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
+      visibleKeys: [
+        'friends',
+        'groups',
+        'notifications',
+        'dataEntry',
+        'profile',
+        'settings',
+        'admin',
+      ],
       hiddenKeys: ['login', 'register'],
     },
     {
       label: 'superadmins',
       input: { isAuthenticated: true, role: 'SUPERADMIN' as const },
-      visibleKeys: ['people', 'groups', 'notifications', 'dataEntry', 'profile', 'settings', 'admin'],
+      visibleKeys: [
+        'friends',
+        'groups',
+        'notifications',
+        'dataEntry',
+        'profile',
+        'settings',
+        'admin',
+      ],
       hiddenKeys: ['login', 'register'],
     },
-  ] satisfies readonly VisibilityCase[])(
-    'exposes the right hotkey destinations for $label',
-    ({ input, visibleKeys, hiddenKeys }) => {
-    const visiblePageKeys = new Set(getVisibleAppPages(input).map((page) => page.key));
+  ] satisfies readonly VisibilityCase[])('exposes the right hotkey destinations for $label', ({
+    input,
+    visibleKeys,
+    hiddenKeys,
+  }) => {
+    const visiblePageKeys = new Set(
+      getVisibleAppPages(input).map((page) => page.key),
+    );
 
     for (const key of visibleKeys) {
       expect(visiblePageKeys.has(key)).toBe(true);
@@ -79,8 +123,7 @@ describe('app routes', () => {
     for (const key of hiddenKeys) {
       expect(visiblePageKeys.has(key)).toBe(false);
     }
-    },
-  );
+  });
 
   it('filters pages whose dynamic feature state is disabled for the active user', () => {
     const visiblePageKeys = new Set(
@@ -98,7 +141,7 @@ describe('app routes', () => {
 
     expect(visiblePageKeys.has('groups')).toBe(false);
     expect(visiblePageKeys.has('notifications')).toBe(false);
-    expect(visiblePageKeys.has('people')).toBe(false);
+    expect(visiblePageKeys.has('friends')).toBe(false);
     expect(visiblePageKeys.has('dataEntry')).toBe(true);
   });
 });

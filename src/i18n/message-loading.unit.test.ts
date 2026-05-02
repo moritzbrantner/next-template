@@ -12,6 +12,7 @@ describe('message loading', () => {
     const homePage = messages.HomePage as Record<string, unknown>;
 
     expect(categories.discover).toBe('Discover');
+    expect(categories.social).toBe('Social');
     expect(auth.login).toBe('Log in');
     expect(links.home).toBe('Home');
     expect(homePage.title).toBeDefined();

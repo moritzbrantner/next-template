@@ -1,6 +1,7 @@
 export const navigationBar = {
   categories: {
     discover: 'Entdecken',
+    social: 'Soziales',
     workspace: 'Arbeitsbereich',
     admin: 'Admin',
   },
@@ -8,7 +9,7 @@ export const navigationBar = {
     blog: 'Blog',
     changelog: 'Changelog',
     reportProblem: 'Problem melden',
-    people: 'Personen',
+    friends: 'Freunde',
     groups: 'Gruppen',
     notifications: 'Benachrichtigungen',
     profile: 'Profil',
@@ -32,13 +33,15 @@ export const navigationBar = {
     empty: 'Noch keine Benachrichtigungen.',
     markRead: 'Als gelesen markieren',
     markingRead: 'Wird aktualisiert...',
-    markReadError: 'Diese Benachrichtigung konnte gerade nicht aktualisiert werden.',
+    markReadError:
+      'Diese Benachrichtigung konnte gerade nicht aktualisiert werden.',
     viewAll: 'Alle Benachrichtigungen',
   },
   hotkeys: {
     button: 'Hotkeys',
     title: 'Navigations-Hotkeys',
-    description: 'Wechsle mit Alt-Kürzeln zwischen Seiten, ohne das Menü zu öffnen.',
+    description:
+      'Wechsle mit Alt-Kürzeln zwischen Seiten, ohne das Menü zu öffnen.',
     searchPlaceholder: 'Seiten suchen…',
     empty: 'Keine passenden Seiten.',
     pending: 'Halte Alt gedrückt, während du eine Kürzeltaste drückst',

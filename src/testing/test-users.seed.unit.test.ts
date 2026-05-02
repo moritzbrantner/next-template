@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  PEOPLE_DIRECTORY_TEST_USERS,
   TEST_USER_FOLLOWS,
   TEST_USER_NOTIFICATIONS,
   TEST_USERS,
@@ -16,6 +17,24 @@ describe('test user seed fixtures', () => {
     expect(new Set(emails).size).toBe(emails.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(emails).toContain('delete-account@example.com');
+  });
+
+  it('provides 100 searchable people directory accounts', () => {
+    expect(PEOPLE_DIRECTORY_TEST_USERS).toHaveLength(100);
+
+    const searchablePeople = PEOPLE_DIRECTORY_TEST_USERS.filter(
+      (user) => user.isSearchable,
+    );
+    const generatedEmails = PEOPLE_DIRECTORY_TEST_USERS.map(
+      (user) => user.email,
+    );
+    const generatedTags = PEOPLE_DIRECTORY_TEST_USERS.map((user) => user.tag);
+
+    expect(searchablePeople).toHaveLength(100);
+    expect(new Set(generatedEmails).size).toBe(generatedEmails.length);
+    expect(new Set(generatedTags).size).toBe(generatedTags.length);
+    expect(generatedEmails).toContain('people-001@example.com');
+    expect(generatedEmails).toContain('people-100@example.com');
   });
 
   it('creates a follow graph where the default user both follows and is followed', () => {

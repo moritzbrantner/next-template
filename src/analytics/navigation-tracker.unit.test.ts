@@ -52,7 +52,7 @@ describe('navigation tracker state', () => {
     const now = Date.UTC(2026, 3, 16, 11, 0, 0);
     const state = resolveNavigationTrackerState({
       cookieString: `${NAVIGATION_VISITOR_COOKIE_NAME}=visitor_1; ${NAVIGATION_SESSION_COOKIE_NAME}=session_1`,
-      currentHref: '/en/people',
+      currentHref: '/en/friends',
       lastTrackedHref: '/en/profile',
       lastTrackedAt: String(now - NAVIGATION_SESSION_TIMEOUT_MS - 1),
       now,

@@ -1,14 +1,16 @@
 export const peoplePage = {
-  title: 'People',
-  description: 'See who you already follow and search for more people to add to your network.',
+  title: 'Friends',
+  description: 'Manage mutual follows and add new friends from search.',
   search: {
-    title: 'Find people to follow',
-    description: 'Search by display name or email to find profiles that are discoverable.',
-    placeholder: 'Search people',
+    title: 'Add friends',
+    description:
+      'Search by display name or email to find discoverable profiles.',
+    placeholder: 'Search profiles',
+    close: 'Close friend search',
     loading: 'Searching…',
-    idle: 'Start typing to search for people you can follow.',
+    idle: 'Start typing to search for someone to add.',
     empty: 'No discoverable users matched your search.',
-    error: 'Unable to search for people right now. Please try again.',
+    error: 'Unable to search for profiles right now. Please try again.',
   },
   following: {
     title: 'Following',
@@ -18,15 +20,19 @@ export const peoplePage = {
   friends: {
     title: 'Friends',
     description: 'You have {count} mutual follows.',
-    empty: 'You do not have any friends yet. Follow someone who follows you back.',
+    empty: 'You do not have any friends yet. Add someone who follows you back.',
   },
   actions: {
+    addFriend: 'Add friend',
     follow: 'Follow',
     unfollow: 'Unfollow',
     following: 'Following…',
     unfollowing: 'Unfollowing…',
     block: 'Block',
     blocking: 'Blocking…',
+    friendAdded: '{name} is now a friend.',
+    followAdded:
+      'You are following {name}. They will appear here when they follow you back.',
     error: 'Unable to update follow status right now. Please try again.',
     blockError: 'Unable to update block status right now. Please try again.',
   },

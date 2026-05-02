@@ -41,11 +41,15 @@ type LocaleShellProps = {
 };
 
 function getHotkeyGroupLabel(
-  category: 'discover' | 'workspace' | 'admin' | undefined,
+  category: 'discover' | 'social' | 'workspace' | 'admin' | undefined,
   t: ReturnType<typeof createTranslator>,
 ) {
   if (category === 'discover') {
     return t('categories.discover');
+  }
+
+  if (category === 'social') {
+    return t('categories.social');
   }
 
   if (category === 'workspace') {

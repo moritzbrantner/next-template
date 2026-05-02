@@ -1,13 +1,16 @@
 import {
   type AppPermissionKey,
+  type AppRole,
   canAccessDataEntryWorkspace,
   canReadOwnNotifications,
   isAdmin,
-  type AppRole,
 } from '@/lib/authorization';
-import { loadActiveApp } from '@/src/app-config/load-active-app';
 import type { AppHotkey } from '@/src/app-config/contracts';
-import { foundationFeatureKeys, type FoundationFeatureKey } from '@/src/app-config/feature-keys';
+import {
+  type FoundationFeatureKey,
+  foundationFeatureKeys,
+} from '@/src/app-config/feature-keys';
+import { loadActiveApp } from '@/src/app-config/load-active-app';
 import { isFeatureEnabled } from '@/src/foundation/features/runtime';
 import type { NavigationCategoryKey } from '@/src/navigation/navigation-categories';
 
@@ -61,13 +64,13 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     featureKey: 'reportProblem',
   },
   {
-    key: 'people',
-    href: '/people',
-    translationKey: 'links.people',
+    key: 'friends',
+    href: '/friends',
+    translationKey: 'links.friends',
     visibility: 'authenticated',
-    navigationCategory: 'discover',
+    navigationCategory: 'social',
     hotkey: ['alt', 'j'],
-    order: 210,
+    order: 220,
     featureKey: 'people.directory',
   },
   {
@@ -75,9 +78,9 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     href: '/groups',
     translationKey: 'links.groups',
     visibility: 'authenticated',
-    navigationCategory: 'workspace',
+    navigationCategory: 'social',
     hotkey: ['alt', 'o'],
-    order: 215,
+    order: 230,
     featureKey: 'groups',
   },
   {
@@ -85,9 +88,9 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     href: '/notifications',
     translationKey: 'links.notifications',
     visibility: 'authenticated',
-    navigationCategory: 'workspace',
+    navigationCategory: 'social',
     hotkey: ['alt', 'n'],
-    order: 220,
+    order: 240,
     featureKey: 'notifications',
     permission: 'notifications.readOwn',
   },
@@ -118,8 +121,9 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     href: '/profile',
     translationKey: 'menu.profile',
     visibility: 'authenticated',
+    navigationCategory: 'social',
     hotkey: ['alt', 'p'],
-    order: 410,
+    order: 210,
   },
   {
     key: 'settings',
@@ -152,14 +156,20 @@ function hrefFromSlug(slug: string) {
   return slug ? `/${slug}` : '/';
 }
 
-export function getAppPublicPageDefinitionsForManifest(manifest = loadActiveApp()): AppPageDefinition[] {
-  const pagesById = new Map(manifest.publicPages.map((page) => [page.id, page]));
+export function getAppPublicPageDefinitionsForManifest(
+  manifest = loadActiveApp(),
+): AppPageDefinition[] {
+  const pagesById = new Map(
+    manifest.publicPages.map((page) => [page.id, page]),
+  );
 
   return manifest.publicNavigation.map((item) => {
     const page = pagesById.get(item.pageId);
 
     if (!page) {
-      throw new Error(`Public navigation item "${item.pageId}" does not match any public page in manifest "${manifest.id}".`);
+      throw new Error(
+        `Public navigation item "${item.pageId}" does not match any public page in manifest "${manifest.id}".`,
+      );
     }
 
     return {
@@ -176,13 +186,21 @@ export function getAppPublicPageDefinitionsForManifest(manifest = loadActiveApp(
   });
 }
 
-export function composeAppPageDefinitions(manifest = loadActiveApp()): AppPageDefinition[] {
-  return [...getAppPublicPageDefinitionsForManifest(manifest), ...foundationPageDefinitions]
-    .filter((page) => !page.featureKey || isFeatureEnabled(page.featureKey, manifest))
+export function composeAppPageDefinitions(
+  manifest = loadActiveApp(),
+): AppPageDefinition[] {
+  return [
+    ...getAppPublicPageDefinitionsForManifest(manifest),
+    ...foundationPageDefinitions,
+  ]
+    .filter(
+      (page) => !page.featureKey || isFeatureEnabled(page.featureKey, manifest),
+    )
     .sort((left, right) => left.order - right.order);
 }
 
-export const appPageDefinitions: readonly AppPageDefinition[] = composeAppPageDefinitions();
+export const appPageDefinitions: readonly AppPageDefinition[] =
+  composeAppPageDefinitions();
 
 export function formatAppHotkey(hotkey: AppHotkey) {
   return hotkey.map((part) => part.toUpperCase()).join('+');
@@ -239,12 +257,21 @@ export function getVisibleAppPages({
   featureStateByKey?: Partial<Record<FoundationFeatureKey, boolean>>;
 }) {
   const normalizedFeatureStates = featureStateByKey
-    ? Object.fromEntries(
-        foundationFeatureKeys.map((featureKey) => [featureKey, featureStateByKey[featureKey] !== false]),
-      ) as Record<FoundationFeatureKey, boolean>
+    ? (Object.fromEntries(
+        foundationFeatureKeys.map((featureKey) => [
+          featureKey,
+          featureStateByKey[featureKey] !== false,
+        ]),
+      ) as Record<FoundationFeatureKey, boolean>)
     : undefined;
 
   return appPageDefinitions
-    .filter((page) => !page.featureKey || normalizedFeatureStates?.[page.featureKey] !== false)
-    .filter((page) => canViewAppPage(page, { isAuthenticated, role, permissionSet }));
+    .filter(
+      (page) =>
+        !page.featureKey ||
+        normalizedFeatureStates?.[page.featureKey] !== false,
+    )
+    .filter((page) =>
+      canViewAppPage(page, { isAuthenticated, role, permissionSet }),
+    );
 }

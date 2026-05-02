@@ -55,7 +55,7 @@ type TestUserPageVisitSeed = {
   minutesAgo: number;
 };
 
-export const TEST_USERS: readonly TestUserSeed[] = [
+const BASE_TEST_USERS: readonly TestUserSeed[] = [
   {
     email: 'superadmin@example.com',
     tag: 'test-superadmin',
@@ -208,6 +208,76 @@ export const TEST_USERS: readonly TestUserSeed[] = [
   },
 ] as const;
 
+const PEOPLE_DIRECTORY_FIRST_NAMES = [
+  'Ava',
+  'Ben',
+  'Clara',
+  'Diego',
+  'Elena',
+  'Finn',
+  'Greta',
+  'Hugo',
+  'Iris',
+  'Jonas',
+] as const;
+
+const PEOPLE_DIRECTORY_LAST_NAMES = [
+  'Adler',
+  'Bennett',
+  'Chen',
+  'Diaz',
+  'Evans',
+  'Fischer',
+  'Garcia',
+  'Hoffmann',
+  'Ivanov',
+  'Jensen',
+] as const;
+
+const PEOPLE_DIRECTORY_TIMEZONES = [
+  'Europe/Berlin',
+  'Europe/London',
+  'Europe/Paris',
+  'America/New_York',
+  'America/Chicago',
+  'America/Los_Angeles',
+] as const;
+
+export const PEOPLE_DIRECTORY_TEST_USERS: readonly TestUserSeed[] =
+  PEOPLE_DIRECTORY_FIRST_NAMES.flatMap((firstName, firstNameIndex) =>
+    PEOPLE_DIRECTORY_LAST_NAMES.map((lastName, lastNameIndex) => {
+      const memberNumber =
+        firstNameIndex * PEOPLE_DIRECTORY_LAST_NAMES.length + lastNameIndex + 1;
+      const paddedMemberNumber = String(memberNumber).padStart(3, '0');
+      const locale = memberNumber % 4 === 0 ? 'de' : 'en';
+      const timezone =
+        PEOPLE_DIRECTORY_TIMEZONES[
+          memberNumber % PEOPLE_DIRECTORY_TIMEZONES.length
+        ];
+
+      return {
+        email: `people-${paddedMemberNumber}@example.com`,
+        tag: `people-${paddedMemberNumber}-${firstName.toLowerCase()}-${lastName.toLowerCase()}`,
+        password: 'people',
+        name: `${firstName} ${lastName}`,
+        role: 'USER',
+        isSearchable: true,
+        followerVisibility: memberNumber % 5 === 0 ? 'MEMBERS' : 'PUBLIC',
+        emailVerified: true,
+        profile: {
+          bio: `Seeded directory member ${paddedMemberNumber} for people search and follow testing.`,
+          locale,
+          timezone,
+        },
+      } satisfies TestUserSeed;
+    }),
+  );
+
+export const TEST_USERS: readonly TestUserSeed[] = [
+  ...BASE_TEST_USERS,
+  ...PEOPLE_DIRECTORY_TEST_USERS,
+];
+
 export const TEST_USER_FOLLOWS: readonly TestUserFollowSeed[] = [
   { followerEmail: 'user@example.com', followingEmail: 'alice@example.com' },
   { followerEmail: 'user@example.com', followingEmail: 'bob@example.com' },
@@ -284,8 +354,8 @@ const TEST_USER_PAGE_VISITS: readonly TestUserPageVisitSeed[] = [
   {
     id: 'seed-page-visit-user-people',
     userEmail: 'user@example.com',
-    href: '/en/people',
-    pathname: '/en/people',
+    href: '/en/friends',
+    pathname: '/en/friends',
     minutesAgo: 6,
   },
   {
@@ -312,8 +382,8 @@ const TEST_USER_PAGE_VISITS: readonly TestUserPageVisitSeed[] = [
   {
     id: 'seed-page-visit-casey-people',
     userEmail: 'casey@example.com',
-    href: '/en/people',
-    pathname: '/en/people',
+    href: '/en/friends',
+    pathname: '/en/friends',
     minutesAgo: 10,
   },
   {
@@ -347,9 +417,15 @@ export async function seedTestUsers() {
   );
 
   const userIdByEmail = new Map<string, string>();
+  const passwordHashByPassword = new Map<string, string>();
 
   for (const testUser of TEST_USERS) {
-    const passwordHash = await hashPassword(testUser.password);
+    let passwordHash = passwordHashByPassword.get(testUser.password);
+    if (!passwordHash) {
+      passwordHash = await hashPassword(testUser.password);
+      passwordHashByPassword.set(testUser.password, passwordHash);
+    }
+
     const emailVerifiedAt = testUser.emailVerified
       ? toSeedDate(7 * 24 * 60)
       : null;

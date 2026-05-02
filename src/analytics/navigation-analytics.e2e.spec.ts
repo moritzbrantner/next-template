@@ -13,7 +13,9 @@ const adminUser = getSeededUser('admin@example.com');
 const memberUser = getSeededUser('user@example.com');
 
 test.describe('navigation analytics', () => {
-  test('captures an anonymous home to blog to login path and lets admins refine filters', async ({ page }) => {
+  test('captures an anonymous home to blog to login path and lets admins refine filters', async ({
+    page,
+  }) => {
     await gotoAndWaitForHydration(page, '/en', { consent: 'leave' });
     await acceptAllConsent(page);
     await page.reload();
@@ -30,8 +32,13 @@ test.describe('navigation analytics', () => {
     await expect(page).toHaveURL('/en/profile');
     await waitForAppHydration(page);
 
-    await gotoAndWaitForHydration(page, '/en/admin/reports/navigationJourneys?window=24h&audience=anonymous&path=/blog');
-    await expect(page.getByRole('heading', { name: 'Navigation journeys' })).toBeVisible();
+    await gotoAndWaitForHydration(
+      page,
+      '/en/admin/reports/navigationJourneys?window=24h&audience=anonymous&path=/blog',
+    );
+    await expect(
+      page.getByRole('heading', { name: 'Navigation journeys' }),
+    ).toBeVisible();
     await expect(page.locator('input[name="path"]')).toHaveValue('/blog');
     await expect(page.getByText('/blog')).toBeVisible();
     await expect(page.getByText('/login')).toBeVisible();
@@ -53,7 +60,7 @@ test.describe('navigation analytics', () => {
     await expect(page).toHaveURL('/en/profile');
     await waitForAppHydration(page);
 
-    await page.goto('/en/people');
+    await page.goto('/en/friends');
     await waitForAppHydration(page);
     await page.goto('/en/profile');
     await waitForAppHydration(page);
@@ -62,10 +69,15 @@ test.describe('navigation analytics', () => {
 
     await logoutFromProfileMenu(page);
     await loginWithCredentials(page, adminUser.email, adminUser.password);
-    await gotoAndWaitForHydration(page, '/en/admin/reports/navigationJourneys?window=24h&audience=authenticated&path=/people');
+    await gotoAndWaitForHydration(
+      page,
+      '/en/admin/reports/navigationJourneys?window=24h&audience=authenticated&path=/friends',
+    );
 
-    await expect(page.getByRole('heading', { name: 'Navigation journeys' })).toBeVisible();
-    await expect(page.getByText('/people')).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: 'Navigation journeys' }),
+    ).toBeVisible();
+    await expect(page.getByText('/friends')).toBeVisible();
     await expect(page.getByText('/profile')).toBeVisible();
   });
 });

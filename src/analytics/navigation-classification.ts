@@ -2,7 +2,14 @@ import { stripLocaleFromPathname } from '@/i18n/routing';
 import { loadActiveApp } from '@/src/app-config/load-active-app';
 import { resolvePublicRoute } from '@/src/app-config/public-route-resolver';
 
-export const navigationRouteGroups = ['public', 'guest', 'authenticated', 'workspace', 'admin', 'unknown'] as const;
+export const navigationRouteGroups = [
+  'public',
+  'guest',
+  'authenticated',
+  'workspace',
+  'admin',
+  'unknown',
+] as const;
 export type NavigationRouteGroup = (typeof navigationRouteGroups)[number];
 
 export type NavigationClassification = {
@@ -23,7 +30,7 @@ const DISPLAY_LABELS: Record<string, string> = {
   '/register': 'Register',
   '/verify-email': 'Verify email',
   '/reset-password': 'Reset password',
-  '/people': 'People',
+  '/friends': 'Friends',
   '/notifications': 'Notifications',
   '/profile': 'Profile',
   '/profile/blog': 'Profile blog editor',
@@ -51,7 +58,10 @@ function normalizePathname(pathname: string) {
   return normalized.length > 0 ? normalized : '/';
 }
 
-function buildClassification(canonicalPath: string, routeGroup: NavigationRouteGroup): NavigationClassification {
+function buildClassification(
+  canonicalPath: string,
+  routeGroup: NavigationRouteGroup,
+): NavigationClassification {
   return {
     canonicalPath,
     routeGroup,
@@ -59,7 +69,9 @@ function buildClassification(canonicalPath: string, routeGroup: NavigationRouteG
   };
 }
 
-export function classifyNavigationPathname(pathname: string): NavigationClassification {
+export function classifyNavigationPathname(
+  pathname: string,
+): NavigationClassification {
   const normalizedPath = normalizePathname(pathname);
   const segments = normalizedPath.split('/').filter(Boolean);
 
@@ -82,8 +94,10 @@ export function classifyNavigationPathname(pathname: string): NavigationClassifi
       return buildClassification('/verify-email', 'guest');
     case '/reset-password':
       return buildClassification('/reset-password', 'guest');
+    case '/friends':
+      return buildClassification('/friends', 'authenticated');
     case '/people':
-      return buildClassification('/people', 'authenticated');
+      return buildClassification('/friends', 'authenticated');
     case '/notifications':
       return buildClassification('/notifications', 'authenticated');
     case '/profile':
@@ -124,19 +138,35 @@ export function classifyNavigationPathname(pathname: string): NavigationClassifi
     return buildClassification('/profile/[userId]', 'public');
   }
 
-  if (segments[0] === 'profile' && segments.length === 3 && segments[2] === 'followers') {
+  if (
+    segments[0] === 'profile' &&
+    segments.length === 3 &&
+    segments[2] === 'followers'
+  ) {
     return buildClassification('/profile/[userId]/followers', 'public');
   }
 
-  if (segments[0] === 'profile' && segments.length === 3 && segments[2] === 'blog') {
+  if (
+    segments[0] === 'profile' &&
+    segments.length === 3 &&
+    segments[2] === 'blog'
+  ) {
     return buildClassification('/profile/[userId]/blog', 'public');
   }
 
-  if (segments[0] === 'admin' && segments[1] === 'reports' && segments.length === 3) {
+  if (
+    segments[0] === 'admin' &&
+    segments[1] === 'reports' &&
+    segments.length === 3
+  ) {
     return buildClassification('/admin/reports/[reportId]', 'admin');
   }
 
-  if (segments[0] === 'admin' && segments[1] === 'users' && segments.length === 3) {
+  if (
+    segments[0] === 'admin' &&
+    segments[1] === 'users' &&
+    segments.length === 3
+  ) {
     return buildClassification('/admin/users/[userId]', 'admin');
   }
 
