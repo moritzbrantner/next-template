@@ -1,12 +1,9 @@
-import {
-  PageContent,
-  PlatformNavbar,
-  type PlatformNavbarGroup,
-} from '@moritzbrantner/ui';
+import { PageContent, type PlatformNavbarGroup } from '@moritzbrantner/ui';
 import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 
 import { DeferredConsentBanner } from '@/components/deferred-consent-banner';
+import { LocaleShellNavbar } from '@/components/locale-shell-navbar';
 import { LocaleShellControls } from '@/components/locale-shell-controls';
 import { NavigationAnalyticsTracker } from '@/components/navigation-analytics-tracker';
 import { SiteAnnouncementBanner } from '@/components/site-announcement-banner';
@@ -132,11 +129,6 @@ export async function LocaleShell({
         `${groupLabel} ${label} ${page.hotkey.join(' ')} ${hotkeyLabel}`.toLowerCase(),
     };
   });
-  const brand = (
-    <a href={withLocalePath('/', locale)} className="block truncate">
-      {siteName || t('brand')}
-    </a>
-  );
   const actions = (
     <LocaleShellControls
       locale={locale}
@@ -180,15 +172,12 @@ export async function LocaleShell({
       <Suspense fallback={null}>
         <NavigationAnalyticsTracker enabled={analyticsEnabled} />
       </Suspense>
-      <header className="sticky top-0 z-10 overflow-visible border-b border-zinc-200 bg-white/95 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950/95">
-        <PlatformNavbar
-          aria-label="Primary navigation"
-          brand={brand}
-          groups={navigationGroups}
-          actions={actions}
-          defaultOpenGroupId={null}
-        />
-      </header>
+      <LocaleShellNavbar
+        brandHref={withLocalePath('/', locale)}
+        brandLabel={siteName || t('brand')}
+        groups={navigationGroups}
+        actions={actions}
+      />
       <PageContent className="app-shell mx-auto min-h-[calc(100vh-4rem)] w-full max-w-5xl px-4 py-10">
         <DeferredConsentBanner />
         {announcements ? (

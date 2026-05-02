@@ -2,6 +2,11 @@ export const groupsPage = {
   title: 'Groups',
   description:
     'Create shared groups, invite people, and decide who can administer each group.',
+  overview: {
+    groupsLabel: 'Groups',
+    invitationsLabel: 'Pending invitations',
+    membershipsLabel: 'Total members',
+  },
   roles: {
     OWNER: 'Owner',
     ADMIN: 'Admin',
@@ -22,6 +27,8 @@ export const groupsPage = {
     title: 'Invitations',
     description: 'You have {count} pending group invitations.',
     empty: 'No pending invitations.',
+    emptyDescription:
+      'New invitations will appear here when someone invites you.',
     invitedBy: 'Invited by {name}',
     accept: 'Accept',
     accepting: 'Accepting...',
@@ -32,6 +39,8 @@ export const groupsPage = {
     title: 'Your groups',
     description: 'You are a member of {count} groups.',
     empty: 'You are not a member of any groups yet.',
+    emptyDescription:
+      'Create a group to coordinate members, invitations, and admin roles.',
     meta: '{members} members, {invitations} pending invitations',
   },
   detail: {

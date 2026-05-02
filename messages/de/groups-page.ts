@@ -2,6 +2,11 @@ export const groupsPage = {
   title: 'Gruppen',
   description:
     'Erstelle gemeinsame Gruppen, lade Personen ein und lege fest, wer Gruppen verwalten kann.',
+  overview: {
+    groupsLabel: 'Gruppen',
+    invitationsLabel: 'Offene Einladungen',
+    membershipsLabel: 'Mitglieder gesamt',
+  },
   roles: {
     OWNER: 'Owner',
     ADMIN: 'Admin',
@@ -22,6 +27,8 @@ export const groupsPage = {
     title: 'Einladungen',
     description: 'Du hast {count} offene Gruppeneinladungen.',
     empty: 'Keine offenen Einladungen.',
+    emptyDescription:
+      'Neue Einladungen erscheinen hier, wenn dich jemand einlaedt.',
     invitedBy: 'Eingeladen von {name}',
     accept: 'Annehmen',
     accepting: 'Wird angenommen...',
@@ -32,6 +39,8 @@ export const groupsPage = {
     title: 'Deine Gruppen',
     description: 'Du bist Mitglied in {count} Gruppen.',
     empty: 'Du bist noch in keiner Gruppe.',
+    emptyDescription:
+      'Erstelle eine Gruppe, um Mitglieder, Einladungen und Admin-Rollen zu verwalten.',
     meta: '{members} Mitglieder, {invitations} offene Einladungen',
   },
   detail: {

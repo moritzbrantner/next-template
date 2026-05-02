@@ -25,4 +25,12 @@ test('navbar groups destinations into categories and reveals submenu links on cl
   await expect(
     page.getByRole('heading', { name: 'Story Scroll Demo' }),
   ).toBeVisible();
+
+  await page.goBack();
+
+  await expect(page).toHaveURL('/en');
+  await expect(
+    page.getByRole('navigation', { name: 'Primary navigation' }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Discover' })).toBeVisible();
 });
