@@ -10,7 +10,10 @@ import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
-import { buildPublicProfileFollowersPath } from '@/src/profile/tags';
+import {
+  buildPublicProfileFollowersPath,
+  formatProfileTag,
+} from '@/src/profile/tags';
 
 type ProfileFollowPanelProps = {
   locale: AppLocale;
@@ -202,7 +205,7 @@ export function ProfileFollowPanel({
                   {displayName}
                 </h1>
                 <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  /@{profileTag}
+                  {formatProfileTag(profileTag)}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {canViewFollowersPage ? (
@@ -225,7 +228,9 @@ export function ProfileFollowPanel({
                     value={followingCount}
                   />
                   {typeof friendCount === 'number' ? (
-                    <ProfileStatPill
+                    <ProfileStatLink
+                      href="/friends"
+                      locale={locale}
                       label={labels.friends}
                       value={friendCount}
                     />
@@ -317,6 +322,29 @@ export function ProfileFollowPanel({
         onProfileFollowed={handleProfileFollowed}
       />
     </>
+  );
+}
+
+function ProfileStatLink({
+  href,
+  locale,
+  label,
+  value,
+}: {
+  href: string;
+  locale: AppLocale;
+  label: string;
+  value: number;
+}) {
+  return (
+    <Link
+      href={href}
+      locale={locale}
+      className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
+    >
+      <span className="font-semibold">{value}</span>
+      <span>{label}</span>
+    </Link>
   );
 }
 

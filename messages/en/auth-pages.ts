@@ -67,6 +67,8 @@ export const authPages = {
       requiredConfirmPassword: 'Please confirm your password.',
       passwordMismatch: 'Passwords do not match.',
       nameTooLong: 'Display name must be 80 characters or fewer.',
+      continue: 'Continue',
+      back: 'Back',
       genericError:
         'Account created, but automatic sign-in failed. Try logging in manually.',
       loginPrompt: 'Already have an account?',

@@ -93,6 +93,8 @@ describe('auth social forms', () => {
           requiredConfirmPassword: 'Please confirm your password.',
           passwordMismatch: 'Passwords do not match.',
           nameTooLong: 'Too long.',
+          continue: 'Continue',
+          back: 'Back',
           genericError: 'Unable to create account.',
           loginPrompt: 'Already have an account?',
           loginCta: 'Log in',

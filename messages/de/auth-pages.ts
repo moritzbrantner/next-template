@@ -71,6 +71,8 @@ export const authPages = {
       requiredConfirmPassword: 'Bitte bestaetige dein Passwort.',
       passwordMismatch: 'Die Passwoerter stimmen nicht ueberein.',
       nameTooLong: 'Der Anzeigename darf hoechstens 80 Zeichen lang sein.',
+      continue: 'Weiter',
+      back: 'Zurueck',
       genericError:
         'Konto erstellt, aber automatische Anmeldung fehlgeschlagen. Bitte manuell anmelden.',
       loginPrompt: 'Bereits registriert?',

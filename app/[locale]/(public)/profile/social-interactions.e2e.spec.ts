@@ -25,10 +25,15 @@ test.describe('social interactions', () => {
 
     await expect(page).toHaveURL('/en/profile/@alice');
     await expect(page.getByText('Alice Archer', { exact: true })).toBeVisible();
+    await expect(page.getByText('@alice', { exact: true })).toBeVisible();
+    await expect(page.getByText('/@alice', { exact: true })).toHaveCount(0);
     await expect(
       page.getByRole('link', { name: 'Edit profile' }),
     ).toBeVisible();
     await expect(page.getByRole('button', { name: 'Follow' })).toHaveCount(0);
+
+    await page.getByRole('link', { name: /\d+ friends/i }).click();
+    await expect(page).toHaveURL('/en/friends');
   });
 
   test('loads another user public profile by tag and exposes follow controls', async ({

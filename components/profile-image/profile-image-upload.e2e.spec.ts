@@ -33,10 +33,12 @@ test.describe('profile image uploads', () => {
 
     await gotoAndWaitForHydration(page, '/en/register');
 
-    await page.getByLabel('Display name').fill(displayName);
     await page.getByLabel('Email', { exact: true }).fill(email);
+    await page.getByRole('button', { name: 'Continue' }).click();
     await page.getByLabel('Password', { exact: true }).fill(password);
     await page.getByLabel('Confirm password').fill(password);
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByLabel('Display name').fill(displayName);
     await page.getByRole('button', { name: 'Create account' }).click();
 
     await expect(page).toHaveURL('/en/profile', { timeout: 20_000 });

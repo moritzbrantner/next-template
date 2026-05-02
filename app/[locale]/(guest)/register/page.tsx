@@ -76,6 +76,8 @@ export default async function RegisterPage({
               requiredConfirmPassword: t('form.requiredConfirmPassword'),
               passwordMismatch: t('form.passwordMismatch'),
               nameTooLong: t('form.nameTooLong'),
+              continue: t('form.continue'),
+              back: t('form.back'),
               genericError: t('form.genericError'),
               loginPrompt: t('form.loginPrompt'),
               loginCta: t('form.loginCta'),

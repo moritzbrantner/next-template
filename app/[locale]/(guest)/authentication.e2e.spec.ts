@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 import {
   extractFirstUrl,
@@ -11,15 +11,44 @@ import {
 
 const seededUser = getSeededUser('user@example.com');
 
+async function completeRegistrationForm(
+  page: Page,
+  {
+    displayName,
+    email,
+    password,
+  }: {
+    displayName: string;
+    email: string;
+    password: string;
+  },
+) {
+  await page.getByLabel('Email', { exact: true }).fill(email);
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByLabel('Password', { exact: true }).fill(password);
+  await page.getByLabel('Confirm password').fill(password);
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByLabel('Display name').fill(displayName);
+  await page.getByRole('button', { name: 'Create account' }).click();
+}
+
 test.describe('authentication', () => {
   test('shows client-side validation errors on the registration form', async ({
     page,
   }) => {
     await gotoAndWaitForHydration(page, '/en/register');
 
-    await page.getByRole('button', { name: 'Create account' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
 
     await expect(page.getByText('Email is required.')).toBeVisible();
+
+    await page.getByLabel('Email', { exact: true }).fill('invalid');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await expect(page.getByText('Enter a valid email address.')).toBeVisible();
+
+    await page.getByLabel('Email', { exact: true }).fill('new@example.com');
+    await page.getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByText('Password is required.')).toBeVisible();
     await expect(page.getByText('Please confirm your password.')).toBeVisible();
   });
@@ -51,11 +80,11 @@ test.describe('authentication', () => {
       }),
     ).toBeVisible();
 
-    await page.getByLabel('Display name').fill('Playwright User');
-    await page.getByLabel('Email', { exact: true }).fill(email);
-    await page.getByLabel('Password', { exact: true }).fill(password);
-    await page.getByLabel('Confirm password').fill(password);
-    await page.getByRole('button', { name: 'Create account' }).click();
+    await completeRegistrationForm(page, {
+      displayName: 'Playwright User',
+      email,
+      password,
+    });
 
     await expect(page).toHaveURL('/en/profile');
     await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
@@ -87,11 +116,11 @@ test.describe('authentication', () => {
 
     await gotoAndWaitForHydration(page, '/en/register');
 
-    await page.getByLabel('Display name').fill('Reset User');
-    await page.getByLabel('Email', { exact: true }).fill(email);
-    await page.getByLabel('Password', { exact: true }).fill(password);
-    await page.getByLabel('Confirm password').fill(password);
-    await page.getByRole('button', { name: 'Create account' }).click();
+    await completeRegistrationForm(page, {
+      displayName: 'Reset User',
+      email,
+      password,
+    });
 
     await expect(page).toHaveURL('/en/profile');
     await logoutFromProfileMenu(page);
@@ -131,11 +160,11 @@ test.describe('authentication', () => {
   }) => {
     await gotoAndWaitForHydration(page, '/en/register');
 
-    await page.getByLabel('Display name').fill('Existing User');
-    await page.getByLabel('Email', { exact: true }).fill(seededUser.email);
-    await page.getByLabel('Password', { exact: true }).fill('StrongPass123');
-    await page.getByLabel('Confirm password').fill('StrongPass123');
-    await page.getByRole('button', { name: 'Create account' }).click();
+    await completeRegistrationForm(page, {
+      displayName: 'Existing User',
+      email: seededUser.email,
+      password: 'StrongPass123',
+    });
 
     await expect(
       page.getByText('An account already exists for this email.'),
