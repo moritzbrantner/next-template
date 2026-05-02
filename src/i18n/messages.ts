@@ -1,5 +1,7 @@
 import deMessages from '@/messages/de';
 import enMessages from '@/messages/en';
+import esMessages from '@/messages/es';
+import frMessages from '@/messages/fr';
 import { hasLocale, routing, type AppLocale } from '@/i18n/routing';
 import { loadActiveApp } from '@/src/app-config/load-active-app';
 import type {
@@ -15,6 +17,8 @@ export type PartialMessages = Partial<Messages>;
 const foundationMessageCatalog = {
   en: enMessages,
   de: deMessages,
+  fr: frMessages,
+  es: esMessages,
 } as const satisfies Record<AppLocale, Messages>;
 
 function deepMergeMessageTrees(

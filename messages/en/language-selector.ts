@@ -3,5 +3,7 @@ export const languageSelector = {
   locales: {
     en: 'EN',
     de: 'DE',
+    fr: 'FR',
+    es: 'ES',
   },
 };

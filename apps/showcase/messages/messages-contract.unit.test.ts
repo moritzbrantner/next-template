@@ -2,21 +2,34 @@ import { describe, expect, it } from 'vitest';
 
 import deMessages from '@/apps/showcase/messages/de';
 import enMessages from '@/apps/showcase/messages/en';
+import esMessages from '@/apps/showcase/messages/es';
+import frMessages from '@/apps/showcase/messages/fr';
 import showcaseManifest from '@/apps/showcase/manifest';
 
 const expectedNamespaces = new Set(
   showcaseManifest.publicPages.map((page) => page.namespace),
 );
+const supportedLocales = ['en', 'de', 'fr', 'es'] as const;
+const messagesByLocale = {
+  en: enMessages,
+  de: deMessages,
+  fr: frMessages,
+  es: esMessages,
+} as const;
 
 describe('showcase message contract', () => {
-  it('covers every public page namespace in English and German', () => {
+  it('covers every public page namespace in every supported locale', () => {
     const englishNamespaces = new Set(Object.keys(enMessages));
-    const germanNamespaces = new Set(Object.keys(deMessages));
-    const missingEnglishNamespaces = Array.from(expectedNamespaces).filter(
-      (namespace) => !englishNamespaces.has(namespace),
-    );
 
-    expect(englishNamespaces).toEqual(germanNamespaces);
-    expect(missingEnglishNamespaces).toEqual([]);
+    for (const locale of supportedLocales) {
+      const localeMessages = messagesByLocale[locale];
+      const localeNamespaces = new Set(Object.keys(localeMessages));
+      const missingNamespaces = Array.from(expectedNamespaces).filter(
+        (namespace) => !localeNamespaces.has(namespace),
+      );
+
+      expect(localeNamespaces).toEqual(englishNamespaces);
+      expect(missingNamespaces).toEqual([]);
+    }
   });
 });

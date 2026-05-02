@@ -7,7 +7,7 @@ import {
 
 import showcaseManifest from '@/apps/showcase/manifest';
 
-const supportedLocales = ['en', 'de'] as const;
+const supportedLocales = ['en', 'de', 'fr', 'es'] as const;
 
 function slugToSegments(slug: string) {
   return slug.length > 0 ? slug.split('/') : undefined;

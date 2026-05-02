@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 
 import showcaseManifest from '@/apps/showcase/manifest';
 
-const supportedLocales = ['en', 'de'] as const;
+const supportedLocales = ['en', 'de', 'fr', 'es'] as const;
 
 describe('showcase content roots contract', () => {
   it('points every configured content root at real locale directories', () => {

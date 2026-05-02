@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Link } from '@/i18n/navigation';
+import type { AppLocale } from '@/i18n/routing';
 import type { SiteAnnouncementStatus } from '@/src/site-config/service';
 
 export type AnnouncementFormState = {
@@ -18,7 +19,7 @@ export type AnnouncementFormState = {
 
 export type AnnouncementFormValues = {
   id?: string;
-  locale: 'en' | 'de';
+  locale: AppLocale;
   title: string;
   body: string;
   href: string;
