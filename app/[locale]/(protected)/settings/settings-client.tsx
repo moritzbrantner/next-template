@@ -4,15 +4,20 @@ import { AccountDeleteForm } from '@/components/account-delete-form';
 import { AccountEmailForm } from '@/components/account-email-form';
 import { ProfileBlockedUsersForm } from '@/components/profile-blocked-users-form';
 import { ProfileFollowerVisibilityForm } from '@/components/profile-follower-visibility-form';
+import { ProfileImageForm } from '@/components/profile-image-form';
 import { ConsentSettingsCard } from '@/components/privacy/consent-settings-card';
 import { ProfileSearchVisibilityForm } from '@/components/profile-search-visibility-form';
 import { AppSettingsPanel } from '@/components/settings/app-settings-panel';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
 import {
-  type AppPermissionKey,
-} from '@/lib/authorization';
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
+import { type AppPermissionKey } from '@/lib/authorization';
 import type { AppSession } from '@/src/auth';
 import type { AccountCapabilities } from '@/src/auth/oauth/types';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
@@ -48,10 +53,14 @@ export function SettingsClient({
     <section className="mx-auto max-w-5xl space-y-6">
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight">{t('title')}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t('title')}
+          </h1>
           <Badge variant="secondary">{t(`roles.${role.toLowerCase()}`)}</Badge>
         </div>
-        <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">{t('description')}</p>
+        <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">
+          {t('description')}
+        </p>
       </header>
 
       <Card>
@@ -60,11 +69,36 @@ export function SettingsClient({
           <CardDescription>{t('rbac.description')}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <PermissionCard title={t('rbac.permissions.viewReports')} enabled={permissionSet.has('admin.reports.read')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
-          <PermissionCard title={t('rbac.permissions.manageUsers')} enabled={permissionSet.has('admin.users.read')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
-          <PermissionCard title={t('rbac.permissions.manageRoles')} enabled={permissionSet.has('admin.roles.edit')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
-          <PermissionCard title={t('rbac.permissions.adminWorkspace')} enabled={permissionSet.has('admin.access')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
-          <PermissionCard title={t('rbac.permissions.systemSettings')} enabled={permissionSet.has('admin.systemSettings.edit')} enabledLabel={t('rbac.allowed')} disabledLabel={t('rbac.denied')} />
+          <PermissionCard
+            title={t('rbac.permissions.viewReports')}
+            enabled={permissionSet.has('admin.reports.read')}
+            enabledLabel={t('rbac.allowed')}
+            disabledLabel={t('rbac.denied')}
+          />
+          <PermissionCard
+            title={t('rbac.permissions.manageUsers')}
+            enabled={permissionSet.has('admin.users.read')}
+            enabledLabel={t('rbac.allowed')}
+            disabledLabel={t('rbac.denied')}
+          />
+          <PermissionCard
+            title={t('rbac.permissions.manageRoles')}
+            enabled={permissionSet.has('admin.roles.edit')}
+            enabledLabel={t('rbac.allowed')}
+            disabledLabel={t('rbac.denied')}
+          />
+          <PermissionCard
+            title={t('rbac.permissions.adminWorkspace')}
+            enabled={permissionSet.has('admin.access')}
+            enabledLabel={t('rbac.allowed')}
+            disabledLabel={t('rbac.denied')}
+          />
+          <PermissionCard
+            title={t('rbac.permissions.systemSettings')}
+            enabled={permissionSet.has('admin.systemSettings.edit')}
+            enabledLabel={t('rbac.allowed')}
+            disabledLabel={t('rbac.denied')}
+          />
         </CardContent>
       </Card>
 
@@ -84,6 +118,34 @@ export function SettingsClient({
       </Card>
 
       <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('profilePictureTitle')}</CardTitle>
+            <CardDescription>{t('profilePictureDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProfileImageForm
+              currentImage={session.user.image ?? null}
+              labels={{
+                chooseImage: t('form.chooseImage'),
+                hint: t('form.hint'),
+                upload: t('form.upload'),
+                uploading: t('form.uploading'),
+                remove: t('form.remove'),
+                success: t('form.success'),
+                empty: t('form.empty'),
+                alt: t('form.alt'),
+                cropTitle: t('form.cropTitle'),
+                cropDescription: t('form.cropDescription'),
+                cropZoom: t('form.cropZoom'),
+                cropCancel: t('form.cropCancel'),
+                cropApply: t('form.cropApply'),
+                ready: t('form.ready'),
+              }}
+            />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>{t('privacy.title')}</CardTitle>
@@ -107,7 +169,9 @@ export function SettingsClient({
         <Card>
           <CardHeader className="flex flex-col gap-2">
             <CardTitle>{t('followerVisibility.title')}</CardTitle>
-            <CardDescription>{t('followerVisibility.description')}</CardDescription>
+            <CardDescription>
+              {t('followerVisibility.description')}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ProfileFollowerVisibilityForm
@@ -119,15 +183,21 @@ export function SettingsClient({
                 options: {
                   PUBLIC: {
                     title: t('followerVisibility.options.PUBLIC.title'),
-                    description: t('followerVisibility.options.PUBLIC.description'),
+                    description: t(
+                      'followerVisibility.options.PUBLIC.description',
+                    ),
                   },
                   MEMBERS: {
                     title: t('followerVisibility.options.MEMBERS.title'),
-                    description: t('followerVisibility.options.MEMBERS.description'),
+                    description: t(
+                      'followerVisibility.options.MEMBERS.description',
+                    ),
                   },
                   PRIVATE: {
                     title: t('followerVisibility.options.PRIVATE.title'),
-                    description: t('followerVisibility.options.PRIVATE.description'),
+                    description: t(
+                      'followerVisibility.options.PRIVATE.description',
+                    ),
                   },
                 },
               }}
@@ -165,7 +235,9 @@ export function SettingsClient({
           </CardHeader>
           <CardContent>
             {passwordManagementDisabled ? (
-              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">{t('account.passwordlessNotice')}</p>
+              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">
+                {t('account.passwordlessNotice')}
+              </p>
             ) : null}
             <AccountEmailForm
               currentEmail={session.user.email}
@@ -190,12 +262,18 @@ export function SettingsClient({
               <CardTitle>{t('account.deletion.title')}</CardTitle>
               <Badge variant="outline">{t('account.deletion.badge')}</Badge>
             </div>
-            <CardDescription>{t('account.deletion.description')}</CardDescription>
+            <CardDescription>
+              {t('account.deletion.description')}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">{t('account.deletion.warning')}</p>
+            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">
+              {t('account.deletion.warning')}
+            </p>
             {passwordManagementDisabled ? (
-              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">{t('account.passwordlessNotice')}</p>
+              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-300">
+                {t('account.passwordlessNotice')}
+              </p>
             ) : null}
             <AccountDeleteForm
               disabled={!accountCapabilities.canDeleteWithPassword}
@@ -228,7 +306,9 @@ function PermissionCard({
   return (
     <div className="rounded-2xl border p-4 dark:border-zinc-800">
       <p className="font-medium">{title}</p>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{enabled ? enabledLabel : disabledLabel}</p>
+      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+        {enabled ? enabledLabel : disabledLabel}
+      </p>
     </div>
   );
 }

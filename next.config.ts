@@ -17,9 +17,7 @@ const env = getEnv();
 const githubPagesBasePath = normalizeRouterBasePath(env.githubPagesBasePath);
 
 export const normalNextConfig: NextConfig = {
-  allowedDevOrigins: [
-    ...allowedDevOrigins,
-  ],
+  allowedDevOrigins: [...allowedDevOrigins],
   transpilePackages: ['@moritzbrantner/ui', '@moritzbrantner/storytelling'],
   images: {
     remotePatterns: [
@@ -30,9 +28,7 @@ export const normalNextConfig: NextConfig = {
 };
 
 export const githubPagesNextConfig: NextConfig = {
-  allowedDevOrigins: [
-    ...allowedDevOrigins,
-  ],
+  allowedDevOrigins: [...allowedDevOrigins],
   transpilePackages: ['@moritzbrantner/ui', '@moritzbrantner/storytelling'],
   assetPrefix: githubPagesBasePath === '/' ? undefined : githubPagesBasePath,
   basePath: githubPagesBasePath === '/' ? undefined : githubPagesBasePath,

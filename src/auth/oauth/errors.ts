@@ -12,6 +12,8 @@ export const oauthErrorCodes = [
 
 export type OAuthErrorCode = (typeof oauthErrorCodes)[number];
 
-export function isOAuthErrorCode(value: string | null | undefined): value is OAuthErrorCode {
+export function isOAuthErrorCode(
+  value: string | null | undefined,
+): value is OAuthErrorCode {
   return Boolean(value && oauthErrorCodes.includes(value as OAuthErrorCode));
 }

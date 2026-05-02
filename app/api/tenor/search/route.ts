@@ -54,10 +54,15 @@ function toGifResult(result: TenorResult, query: string) {
 }
 
 export async function GET(request: Request) {
-  const parsedQuery = querySchema.safeParse(Object.fromEntries(new URL(request.url).searchParams));
+  const parsedQuery = querySchema.safeParse(
+    Object.fromEntries(new URL(request.url).searchParams),
+  );
 
   if (!parsedQuery.success) {
-    return Response.json({ error: 'Invalid Tenor search query.' }, { status: 400 });
+    return Response.json(
+      { error: 'Invalid Tenor search query.' },
+      { status: 400 },
+    );
   }
 
   const query = parsedQuery.data;
@@ -99,6 +104,8 @@ export async function GET(request: Request) {
     configured: true,
     results: (data.results ?? [])
       .map((result) => toGifResult(result, query.q))
-      .filter((result): result is NonNullable<ReturnType<typeof toGifResult>> => Boolean(result)),
+      .filter((result): result is NonNullable<ReturnType<typeof toGifResult>> =>
+        Boolean(result),
+      ),
   });
 }

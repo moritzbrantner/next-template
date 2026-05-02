@@ -1,6 +1,10 @@
 import * as z from 'zod';
 
-import { createGroupUseCase, getGroupsPageDataUseCase, type GroupError } from '@/src/domain/groups/use-cases';
+import {
+  createGroupUseCase,
+  getGroupsPageDataUseCase,
+  type GroupError,
+} from '@/src/domain/groups/use-cases';
 import { problem, ProblemError } from '@/src/http/errors';
 import { createApiRoute } from '@/src/http/route';
 
@@ -11,8 +15,16 @@ const createGroupBodySchema = z.object({
 
 function mapGroupProblem(error: GroupError, type = '/problems/groups') {
   const status =
-    error.code === 'NOT_FOUND' ? 404 : error.code === 'FORBIDDEN' ? 403 : error.code === 'CONFLICT' ? 409 : 400;
-  return new ProblemError(problem(type, 'Unable to update groups', status, error.message));
+    error.code === 'NOT_FOUND'
+      ? 404
+      : error.code === 'FORBIDDEN'
+        ? 403
+        : error.code === 'CONFLICT'
+          ? 409
+          : 400;
+  return new ProblemError(
+    problem(type, 'Unable to update groups', status, error.message),
+  );
 }
 
 export const GET = createApiRoute({

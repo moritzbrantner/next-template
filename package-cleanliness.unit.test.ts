@@ -23,7 +23,9 @@ describe('workspace package cleanliness', () => {
       workspace.startsWith('packages/'),
     );
 
-    const trackedPackageManifests = listTrackedExistingFiles('packages/*/package.json');
+    const trackedPackageManifests = listTrackedExistingFiles(
+      'packages/*/package.json',
+    );
 
     expect(trackedPackageManifests.sort()).toEqual(
       activePackages.map((workspace) => `${workspace}/package.json`).sort(),
@@ -34,7 +36,11 @@ describe('workspace package cleanliness', () => {
     const trackedFiles = listTrackedExistingFiles('packages');
 
     const forbiddenTrackedFiles = trackedFiles.filter((filePath) => {
-      return filePath.endsWith('.tgz') || filePath.includes('/dist/') || filePath.includes('/.turbo/');
+      return (
+        filePath.endsWith('.tgz') ||
+        filePath.includes('/dist/') ||
+        filePath.includes('/.turbo/')
+      );
     });
 
     expect(forbiddenTrackedFiles).toEqual([]);
@@ -45,8 +51,8 @@ describe('workspace package cleanliness', () => {
 
     const forbiddenPublicFiles = trackedPublicFiles.filter((filePath) => {
       return (
-        filePath.startsWith('public/local-profile-images/')
-        || [
+        filePath.startsWith('public/local-profile-images/') ||
+        [
           'public/file.svg',
           'public/globe.svg',
           'public/next.svg',

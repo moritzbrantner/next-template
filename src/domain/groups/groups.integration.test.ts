@@ -21,7 +21,11 @@ function user(id: string, name: string) {
   };
 }
 
-function membership(groupId: string, userId: string, role: 'OWNER' | 'ADMIN' | 'MEMBER') {
+function membership(
+  groupId: string,
+  userId: string,
+  role: 'OWNER' | 'ADMIN' | 'MEMBER',
+) {
   return {
     groupId,
     userId,
@@ -42,7 +46,9 @@ function group(id = 'group_1') {
   };
 }
 
-function createDeps(overrides: Partial<GroupUseCaseDeps> = {}): GroupUseCaseDeps {
+function createDeps(
+  overrides: Partial<GroupUseCaseDeps> = {},
+): GroupUseCaseDeps {
   return {
     findUserById: vi.fn().mockImplementation(async (userId: string) => {
       const users = new Map([
@@ -89,7 +95,11 @@ describe('group use cases', () => {
   it('creates a group with the creator as owner', async () => {
     const deps = createDeps();
 
-    const result = await createGroupUseCase('user_owner', { name: ' Product team ', description: ' Launch planning ' }, deps);
+    const result = await createGroupUseCase(
+      'user_owner',
+      { name: ' Product team ', description: ' Launch planning ' },
+      deps,
+    );
 
     expect(result).toEqual({
       ok: true,
@@ -113,16 +123,23 @@ describe('group use cases', () => {
 
   it('allows owners and admins to invite non-members', async () => {
     const deps = createDeps({
-      findMembership: vi.fn().mockImplementation(async (_groupId: string, userId: string) => {
-        if (userId === 'user_owner') {
-          return membership('group_1', 'user_owner', 'OWNER');
-        }
+      findMembership: vi
+        .fn()
+        .mockImplementation(async (_groupId: string, userId: string) => {
+          if (userId === 'user_owner') {
+            return membership('group_1', 'user_owner', 'OWNER');
+          }
 
-        return undefined;
-      }),
+          return undefined;
+        }),
     });
 
-    const result = await inviteUserToGroupUseCase('user_owner', 'group_1', 'user_invited', deps);
+    const result = await inviteUserToGroupUseCase(
+      'user_owner',
+      'group_1',
+      'user_invited',
+      deps,
+    );
 
     expect(result.ok).toBe(true);
     expect(deps.createInvitation).toHaveBeenCalledWith({
@@ -135,10 +152,14 @@ describe('group use cases', () => {
 
   it('rejects invitations from regular members', async () => {
     const deps = createDeps({
-      findMembership: vi.fn().mockResolvedValue(membership('group_1', 'user_member', 'MEMBER')),
+      findMembership: vi
+        .fn()
+        .mockResolvedValue(membership('group_1', 'user_member', 'MEMBER')),
     });
 
-    await expect(inviteUserToGroupUseCase('user_member', 'group_1', 'user_invited', deps)).resolves.toEqual({
+    await expect(
+      inviteUserToGroupUseCase('user_member', 'group_1', 'user_invited', deps),
+    ).resolves.toEqual({
       ok: false,
       error: {
         code: 'FORBIDDEN',
@@ -163,46 +184,80 @@ describe('group use cases', () => {
       }),
     });
 
-    const result = await respondToGroupInvitationUseCase('user_invited', 'invitation_1', 'accept', deps);
+    const result = await respondToGroupInvitationUseCase(
+      'user_invited',
+      'invitation_1',
+      'accept',
+      deps,
+    );
 
     expect(result.ok).toBe(true);
-    expect(deps.addMember).toHaveBeenCalledWith('group_1', 'user_invited', 'MEMBER');
-    expect(deps.updateInvitationStatus).toHaveBeenCalledWith('invitation_1', 'accepted');
+    expect(deps.addMember).toHaveBeenCalledWith(
+      'group_1',
+      'user_invited',
+      'MEMBER',
+    );
+    expect(deps.updateInvitationStatus).toHaveBeenCalledWith(
+      'invitation_1',
+      'accepted',
+    );
   });
 
   it('only lets the owner promote or demote admins', async () => {
     const deps = createDeps({
-      findMembership: vi.fn().mockImplementation(async (_groupId: string, userId: string) => {
-        if (userId === 'user_owner') {
-          return membership('group_1', 'user_owner', 'OWNER');
-        }
+      findMembership: vi
+        .fn()
+        .mockImplementation(async (_groupId: string, userId: string) => {
+          if (userId === 'user_owner') {
+            return membership('group_1', 'user_owner', 'OWNER');
+          }
 
-        return membership('group_1', userId, 'MEMBER');
-      }),
+          return membership('group_1', userId, 'MEMBER');
+        }),
     });
 
-    await expect(updateGroupMemberRoleUseCase('user_owner', 'group_1', 'user_member', 'ADMIN', deps)).resolves.toEqual({
+    await expect(
+      updateGroupMemberRoleUseCase(
+        'user_owner',
+        'group_1',
+        'user_member',
+        'ADMIN',
+        deps,
+      ),
+    ).resolves.toEqual({
       ok: true,
       data: {
         userId: 'user_member',
         role: 'ADMIN',
       },
     });
-    expect(deps.updateMemberRole).toHaveBeenCalledWith('group_1', 'user_member', 'ADMIN');
+    expect(deps.updateMemberRole).toHaveBeenCalledWith(
+      'group_1',
+      'user_member',
+      'ADMIN',
+    );
   });
 
   it('prevents admins from removing other admins while allowing member removal', async () => {
     const deps = createDeps({
-      findMembership: vi.fn().mockImplementation(async (_groupId: string, userId: string) => {
-        if (userId === 'user_admin') {
-          return membership('group_1', 'user_admin', 'ADMIN');
-        }
+      findMembership: vi
+        .fn()
+        .mockImplementation(async (_groupId: string, userId: string) => {
+          if (userId === 'user_admin') {
+            return membership('group_1', 'user_admin', 'ADMIN');
+          }
 
-        return membership('group_1', userId, userId === 'user_member' ? 'MEMBER' : 'ADMIN');
-      }),
+          return membership(
+            'group_1',
+            userId,
+            userId === 'user_member' ? 'MEMBER' : 'ADMIN',
+          );
+        }),
     });
 
-    await expect(removeGroupMemberUseCase('user_admin', 'group_1', 'user_invited', deps)).resolves.toEqual({
+    await expect(
+      removeGroupMemberUseCase('user_admin', 'group_1', 'user_invited', deps),
+    ).resolves.toEqual({
       ok: false,
       error: {
         code: 'FORBIDDEN',
@@ -210,7 +265,9 @@ describe('group use cases', () => {
       },
     });
 
-    await expect(removeGroupMemberUseCase('user_admin', 'group_1', 'user_member', deps)).resolves.toEqual({
+    await expect(
+      removeGroupMemberUseCase('user_admin', 'group_1', 'user_member', deps),
+    ).resolves.toEqual({
       ok: true,
       data: {
         removed: true,

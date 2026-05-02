@@ -124,15 +124,14 @@ describe('oauth identity resolution', () => {
     harness.findUserByTag
       .mockResolvedValueOnce(undefined)
       .mockResolvedValue(undefined);
-    harness.findUserById
-      .mockResolvedValueOnce({
-        id: 'user_new',
-        email: null,
-        tag: 'sample_handle',
-        name: 'Sample Person',
-        image: 'https://example.com/avatar.png',
-        role: 'USER',
-      });
+    harness.findUserById.mockResolvedValueOnce({
+      id: 'user_new',
+      email: null,
+      tag: 'sample_handle',
+      name: 'Sample Person',
+      image: 'https://example.com/avatar.png',
+      role: 'USER',
+    });
 
     const result = await resolveSocialAccount(
       {

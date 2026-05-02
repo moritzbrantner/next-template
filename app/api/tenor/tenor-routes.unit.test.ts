@@ -19,7 +19,8 @@ function restoreEnv() {
 }
 
 function applyBaseEnv() {
-  process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/next_template?schema=public';
+  process.env.DATABASE_URL =
+    'postgresql://postgres:postgres@localhost:5432/next_template?schema=public';
   process.env.AUTH_SECRET = 'test-secret';
   delete process.env.TENOR_API_KEY;
 }
@@ -34,7 +35,9 @@ describe('Tenor routes', () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
 
-    const response = await searchTenor(new Request('http://localhost/api/tenor/search?q=ship-it'));
+    const response = await searchTenor(
+      new Request('http://localhost/api/tenor/search?q=ship-it'),
+    );
 
     await expect(response.json()).resolves.toEqual({
       configured: false,

@@ -31,8 +31,10 @@ export const siteSettingKeys = [
 export type SiteSettingKey = (typeof siteSettingKeys)[number];
 export type PublicSiteSettingKey = (typeof publicSiteSettingKeys)[number];
 export type AnalyticsSiteSettingKey = (typeof analyticsSiteSettingKeys)[number];
-export type AuthorizationSiteSettingKey = (typeof authorizationSiteSettingKeys)[number];
-export type FoundationSiteSettingKey = (typeof foundationSiteSettingKeys)[number];
+export type AuthorizationSiteSettingKey =
+  (typeof authorizationSiteSettingKeys)[number];
+export type FoundationSiteSettingKey =
+  (typeof foundationSiteSettingKeys)[number];
 
 export const featureFlagKeys = [
   'marketing.blog',

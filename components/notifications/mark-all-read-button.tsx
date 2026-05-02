@@ -13,7 +13,10 @@ type MarkAllReadButtonProps = {
   onSuccess?: () => void;
 };
 
-export function MarkAllReadButton({ disabled = false, onSuccess }: MarkAllReadButtonProps) {
+export function MarkAllReadButton({
+  disabled = false,
+  onSuccess,
+}: MarkAllReadButtonProps) {
   const t = useTranslations('NotificationsPage');
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -28,7 +31,10 @@ export function MarkAllReadButton({ disabled = false, onSuccess }: MarkAllReadBu
     });
 
     if (!response.ok) {
-      const problem = await readProblemDetail(response, t('actions.markAllReadError'));
+      const problem = await readProblemDetail(
+        response,
+        t('actions.markAllReadError'),
+      );
       setError(problem.message);
       setPending(false);
       return;
@@ -42,10 +48,17 @@ export function MarkAllReadButton({ disabled = false, onSuccess }: MarkAllReadBu
 
   return (
     <div className="space-y-2">
-      <Button type="button" variant="outline" disabled={disabled || pending} onClick={handleClick}>
+      <Button
+        type="button"
+        variant="outline"
+        disabled={disabled || pending}
+        onClick={handleClick}
+      >
         {pending ? t('actions.markingAllRead') : t('actions.markAllRead')}
       </Button>
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? (
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      ) : null}
     </div>
   );
 }

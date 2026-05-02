@@ -3,28 +3,33 @@ import net from 'node:net';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
-const scriptPath = path.join(process.cwd(), 'scripts/ci/resolve-e2e-base-url.mjs');
+const scriptPath = path.join(
+  process.cwd(),
+  'scripts/ci/resolve-e2e-base-url.mjs',
+);
 const servers: net.Server[] = [];
 
 function listen(port = 0) {
-  return new Promise<{ server: net.Server; port: number }>((resolve, reject) => {
-    const server = net.createServer();
+  return new Promise<{ server: net.Server; port: number }>(
+    (resolve, reject) => {
+      const server = net.createServer();
 
-    server.once('error', reject);
-    server.once('listening', () => {
-      const address = server.address();
+      server.once('error', reject);
+      server.once('listening', () => {
+        const address = server.address();
 
-      if (!address || typeof address === 'string') {
-        reject(new Error('Expected an IPv4 listener address.'));
-        return;
-      }
+        if (!address || typeof address === 'string') {
+          reject(new Error('Expected an IPv4 listener address.'));
+          return;
+        }
 
-      servers.push(server);
-      resolve({ server, port: address.port });
-    });
+        servers.push(server);
+        resolve({ server, port: address.port });
+      });
 
-    server.listen(port, '127.0.0.1');
-  });
+      server.listen(port, '127.0.0.1');
+    },
+  );
 }
 
 describe('resolve-e2e-base-url.mjs', () => {
@@ -53,7 +58,9 @@ describe('resolve-e2e-base-url.mjs', () => {
     });
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain(`E2E app port ${port} on 127.0.0.1 is unavailable`);
+    expect(result.stderr).toContain(
+      `E2E app port ${port} on 127.0.0.1 is unavailable`,
+    );
   });
 
   it('chooses a free port when the default local e2e port is unavailable', async () => {
@@ -68,7 +75,9 @@ describe('resolve-e2e-base-url.mjs', () => {
     });
 
     expect(result.status).toBe(0);
-    expect(result.stderr).toContain(`E2E default port ${port} on 127.0.0.1 is unavailable`);
+    expect(result.stderr).toContain(
+      `E2E default port ${port} on 127.0.0.1 is unavailable`,
+    );
 
     const resolvedUrl = new URL(result.stdout.trim());
     expect(resolvedUrl.hostname).toBe('127.0.0.1');

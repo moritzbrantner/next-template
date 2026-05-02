@@ -2,10 +2,19 @@
 
 import type { ReactNode } from 'react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLocale, useTranslations } from '@/src/i18n';
-import { backgroundOptions, formatDatePreview } from '@/src/settings/preferences';
+import {
+  backgroundOptions,
+  formatDatePreview,
+} from '@/src/settings/preferences';
 import { useAppSettings } from '@/src/settings/provider';
 
 const sampleDate = new Date('2026-04-27T09:00:00.000Z');
@@ -41,8 +50,12 @@ export function AppSettingsPanel() {
                       : 'border-zinc-200 bg-white/70 hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950/60 dark:hover:border-zinc-600',
                   ].join(' ')}
                 >
-                  <p className="font-medium">{t(`appearance.backgrounds.${option}.title`)}</p>
-                  <p className="mt-2 text-sm opacity-80">{t(`appearance.backgrounds.${option}.description`)}</p>
+                  <p className="font-medium">
+                    {t(`appearance.backgrounds.${option}.title`)}
+                  </p>
+                  <p className="mt-2 text-sm opacity-80">
+                    {t(`appearance.backgrounds.${option}.description`)}
+                  </p>
                 </button>
               );
             })}
@@ -73,7 +86,11 @@ export function AppSettingsPanel() {
           <FieldBlock label={t('dates.formatLabel')}>
             <select
               value={settings.dateFormat}
-              onChange={(event) => updateSettings({ dateFormat: event.target.value as typeof settings.dateFormat })}
+              onChange={(event) =>
+                updateSettings({
+                  dateFormat: event.target.value as typeof settings.dateFormat,
+                })
+              }
               className={selectClassName}
             >
               <option value="localized">{t('dates.formats.localized')}</option>
@@ -85,7 +102,11 @@ export function AppSettingsPanel() {
           <FieldBlock label={t('dates.weekStartsLabel')}>
             <select
               value={String(settings.weekStartsOn)}
-              onChange={(event) => updateSettings({ weekStartsOn: event.target.value === '0' ? 0 : 1 })}
+              onChange={(event) =>
+                updateSettings({
+                  weekStartsOn: event.target.value === '0' ? 0 : 1,
+                })
+              }
               className={selectClassName}
             >
               <option value="1">{t('dates.weekStarts.monday')}</option>
@@ -102,7 +123,9 @@ export function AppSettingsPanel() {
 
           <div className="rounded-2xl border border-dashed border-zinc-300 p-4 dark:border-zinc-700">
             <p className="text-sm font-medium">{t('dates.previewLabel')}</p>
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{datePreview}</p>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+              {datePreview}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -142,10 +165,14 @@ export function AppSettingsPanel() {
                   ...currentSettings.notifications,
                   enabled: checked,
                 },
-              }))}
+              }))
+            }
           />
 
-          <FieldBlock label={t('notifications.typeLabel')} description={t('notifications.typeDescription')}>
+          <FieldBlock
+            label={t('notifications.typeLabel')}
+            description={t('notifications.typeDescription')}
+          >
             <Input
               value={settings.notifications.type}
               onChange={(event) =>
@@ -154,7 +181,8 @@ export function AppSettingsPanel() {
                     ...currentSettings.notifications,
                     type: event.target.value,
                   },
-                }))}
+                }))
+              }
               placeholder={t('notifications.typePlaceholder')}
             />
           </FieldBlock>
@@ -173,7 +201,8 @@ export function AppSettingsPanel() {
                         ...currentSettings.notifications,
                         type: option,
                       },
-                    }))}
+                    }))
+                  }
                   className={[
                     'rounded-full border px-3 py-1.5 text-sm transition-colors',
                     isActive
@@ -205,7 +234,11 @@ function FieldBlock({
     <div className="space-y-2">
       <div>
         <p className="text-sm font-medium">{label}</p>
-        {description ? <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{description}</p> : null}
+        {description ? (
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+            {description}
+          </p>
+        ) : null}
       </div>
       {children}
     </div>
@@ -227,7 +260,9 @@ function ToggleRow({
     <label className="flex items-start justify-between gap-4 rounded-2xl border p-4 dark:border-zinc-800">
       <div>
         <p className="font-medium">{title}</p>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{description}</p>
+        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+          {description}
+        </p>
       </div>
       <input
         type="checkbox"

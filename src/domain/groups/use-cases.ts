@@ -2,8 +2,17 @@ import { and, asc, count, eq, ilike, isNull, ne, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 import { getDb } from '@/src/db/client';
-import { groupInvitations, groupMemberships, groups, users } from '@/src/db/schema';
-import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
+import {
+  groupInvitations,
+  groupMemberships,
+  groups,
+  users,
+} from '@/src/db/schema';
+import {
+  failure,
+  success,
+  type ServiceResult,
+} from '@/src/domain/shared/result';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
 
 const GROUP_NAME_MIN_LENGTH = 2;
@@ -12,7 +21,11 @@ const GROUP_DESCRIPTION_MAX_LENGTH = 500;
 const SEARCH_QUERY_MAX_LENGTH = 80;
 
 export type GroupMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
-export type GroupInvitationStatus = 'pending' | 'accepted' | 'declined' | 'revoked';
+export type GroupInvitationStatus =
+  | 'pending'
+  | 'accepted'
+  | 'declined'
+  | 'revoked';
 
 export type GroupError = {
   code: 'VALIDATION_ERROR' | 'NOT_FOUND' | 'FORBIDDEN' | 'CONFLICT';
@@ -132,24 +145,49 @@ export type GroupUseCaseDeps = {
     ownerId: string;
   }) => Promise<GroupRecord>;
   listGroupsForUser: (userId: string) => Promise<GroupMembershipRow[]>;
-  listPendingInvitationsForUser: (userId: string) => Promise<PendingInvitationForUserRow[]>;
+  listPendingInvitationsForUser: (
+    userId: string,
+  ) => Promise<PendingInvitationForUserRow[]>;
   findGroupById: (groupId: string) => Promise<GroupRecord | undefined>;
-  findMembership: (groupId: string, userId: string) => Promise<MembershipRecord | undefined>;
+  findMembership: (
+    groupId: string,
+    userId: string,
+  ) => Promise<MembershipRecord | undefined>;
   listMembers: (groupId: string) => Promise<MemberRow[]>;
   listPendingInvitations: (groupId: string) => Promise<PendingInvitationRow[]>;
-  findPendingInvitation: (groupId: string, invitedUserId: string) => Promise<InvitationRecord | undefined>;
-  findInvitationById: (invitationId: string) => Promise<PendingInvitationForUserRow | undefined>;
+  findPendingInvitation: (
+    groupId: string,
+    invitedUserId: string,
+  ) => Promise<InvitationRecord | undefined>;
+  findInvitationById: (
+    invitationId: string,
+  ) => Promise<PendingInvitationForUserRow | undefined>;
   createInvitation: (input: {
     id: string;
     groupId: string;
     invitedUserId: string;
     invitedByUserId: string;
   }) => Promise<InvitationRecord>;
-  updateInvitationStatus: (invitationId: string, status: Exclude<GroupInvitationStatus, 'pending'>) => Promise<void>;
-  addMember: (groupId: string, userId: string, role: GroupMemberRole) => Promise<void>;
-  updateMemberRole: (groupId: string, userId: string, role: Exclude<GroupMemberRole, 'OWNER'>) => Promise<void>;
+  updateInvitationStatus: (
+    invitationId: string,
+    status: Exclude<GroupInvitationStatus, 'pending'>,
+  ) => Promise<void>;
+  addMember: (
+    groupId: string,
+    userId: string,
+    role: GroupMemberRole,
+  ) => Promise<void>;
+  updateMemberRole: (
+    groupId: string,
+    userId: string,
+    role: Exclude<GroupMemberRole, 'OWNER'>,
+  ) => Promise<void>;
   removeMember: (groupId: string, userId: string) => Promise<void>;
-  searchInviteCandidates: (groupId: string, actorUserId: string, query: string) => Promise<UserRecord[]>;
+  searchInviteCandidates: (
+    groupId: string,
+    actorUserId: string,
+    query: string,
+  ) => Promise<UserRecord[]>;
 };
 
 function getGroupUseCaseDeps(): GroupUseCaseDeps {
@@ -201,16 +239,22 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
 
       return Promise.all(
         membershipRows.map(async (group) => {
-          const [memberCountResult, pendingInvitationCountResult] = await Promise.all([
-            getDb()
-              .select({ value: count() })
-              .from(groupMemberships)
-              .where(eq(groupMemberships.groupId, group.id)),
-            getDb()
-              .select({ value: count() })
-              .from(groupInvitations)
-              .where(and(eq(groupInvitations.groupId, group.id), eq(groupInvitations.status, 'pending'))),
-          ]);
+          const [memberCountResult, pendingInvitationCountResult] =
+            await Promise.all([
+              getDb()
+                .select({ value: count() })
+                .from(groupMemberships)
+                .where(eq(groupMemberships.groupId, group.id)),
+              getDb()
+                .select({ value: count() })
+                .from(groupInvitations)
+                .where(
+                  and(
+                    eq(groupInvitations.groupId, group.id),
+                    eq(groupInvitations.status, 'pending'),
+                  ),
+                ),
+            ]);
 
           return {
             ...group,
@@ -250,7 +294,12 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
         .from(groupInvitations)
         .innerJoin(groups, eq(groupInvitations.groupId, groups.id))
         .innerJoin(inviter, eq(groupInvitations.invitedByUserId, inviter.id))
-        .where(and(eq(groupInvitations.invitedUserId, userId), eq(groupInvitations.status, 'pending')))
+        .where(
+          and(
+            eq(groupInvitations.invitedUserId, userId),
+            eq(groupInvitations.status, 'pending'),
+          ),
+        )
         .orderBy(asc(groupInvitations.createdAt));
 
       return rows;
@@ -262,7 +311,10 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
     findMembership: (groupId, userId) =>
       getDb().query.groupMemberships.findFirst({
         where: (table, { and: innerAnd, eq: innerEq }) =>
-          innerAnd(innerEq(table.groupId, groupId), innerEq(table.userId, userId)),
+          innerAnd(
+            innerEq(table.groupId, groupId),
+            innerEq(table.userId, userId),
+          ),
       }),
     listMembers: async (groupId) => {
       const rows = await getDb()
@@ -321,7 +373,12 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
         .from(groupInvitations)
         .innerJoin(invited, eq(groupInvitations.invitedUserId, invited.id))
         .innerJoin(inviter, eq(groupInvitations.invitedByUserId, inviter.id))
-        .where(and(eq(groupInvitations.groupId, groupId), eq(groupInvitations.status, 'pending')))
+        .where(
+          and(
+            eq(groupInvitations.groupId, groupId),
+            eq(groupInvitations.status, 'pending'),
+          ),
+        )
         .orderBy(asc(groupInvitations.createdAt));
 
       return rows;
@@ -370,7 +427,12 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
 
       return rows[0];
     },
-    createInvitation: async ({ id, groupId, invitedUserId, invitedByUserId }) => {
+    createInvitation: async ({
+      id,
+      groupId,
+      invitedUserId,
+      invitedByUserId,
+    }) => {
       const [createdInvitation] = await getDb()
         .insert(groupInvitations)
         .values({
@@ -413,15 +475,28 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
           role,
           updatedAt: new Date(),
         })
-        .where(and(eq(groupMemberships.groupId, groupId), eq(groupMemberships.userId, userId)));
+        .where(
+          and(
+            eq(groupMemberships.groupId, groupId),
+            eq(groupMemberships.userId, userId),
+          ),
+        );
     },
     removeMember: async (groupId, userId) => {
       await getDb()
         .delete(groupMemberships)
-        .where(and(eq(groupMemberships.groupId, groupId), eq(groupMemberships.userId, userId)));
+        .where(
+          and(
+            eq(groupMemberships.groupId, groupId),
+            eq(groupMemberships.userId, userId),
+          ),
+        );
     },
     searchInviteCandidates: async (groupId, actorUserId, query) => {
-      const pendingInvitations = alias(groupInvitations, 'pendingGroupInvitations');
+      const pendingInvitations = alias(
+        groupInvitations,
+        'pendingGroupInvitations',
+      );
       const rows = await getDb()
         .select({
           id: users.id,
@@ -433,7 +508,10 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
         .from(users)
         .leftJoin(
           groupMemberships,
-          and(eq(groupMemberships.groupId, groupId), eq(groupMemberships.userId, users.id)),
+          and(
+            eq(groupMemberships.groupId, groupId),
+            eq(groupMemberships.userId, users.id),
+          ),
         )
         .leftJoin(
           pendingInvitations,
@@ -449,7 +527,11 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
             ne(users.id, actorUserId),
             isNull(groupMemberships.userId),
             isNull(pendingInvitations.id),
-            or(ilike(users.name, `%${query}%`), ilike(users.email, `%${query}%`), ilike(users.tag, `%${query}%`)),
+            or(
+              ilike(users.name, `%${query}%`),
+              ilike(users.email, `%${query}%`),
+              ilike(users.tag, `%${query}%`),
+            ),
           ),
         )
         .orderBy(asc(users.name), asc(users.tag), asc(users.email))
@@ -501,7 +583,9 @@ function toGroupSummary(row: GroupMembershipRow): GroupSummary {
   };
 }
 
-function toInvitationSummary(row: PendingInvitationForUserRow): GroupInvitationSummary {
+function toInvitationSummary(
+  row: PendingInvitationForUserRow,
+): GroupInvitationSummary {
   return {
     id: row.id,
     groupId: row.groupId,
@@ -519,7 +603,9 @@ function toMemberSummary(row: MemberRow): GroupMemberSummary {
   };
 }
 
-function toPendingInvitation(row: PendingInvitationRow): GroupPendingInvitation {
+function toPendingInvitation(
+  row: PendingInvitationRow,
+): GroupPendingInvitation {
   return {
     id: row.id,
     invitedUser: toUserSummary(row.invitedUser),
@@ -532,7 +618,10 @@ function isGroupAdmin(role: GroupMemberRole | null | undefined) {
   return role === 'OWNER' || role === 'ADMIN';
 }
 
-function validateGroupInput(name: string, description: string | null): GroupError | null {
+function validateGroupInput(
+  name: string,
+  description: string | null,
+): GroupError | null {
   if (name.length < GROUP_NAME_MIN_LENGTH) {
     return {
       code: 'VALIDATION_ERROR',
@@ -674,7 +763,8 @@ export async function getGroupDetailUseCase(
     members: memberRows.map(toMemberSummary),
     pendingInvitations: invitationRows.map(toPendingInvitation),
     canInvite: isGroupAdmin(membership.role),
-    canManageMembers: membership.role === 'OWNER' || membership.role === 'ADMIN',
+    canManageMembers:
+      membership.role === 'OWNER' || membership.role === 'ADMIN',
   });
 }
 
@@ -706,7 +796,11 @@ export async function searchGroupInviteCandidatesUseCase(
     });
   }
 
-  const candidates = await deps.searchInviteCandidates(groupId, actorUserId, query);
+  const candidates = await deps.searchInviteCandidates(
+    groupId,
+    actorUserId,
+    query,
+  );
 
   return success({
     users: candidates.map(toUserSummary),
@@ -794,7 +888,12 @@ export async function respondToGroupInvitationUseCase(
   invitationId: string,
   decision: 'accept' | 'decline',
   deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
-): Promise<ServiceResult<{ status: 'accepted' | 'declined'; group: GroupSummary | null }, GroupError>> {
+): Promise<
+  ServiceResult<
+    { status: 'accepted' | 'declined'; group: GroupSummary | null },
+    GroupError
+  >
+> {
   const invitation = await deps.findInvitationById(invitationId);
 
   if (!invitation) {
@@ -838,7 +937,12 @@ export async function updateGroupMemberRoleUseCase(
   targetUserId: string,
   role: Exclude<GroupMemberRole, 'OWNER'>,
   deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
-): Promise<ServiceResult<{ userId: string; role: Exclude<GroupMemberRole, 'OWNER'> }, GroupError>> {
+): Promise<
+  ServiceResult<
+    { userId: string; role: Exclude<GroupMemberRole, 'OWNER'> },
+    GroupError
+  >
+> {
   const [actorMembership, targetMembership] = await Promise.all([
     deps.findMembership(groupId, actorUserId),
     deps.findMembership(groupId, targetUserId),
@@ -915,7 +1019,10 @@ export async function removeGroupMemberUseCase(
       });
     }
 
-    if (actorMembership.role === 'ADMIN' && targetMembership.role !== 'MEMBER') {
+    if (
+      actorMembership.role === 'ADMIN' &&
+      targetMembership.role !== 'MEMBER'
+    ) {
       return failure({
         code: 'FORBIDDEN',
         message: 'Admins can only remove regular members.',

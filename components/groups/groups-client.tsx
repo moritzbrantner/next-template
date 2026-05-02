@@ -4,10 +4,19 @@ import { useState, type FormEvent } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import type { GroupInvitationSummary, GroupSummary } from '@/src/domain/groups/use-cases';
+import type {
+  GroupInvitationSummary,
+  GroupSummary,
+} from '@/src/domain/groups/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
 
@@ -16,14 +25,19 @@ type GroupsClientProps = {
   initialInvitations: GroupInvitationSummary[];
 };
 
-export function GroupsClient({ initialGroups, initialInvitations }: GroupsClientProps) {
+export function GroupsClient({
+  initialGroups,
+  initialInvitations,
+}: GroupsClientProps) {
   const t = useTranslations('GroupsPage');
   const [groups, setGroups] = useState(initialGroups);
   const [invitations, setInvitations] = useState(initialInvitations);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
-  const [pendingInvitationId, setPendingInvitationId] = useState<string | null>(null);
+  const [pendingInvitationId, setPendingInvitationId] = useState<string | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   async function handleCreateGroup(event: FormEvent<HTMLFormElement>) {
@@ -60,7 +74,10 @@ export function GroupsClient({ initialGroups, initialInvitations }: GroupsClient
     }
   }
 
-  async function respondToInvitation(invitation: GroupInvitationSummary, decision: 'accept' | 'decline') {
+  async function respondToInvitation(
+    invitation: GroupInvitationSummary,
+    decision: 'accept' | 'decline',
+  ) {
     setPendingInvitationId(invitation.id);
     setError(null);
 
@@ -74,17 +91,28 @@ export function GroupsClient({ initialGroups, initialInvitations }: GroupsClient
       });
 
       if (!response.ok) {
-        const problem = await readProblemDetail(response, t('errors.invitation'));
+        const problem = await readProblemDetail(
+          response,
+          t('errors.invitation'),
+        );
         setError(problem.message);
         return;
       }
 
-      const payload = (await response.json()) as { group?: GroupSummary | null };
-      setInvitations((current) => current.filter((currentInvitation) => currentInvitation.id !== invitation.id));
+      const payload = (await response.json()) as {
+        group?: GroupSummary | null;
+      };
+      setInvitations((current) =>
+        current.filter(
+          (currentInvitation) => currentInvitation.id !== invitation.id,
+        ),
+      );
 
       if (payload.group) {
         setGroups((current) =>
-          current.some((group) => group.id === payload.group!.id) ? current : [payload.group!, ...current],
+          current.some((group) => group.id === payload.group!.id)
+            ? current
+            : [payload.group!, ...current],
         );
       }
     } catch {
@@ -137,11 +165,16 @@ export function GroupsClient({ initialGroups, initialInvitations }: GroupsClient
           </CardHeader>
           <CardContent className="space-y-3">
             {invitations.map((invitation) => (
-              <div key={invitation.id} className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+              <div
+                key={invitation.id}
+                className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+              >
                 <div className="space-y-1">
                   <p className="font-medium">{invitation.groupName}</p>
                   <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                    {t('invitations.invitedBy', { name: invitation.invitedBy.displayName })}
+                    {t('invitations.invitedBy', {
+                      name: invitation.invitedBy.displayName,
+                    })}
                   </p>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -151,7 +184,9 @@ export function GroupsClient({ initialGroups, initialInvitations }: GroupsClient
                     disabled={pendingInvitationId === invitation.id}
                     onClick={() => respondToInvitation(invitation, 'accept')}
                   >
-                    {pendingInvitationId === invitation.id ? t('invitations.accepting') : t('invitations.accept')}
+                    {pendingInvitationId === invitation.id
+                      ? t('invitations.accepting')
+                      : t('invitations.accept')}
                   </Button>
                   <Button
                     type="button"
@@ -160,7 +195,9 @@ export function GroupsClient({ initialGroups, initialInvitations }: GroupsClient
                     disabled={pendingInvitationId === invitation.id}
                     onClick={() => respondToInvitation(invitation, 'decline')}
                   >
-                    {pendingInvitationId === invitation.id ? t('invitations.declining') : t('invitations.decline')}
+                    {pendingInvitationId === invitation.id
+                      ? t('invitations.declining')
+                      : t('invitations.decline')}
                   </Button>
                 </div>
               </div>
@@ -172,10 +209,16 @@ export function GroupsClient({ initialGroups, initialInvitations }: GroupsClient
       <Card>
         <CardHeader>
           <CardTitle>{t('groups.title')}</CardTitle>
-          <CardDescription>{groups.length > 0 ? t('groups.description', { count: groups.length }) : t('groups.empty')}</CardDescription>
+          <CardDescription>
+            {groups.length > 0
+              ? t('groups.description', { count: groups.length })
+              : t('groups.empty')}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+          {error ? (
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          ) : null}
 
           {groups.map((group) => (
             <Link
@@ -187,7 +230,9 @@ export function GroupsClient({ initialGroups, initialInvitations }: GroupsClient
                 <div className="min-w-0 space-y-1">
                   <p className="truncate font-medium">{group.name}</p>
                   {group.description ? (
-                    <p className="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-300">{group.description}</p>
+                    <p className="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-300">
+                      {group.description}
+                    </p>
                   ) : null}
                 </div>
                 <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">

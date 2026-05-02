@@ -1,6 +1,10 @@
 import { unstable_cache } from 'next/cache';
 
-import type { AppRole, AppPermissionKey, RolePermissionAssignments } from '@/lib/authorization';
+import type {
+  AppRole,
+  AppPermissionKey,
+  RolePermissionAssignments,
+} from '@/lib/authorization';
 import {
   appPermissionKeys,
   defaultRolePermissionAssignments,
@@ -25,7 +29,9 @@ async function loadRolePermissionAssignments(): Promise<RolePermissionAssignment
   }
 
   try {
-    const parsed = JSON.parse(row.value) as Partial<Record<AppRole, readonly AppPermissionKey[]>>;
+    const parsed = JSON.parse(row.value) as Partial<
+      Record<AppRole, readonly AppPermissionKey[]>
+    >;
     return normalizeRolePermissionAssignments(parsed);
   } catch {
     return defaultRolePermissionAssignments;
@@ -45,7 +51,9 @@ export async function getRolePermissionAssignments(): Promise<RolePermissionAssi
   return getCachedRolePermissionAssignments();
 }
 
-export async function getPermissionSetForRole(role: AppRole | null | undefined): Promise<Set<AppPermissionKey>> {
+export async function getPermissionSetForRole(
+  role: AppRole | null | undefined,
+): Promise<Set<AppPermissionKey>> {
   if (!role) {
     return new Set<AppPermissionKey>();
   }
@@ -66,7 +74,10 @@ export async function saveRolePermissionAssignments(
   input: Partial<Record<AppRole, readonly AppPermissionKey[]>>,
 ): Promise<RolePermissionAssignments> {
   const normalized = normalizeRolePermissionAssignments(input);
-  await upsertSiteSetting(AUTHORIZATION_SITE_SETTING_KEY, JSON.stringify(normalized));
+  await upsertSiteSetting(
+    AUTHORIZATION_SITE_SETTING_KEY,
+    JSON.stringify(normalized),
+  );
   return normalized;
 }
 

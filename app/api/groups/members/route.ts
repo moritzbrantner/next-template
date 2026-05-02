@@ -21,8 +21,21 @@ const removeMemberBodySchema = z.object({
 
 function mapGroupProblem(error: GroupError) {
   const status =
-    error.code === 'NOT_FOUND' ? 404 : error.code === 'FORBIDDEN' ? 403 : error.code === 'CONFLICT' ? 409 : 400;
-  return new ProblemError(problem('/problems/groups/members', 'Unable to update group members', status, error.message));
+    error.code === 'NOT_FOUND'
+      ? 404
+      : error.code === 'FORBIDDEN'
+        ? 403
+        : error.code === 'CONFLICT'
+          ? 409
+          : 400;
+  return new ProblemError(
+    problem(
+      '/problems/groups/members',
+      'Unable to update group members',
+      status,
+      error.message,
+    ),
+  );
 }
 
 export const PATCH = createApiRoute({
@@ -31,7 +44,12 @@ export const PATCH = createApiRoute({
   auth: true,
   bodySchema: memberRoleBodySchema,
   async handler({ actorId, body }) {
-    const result = await updateGroupMemberRoleUseCase(actorId!, body.groupId, body.userId, body.role);
+    const result = await updateGroupMemberRoleUseCase(
+      actorId!,
+      body.groupId,
+      body.userId,
+      body.role,
+    );
 
     if (!result.ok) {
       throw mapGroupProblem(result.error);
@@ -50,7 +68,11 @@ export const DELETE = createApiRoute({
   auth: true,
   bodySchema: removeMemberBodySchema,
   async handler({ actorId, body }) {
-    const result = await removeGroupMemberUseCase(actorId!, body.groupId, body.userId);
+    const result = await removeGroupMemberUseCase(
+      actorId!,
+      body.groupId,
+      body.userId,
+    );
 
     if (!result.ok) {
       throw mapGroupProblem(result.error);

@@ -11,11 +11,13 @@ The normative scaffold contract lives in `monorepo/SCAFFOLD_V2.md`.
 ## What is local vs shared
 
 Local:
+
 - Next.js App Router runtime
 - auth, admin, content, and app-pack implementation seams
 - repo-specific route structure, env surface, and deployment commands
 
 Shared:
+
 - scaffold contract from `monorepo`
 - local GitHub Actions workflow conventions
 - structural migrations from `@moritzbrantner/platform-upgrader`

@@ -19,10 +19,15 @@ type AccountDeleteFormProps = {
   };
 };
 
-export function AccountDeleteForm({ disabled = false, labels }: AccountDeleteFormProps) {
+export function AccountDeleteForm({
+  disabled = false,
+  labels,
+}: AccountDeleteFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [state, setState] = useState<{ error?: string; redirecting?: boolean }>({});
+  const [state, setState] = useState<{ error?: string; redirecting?: boolean }>(
+    {},
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,7 +60,9 @@ export function AccountDeleteForm({ disabled = false, labels }: AccountDeleteFor
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="account-delete-password">{labels.currentPassword}</Label>
+        <Label htmlFor="account-delete-password">
+          {labels.currentPassword}
+        </Label>
         <Input
           id="account-delete-password"
           name="currentPassword"
@@ -75,8 +82,16 @@ export function AccountDeleteForm({ disabled = false, labels }: AccountDeleteFor
       </Button>
 
       <div role="status" className="space-y-1">
-        {state.error ? <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p> : null}
-        {state.redirecting ? <p className="text-sm text-emerald-600 dark:text-emerald-400">{labels.redirecting}</p> : null}
+        {state.error ? (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {state.error}
+          </p>
+        ) : null}
+        {state.redirecting ? (
+          <p className="text-sm text-emerald-600 dark:text-emerald-400">
+            {labels.redirecting}
+          </p>
+        ) : null}
       </div>
     </form>
   );

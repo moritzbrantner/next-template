@@ -23,7 +23,10 @@ type NotificationBellState = {
   unreadCount: number;
 };
 
-function markNotificationRead(state: NotificationBellState, notificationId: string): NotificationBellState {
+function markNotificationRead(
+  state: NotificationBellState,
+  notificationId: string,
+): NotificationBellState {
   const target = state.items.find((item) => item.id === notificationId);
 
   if (!target || target.status === 'read') {
@@ -38,10 +41,16 @@ function markNotificationRead(state: NotificationBellState, notificationId: stri
   };
 }
 
-export function NotificationBell({ items, unreadCount }: NotificationBellProps) {
+export function NotificationBell({
+  items,
+  unreadCount,
+}: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const navigationT = useTranslations('NavigationBar');
-  const [state, setState] = useState<NotificationBellState>({ items, unreadCount });
+  const [state, setState] = useState<NotificationBellState>({
+    items,
+    unreadCount,
+  });
   const visibleItems = useMemo(() => {
     const seenTitles = new Set<string>();
 
@@ -68,7 +77,9 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
         return;
       }
 
-      setState((currentState) => markNotificationRead(currentState, notificationId));
+      setState((currentState) =>
+        markNotificationRead(currentState, notificationId),
+      );
     }
 
     function handleMarkAllRead() {
@@ -81,11 +92,17 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
     }
 
     window.addEventListener(NOTIFICATION_MARK_READ_EVENT, handleMarkRead);
-    window.addEventListener(NOTIFICATION_MARK_ALL_READ_EVENT, handleMarkAllRead);
+    window.addEventListener(
+      NOTIFICATION_MARK_ALL_READ_EVENT,
+      handleMarkAllRead,
+    );
 
     return () => {
       window.removeEventListener(NOTIFICATION_MARK_READ_EVENT, handleMarkRead);
-      window.removeEventListener(NOTIFICATION_MARK_ALL_READ_EVENT, handleMarkAllRead);
+      window.removeEventListener(
+        NOTIFICATION_MARK_ALL_READ_EVENT,
+        handleMarkAllRead,
+      );
     };
   }, []);
 
@@ -101,7 +118,9 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
       <button
         type="button"
         className="relative flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-        aria-label={navigationT('notifications.button', { count: state.unreadCount })}
+        aria-label={navigationT('notifications.button', {
+          count: state.unreadCount,
+        })}
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((current) => !current)}
@@ -122,7 +141,9 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
                 {navigationT('notifications.title')}
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {navigationT('notifications.subtitle', { count: state.unreadCount })}
+                {navigationT('notifications.subtitle', {
+                  count: state.unreadCount,
+                })}
               </p>
             </div>
             {state.unreadCount > 0 ? <Badge>{state.unreadCount}</Badge> : null}
@@ -142,7 +163,9 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
                           {formatNotificationDate(item.createdAt)}
                         </p>
                       </div>
-                      {item.status === 'unread' ? <span className="mt-1 h-2.5 w-2.5 rounded-full bg-red-500" /> : null}
+                      {item.status === 'unread' ? (
+                        <span className="mt-1 h-2.5 w-2.5 rounded-full bg-red-500" />
+                      ) : null}
                     </div>
                     <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
                       {item.body}
@@ -174,7 +197,9 @@ export function NotificationBell({ items, unreadCount }: NotificationBellProps) 
                         pendingLabel={navigationT('notifications.markingRead')}
                         errorLabel={navigationT('notifications.markReadError')}
                         onSuccess={() => {
-                          setState((currentState) => markNotificationRead(currentState, item.id));
+                          setState((currentState) =>
+                            markNotificationRead(currentState, item.id),
+                          );
                         }}
                         className="mt-3 px-0 text-xs"
                         errorClassName="text-xs text-red-600 dark:text-red-400"

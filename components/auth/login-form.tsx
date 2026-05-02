@@ -37,7 +37,12 @@ type LoginFormProps = {
   returnTo: '/login';
 };
 
-export function LoginForm({ locale, labels, oauthErrorMessage, returnTo }: LoginFormProps) {
+export function LoginForm({
+  locale,
+  labels,
+  oauthErrorMessage,
+  returnTo,
+}: LoginFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const {
@@ -67,7 +72,10 @@ export function LoginForm({ locale, labels, oauthErrorMessage, returnTo }: Login
     });
 
     if (!response.ok) {
-      const problem = await readProblemDetail(response, labels.invalidCredentials);
+      const problem = await readProblemDetail(
+        response,
+        labels.invalidCredentials,
+      );
 
       if (problem.fieldErrors.email?.[0]) {
         setError('email', {
@@ -83,7 +91,10 @@ export function LoginForm({ locale, labels, oauthErrorMessage, returnTo }: Login
         });
       }
 
-      if (problem.formMessage || Object.keys(problem.fieldErrors).length === 0) {
+      if (
+        problem.formMessage ||
+        Object.keys(problem.fieldErrors).length === 0
+      ) {
         setError('root', {
           type: 'server',
           message: problem.formMessage ?? problem.message,
@@ -125,7 +136,11 @@ export function LoginForm({ locale, labels, oauthErrorMessage, returnTo }: Login
             },
           })}
         />
-        {errors.email ? <p className="text-sm text-red-600 dark:text-red-400">{errors.email.message}</p> : null}
+        {errors.email ? (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {errors.email.message}
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
@@ -139,10 +154,18 @@ export function LoginForm({ locale, labels, oauthErrorMessage, returnTo }: Login
             required: labels.requiredPassword,
           })}
         />
-        {errors.password ? <p className="text-sm text-red-600 dark:text-red-400">{errors.password.message}</p> : null}
+        {errors.password ? (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {errors.password.message}
+          </p>
+        ) : null}
       </div>
 
-      {errors.root?.message ? <p className="text-sm text-red-600 dark:text-red-400">{errors.root.message}</p> : null}
+      {errors.root?.message ? (
+        <p className="text-sm text-red-600 dark:text-red-400">
+          {errors.root.message}
+        </p>
+      ) : null}
 
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? labels.submitting : labels.submit}
@@ -150,7 +173,10 @@ export function LoginForm({ locale, labels, oauthErrorMessage, returnTo }: Login
 
       <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
         {labels.registerPrompt}{' '}
-        <Link href="/register" className="font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-50">
+        <Link
+          href="/register"
+          className="font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-50"
+        >
           {labels.registerCta}
         </Link>
       </p>

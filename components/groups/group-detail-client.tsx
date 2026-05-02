@@ -5,7 +5,13 @@ import type { ReactNode } from 'react';
 import { useDeferredValue, useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import type { AppLocale } from '@/i18n/routing';
@@ -25,13 +31,19 @@ type GroupDetailClientProps = {
   locale: AppLocale;
 };
 
-export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailClientProps) {
+export function GroupDetailClient({
+  group,
+  currentUserId,
+  locale,
+}: GroupDetailClientProps) {
   const t = useTranslations('GroupsPage');
   const searchErrorMessage = t('errors.search');
   const inviteErrorMessage = t('errors.invite');
   const memberErrorMessage = t('errors.member');
   const [members, setMembers] = useState(group.members);
-  const [pendingInvitations, setPendingInvitations] = useState(group.pendingInvitations);
+  const [pendingInvitations, setPendingInvitations] = useState(
+    group.pendingInvitations,
+  );
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
   const [candidates, setCandidates] = useState<GroupUserSummary[]>([]);
@@ -59,9 +71,12 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
           groupId: group.id,
           query: normalizedQuery,
         });
-        const response = await fetch(`/api/groups/invite-candidates?${params.toString()}`, {
-          signal: abortController.signal,
-        });
+        const response = await fetch(
+          `/api/groups/invite-candidates?${params.toString()}`,
+          {
+            signal: abortController.signal,
+          },
+        );
 
         if (!response.ok) {
           const problem = await readProblemDetail(response, searchErrorMessage);
@@ -70,10 +85,15 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
           return;
         }
 
-        const payload = (await response.json()) as { users?: GroupUserSummary[] };
+        const payload = (await response.json()) as {
+          users?: GroupUserSummary[];
+        };
         setCandidates(payload.users ?? []);
       } catch (searchError) {
-        if (searchError instanceof DOMException && searchError.name === 'AbortError') {
+        if (
+          searchError instanceof DOMException &&
+          searchError.name === 'AbortError'
+        ) {
           return;
         }
 
@@ -110,7 +130,9 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
         return;
       }
 
-      const payload = (await response.json()) as { invitation?: GroupPendingInvitation };
+      const payload = (await response.json()) as {
+        invitation?: GroupPendingInvitation;
+      };
 
       if (payload.invitation) {
         setPendingInvitations((current) =>
@@ -118,7 +140,9 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
             ? current
             : [...current, payload.invitation!],
         );
-        setCandidates((current) => current.filter((item) => item.userId !== candidate.userId));
+        setCandidates((current) =>
+          current.filter((item) => item.userId !== candidate.userId),
+        );
       }
     } catch {
       setError(inviteErrorMessage);
@@ -127,7 +151,10 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
     }
   }
 
-  async function updateRole(member: GroupMemberSummary, role: Exclude<GroupMemberRole, 'OWNER'>) {
+  async function updateRole(
+    member: GroupMemberSummary,
+    role: Exclude<GroupMemberRole, 'OWNER'>,
+  ) {
     setPendingUserId(member.userId);
     setError(null);
 
@@ -137,7 +164,11 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ groupId: group.id, userId: member.userId, role }),
+        body: JSON.stringify({
+          groupId: group.id,
+          userId: member.userId,
+          role,
+        }),
       });
 
       if (!response.ok) {
@@ -148,7 +179,9 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
 
       setMembers((current) =>
         current.map((currentMember) =>
-          currentMember.userId === member.userId ? { ...currentMember, role } : currentMember,
+          currentMember.userId === member.userId
+            ? { ...currentMember, role }
+            : currentMember,
         ),
       );
     } catch {
@@ -182,7 +215,11 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
         return;
       }
 
-      setMembers((current) => current.filter((currentMember) => currentMember.userId !== member.userId));
+      setMembers((current) =>
+        current.filter(
+          (currentMember) => currentMember.userId !== member.userId,
+        ),
+      );
     } catch {
       setError(memberErrorMessage);
     } finally {
@@ -192,7 +229,9 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
 
   return (
     <div className="space-y-6">
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? (
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      ) : null}
 
       {group.canInvite ? (
         <Card>
@@ -208,7 +247,11 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
               aria-label={t('detail.searchPlaceholder')}
             />
 
-            {isSearching ? <p className="text-sm text-zinc-600 dark:text-zinc-300">{t('detail.searching')}</p> : null}
+            {isSearching ? (
+              <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                {t('detail.searching')}
+              </p>
+            ) : null}
             {deferredQuery.trim() && !isSearching && candidates.length === 0 ? (
               <p className="rounded-lg border border-dashed border-zinc-300 p-4 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
                 {t('detail.noCandidates')}
@@ -224,7 +267,9 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
                     disabled={pendingUserId === candidate.userId}
                     onClick={() => inviteCandidate(candidate)}
                   >
-                    {pendingUserId === candidate.userId ? t('detail.inviting') : t('detail.invite')}
+                    {pendingUserId === candidate.userId
+                      ? t('detail.inviting')
+                      : t('detail.invite')}
                   </Button>
                 </UserRow>
               ))}
@@ -237,13 +282,23 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
         <Card>
           <CardHeader>
             <CardTitle>{t('detail.membersTitle')}</CardTitle>
-            <CardDescription>{t('detail.membersDescription', { count: members.length })}</CardDescription>
+            <CardDescription>
+              {t('detail.membersDescription', { count: members.length })}
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {members.map((member) => (
               <UserRow key={member.userId} user={member}>
                 <div className="flex flex-wrap items-center justify-end gap-2">
-                  <Badge variant={member.role === 'OWNER' ? 'default' : member.role === 'ADMIN' ? 'secondary' : 'outline'}>
+                  <Badge
+                    variant={
+                      member.role === 'OWNER'
+                        ? 'default'
+                        : member.role === 'ADMIN'
+                          ? 'secondary'
+                          : 'outline'
+                    }
+                  >
                     {t(`roles.${member.role}`)}
                   </Badge>
 
@@ -251,16 +306,28 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
                     <select
                       value={member.role}
                       disabled={pendingUserId === member.userId}
-                      onChange={(event) => updateRole(member, event.target.value as Exclude<GroupMemberRole, 'OWNER'>)}
+                      onChange={(event) =>
+                        updateRole(
+                          member,
+                          event.target.value as Exclude<
+                            GroupMemberRole,
+                            'OWNER'
+                          >,
+                        )
+                      }
                       className="h-9 rounded-md border border-zinc-300 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-                      aria-label={t('detail.roleLabel', { name: member.displayName })}
+                      aria-label={t('detail.roleLabel', {
+                        name: member.displayName,
+                      })}
                     >
                       <option value="MEMBER">{t('roles.MEMBER')}</option>
                       <option value="ADMIN">{t('roles.ADMIN')}</option>
                     </select>
                   ) : null}
 
-                  {member.role !== 'OWNER' && (group.canManageMembers || member.userId === currentUserId) ? (
+                  {member.role !== 'OWNER' &&
+                  (group.canManageMembers ||
+                    member.userId === currentUserId) ? (
                     <Button
                       type="button"
                       size="sm"
@@ -268,7 +335,9 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
                       disabled={pendingUserId === member.userId}
                       onClick={() => removeMember(member)}
                     >
-                      {member.userId === currentUserId ? t('detail.leave') : t('detail.remove')}
+                      {member.userId === currentUserId
+                        ? t('detail.leave')
+                        : t('detail.remove')}
                     </Button>
                   ) : null}
                 </div>
@@ -282,7 +351,9 @@ export function GroupDetailClient({ group, currentUserId, locale }: GroupDetailC
             <CardTitle>{t('detail.pendingTitle')}</CardTitle>
             <CardDescription>
               {pendingInvitations.length > 0
-                ? t('detail.pendingDescription', { count: pendingInvitations.length })
+                ? t('detail.pendingDescription', {
+                    count: pendingInvitations.length,
+                  })
                 : t('detail.pendingEmpty')}
             </CardDescription>
           </CardHeader>
@@ -312,7 +383,9 @@ function UserRow({
         <Avatar imageUrl={user.imageUrl} displayName={user.displayName} />
         <div className="min-w-0">
           <p className="truncate font-medium">{user.displayName}</p>
-          <p className="truncate text-sm text-zinc-600 dark:text-zinc-300">/@{user.tag}</p>
+          <p className="truncate text-sm text-zinc-600 dark:text-zinc-300">
+            /@{user.tag}
+          </p>
         </div>
       </div>
       {children}
@@ -320,11 +393,24 @@ function UserRow({
   );
 }
 
-function Avatar({ imageUrl, displayName }: { imageUrl: string | null; displayName: string }) {
+function Avatar({
+  imageUrl,
+  displayName,
+}: {
+  imageUrl: string | null;
+  displayName: string;
+}) {
   return (
     <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-zinc-200 bg-zinc-100 text-sm font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100">
       {imageUrl ? (
-        <Image src={imageUrl} alt={displayName} fill sizes="40px" unoptimized className="object-cover" />
+        <Image
+          src={imageUrl}
+          alt={displayName}
+          fill
+          sizes="40px"
+          unoptimized
+          className="object-cover"
+        />
       ) : (
         <span>{displayName.charAt(0).toUpperCase() || 'U'}</span>
       )}

@@ -688,7 +688,6 @@ export function ChatRoom({ locale, tenorEnabled, labels }: ChatRoomProps) {
           >
             {selectedGif ? (
               <div className="mb-3 flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-900">
-                {/* biome-ignore lint/performance/noImgElement: Tenor media URLs are user-selected and rendered directly. */}
                 <img
                   src={selectedGif.previewUrl}
                   alt={selectedGif.title}
@@ -798,7 +797,6 @@ export function ChatRoom({ locale, tenorEnabled, labels }: ChatRoomProps) {
                           onClick={() => setSelectedGif(gif)}
                           className="group relative aspect-[4/3] overflow-hidden rounded-lg border border-zinc-200 bg-white text-left dark:border-zinc-800 dark:bg-zinc-950"
                         >
-                          {/* biome-ignore lint/performance/noImgElement: Tenor media URLs are user-selected and rendered directly. */}
                           <img
                             src={gif.previewUrl}
                             alt={gif.title}
@@ -882,7 +880,6 @@ function GifPreview({ gif, labels }: { gif: TenorGif; labels: ChatLabels }) {
           rel="noreferrer"
           className="block overflow-hidden rounded-md"
         >
-          {/* biome-ignore lint/performance/noImgElement: Tenor media URLs are user-selected and rendered directly. */}
           <img
             src={directUrl}
             alt={gif.title}

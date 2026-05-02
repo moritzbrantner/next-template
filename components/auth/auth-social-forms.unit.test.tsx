@@ -8,7 +8,18 @@ import { LoginForm } from '@/components/auth/login-form';
 import { RegisterForm } from '@/components/auth/register-form';
 
 vi.mock('@/i18n/navigation', () => ({
-  Link: ({ children, href, ...props }: { children: ReactNode; href: string }) => <a href={href} {...props}>{children}</a>,
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: ReactNode;
+    href: string;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
   useRouter: () => ({
     push: vi.fn(),
     refresh: vi.fn(),
@@ -50,10 +61,14 @@ describe('auth social forms', () => {
       />,
     );
 
-    expect(screen.getByRole('link', { name: /Continue with Google/ }).getAttribute('href')).toBe(
-      '/api/auth/oauth/google/start?locale=en&returnTo=%2Flogin',
-    );
-    expect(screen.getByRole('link', { name: /Continue with Facebook/ })).toBeTruthy();
+    expect(
+      screen
+        .getByRole('link', { name: /Continue with Google/ })
+        .getAttribute('href'),
+    ).toBe('/api/auth/oauth/google/start?locale=en&returnTo=%2Flogin');
+    expect(
+      screen.getByRole('link', { name: /Continue with Facebook/ }),
+    ).toBeTruthy();
     expect(screen.getByRole('link', { name: /Continue with X/ })).toBeTruthy();
     expect(screen.getByText('Google sign-in failed.')).toBeTruthy();
   });
@@ -87,9 +102,11 @@ describe('auth social forms', () => {
       />,
     );
 
-    expect(screen.getByRole('link', { name: /Continue with Google/ }).getAttribute('href')).toBe(
-      '/api/auth/oauth/google/start?locale=en&returnTo=%2Fregister',
-    );
+    expect(
+      screen
+        .getByRole('link', { name: /Continue with Google/ })
+        .getAttribute('href'),
+    ).toBe('/api/auth/oauth/google/start?locale=en&returnTo=%2Fregister');
     expect(screen.getByText('Or continue with')).toBeTruthy();
   });
 });

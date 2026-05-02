@@ -15,7 +15,10 @@ export const GET = createApiRoute({
   permission: 'admin.users.read',
   querySchema: searchQuerySchema,
   async handler({ query }) {
-    const users = await searchAdminUsersUseCase(query.query ?? '', query.limit ?? 12);
+    const users = await searchAdminUsersUseCase(
+      query.query ?? '',
+      query.limit ?? 12,
+    );
 
     return {
       ok: true,

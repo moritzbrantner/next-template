@@ -16,6 +16,8 @@ type ProfileFollowPanelProps = {
   displayName: string;
   imageUrl: string | null;
   initialFollowerCount: number;
+  initialFollowingCount: number;
+  initialFriendCount?: number;
   initialIsFollowing: boolean;
   initialIsBlockedByViewer: boolean;
   isOwnProfile: boolean;
@@ -24,6 +26,8 @@ type ProfileFollowPanelProps = {
   canViewFollowersPage: boolean;
   labels: {
     followers: string;
+    followingCount: string;
+    friends: string;
     follow: string;
     unfollow: string;
     following: string;
@@ -33,7 +37,6 @@ type ProfileFollowPanelProps = {
     blocking: string;
     unblocking: string;
     blockedDescription: string;
-    editProfile: string;
     error: string;
   };
 };
@@ -45,6 +48,8 @@ export function ProfileFollowPanel({
   displayName,
   imageUrl,
   initialFollowerCount,
+  initialFollowingCount,
+  initialFriendCount,
   initialIsFollowing,
   initialIsBlockedByViewer,
   isOwnProfile,
@@ -55,8 +60,12 @@ export function ProfileFollowPanel({
 }: ProfileFollowPanelProps) {
   const [followerCount, setFollowerCount] = useState(initialFollowerCount);
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
-  const [isBlockedByViewer, setIsBlockedByViewer] = useState(initialIsBlockedByViewer);
-  const [pendingAction, setPendingAction] = useState<'follow' | 'block' | null>(null);
+  const [isBlockedByViewer, setIsBlockedByViewer] = useState(
+    initialIsBlockedByViewer,
+  );
+  const [pendingAction, setPendingAction] = useState<'follow' | 'block' | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   async function handleFollowToggle() {
@@ -81,7 +90,9 @@ export function ProfileFollowPanel({
       }
 
       setIsFollowing(nextIsFollowing);
-      setFollowerCount((current) => Math.max(0, current + (nextIsFollowing ? 1 : -1)));
+      setFollowerCount((current) =>
+        Math.max(0, current + (nextIsFollowing ? 1 : -1)),
+      );
     } catch {
       setError(labels.error);
     } finally {
@@ -132,47 +143,64 @@ export function ProfileFollowPanel({
           <div className="-mt-12 flex items-end gap-4">
             <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-zinc-100 text-3xl font-semibold text-zinc-700 shadow-sm dark:border-zinc-950 dark:bg-zinc-800 dark:text-zinc-100">
               {imageUrl ? (
-                <Image src={imageUrl} alt={displayName} fill sizes="96px" unoptimized className="object-cover" />
+                <Image
+                  src={imageUrl}
+                  alt={displayName}
+                  fill
+                  sizes="96px"
+                  unoptimized
+                  className="object-cover"
+                />
               ) : (
                 <span>{displayName.charAt(0).toUpperCase() || 'U'}</span>
               )}
             </div>
 
             <div className="space-y-2 pb-1">
-              <h1 className="text-3xl font-semibold tracking-tight">{displayName}</h1>
-              <p className="text-sm text-zinc-600 dark:text-zinc-300">/@{profileTag}</p>
-              {canViewFollowersPage ? (
-                <Link
-                  href={buildPublicProfileFollowersPath(profileTag)}
-                  locale={locale}
-                  className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
-                >
-                  <span className="font-semibold">{followerCount}</span>
-                  <span>{labels.followers}</span>
-                </Link>
-              ) : (
-                <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
-                  <span className="font-semibold">{followerCount}</span>
-                  <span>{labels.followers}</span>
-                </div>
-              )}
+              <h1 className="text-3xl font-semibold tracking-tight">
+                {displayName}
+              </h1>
+              <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                /@{profileTag}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {canViewFollowersPage ? (
+                  <Link
+                    href={buildPublicProfileFollowersPath(profileTag)}
+                    locale={locale}
+                    className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700 transition-colors hover:border-zinc-300 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
+                  >
+                    <span className="font-semibold">{followerCount}</span>
+                    <span>{labels.followers}</span>
+                  </Link>
+                ) : (
+                  <ProfileStatPill
+                    label={labels.followers}
+                    value={followerCount}
+                  />
+                )}
+                <ProfileStatPill
+                  label={labels.followingCount}
+                  value={initialFollowingCount}
+                />
+                {typeof initialFriendCount === 'number' ? (
+                  <ProfileStatPill
+                    label={labels.friends}
+                    value={initialFriendCount}
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
-
-          {isOwnProfile ? (
-            <Link
-              href="/profile"
-              locale={locale}
-              className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-300 px-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-50 dark:hover:bg-zinc-900"
-            >
-              {labels.editProfile}
-            </Link>
-          ) : null}
 
           {!isOwnProfile && canManageFollowState ? (
             <div className="flex flex-wrap items-center justify-end gap-3">
               {!isBlockedByViewer ? (
-                <Button type="button" onClick={handleFollowToggle} disabled={pendingAction !== null}>
+                <Button
+                  type="button"
+                  onClick={handleFollowToggle}
+                  disabled={pendingAction !== null}
+                >
                   {pendingAction === 'follow'
                     ? isFollowing
                       ? labels.unfollowing
@@ -184,7 +212,12 @@ export function ProfileFollowPanel({
               ) : null}
 
               {canManageBlockState ? (
-                <Button type="button" variant="outline" onClick={handleBlockToggle} disabled={pendingAction !== null}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleBlockToggle}
+                  disabled={pendingAction !== null}
+                >
                   {pendingAction === 'block'
                     ? isBlockedByViewer
                       ? labels.unblocking
@@ -198,7 +231,12 @@ export function ProfileFollowPanel({
           ) : null}
 
           {!isOwnProfile && !canManageFollowState && canManageBlockState ? (
-            <Button type="button" variant="outline" onClick={handleBlockToggle} disabled={pendingAction !== null}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBlockToggle}
+              disabled={pendingAction !== null}
+            >
               {pendingAction === 'block'
                 ? isBlockedByViewer
                   ? labels.unblocking
@@ -211,8 +249,23 @@ export function ProfileFollowPanel({
         </div>
       </div>
 
-      {isBlockedByViewer ? <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">{labels.blockedDescription}</p> : null}
-      {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {isBlockedByViewer ? (
+        <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
+          {labels.blockedDescription}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>
+      ) : null}
     </section>
+  );
+}
+
+function ProfileStatPill({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+      <span className="font-semibold">{value}</span>
+      <span>{label}</span>
+    </div>
   );
 }

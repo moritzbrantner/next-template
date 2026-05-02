@@ -34,13 +34,17 @@ type OAuthDiscoveryDocument = {
   userinfo_endpoint: string;
 };
 
-const GOOGLE_DISCOVERY_URL = 'https://accounts.google.com/.well-known/openid-configuration';
+const GOOGLE_DISCOVERY_URL =
+  'https://accounts.google.com/.well-known/openid-configuration';
 
 function normalizeEmail(email: string | null | undefined) {
   return email?.trim().toLowerCase() ?? null;
 }
 
-async function readJsonOrThrow<TValue>(response: Response, message: string): Promise<TValue> {
+async function readJsonOrThrow<TValue>(
+  response: Response,
+  message: string,
+): Promise<TValue> {
   if (!response.ok) {
     throw new Error(message);
   }
@@ -53,7 +57,10 @@ async function getGoogleDiscoveryDocument() {
     cache: 'force-cache',
   });
 
-  return readJsonOrThrow<OAuthDiscoveryDocument>(response, 'Google discovery failed.');
+  return readJsonOrThrow<OAuthDiscoveryDocument>(
+    response,
+    'Google discovery failed.',
+  );
 }
 
 function buildExpiresAt(expiresIn: number | undefined) {
@@ -107,7 +114,10 @@ const googleAdapter: OAuthProviderAdapter = {
       }),
     });
 
-    return readJsonOrThrow<TokenResponse>(response, 'Google token exchange failed.');
+    return readJsonOrThrow<TokenResponse>(
+      response,
+      'Google token exchange failed.',
+    );
   },
   async fetchProfile(tokens) {
     const accessToken = tokens.access_token;
@@ -184,7 +194,10 @@ const facebookAdapter: OAuthProviderAdapter = {
 
     const response = await fetch(url, { method: 'GET' });
 
-    return readJsonOrThrow<TokenResponse>(response, 'Facebook token exchange failed.');
+    return readJsonOrThrow<TokenResponse>(
+      response,
+      'Facebook token exchange failed.',
+    );
   },
   async fetchProfile(tokens) {
     const accessToken = tokens.access_token;

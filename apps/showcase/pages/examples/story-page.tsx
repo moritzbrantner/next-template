@@ -1,14 +1,18 @@
 import type { AppLocale } from '@moritzbrantner/app-pack';
 import { Card, CardContent, CardHeader } from '@moritzbrantner/ui';
 
-import { StorytellingExperience, type StoryScene } from '@/apps/showcase/components/storytelling-experience';
+import {
+  StorytellingExperience,
+  type StoryScene,
+} from '@/apps/showcase/components/storytelling-experience';
 import { createTranslator } from '@/src/i18n/messages';
 
 const storyScenes: StoryScene[] = [
   {
     id: 'foundation',
     title: 'Foundation',
-    description: 'Start with a broad system view before narrowing the camera onto the first interaction.',
+    description:
+      'Start with a broad system view before narrowing the camera onto the first interaction.',
     progressionStart: 0,
     progressionEnd: 100,
     color: '#38bdf8',
@@ -17,7 +21,8 @@ const storyScenes: StoryScene[] = [
   {
     id: 'handoff',
     title: 'Handoff',
-    description: 'Transition between narrative beats with enough motion to show continuity without losing context.',
+    description:
+      'Transition between narrative beats with enough motion to show continuity without losing context.',
     progressionStart: 100,
     progressionEnd: 200,
     color: '#34d399',
@@ -26,7 +31,8 @@ const storyScenes: StoryScene[] = [
   {
     id: 'resolution',
     title: 'Resolution',
-    description: 'Land the final scene with a calmer pace so the content can carry the end of the sequence.',
+    description:
+      'Land the final scene with a calmer pace so the content can carry the end of the sequence.',
     progressionStart: 200,
     progressionEnd: 300,
     color: '#f97316',
@@ -41,11 +47,17 @@ export default async function StoryPage({ locale }: { locale: AppLocale }) {
     <div className="space-y-8">
       <Card className="mx-auto max-w-3xl rounded-3xl">
         <CardHeader>
-          <h1 className="text-2xl font-semibold leading-none tracking-tight">{t('title')}</h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('description')}</p>
+          <h1 className="text-2xl font-semibold leading-none tracking-tight">
+            {t('title')}
+          </h1>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            {t('description')}
+          </p>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('note')}</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            {t('note')}
+          </p>
         </CardContent>
       </Card>
 

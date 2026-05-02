@@ -1,6 +1,7 @@
 import net from 'node:net';
 
-const DEFAULT_BASE_URL = process.env.E2E_DEFAULT_BASE_URL ?? 'http://127.0.0.1:3006';
+const DEFAULT_BASE_URL =
+  process.env.E2E_DEFAULT_BASE_URL ?? 'http://127.0.0.1:3006';
 const LOCAL_HOSTS = new Set(['127.0.0.1', '::1', 'localhost']);
 
 function normalizeLocalHost(hostname) {
@@ -67,13 +68,19 @@ if (availability.ok) {
 }
 
 if (explicitBaseUrl) {
-  console.error(`E2E app port ${port} on ${host} is unavailable: ${availability.error.message}`);
-  console.error('Stop the existing process or set E2E_BASE_URL to a free local port.');
+  console.error(
+    `E2E app port ${port} on ${host} is unavailable: ${availability.error.message}`,
+  );
+  console.error(
+    'Stop the existing process or set E2E_BASE_URL to a free local port.',
+  );
   process.exit(1);
 }
 
 const fallbackPort = await reserveEphemeralPort(host);
 url.hostname = host;
 url.port = String(fallbackPort);
-console.error(`E2E default port ${port} on ${host} is unavailable; using ${url.toString()} instead.`);
+console.error(
+  `E2E default port ${port} on ${host} is unavailable; using ${url.toString()} instead.`,
+);
 console.log(url.toString());

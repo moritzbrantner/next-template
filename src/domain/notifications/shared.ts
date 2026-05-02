@@ -3,7 +3,11 @@ import { and, asc, count, eq, gte, ilike, inArray, or, sql } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
 import { notifications, pageVisits, userFollows, users } from '@/src/db/schema';
-import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
+import {
+  failure,
+  success,
+  type ServiceResult,
+} from '@/src/domain/shared/result';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
 
 export type NotificationStatus = 'unread' | 'read';
@@ -116,7 +120,9 @@ function resolveDisplayName(user: Pick<UserRecord, 'name' | 'email'>) {
   return emailPrefix || 'User';
 }
 
-function resolveUserStatus(user: Pick<UserRecord, 'emailVerified' | 'lockoutUntil'>): AdminUserStatus {
+function resolveUserStatus(
+  user: Pick<UserRecord, 'emailVerified' | 'lockoutUntil'>,
+): AdminUserStatus {
   if (user.lockoutUntil && user.lockoutUntil.getTime() > Date.now()) {
     return 'suspended';
   }
@@ -173,7 +179,12 @@ async function getNotificationCountMap(userIds: string[]) {
         value: count(),
       })
       .from(notifications)
-      .where(and(inArray(notifications.userId, userIds), eq(notifications.status, 'unread')))
+      .where(
+        and(
+          inArray(notifications.userId, userIds),
+          eq(notifications.status, 'unread'),
+        ),
+      )
       .groupBy(notifications.userId),
   ]);
 
@@ -209,7 +220,10 @@ function mapNotificationFeedItem(item: {
   };
 }
 
-export async function getNotificationPreviewUseCase(userId: string, limit = 3): Promise<NotificationPreview> {
+export async function getNotificationPreviewUseCase(
+  userId: string,
+  limit = 3,
+): Promise<NotificationPreview> {
   const [items, unreadCountResult] = await Promise.all([
     getDb().query.notifications.findMany({
       where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
@@ -219,7 +233,12 @@ export async function getNotificationPreviewUseCase(userId: string, limit = 3): 
     getDb()
       .select({ value: count() })
       .from(notifications)
-      .where(and(eq(notifications.userId, userId), eq(notifications.status, 'unread'))),
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          eq(notifications.status, 'unread'),
+        ),
+      ),
   ]);
 
   return {
@@ -228,7 +247,9 @@ export async function getNotificationPreviewUseCase(userId: string, limit = 3): 
   };
 }
 
-export async function getNotificationsPageDataUseCase(userId: string): Promise<NotificationsPageData> {
+export async function getNotificationsPageDataUseCase(
+  userId: string,
+): Promise<NotificationsPageData> {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
@@ -237,7 +258,12 @@ export async function getNotificationsPageDataUseCase(userId: string): Promise<N
     getDb()
       .select({ value: count() })
       .from(notifications)
-      .where(and(eq(notifications.userId, userId), gte(notifications.createdAt, startOfToday))),
+      .where(
+        and(
+          eq(notifications.userId, userId),
+          gte(notifications.createdAt, startOfToday),
+        ),
+      ),
   ]);
 
   return {
@@ -253,7 +279,9 @@ export async function markAllNotificationsReadUseCase(userId: string) {
       status: 'read',
       readAt: new Date(),
     })
-    .where(and(eq(notifications.userId, userId), eq(notifications.status, 'unread')));
+    .where(
+      and(eq(notifications.userId, userId), eq(notifications.status, 'unread')),
+    );
 
   return success({ updated: true });
 }
@@ -268,7 +296,13 @@ export async function markNotificationReadUseCase(
       status: 'read',
       readAt: new Date(),
     })
-    .where(and(eq(notifications.id, notificationId), eq(notifications.userId, userId), eq(notifications.status, 'unread')))
+    .where(
+      and(
+        eq(notifications.id, notificationId),
+        eq(notifications.userId, userId),
+        eq(notifications.status, 'unread'),
+      ),
+    )
     .returning({ id: notifications.id });
 
   if (updatedNotifications.length > 0) {
@@ -277,7 +311,10 @@ export async function markNotificationReadUseCase(
 
   const existingNotification = await getDb().query.notifications.findFirst({
     where: (table, { and: innerAnd, eq: innerEq }) =>
-      innerAnd(innerEq(table.id, notificationId), innerEq(table.userId, userId)),
+      innerAnd(
+        innerEq(table.id, notificationId),
+        innerEq(table.userId, userId),
+      ),
     columns: {
       id: true,
     },
@@ -299,8 +336,14 @@ export async function getAdminUsersPageDataUseCase(): Promise<AdminUsersPageData
       .select({ value: count() })
       .from(users)
       .where(inArray(users.role, ['ADMIN', 'SUPERADMIN'])),
-    getDb().select({ value: count() }).from(users).where(eq(users.role, 'MANAGER')),
-    getDb().select({ value: count() }).from(users).where(eq(users.role, 'USER')),
+    getDb()
+      .select({ value: count() })
+      .from(users)
+      .where(eq(users.role, 'MANAGER')),
+    getDb()
+      .select({ value: count() })
+      .from(users)
+      .where(eq(users.role, 'USER')),
   ]);
 
   return {
@@ -312,9 +355,14 @@ export async function getAdminUsersPageDataUseCase(): Promise<AdminUsersPageData
   };
 }
 
-export async function searchAdminUsersUseCase(query: string, limit = 12): Promise<AdminUserSearchResult[]> {
+export async function searchAdminUsersUseCase(
+  query: string,
+  limit = 12,
+): Promise<AdminUserSearchResult[]> {
   const trimmedQuery = query.trim();
-  const normalizedQuery = trimmedQuery.startsWith('@') ? trimmedQuery.slice(1).trim() : trimmedQuery;
+  const normalizedQuery = trimmedQuery.startsWith('@')
+    ? trimmedQuery.slice(1).trim()
+    : trimmedQuery;
   const resultLimit = Math.min(Math.max(Math.trunc(limit), 1), 25);
 
   if (normalizedQuery.length < 2) {
@@ -356,7 +404,10 @@ export async function searchAdminUsersUseCase(query: string, limit = 12): Promis
 
   const rows = userRecords
     .map<AdminUserListItem>((user) => {
-      const counts = notificationCountMap.get(user.id) ?? { total: 0, unread: 0 };
+      const counts = notificationCountMap.get(user.id) ?? {
+        total: 0,
+        unread: 0,
+      };
 
       return {
         id: user.id,
@@ -371,47 +422,73 @@ export async function searchAdminUsersUseCase(query: string, limit = 12): Promis
       };
     })
     .sort((left, right) => {
-      const leftActivity = left.lastActivityAt ? new Date(left.lastActivityAt).getTime() : 0;
-      const rightActivity = right.lastActivityAt ? new Date(right.lastActivityAt).getTime() : 0;
-      return rightActivity - leftActivity || left.displayName.localeCompare(right.displayName);
+      const leftActivity = left.lastActivityAt
+        ? new Date(left.lastActivityAt).getTime()
+        : 0;
+      const rightActivity = right.lastActivityAt
+        ? new Date(right.lastActivityAt).getTime()
+        : 0;
+      return (
+        rightActivity - leftActivity ||
+        left.displayName.localeCompare(right.displayName)
+      );
     });
 
   return rows;
 }
 
-export async function getAdminUserDetailUseCase(userId: string): Promise<AdminUserDetail | null> {
-  const [user, profile, followerCountResult, visitCountResult, lastActivityResult, notificationCounts, recentActivity, recentNotifications] =
-    await Promise.all([
-      getDb().query.users.findFirst({
-        where: (table, { eq: innerEq }) => innerEq(table.id, userId),
-      }),
-      getDb().query.profiles.findFirst({
-        where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
-      }),
-      getDb().select({ value: count() }).from(userFollows).where(eq(userFollows.followingId, userId)),
-      getDb().select({ value: count() }).from(pageVisits).where(eq(pageVisits.userId, userId)),
-      getDb()
-        .select({ value: sql<Date>`max(${pageVisits.visitedAt})` })
-        .from(pageVisits)
-        .where(eq(pageVisits.userId, userId)),
-      getNotificationCountMap([userId]),
-      getDb().query.pageVisits.findMany({
-        where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
-        orderBy: (table, { desc: innerDesc }) => [innerDesc(table.visitedAt)],
-        limit: 6,
-      }),
-      getDb().query.notifications.findMany({
-        where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
-        orderBy: (table, { desc: innerDesc }) => [innerDesc(table.createdAt)],
-        limit: 8,
-      }),
-    ]);
+export async function getAdminUserDetailUseCase(
+  userId: string,
+): Promise<AdminUserDetail | null> {
+  const [
+    user,
+    profile,
+    followerCountResult,
+    visitCountResult,
+    lastActivityResult,
+    notificationCounts,
+    recentActivity,
+    recentNotifications,
+  ] = await Promise.all([
+    getDb().query.users.findFirst({
+      where: (table, { eq: innerEq }) => innerEq(table.id, userId),
+    }),
+    getDb().query.profiles.findFirst({
+      where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
+    }),
+    getDb()
+      .select({ value: count() })
+      .from(userFollows)
+      .where(eq(userFollows.followingId, userId)),
+    getDb()
+      .select({ value: count() })
+      .from(pageVisits)
+      .where(eq(pageVisits.userId, userId)),
+    getDb()
+      .select({ value: sql<Date>`max(${pageVisits.visitedAt})` })
+      .from(pageVisits)
+      .where(eq(pageVisits.userId, userId)),
+    getNotificationCountMap([userId]),
+    getDb().query.pageVisits.findMany({
+      where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
+      orderBy: (table, { desc: innerDesc }) => [innerDesc(table.visitedAt)],
+      limit: 6,
+    }),
+    getDb().query.notifications.findMany({
+      where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
+      orderBy: (table, { desc: innerDesc }) => [innerDesc(table.createdAt)],
+      limit: 8,
+    }),
+  ]);
 
   if (!user) {
     return null;
   }
 
-  const notificationSummary = notificationCounts.get(userId) ?? { total: 0, unread: 0 };
+  const notificationSummary = notificationCounts.get(userId) ?? {
+    total: 0,
+    unread: 0,
+  };
 
   return {
     id: user.id,
@@ -442,7 +519,9 @@ export async function getAdminUserDetailUseCase(userId: string): Promise<AdminUs
   };
 }
 
-async function resolveTargetUserIds(input: SendAdminNotificationInput): Promise<string[]> {
+async function resolveTargetUserIds(
+  input: SendAdminNotificationInput,
+): Promise<string[]> {
   if (input.audience === 'user') {
     if (!input.targetUserId) {
       return [];
@@ -477,7 +556,9 @@ async function resolveTargetUserIds(input: SendAdminNotificationInput): Promise<
   return allRecipients.map((user) => user.id);
 }
 
-function validateNotificationInput(input: SendAdminNotificationInput): NotificationError | null {
+function validateNotificationInput(
+  input: SendAdminNotificationInput,
+): NotificationError | null {
   const title = input.title.trim();
   const body = input.body.trim();
   const href = input.href?.trim();
@@ -510,7 +591,10 @@ function validateNotificationInput(input: SendAdminNotificationInput): Notificat
     };
   }
 
-  if (input.audience === 'role' && (!input.targetRole || input.targetRole === 'ALL')) {
+  if (
+    input.audience === 'role' &&
+    (!input.targetRole || input.targetRole === 'ALL')
+  ) {
     return {
       code: 'VALIDATION_ERROR',
       message: 'Choose a role group to notify.',
@@ -544,21 +628,27 @@ export async function sendAdminNotificationUseCase(
   const body = input.body.trim();
   const href = input.href?.trim() || null;
   const audienceValue =
-    input.audience === 'user' ? input.targetUserId ?? null : input.audience === 'role' ? input.targetRole ?? null : 'ALL';
+    input.audience === 'user'
+      ? (input.targetUserId ?? null)
+      : input.audience === 'role'
+        ? (input.targetRole ?? null)
+        : 'ALL';
 
-  await getDb().insert(notifications).values(
-    targetUserIds.map((userId) => ({
-      id: crypto.randomUUID(),
-      userId,
-      actorId: actorUserId,
-      title,
-      body,
-      href,
-      audience: input.audience,
-      audienceValue,
-      createdAt: now,
-    })),
-  );
+  await getDb()
+    .insert(notifications)
+    .values(
+      targetUserIds.map((userId) => ({
+        id: crypto.randomUUID(),
+        userId,
+        actorId: actorUserId,
+        title,
+        body,
+        href,
+        audience: input.audience,
+        audienceValue,
+        createdAt: now,
+      })),
+    );
 
   return success({
     recipientCount: targetUserIds.length,

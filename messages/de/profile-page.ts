@@ -1,10 +1,12 @@
 export const profilePage = {
   title: 'Profil',
-  description: 'Verwalte deinen Anzeigenamen, deinen öffentlichen Tag und dein Profilbild.',
+  description: 'Sieh dein Profil so, wie andere Personen es sehen.',
   view: {
     title: 'Profil',
     description: 'Sieh dir dieses Profil an und folge der Person bei Bedarf.',
     followers: 'Follower',
+    followingCount: 'Folgt',
+    friends: 'Freunde',
     follow: 'Folgen',
     unfollow: 'Nicht mehr folgen',
     following: 'Wird gefolgt…',
@@ -13,9 +15,11 @@ export const profilePage = {
     unblock: 'Entblockieren',
     blocking: 'Wird blockiert…',
     unblocking: 'Wird entblockiert…',
-    blockedDescription: 'Du hast dieses Profil blockiert. Diese Person kann dir nicht mehr folgen oder in deiner Suche erscheinen.',
+    blockedDescription:
+      'Du hast dieses Profil blockiert. Diese Person kann dir nicht mehr folgen oder in deiner Suche erscheinen.',
     editProfile: 'Profil bearbeiten',
-    error: 'Diese Benutzerbeziehung konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+    error:
+      'Diese Benutzerbeziehung konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
   },
   followersPage: {
     title: 'Follower',
@@ -24,7 +28,8 @@ export const profilePage = {
     summary: '{visibleCount} von {totalCount} Followern werden angezeigt.',
     hiddenSummary: '{count} Follower sind durch Sichtbarkeitsrechte verborgen.',
     empty: 'Dieses Profil hat noch keine Follower.',
-    hiddenEmpty: 'Es gibt Follower, aber ihre Sichtbarkeitsrollen erlauben hier keine Anzeige.',
+    hiddenEmpty:
+      'Es gibt Follower, aber ihre Sichtbarkeitsrollen erlauben hier keine Anzeige.',
     roles: {
       PUBLIC: 'Öffentlich',
       MEMBERS: 'Mitglieder',
@@ -48,19 +53,5 @@ export const profilePage = {
       success: 'Öffentlicher Tag aktualisiert.',
       viewProfile: 'Öffentliches Profil ansehen',
     },
-    chooseImage: 'Profilbild auswählen',
-    hint: 'Verwende für beste Ergebnisse ein quadratisches PNG- oder JPEG-Bild.',
-    upload: 'Bild hochladen',
-    uploading: 'Wird hochgeladen…',
-    remove: 'Bild entfernen',
-    success: 'Profilbild aktualisiert.',
-    empty: 'Kein Bild',
-    alt: 'Profilbild',
-    cropTitle: 'Bild zuschneiden',
-    cropDescription: 'Verschiebe das Bild und passe den Zoom an, bevor du es hochlädst.',
-    cropZoom: 'Zoom',
-    cropCancel: 'Zuschneiden abbrechen',
-    cropApply: 'Ausschnitt verwenden',
-    ready: 'Zugeschnittenes Bild bereit zum Hochladen.',
   },
 };

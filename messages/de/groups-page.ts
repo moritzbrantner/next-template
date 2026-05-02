@@ -1,6 +1,7 @@
 export const groupsPage = {
   title: 'Gruppen',
-  description: 'Erstelle gemeinsame Gruppen, lade Personen ein und lege fest, wer Gruppen verwalten kann.',
+  description:
+    'Erstelle gemeinsame Gruppen, lade Personen ein und lege fest, wer Gruppen verwalten kann.',
   roles: {
     OWNER: 'Owner',
     ADMIN: 'Admin',
@@ -8,7 +9,8 @@ export const groupsPage = {
   },
   create: {
     title: 'Gruppe erstellen',
-    description: 'Owner koennen nach dem Erstellen Mitglieder einladen und Admins ernennen.',
+    description:
+      'Owner koennen nach dem Erstellen Mitglieder einladen und Admins ernennen.',
     nameLabel: 'Gruppenname',
     namePlaceholder: 'Gruppenname',
     descriptionLabel: 'Gruppenbeschreibung',
@@ -36,7 +38,8 @@ export const groupsPage = {
     back: 'Zurueck zu Gruppen',
     meta: '{members} Mitglieder, {invitations} offene Einladungen',
     inviteTitle: 'Mitglieder einladen',
-    inviteDescription: 'Suche auffindbare Benutzer und sende ihnen eine Einladung zu dieser Gruppe.',
+    inviteDescription:
+      'Suche auffindbare Benutzer und sende ihnen eine Einladung zu dieser Gruppe.',
     searchPlaceholder: 'Personen suchen',
     searching: 'Suche laeuft...',
     noCandidates: 'Keine verfuegbaren Benutzer passen zu deiner Suche.',
@@ -53,10 +56,15 @@ export const groupsPage = {
     leave: 'Verlassen',
   },
   errors: {
-    create: 'Die Gruppe konnte gerade nicht erstellt werden. Bitte versuche es erneut.',
-    invitation: 'Die Einladung konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
-    search: 'Einladungskandidaten konnten gerade nicht gesucht werden. Bitte versuche es erneut.',
-    invite: 'Dieser Benutzer konnte gerade nicht eingeladen werden. Bitte versuche es erneut.',
-    member: 'Dieses Mitglied konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+    create:
+      'Die Gruppe konnte gerade nicht erstellt werden. Bitte versuche es erneut.',
+    invitation:
+      'Die Einladung konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+    search:
+      'Einladungskandidaten konnten gerade nicht gesucht werden. Bitte versuche es erneut.',
+    invite:
+      'Dieser Benutzer konnte gerade nicht eingeladen werden. Bitte versuche es erneut.',
+    member:
+      'Dieses Mitglied konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
   },
 };

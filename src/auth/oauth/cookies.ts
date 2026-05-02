@@ -82,7 +82,12 @@ export function validateOAuthCallbackState(input: {
   context: OAuthFlowContext | null;
   now?: number;
 }) {
-  if (!input.queryState || !input.storedState || !input.codeVerifier || !input.context) {
+  if (
+    !input.queryState ||
+    !input.storedState ||
+    !input.codeVerifier ||
+    !input.context
+  ) {
     return { ok: false as const, error: 'invalid_state' as const };
   }
 
@@ -146,10 +151,14 @@ export async function readOAuthCallbackCookies() {
   const cookieStore = await getCookieStore();
 
   return {
-    state: parseJson<StoredOAuthState>(cookieStore.get(OAUTH_STATE_COOKIE)?.value),
+    state: parseJson<StoredOAuthState>(
+      cookieStore.get(OAUTH_STATE_COOKIE)?.value,
+    ),
     codeVerifier: cookieStore.get(OAUTH_CODE_VERIFIER_COOKIE)?.value ?? null,
     provider: cookieStore.get(OAUTH_PROVIDER_COOKIE)?.value ?? null,
-    context: parseJson<OAuthFlowContext>(cookieStore.get(OAUTH_CONTEXT_COOKIE)?.value),
+    context: parseJson<OAuthFlowContext>(
+      cookieStore.get(OAUTH_CONTEXT_COOKIE)?.value,
+    ),
   };
 }
 

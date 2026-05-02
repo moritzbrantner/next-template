@@ -23,7 +23,10 @@ export function resolveEnabledPublicRoute(
     return null;
   }
 
-  if (resolvedRoute.page.featureKey && !isFeatureEnabled(resolvedRoute.page.featureKey, manifest)) {
+  if (
+    resolvedRoute.page.featureKey &&
+    !isFeatureEnabled(resolvedRoute.page.featureKey, manifest)
+  ) {
     return null;
   }
 

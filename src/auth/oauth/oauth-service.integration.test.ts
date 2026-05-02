@@ -31,7 +31,9 @@ describe('oauth service', () => {
       resolveSocialAccount: vi.fn(),
     }));
     vi.doMock('@/src/auth/oauth/cookies', async () => {
-      const actual = await vi.importActual<typeof import('@/src/auth/oauth/cookies')>('@/src/auth/oauth/cookies');
+      const actual = await vi.importActual<
+        typeof import('@/src/auth/oauth/cookies')
+      >('@/src/auth/oauth/cookies');
       return {
         ...actual,
         clearOAuthFlowCookies,
@@ -48,7 +50,12 @@ describe('oauth service', () => {
     });
 
     const { completeOAuthFlow } = await import('@/src/auth/oauth/service');
-    const response = await completeOAuthFlow('google', new Request('http://localhost/api/auth/oauth/google/callback?error=access_denied'));
+    const response = await completeOAuthFlow(
+      'google',
+      new Request(
+        'http://localhost/api/auth/oauth/google/callback?error=access_denied',
+      ),
+    );
 
     expect(response.status).toBe(302);
     expect(response.headers.get('location')).toBe(
@@ -79,7 +86,9 @@ describe('oauth service', () => {
       resolveSocialAccount: vi.fn(),
     }));
     vi.doMock('@/src/auth/oauth/cookies', async () => {
-      const actual = await vi.importActual<typeof import('@/src/auth/oauth/cookies')>('@/src/auth/oauth/cookies');
+      const actual = await vi.importActual<
+        typeof import('@/src/auth/oauth/cookies')
+      >('@/src/auth/oauth/cookies');
       return {
         ...actual,
         clearOAuthFlowCookies: vi.fn().mockResolvedValue(undefined),
@@ -99,7 +108,12 @@ describe('oauth service', () => {
     });
 
     const { completeOAuthFlow } = await import('@/src/auth/oauth/service');
-    const response = await completeOAuthFlow('google', new Request('http://localhost/api/auth/oauth/google/callback?state=wrong-state&code=abc'));
+    const response = await completeOAuthFlow(
+      'google',
+      new Request(
+        'http://localhost/api/auth/oauth/google/callback?state=wrong-state&code=abc',
+      ),
+    );
 
     expect(response.status).toBe(302);
     expect(response.headers.get('location')).toBe(
@@ -109,7 +123,9 @@ describe('oauth service', () => {
   });
 
   it('redirects token exchange failures back to the login page', async () => {
-    const exchangeCode = vi.fn().mockRejectedValue(new Error('Google token exchange failed.'));
+    const exchangeCode = vi
+      .fn()
+      .mockRejectedValue(new Error('Google token exchange failed.'));
 
     vi.doMock('@/src/auth.server', () => ({
       signInSession: vi.fn(),
@@ -131,7 +147,9 @@ describe('oauth service', () => {
       resolveSocialAccount: vi.fn(),
     }));
     vi.doMock('@/src/auth/oauth/cookies', async () => {
-      const actual = await vi.importActual<typeof import('@/src/auth/oauth/cookies')>('@/src/auth/oauth/cookies');
+      const actual = await vi.importActual<
+        typeof import('@/src/auth/oauth/cookies')
+      >('@/src/auth/oauth/cookies');
       return {
         ...actual,
         clearOAuthFlowCookies: vi.fn().mockResolvedValue(undefined),
@@ -151,7 +169,12 @@ describe('oauth service', () => {
     });
 
     const { completeOAuthFlow } = await import('@/src/auth/oauth/service');
-    const response = await completeOAuthFlow('google', new Request('http://localhost/api/auth/oauth/google/callback?state=expected-state&code=abc'));
+    const response = await completeOAuthFlow(
+      'google',
+      new Request(
+        'http://localhost/api/auth/oauth/google/callback?state=expected-state&code=abc',
+      ),
+    );
 
     expect(response.headers.get('location')).toBe(
       'http://localhost:3000/en/login?oauthProvider=google&oauthError=token_exchange_failed',
@@ -205,7 +228,9 @@ describe('oauth service', () => {
       }),
     }));
     vi.doMock('@/src/auth/oauth/cookies', async () => {
-      const actual = await vi.importActual<typeof import('@/src/auth/oauth/cookies')>('@/src/auth/oauth/cookies');
+      const actual = await vi.importActual<
+        typeof import('@/src/auth/oauth/cookies')
+      >('@/src/auth/oauth/cookies');
       return {
         ...actual,
         clearOAuthFlowCookies: vi.fn().mockResolvedValue(undefined),
@@ -225,7 +250,12 @@ describe('oauth service', () => {
     });
 
     const { completeOAuthFlow } = await import('@/src/auth/oauth/service');
-    const response = await completeOAuthFlow('google', new Request('http://localhost/api/auth/oauth/google/callback?state=expected-state&code=abc'));
+    const response = await completeOAuthFlow(
+      'google',
+      new Request(
+        'http://localhost/api/auth/oauth/google/callback?state=expected-state&code=abc',
+      ),
+    );
 
     expect(signInSession).toHaveBeenCalledWith({
       id: 'user_1',
@@ -235,6 +265,8 @@ describe('oauth service', () => {
       image: null,
       role: 'USER',
     });
-    expect(response.headers.get('location')).toBe('http://localhost:3000/de/profile');
+    expect(response.headers.get('location')).toBe(
+      'http://localhost:3000/de/profile',
+    );
   });
 });

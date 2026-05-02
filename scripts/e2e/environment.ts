@@ -2,7 +2,10 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { getComposeDatabaseUrl, getComposePostgresPort } from '@/src/testing/environment';
+import {
+  getComposeDatabaseUrl,
+  getComposePostgresPort,
+} from '@/src/testing/environment';
 
 const DEFAULT_E2E_BASE_URL = 'http://127.0.0.1:3006';
 const DEFAULT_MAILPIT_BASE_URL = 'http://127.0.0.1:8025';
@@ -13,7 +16,10 @@ const DEFAULT_MINIO_ROOT_USER = 'minioadmin';
 const DEFAULT_MINIO_ROOT_PASSWORD = 'minioadmin';
 const DEFAULT_PROFILE_IMAGE_STORAGE_BUCKET = 'profile-images';
 const DEFAULT_PROFILE_IMAGE_STORAGE_REGION = 'us-east-1';
-const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const APP_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../..',
+);
 
 let cachedExampleEnvironment: Record<string, string> | null = null;
 let cachedE2EExampleEnvironment: Record<string, string> | null = null;
@@ -28,7 +34,9 @@ function parseEnvFile(contents: string) {
       continue;
     }
 
-    const match = trimmedLine.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/u);
+    const match = trimmedLine.match(
+      /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/u,
+    );
 
     if (!match) {
       continue;
@@ -38,8 +46,8 @@ function parseEnvFile(contents: string) {
     let value = rawValue.trim();
 
     if (
-      (value.startsWith('"') && value.endsWith('"'))
-      || (value.startsWith("'") && value.endsWith("'"))
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
     ) {
       value = value.slice(1, -1);
     } else {
@@ -53,7 +61,10 @@ function parseEnvFile(contents: string) {
 }
 
 function loadExampleEnvironment(filename: '.env.example' | '.env.e2e.example') {
-  const cache = filename === '.env.example' ? cachedExampleEnvironment : cachedE2EExampleEnvironment;
+  const cache =
+    filename === '.env.example'
+      ? cachedExampleEnvironment
+      : cachedE2EExampleEnvironment;
 
   if (cache) {
     return cache;
@@ -85,7 +96,12 @@ function getE2EEnvironmentValue(
   exampleEnvironment: Record<string, string>,
   fallback?: string,
 ) {
-  return process.env[key] ?? e2eExampleEnvironment[key] ?? exampleEnvironment[key] ?? fallback;
+  return (
+    process.env[key] ??
+    e2eExampleEnvironment[key] ??
+    exampleEnvironment[key] ??
+    fallback
+  );
 }
 
 export function getE2EBaseURL() {
@@ -152,7 +168,10 @@ export function createE2EEnvironment(baseURL = getE2EBaseURL()) {
       exampleEnvironment,
       DEFAULT_MAILPIT_BASE_URL,
     ),
-    INTERNAL_CRON_SECRET: getEnvironmentValue('INTERNAL_CRON_SECRET', exampleEnvironment),
+    INTERNAL_CRON_SECRET: getEnvironmentValue(
+      'INTERNAL_CRON_SECRET',
+      exampleEnvironment,
+    ),
     POSTGRES_PORT: process.env.POSTGRES_PORT ?? getComposePostgresPort(),
     MINIO_API_PORT: minioApiPort,
     MINIO_CONSOLE_PORT: getE2EEnvironmentValue(

@@ -3,7 +3,11 @@ import { notFound } from 'next/navigation';
 import { GroupsClient } from '@/components/groups/groups-client';
 import { getGroupsPageDataUseCase } from '@/src/domain/groups/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { notFoundUnlessFeatureEnabledForUser, requireAuth, resolveLocale } from '@/src/server/page-guards';
+import {
+  notFoundUnlessFeatureEnabledForUser,
+  requireAuth,
+  resolveLocale,
+} from '@/src/server/page-guards';
 
 export default async function GroupsPage({
   params,
@@ -25,10 +29,15 @@ export default async function GroupsPage({
     <section className="mx-auto max-w-6xl space-y-6">
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">{t('description')}</p>
+        <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">
+          {t('description')}
+        </p>
       </header>
 
-      <GroupsClient initialGroups={result.data.groups} initialInvitations={result.data.invitations} />
+      <GroupsClient
+        initialGroups={result.data.groups}
+        initialInvitations={result.data.invitations}
+      />
     </section>
   );
 }

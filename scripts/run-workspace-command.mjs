@@ -14,7 +14,10 @@ const packageJson = JSON.parse(
 );
 const packagesRoot = path.join(process.cwd(), 'packages');
 const workspaces = (packageJson.workspaces ?? [])
-  .filter((workspace) => typeof workspace === 'string' && workspace.startsWith('packages/'))
+  .filter(
+    (workspace) =>
+      typeof workspace === 'string' && workspace.startsWith('packages/'),
+  )
   .map((workspace) => workspace.replace(/^packages\//, ''))
   .sort();
 

@@ -1,10 +1,12 @@
 export const profilePage = {
   title: 'Profile',
-  description: 'Manage your display name, public tag, and profile picture.',
+  description: 'View your profile as other people see it.',
   view: {
     title: 'Profile',
     description: 'View this user and keep up with their activity.',
     followers: 'followers',
+    followingCount: 'following',
+    friends: 'friends',
     follow: 'Follow',
     unfollow: 'Unfollow',
     following: 'Following…',
@@ -13,9 +15,11 @@ export const profilePage = {
     unblock: 'Unblock',
     blocking: 'Blocking…',
     unblocking: 'Unblocking…',
-    blockedDescription: 'You blocked this user. They can no longer follow you or appear in your directory.',
+    blockedDescription:
+      'You blocked this user. They can no longer follow you or appear in your directory.',
     editProfile: 'Edit profile',
-    error: 'Unable to update this user relationship right now. Please try again.',
+    error:
+      'Unable to update this user relationship right now. Please try again.',
   },
   followersPage: {
     title: 'Followers',
@@ -24,7 +28,8 @@ export const profilePage = {
     summary: 'Showing {visibleCount} of {totalCount} followers.',
     hiddenSummary: '{count} followers are hidden by visibility permissions.',
     empty: 'No one is following this profile yet.',
-    hiddenEmpty: 'Followers exist, but their visibility roles do not allow them to appear here.',
+    hiddenEmpty:
+      'Followers exist, but their visibility roles do not allow them to appear here.',
     roles: {
       PUBLIC: 'Public',
       MEMBERS: 'Members',
@@ -48,19 +53,5 @@ export const profilePage = {
       success: 'Public tag updated.',
       viewProfile: 'View public profile',
     },
-    chooseImage: 'Choose a profile picture',
-    hint: 'Use a square PNG or JPEG image for best results.',
-    upload: 'Upload picture',
-    uploading: 'Uploading…',
-    remove: 'Remove picture',
-    success: 'Profile picture updated.',
-    empty: 'No image',
-    alt: 'Profile picture',
-    cropTitle: 'Crop your picture',
-    cropDescription: 'Drag to reposition and use zoom to fit your avatar before upload.',
-    cropZoom: 'Zoom',
-    cropCancel: 'Cancel crop',
-    cropApply: 'Use crop',
-    ready: 'Cropped image ready to upload.',
   },
 };

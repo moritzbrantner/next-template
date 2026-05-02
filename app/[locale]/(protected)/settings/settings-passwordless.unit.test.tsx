@@ -93,10 +93,36 @@ describe('passwordless settings state', () => {
       />,
     );
 
-    expect(screen.getAllByText('account.passwordlessNotice').length).toBeGreaterThan(0);
-    expect((screen.getByLabelText('account.email.currentPassword') as HTMLInputElement).disabled).toBe(true);
-    expect((screen.getByRole('button', { name: 'account.email.save' }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByLabelText('account.deletion.currentPassword') as HTMLInputElement).disabled).toBe(true);
-    expect((screen.getByRole('button', { name: 'account.deletion.remove' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      screen.getAllByText('account.passwordlessNotice').length,
+    ).toBeGreaterThan(0);
+    expect(
+      (
+        screen.getByLabelText(
+          'account.email.currentPassword',
+        ) as HTMLInputElement
+      ).disabled,
+    ).toBe(true);
+    expect(
+      (
+        screen.getByRole('button', {
+          name: 'account.email.save',
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    expect(
+      (
+        screen.getByLabelText(
+          'account.deletion.currentPassword',
+        ) as HTMLInputElement
+      ).disabled,
+    ).toBe(true);
+    expect(
+      (
+        screen.getByRole('button', {
+          name: 'account.deletion.remove',
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
   });
 });

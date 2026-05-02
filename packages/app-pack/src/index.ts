@@ -67,7 +67,13 @@ export type AppFeatureConfig = Partial<Record<FoundationFeatureKey, boolean>>;
 
 export type AppContentRoots = Record<ContentCollection, readonly string[]>;
 
-export type AppMessageValue = string | number | boolean | null | undefined | AppMessageTree;
+export type AppMessageValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | AppMessageTree;
 
 export type AppMessageTree = {
   [key: string]: AppMessageValue;
@@ -89,9 +95,17 @@ export type PublicPageRedirectResult = {
   href: string;
 };
 
-export function isPublicPageRedirectResult(value: unknown): value is PublicPageRedirectResult {
-  return typeof value === 'object' && value !== null && 'kind' in value && 'href' in value
-    && value.kind === 'redirect' && typeof value.href === 'string';
+export function isPublicPageRedirectResult(
+  value: unknown,
+): value is PublicPageRedirectResult {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'kind' in value &&
+    'href' in value &&
+    value.kind === 'redirect' &&
+    typeof value.href === 'string'
+  );
 }
 
 export type PublicPageDefinition = {
@@ -101,8 +115,15 @@ export type PublicPageDefinition = {
   featureKey?: FoundationFeatureKey;
   namespace: string;
   aliases?: string[];
-  render: (props: PublicPageRenderProps) => ReactNode | PublicPageRedirectResult | Promise<ReactNode | PublicPageRedirectResult>;
-  generateMetadata?: (props: PublicPageRenderProps) => Metadata | Promise<Metadata>;
+  render: (
+    props: PublicPageRenderProps,
+  ) =>
+    | ReactNode
+    | PublicPageRedirectResult
+    | Promise<ReactNode | PublicPageRedirectResult>;
+  generateMetadata?: (
+    props: PublicPageRenderProps,
+  ) => Metadata | Promise<Metadata>;
 };
 
 export type PublicNavigationItem = {
@@ -113,7 +134,12 @@ export type PublicNavigationItem = {
   order: number;
 };
 
-export type AppExampleApiRouteModule = Partial<Record<'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', (request: Request) => Response | Promise<Response>>>;
+export type AppExampleApiRouteModule = Partial<
+  Record<
+    'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+    (request: Request) => Response | Promise<Response>
+  >
+>;
 
 export type AppExampleApiDefinition = {
   featureKey?: FoundationFeatureKey;
@@ -134,15 +160,23 @@ export type AppManifest = {
   publicNavigation: readonly PublicNavigationItem[];
   contentRoots: AppContentRoots;
   loadMessages: AppMessageCatalogLoader;
-  resolveOgImage?: (locale: AppLocale, pageId: string) => string | null | undefined;
+  resolveOgImage?: (
+    locale: AppLocale,
+    pageId: string,
+  ) => string | null | undefined;
   exampleApis: AppExampleApiRegistry;
 };
 
-export function isFeatureEnabled(featureKey: FoundationFeatureKey, manifest: AppManifest) {
+export function isFeatureEnabled(
+  featureKey: FoundationFeatureKey,
+  manifest: AppManifest,
+) {
   return manifest.enabledFeatures[featureKey] === true;
 }
 
-function normalizeSlugValue(slug: readonly string[] | string | undefined | null) {
+function normalizeSlugValue(
+  slug: readonly string[] | string | undefined | null,
+) {
   if (!slug) {
     return '';
   }
@@ -191,7 +225,10 @@ export function resolveEnabledPublicRoute(
     return null;
   }
 
-  if (resolvedRoute.page.featureKey && !isFeatureEnabled(resolvedRoute.page.featureKey, manifest)) {
+  if (
+    resolvedRoute.page.featureKey &&
+    !isFeatureEnabled(resolvedRoute.page.featureKey, manifest)
+  ) {
     return null;
   }
 
@@ -206,7 +243,10 @@ function slugToSegments(slug: string) {
   return slug.split('/').filter(Boolean);
 }
 
-export function generatePublicRouteParams(locales: readonly AppLocale[], manifest: AppManifest) {
+export function generatePublicRouteParams(
+  locales: readonly AppLocale[],
+  manifest: AppManifest,
+) {
   return locales.flatMap((locale) =>
     manifest.publicPages.flatMap((page) =>
       listRouteSlugs(page).map((slug) => ({
@@ -218,7 +258,9 @@ export function generatePublicRouteParams(locales: readonly AppLocale[], manifes
 }
 
 export function getPublicPageNamespaces(manifest: AppManifest) {
-  return Array.from(new Set(manifest.publicPages.map((page) => page.namespace)));
+  return Array.from(
+    new Set(manifest.publicPages.map((page) => page.namespace)),
+  );
 }
 
 export function withLocalePath(pathname: string, locale: AppLocale): string {
@@ -227,13 +269,16 @@ export function withLocalePath(pathname: string, locale: AppLocale): string {
   }
 
   const [path, suffix = ''] = pathname.split(/(?=[?#])/);
-  const normalizedPath = path === `/${locale}`
-    ? '/'
-    : path.startsWith(`/${locale}/`)
-      ? path.slice(locale.length + 1)
-      : path;
+  const normalizedPath =
+    path === `/${locale}`
+      ? '/'
+      : path.startsWith(`/${locale}/`)
+        ? path.slice(locale.length + 1)
+        : path;
 
-  return normalizedPath === '/' ? `/${locale}${suffix}` : `/${locale}${normalizedPath}${suffix}`;
+  return normalizedPath === '/'
+    ? `/${locale}${suffix}`
+    : `/${locale}${normalizedPath}${suffix}`;
 }
 
 export const isGithubPagesBuild = process.env.NEXT_DEPLOY_TARGET === 'gh-pages';

@@ -1,4 +1,7 @@
-import { beginOAuthFlow, resolveOAuthFlowContext } from '@/src/auth/oauth/service';
+import {
+  beginOAuthFlow,
+  resolveOAuthFlowContext,
+} from '@/src/auth/oauth/service';
 import { isAuthProvider } from '@/src/auth/oauth/providers';
 
 export async function GET(

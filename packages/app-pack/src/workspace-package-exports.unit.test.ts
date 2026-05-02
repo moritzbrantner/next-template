@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { foundationFeatureKeys, resolvePublicRoute, withLocalePath, type AppManifest } from '@moritzbrantner/app-pack';
+import {
+  foundationFeatureKeys,
+  resolvePublicRoute,
+  withLocalePath,
+  type AppManifest,
+} from '@moritzbrantner/app-pack';
 import { StaticRedirectPage } from '@moritzbrantner/app-pack-react';
 import { Card, buttonVariants } from '@moritzbrantner/ui';
 

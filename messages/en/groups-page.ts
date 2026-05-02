@@ -1,6 +1,7 @@
 export const groupsPage = {
   title: 'Groups',
-  description: 'Create shared groups, invite people, and decide who can administer each group.',
+  description:
+    'Create shared groups, invite people, and decide who can administer each group.',
   roles: {
     OWNER: 'Owner',
     ADMIN: 'Admin',
@@ -8,7 +9,8 @@ export const groupsPage = {
   },
   create: {
     title: 'Create group',
-    description: 'Owners can invite members and promote admins after the group is created.',
+    description:
+      'Owners can invite members and promote admins after the group is created.',
     nameLabel: 'Group name',
     namePlaceholder: 'Group name',
     descriptionLabel: 'Group description',
@@ -36,7 +38,8 @@ export const groupsPage = {
     back: 'Back to groups',
     meta: '{members} members, {invitations} pending invitations',
     inviteTitle: 'Invite members',
-    inviteDescription: 'Search discoverable users and send them an invitation to join this group.',
+    inviteDescription:
+      'Search discoverable users and send them an invitation to join this group.',
     searchPlaceholder: 'Search people',
     searching: 'Searching...',
     noCandidates: 'No available users matched your search.',

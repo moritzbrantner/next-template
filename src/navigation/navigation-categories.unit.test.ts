@@ -48,14 +48,14 @@ describe('navigation categories', () => {
     { isAuthenticated: true, role: 'MANAGER' as const },
     { isAuthenticated: true, role: 'ADMIN' as const },
     { isAuthenticated: true, role: 'SUPERADMIN' as const },
-  ])('groups visible routes without empty categories for %o', ({
-    isAuthenticated,
-    role,
-  }) => {
-    expect(buildNavigationCategories({ isAuthenticated, role })).toEqual(
-      buildExpectedCategories({ isAuthenticated, role }),
-    );
-  });
+  ])(
+    'groups visible routes without empty categories for %o',
+    ({ isAuthenticated, role }) => {
+      expect(buildNavigationCategories({ isAuthenticated, role })).toEqual(
+        buildExpectedCategories({ isAuthenticated, role }),
+      );
+    },
+  );
 
   it('gathers social destinations into the social category', () => {
     const categories = buildNavigationCategories({

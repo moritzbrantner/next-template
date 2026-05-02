@@ -12,7 +12,8 @@ export const chatPage = {
   gifSearchPlaceholder: 'Search Tenor GIFs',
   gifSearchEmpty: 'No GIFs found.',
   gifSearchLoading: 'Searching Tenor...',
-  gifSearchUnavailable: 'GIF search is disabled until TENOR_API_KEY is configured.',
+  gifSearchUnavailable:
+    'GIF search is disabled until TENOR_API_KEY is configured.',
   gifSearchError: 'Unable to reach Tenor right now.',
   selectGif: 'Select GIF',
   selectedGif: 'Selected GIF',

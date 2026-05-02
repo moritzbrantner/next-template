@@ -22,7 +22,9 @@ describe('architecture: app-pack ui imports', () => {
   it('prevents app packs from importing local UI primitives', () => {
     const files: string[] = [];
 
-    for (const appEntry of readdirSync(path.resolve('apps'), { withFileTypes: true })) {
+    for (const appEntry of readdirSync(path.resolve('apps'), {
+      withFileTypes: true,
+    })) {
       if (appEntry.isDirectory()) {
         walk(path.resolve('apps', appEntry.name), files);
       }
@@ -30,7 +32,8 @@ describe('architecture: app-pack ui imports', () => {
 
     const violations = files.flatMap((filePath) => {
       const source = readFileSync(filePath, 'utf8');
-      return source.includes("@/components/ui/") || source.includes('@/components/ui/')
+      return source.includes('@/components/ui/') ||
+        source.includes('@/components/ui/')
         ? [filePath]
         : [];
     });

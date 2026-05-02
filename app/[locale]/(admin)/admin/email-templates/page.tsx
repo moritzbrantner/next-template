@@ -4,7 +4,13 @@ import { redirect } from 'next/navigation';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,7 +35,11 @@ import {
   type EmailTemplateId,
 } from '@/src/email/templates';
 import { createTranslator } from '@/src/i18n/messages';
-import { notFoundUnlessFeatureEnabled, requirePermission, resolveLocale } from '@/src/server/page-guards';
+import {
+  notFoundUnlessFeatureEnabled,
+  requirePermission,
+  resolveLocale,
+} from '@/src/server/page-guards';
 
 const selectClassName = [
   'flex h-10 w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm shadow-sm transition-colors',
@@ -37,7 +47,11 @@ const selectClassName = [
   'disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950 dark:focus-visible:ring-zinc-50',
 ].join(' ');
 
-function getTemplateRedirectPath(locale: AppLocale, templateId: EmailTemplateId, status?: string) {
+function getTemplateRedirectPath(
+  locale: AppLocale,
+  templateId: EmailTemplateId,
+  status?: string,
+) {
   const params = new URLSearchParams({ template: templateId });
 
   if (status) {
@@ -62,13 +76,21 @@ async function saveEmailTemplateAction(formData: FormData) {
 
   const session = await getAuthSession();
 
-  if (!await hasPermissionForRole(session?.user.role, 'admin.systemSettings.edit')) {
+  if (
+    !(await hasPermissionForRole(
+      session?.user.role,
+      'admin.systemSettings.edit',
+    ))
+  ) {
     throw new Error('Forbidden');
   }
 
   const locale = resolveLocale(String(formData.get('locale') ?? 'en'));
   const templateId = readTemplateId(formData);
-  const result = await saveAdminEmailTemplate(templateId, readEmailTemplateContentFromFormData(formData));
+  const result = await saveAdminEmailTemplate(
+    templateId,
+    readEmailTemplateContentFromFormData(formData),
+  );
 
   if (!result.ok) {
     throw new Error(result.error.message);
@@ -83,7 +105,12 @@ async function resetEmailTemplateAction(formData: FormData) {
 
   const session = await getAuthSession();
 
-  if (!await hasPermissionForRole(session?.user.role, 'admin.systemSettings.edit')) {
+  if (
+    !(await hasPermissionForRole(
+      session?.user.role,
+      'admin.systemSettings.edit',
+    ))
+  ) {
     throw new Error('Forbidden');
   }
 
@@ -100,7 +127,7 @@ async function sendEmailTemplateAction(formData: FormData) {
 
   const session = await getAuthSession();
 
-  if (!await hasPermissionForRole(session?.user.role, 'admin.users.notify')) {
+  if (!(await hasPermissionForRole(session?.user.role, 'admin.users.notify'))) {
     throw new Error('Forbidden');
   }
 
@@ -108,7 +135,10 @@ async function sendEmailTemplateAction(formData: FormData) {
   const templateId = readTemplateId(formData);
   const definition = getEmailTemplateDefinition(templateId);
   const values = Object.fromEntries(
-    definition.variables.map((variable) => [variable.key, String(formData.get(`variable:${variable.key}`) ?? '')]),
+    definition.variables.map((variable) => [
+      variable.key,
+      String(formData.get(`variable:${variable.key}`) ?? ''),
+    ]),
   );
   const result = await sendAdminEmailTemplate({
     templateId,
@@ -117,7 +147,13 @@ async function sendEmailTemplateAction(formData: FormData) {
   });
 
   if (!result.ok) {
-    redirect(getTemplateRedirectPath(locale, templateId, `send-error:${encodeURIComponent(result.error.message)}`));
+    redirect(
+      getTemplateRedirectPath(
+        locale,
+        templateId,
+        `send-error:${encodeURIComponent(result.error.message)}`,
+      ),
+    );
   }
 
   redirect(getTemplateRedirectPath(locale, templateId, 'sent'));
@@ -131,7 +167,8 @@ function StatusBanner({ status }: { status: string | null }) {
   if (status.startsWith('send-error:')) {
     return (
       <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
-        {decodeURIComponent(status.slice('send-error:'.length)) || 'Unable to send the email.'}
+        {decodeURIComponent(status.slice('send-error:'.length)) ||
+          'Unable to send the email.'}
       </div>
     );
   }
@@ -166,9 +203,21 @@ function TemplateField({
     <div className="space-y-2">
       <Label htmlFor={`email-template-${name}`}>{label}</Label>
       {multiline ? (
-        <Textarea id={`email-template-${name}`} name={name} defaultValue={defaultValue} disabled={disabled} required />
+        <Textarea
+          id={`email-template-${name}`}
+          name={name}
+          defaultValue={defaultValue}
+          disabled={disabled}
+          required
+        />
       ) : (
-        <Input id={`email-template-${name}`} name={name} defaultValue={defaultValue} disabled={disabled} required />
+        <Input
+          id={`email-template-${name}`}
+          name={name}
+          defaultValue={defaultValue}
+          disabled={disabled}
+          required
+        />
       )}
     </div>
   );
@@ -188,28 +237,36 @@ export default async function AdminEmailTemplatesPage({
     ? requestedSearchParams?.template[0]
     : requestedSearchParams?.template;
   const status = Array.isArray(requestedSearchParams?.status)
-    ? requestedSearchParams?.status[0] ?? null
-    : requestedSearchParams?.status ?? null;
+    ? (requestedSearchParams?.status[0] ?? null)
+    : (requestedSearchParams?.status ?? null);
 
   await notFoundUnlessFeatureEnabled('admin.systemSettings');
   const session = await requirePermission(locale, 'admin.systemSettings.read');
   const t = createTranslator(locale, 'AdminPage');
-  const [adminPages, data, canEditTemplates, canSendTemplates] = await Promise.all([
-    getAuthorizedAdminPageDefinitions(session.user.role),
-    getAdminEmailTemplatePageData(),
-    hasPermissionForRole(session.user.role, 'admin.systemSettings.edit'),
-    hasPermissionForRole(session.user.role, 'admin.users.notify'),
-  ]);
-  const selectedTemplateId = requestedTemplateId && isEmailTemplateId(requestedTemplateId)
-    ? requestedTemplateId
-    : data.templates[0]!.id;
-  const selectedTemplate = data.templates.find((template) => template.id === selectedTemplateId) ?? data.templates[0]!;
+  const [adminPages, data, canEditTemplates, canSendTemplates] =
+    await Promise.all([
+      getAuthorizedAdminPageDefinitions(session.user.role),
+      getAdminEmailTemplatePageData(),
+      hasPermissionForRole(session.user.role, 'admin.systemSettings.edit'),
+      hasPermissionForRole(session.user.role, 'admin.users.notify'),
+    ]);
+  const selectedTemplateId =
+    requestedTemplateId && isEmailTemplateId(requestedTemplateId)
+      ? requestedTemplateId
+      : data.templates[0]!.id;
+  const selectedTemplate =
+    data.templates.find((template) => template.id === selectedTemplateId) ??
+    data.templates[0]!;
   const selectedDefinition = getEmailTemplateDefinition(selectedTemplate.id);
   const preview = await renderAdminEmailTemplatePreview(selectedTemplate.id);
   const defaultSendValues = getDefaultEmailTemplateValues(selectedTemplate.id);
 
   return (
-    <AdminPageShell title={t('emailTemplates.title')} description={t('emailTemplates.description')} adminPages={adminPages}>
+    <AdminPageShell
+      title={t('emailTemplates.title')}
+      description={t('emailTemplates.description')}
+      adminPages={adminPages}
+    >
       <StatusBanner status={status} />
 
       <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -230,10 +287,16 @@ export default async function AdminEmailTemplatesPage({
                 ].join(' ')}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-medium text-zinc-950 dark:text-zinc-50">{template.label}</p>
-                  {template.isCustomized ? <Badge variant="secondary">Edited</Badge> : null}
+                  <p className="font-medium text-zinc-950 dark:text-zinc-50">
+                    {template.label}
+                  </p>
+                  {template.isCustomized ? (
+                    <Badge variant="secondary">Edited</Badge>
+                  ) : null}
                 </div>
-                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{template.description}</p>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                  {template.description}
+                </p>
               </LocalizedLink>
             );
           })}
@@ -244,26 +307,74 @@ export default async function AdminEmailTemplatesPage({
             <Card>
               <CardHeader>
                 <CardTitle>{selectedTemplate.label}</CardTitle>
-                <CardDescription>{selectedTemplate.description}</CardDescription>
+                <CardDescription>
+                  {selectedTemplate.description}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form action={saveEmailTemplateAction} className="space-y-4">
                   <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="templateId" value={selectedTemplate.id} />
-                  <TemplateField name="subject" label="Subject" defaultValue={selectedTemplate.content.subject} disabled={!canEditTemplates} />
-                  <TemplateField name="preview" label="Inbox preview" defaultValue={selectedTemplate.content.preview} disabled={!canEditTemplates} />
-                  <TemplateField name="heading" label="Heading" defaultValue={selectedTemplate.content.heading} disabled={!canEditTemplates} />
-                  <TemplateField name="body" label="Body" defaultValue={selectedTemplate.content.body} disabled={!canEditTemplates} multiline />
-                  <TemplateField name="ctaLabel" label="Button label" defaultValue={selectedTemplate.content.ctaLabel} disabled={!canEditTemplates} />
-                  <TemplateField name="footer" label="Footer" defaultValue={selectedTemplate.content.footer} disabled={!canEditTemplates} multiline />
+                  <input
+                    type="hidden"
+                    name="templateId"
+                    value={selectedTemplate.id}
+                  />
+                  <TemplateField
+                    name="subject"
+                    label="Subject"
+                    defaultValue={selectedTemplate.content.subject}
+                    disabled={!canEditTemplates}
+                  />
+                  <TemplateField
+                    name="preview"
+                    label="Inbox preview"
+                    defaultValue={selectedTemplate.content.preview}
+                    disabled={!canEditTemplates}
+                  />
+                  <TemplateField
+                    name="heading"
+                    label="Heading"
+                    defaultValue={selectedTemplate.content.heading}
+                    disabled={!canEditTemplates}
+                  />
+                  <TemplateField
+                    name="body"
+                    label="Body"
+                    defaultValue={selectedTemplate.content.body}
+                    disabled={!canEditTemplates}
+                    multiline
+                  />
+                  <TemplateField
+                    name="ctaLabel"
+                    label="Button label"
+                    defaultValue={selectedTemplate.content.ctaLabel}
+                    disabled={!canEditTemplates}
+                  />
+                  <TemplateField
+                    name="footer"
+                    label="Footer"
+                    defaultValue={selectedTemplate.content.footer}
+                    disabled={!canEditTemplates}
+                    multiline
+                  />
 
                   <div className="space-y-2 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-300">
-                    <p className="font-medium text-zinc-950 dark:text-zinc-50">Available variables</p>
-                    <p>{selectedDefinition.variables.map((variable) => `{{${variable.key}}}`).join(', ')}</p>
+                    <p className="font-medium text-zinc-950 dark:text-zinc-50">
+                      Available variables
+                    </p>
+                    <p>
+                      {selectedDefinition.variables
+                        .map((variable) => `{{${variable.key}}}`)
+                        .join(', ')}
+                    </p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <button type="submit" disabled={!canEditTemplates} className={buttonVariants({})}>
+                    <button
+                      type="submit"
+                      disabled={!canEditTemplates}
+                      className={buttonVariants({})}
+                    >
                       Save template
                     </button>
                   </div>
@@ -271,8 +382,18 @@ export default async function AdminEmailTemplatesPage({
 
                 <form action={resetEmailTemplateAction} className="mt-2">
                   <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="templateId" value={selectedTemplate.id} />
-                  <button type="submit" disabled={!canEditTemplates || !selectedTemplate.isCustomized} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+                  <input
+                    type="hidden"
+                    name="templateId"
+                    value={selectedTemplate.id}
+                  />
+                  <button
+                    type="submit"
+                    disabled={
+                      !canEditTemplates || !selectedTemplate.isCustomized
+                    }
+                    className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+                  >
                     Reset to default
                   </button>
                 </form>
@@ -282,18 +403,33 @@ export default async function AdminEmailTemplatesPage({
             <Card>
               <CardHeader>
                 <CardTitle>Send email</CardTitle>
-                <CardDescription>Send the selected template to a user with the values below.</CardDescription>
+                <CardDescription>
+                  Send the selected template to a user with the values below.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form action={sendEmailTemplateAction} className="space-y-4">
                   <input type="hidden" name="locale" value={locale} />
-                  <input type="hidden" name="templateId" value={selectedTemplate.id} />
+                  <input
+                    type="hidden"
+                    name="templateId"
+                    value={selectedTemplate.id}
+                  />
                   <div className="space-y-2">
                     <Label htmlFor="targetUserId">Recipient</Label>
-                    <select id="targetUserId" name="targetUserId" className={selectClassName} disabled={!canSendTemplates || data.recipients.length === 0} required>
+                    <select
+                      id="targetUserId"
+                      name="targetUserId"
+                      className={selectClassName}
+                      disabled={
+                        !canSendTemplates || data.recipients.length === 0
+                      }
+                      required
+                    >
                       {data.recipients.map((recipient) => (
                         <option key={recipient.id} value={recipient.id}>
-                          {recipient.displayName} | {recipient.email} | {recipient.role}
+                          {recipient.displayName} | {recipient.email} |{' '}
+                          {recipient.role}
                         </option>
                       ))}
                     </select>
@@ -301,12 +437,17 @@ export default async function AdminEmailTemplatesPage({
 
                   {selectedDefinition.variables.map((variable) => (
                     <div key={variable.key} className="space-y-2">
-                      <Label htmlFor={`variable-${variable.key}`}>{variable.label}</Label>
+                      <Label htmlFor={`variable-${variable.key}`}>
+                        {variable.label}
+                      </Label>
                       {variable.key === 'message' ? (
                         <Textarea
                           id={`variable-${variable.key}`}
                           name={`variable:${variable.key}`}
-                          defaultValue={defaultSendValues[variable.key] ?? variable.defaultValue}
+                          defaultValue={
+                            defaultSendValues[variable.key] ??
+                            variable.defaultValue
+                          }
                           disabled={!canSendTemplates}
                           required
                         />
@@ -314,7 +455,10 @@ export default async function AdminEmailTemplatesPage({
                         <Input
                           id={`variable-${variable.key}`}
                           name={`variable:${variable.key}`}
-                          defaultValue={defaultSendValues[variable.key] ?? variable.defaultValue}
+                          defaultValue={
+                            defaultSendValues[variable.key] ??
+                            variable.defaultValue
+                          }
                           disabled={!canSendTemplates}
                           required
                         />
@@ -322,7 +466,11 @@ export default async function AdminEmailTemplatesPage({
                     </div>
                   ))}
 
-                  <button type="submit" disabled={!canSendTemplates || data.recipients.length === 0} className={buttonVariants({})}>
+                  <button
+                    type="submit"
+                    disabled={!canSendTemplates || data.recipients.length === 0}
+                    className={buttonVariants({})}
+                  >
                     Send email
                   </button>
                 </form>

@@ -17,13 +17,19 @@ export async function POST(request: Request) {
   try {
     input = await request.json();
   } catch {
-    return Response.json({ error: 'Request body must be valid JSON.' }, { status: 400 });
+    return Response.json(
+      { error: 'Request body must be valid JSON.' },
+      { status: 400 },
+    );
   }
 
   const parsedBody = bodySchema.safeParse(input);
 
   if (!parsedBody.success) {
-    return Response.json({ error: 'Invalid Tenor share payload.' }, { status: 400 });
+    return Response.json(
+      { error: 'Invalid Tenor share payload.' },
+      { status: 400 },
+    );
   }
 
   const body = parsedBody.data;

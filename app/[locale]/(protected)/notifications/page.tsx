@@ -1,12 +1,22 @@
 import { NotificationsFeedCard } from '@/components/notifications/notifications-feed-card';
 import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
 
 import { getNotificationsPageDataUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
-import { notFoundUnlessFeatureEnabledForUser, requireAuth, resolveLocale } from '@/src/server/page-guards';
+import {
+  notFoundUnlessFeatureEnabledForUser,
+  requireAuth,
+  resolveLocale,
+} from '@/src/server/page-guards';
 
 export default async function NotificationsPage({
   params,
@@ -19,14 +29,19 @@ export default async function NotificationsPage({
   await notFoundUnlessFeatureEnabledForUser('notifications', session.user);
   const t = createTranslator(locale, 'NotificationsPage');
   const data = await getNotificationsPageDataUseCase(session.user.id);
-  const userName = session.user.name?.trim() || session.user.email?.split('@')[0] || t('fallbackUser');
+  const userName =
+    session.user.name?.trim() ||
+    session.user.email?.split('@')[0] ||
+    t('fallbackUser');
 
   return (
     <section className="mx-auto max-w-6xl space-y-6">
       <header className="space-y-3">
         <Badge variant="secondary">{t('badge')}</Badge>
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">{t('title')}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t('title')}
+          </h1>
           <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">
             {t('description', { name: userName })}
           </p>
@@ -52,7 +67,10 @@ export default async function NotificationsPage({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)]">
-        <NotificationsFeedCard items={data.items} unreadCount={data.unreadCount} />
+        <NotificationsFeedCard
+          items={data.items}
+          unreadCount={data.unreadCount}
+        />
 
         <div className="space-y-6">
           <Card>
@@ -61,10 +79,18 @@ export default async function NotificationsPage({
               <CardDescription>{t('actions.description')}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-3">
-              <LocalizedLink href="/profile" locale={locale} className={buttonVariants({ variant: 'default' })}>
+              <LocalizedLink
+                href="/profile"
+                locale={locale}
+                className={buttonVariants({ variant: 'default' })}
+              >
                 {t('actions.profile')}
               </LocalizedLink>
-              <LocalizedLink href="/settings" locale={locale} className={buttonVariants({ variant: 'outline' })}>
+              <LocalizedLink
+                href="/settings"
+                locale={locale}
+                className={buttonVariants({ variant: 'outline' })}
+              >
                 {t('actions.settings')}
               </LocalizedLink>
             </CardContent>
@@ -103,7 +129,9 @@ function SummaryCard({
         <CardTitle className="text-3xl">{value}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-zinc-600 dark:text-zinc-300">{description}</p>
+        <p className="text-sm text-zinc-600 dark:text-zinc-300">
+          {description}
+        </p>
       </CardContent>
     </Card>
   );

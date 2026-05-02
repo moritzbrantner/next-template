@@ -5,7 +5,14 @@ import { useDeferredValue, useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import type { AdminUserSearchResult } from '@/src/domain/notifications/use-cases';
@@ -48,9 +55,12 @@ export function AdminUserSearch({ locale }: AdminUserSearchProps) {
           query: normalizedQuery,
           limit: String(SEARCH_LIMIT),
         });
-        const response = await fetch(`/api/admin/users/search?${searchParams.toString()}`, {
-          signal: abortController.signal,
-        });
+        const response = await fetch(
+          `/api/admin/users/search?${searchParams.toString()}`,
+          {
+            signal: abortController.signal,
+          },
+        );
 
         if (!response.ok) {
           const problem = await readProblemDetail(response, searchErrorMessage);
@@ -59,10 +69,15 @@ export function AdminUserSearch({ locale }: AdminUserSearchProps) {
           return;
         }
 
-        const payload = (await response.json()) as { users?: AdminUserSearchResult[] };
+        const payload = (await response.json()) as {
+          users?: AdminUserSearchResult[];
+        };
         setUsers(payload.users ?? []);
       } catch (searchError) {
-        if (searchError instanceof DOMException && searchError.name === 'AbortError') {
+        if (
+          searchError instanceof DOMException &&
+          searchError.name === 'AbortError'
+        ) {
           return;
         }
 
@@ -96,8 +111,14 @@ export function AdminUserSearch({ locale }: AdminUserSearchProps) {
         aria-label={t('users.search.label')}
       />
 
-      {isSearching ? <p className="text-sm text-zinc-600 dark:text-zinc-300">{t('users.search.loading')}</p> : null}
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {isSearching ? (
+        <p className="text-sm text-zinc-600 dark:text-zinc-300">
+          {t('users.search.loading')}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      ) : null}
 
       {!normalizedQuery ? (
         <div className="rounded-2xl border border-dashed border-zinc-300 p-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
@@ -111,7 +132,10 @@ export function AdminUserSearch({ locale }: AdminUserSearchProps) {
         </div>
       ) : null}
 
-      {normalizedQuery.length >= 2 && !isSearching && !error && users.length === 0 ? (
+      {normalizedQuery.length >= 2 &&
+      !isSearching &&
+      !error &&
+      users.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-zinc-300 p-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
           {t('users.search.empty')}
         </div>
@@ -131,7 +155,9 @@ export function AdminUserSearch({ locale }: AdminUserSearchProps) {
                   <TableHead>{t('users.columns.status')}</TableHead>
                   <TableHead>{t('users.columns.lastSeen')}</TableHead>
                   <TableHead>{t('users.columns.notifications')}</TableHead>
-                  <TableHead className="text-right">{t('users.columns.actions')}</TableHead>
+                  <TableHead className="text-right">
+                    {t('users.columns.actions')}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -140,27 +166,49 @@ export function AdminUserSearch({ locale }: AdminUserSearchProps) {
                     <TableCell>
                       <div className="space-y-1">
                         <p className="font-medium">{user.displayName}</p>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-300">{user.email}</p>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                          {user.email}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.role === 'ADMIN' || user.role === 'SUPERADMIN' ? 'default' : 'secondary'}>
+                      <Badge
+                        variant={
+                          user.role === 'ADMIN' || user.role === 'SUPERADMIN'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                      >
                         {user.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.status === 'active' ? 'secondary' : 'outline'}>
+                      <Badge
+                        variant={
+                          user.status === 'active' ? 'secondary' : 'outline'
+                        }
+                      >
                         {t(`users.status.${user.status}`)}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {formatDateTime(user.lastActivityAt, locale, t('users.lastActivityFallback'))}
+                      {formatDateTime(
+                        user.lastActivityAt,
+                        locale,
+                        t('users.lastActivityFallback'),
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1 text-sm">
-                        <p>{t('users.notifications.total', { count: user.totalNotifications })}</p>
+                        <p>
+                          {t('users.notifications.total', {
+                            count: user.totalNotifications,
+                          })}
+                        </p>
                         <p className="text-zinc-600 dark:text-zinc-300">
-                          {t('users.notifications.unread', { count: user.unreadNotifications })}
+                          {t('users.notifications.unread', {
+                            count: user.unreadNotifications,
+                          })}
                         </p>
                       </div>
                     </TableCell>
@@ -168,7 +216,10 @@ export function AdminUserSearch({ locale }: AdminUserSearchProps) {
                       <div className="flex justify-end">
                         <Link
                           href={`/admin/users/${user.id}`}
-                          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                          className={buttonVariants({
+                            variant: 'outline',
+                            size: 'sm',
+                          })}
                         >
                           {t('users.actions.inspect')}
                         </Link>
@@ -185,10 +236,17 @@ export function AdminUserSearch({ locale }: AdminUserSearchProps) {
   );
 }
 
-function formatDateTime(value: string | null, locale: string, fallback: string) {
+function formatDateTime(
+  value: string | null,
+  locale: string,
+  fallback: string,
+) {
   if (!value) {
     return fallback;
   }
 
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
 }

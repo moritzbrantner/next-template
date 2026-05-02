@@ -13,10 +13,10 @@ const enabledFeatures = {
   'profiles.follow': true,
   'profiles.blog': true,
   'people.directory': true,
-  'groups': true,
-  'notifications': true,
-  'newsletter': true,
-  'reportProblem': true,
+  groups: true,
+  notifications: true,
+  newsletter: true,
+  reportProblem: true,
   'content.blog': true,
   'content.changelog': true,
   'workspace.dataEntry': true,
@@ -39,7 +39,8 @@ const showcaseManifest: AppManifest = {
   siteName: 'Next Template',
   defaultLocaleMetadata: {
     title: 'Next Template',
-    description: 'Next.js application with auth, admin examples, and Drizzle/Postgres persistence.',
+    description:
+      'Next.js application with auth, admin examples, and Drizzle/Postgres persistence.',
   },
   enabledFeatures,
   publicPages: [
@@ -87,10 +88,15 @@ const showcaseManifest: AppManifest = {
       render: async ({ locale, matchedSlug }) => {
         if (matchedSlug === 'forms') {
           if (isGithubPagesBuild) {
-            return createElement(StaticRedirectPage, { href: '../examples/forms/' });
+            return createElement(StaticRedirectPage, {
+              href: '../examples/forms/',
+            });
           }
 
-          return { kind: 'redirect', href: withLocalePath('/examples/forms', locale) };
+          return {
+            kind: 'redirect',
+            href: withLocalePath('/examples/forms', locale),
+          };
         }
 
         const pageModule = await import('./pages/examples/forms-page');
@@ -108,10 +114,15 @@ const showcaseManifest: AppManifest = {
       render: async ({ locale, matchedSlug }) => {
         if (matchedSlug === 'story') {
           if (isGithubPagesBuild) {
-            return createElement(StaticRedirectPage, { href: '../examples/story/' });
+            return createElement(StaticRedirectPage, {
+              href: '../examples/story/',
+            });
           }
 
-          return { kind: 'redirect', href: withLocalePath('/examples/story', locale) };
+          return {
+            kind: 'redirect',
+            href: withLocalePath('/examples/story', locale),
+          };
         }
 
         const pageModule = await import('./pages/examples/story-page');
@@ -129,10 +140,15 @@ const showcaseManifest: AppManifest = {
       render: async ({ locale, matchedSlug }) => {
         if (matchedSlug === 'communication') {
           if (isGithubPagesBuild) {
-            return createElement(StaticRedirectPage, { href: '../examples/communication/' });
+            return createElement(StaticRedirectPage, {
+              href: '../examples/communication/',
+            });
           }
 
-          return { kind: 'redirect', href: withLocalePath('/examples/communication', locale) };
+          return {
+            kind: 'redirect',
+            href: withLocalePath('/examples/communication', locale),
+          };
         }
 
         const pageModule = await import('./pages/examples/communication-page');
@@ -149,15 +165,21 @@ const showcaseManifest: AppManifest = {
       aliases: ['chat'],
       generateMetadata: async () => ({
         title: 'Team Chat',
-        description: 'A chat room interface with Tenor GIF search and share support.',
+        description:
+          'A chat room interface with Tenor GIF search and share support.',
       }),
       render: async ({ locale, matchedSlug }) => {
         if (matchedSlug === 'chat') {
           if (isGithubPagesBuild) {
-            return createElement(StaticRedirectPage, { href: '../examples/chat/' });
+            return createElement(StaticRedirectPage, {
+              href: '../examples/chat/',
+            });
           }
 
-          return { kind: 'redirect', href: withLocalePath('/examples/chat', locale) };
+          return {
+            kind: 'redirect',
+            href: withLocalePath('/examples/chat', locale),
+          };
         }
 
         const pageModule = await import('./pages/examples/chat-page');
@@ -181,11 +203,41 @@ const showcaseManifest: AppManifest = {
   publicNavigation: [
     { pageId: 'home', category: 'discover', hotkey: ['alt', 'h'], order: 10 },
     { pageId: 'about', category: 'discover', hotkey: ['alt', 'a'], order: 20 },
-    { pageId: 'remocn', category: 'discover', hotkey: ['alt', 'v'], prefetch: false, order: 30 },
-    { pageId: 'story', category: 'discover', hotkey: ['alt', 's'], prefetch: false, order: 40 },
-    { pageId: 'communication', category: 'discover', hotkey: ['alt', 'c'], prefetch: false, order: 50 },
-    { pageId: 'chat', category: 'workspace', hotkey: ['alt', 'x'], prefetch: false, order: 60 },
-    { pageId: 'forms', category: 'workspace', hotkey: ['alt', 'f'], prefetch: false, order: 70 },
+    {
+      pageId: 'remocn',
+      category: 'discover',
+      hotkey: ['alt', 'v'],
+      prefetch: false,
+      order: 30,
+    },
+    {
+      pageId: 'story',
+      category: 'discover',
+      hotkey: ['alt', 's'],
+      prefetch: false,
+      order: 40,
+    },
+    {
+      pageId: 'communication',
+      category: 'discover',
+      hotkey: ['alt', 'c'],
+      prefetch: false,
+      order: 50,
+    },
+    {
+      pageId: 'chat',
+      category: 'workspace',
+      hotkey: ['alt', 'x'],
+      prefetch: false,
+      order: 60,
+    },
+    {
+      pageId: 'forms',
+      category: 'workspace',
+      hotkey: ['alt', 'f'],
+      prefetch: false,
+      order: 70,
+    },
     { pageId: 'table', category: 'workspace', hotkey: ['alt', 't'], order: 80 },
   ],
   contentRoots: {

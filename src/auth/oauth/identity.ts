@@ -20,7 +20,10 @@ type PersistedAccount = {
 };
 
 type IdentityTransaction = {
-  findAccountByProviderId: (provider: string, providerAccountId: string) => Promise<PersistedAccount | undefined>;
+  findAccountByProviderId: (
+    provider: string,
+    providerAccountId: string,
+  ) => Promise<PersistedAccount | undefined>;
   findUserById: (userId: string) => Promise<PersistedUser | undefined>;
   findUserByEmail: (email: string) => Promise<PersistedUser | undefined>;
   findUserByTag: (tag: string) => Promise<PersistedUser | undefined>;
@@ -47,7 +50,9 @@ type IdentityTransaction = {
 };
 
 type SocialAccountResolverDependencies = {
-  transaction: <TResult>(callback: (tx: IdentityTransaction) => Promise<TResult>) => Promise<TResult>;
+  transaction: <TResult>(
+    callback: (tx: IdentityTransaction) => Promise<TResult>,
+  ) => Promise<TResult>;
 };
 
 function resolveDefaultDependencies(): SocialAccountResolverDependencies {
@@ -60,7 +65,10 @@ function resolveDefaultDependencies(): SocialAccountResolverDependencies {
           findAccountByProviderId: async (provider, providerAccountId) => {
             const account = await tx.query.accounts.findFirst({
               where: (table, { and, eq }) =>
-                and(eq(table.provider, provider), eq(table.providerAccountId, providerAccountId)),
+                and(
+                  eq(table.provider, provider),
+                  eq(table.providerAccountId, providerAccountId),
+                ),
             });
 
             return account
@@ -201,7 +209,10 @@ export async function resolveSocialAccount(
   deps: SocialAccountResolverDependencies = resolveDefaultDependencies(),
 ): Promise<ResolvedSessionUser> {
   return deps.transaction(async (tx) => {
-    const existingAccount = await tx.findAccountByProviderId(profile.provider, profile.providerAccountId);
+    const existingAccount = await tx.findAccountByProviderId(
+      profile.provider,
+      profile.providerAccountId,
+    );
 
     if (existingAccount) {
       await tx.upsertAccount(toAccountInsert(existingAccount.userId, profile));
@@ -240,7 +251,8 @@ export async function resolveSocialAccount(
         name: profile.name,
         image: profile.image,
         passwordHash: null,
-        emailVerified: profile.isTrustedEmail && profile.email ? new Date() : null,
+        emailVerified:
+          profile.isTrustedEmail && profile.email ? new Date() : null,
       });
 
       resolvedUser = await tx.findUserById(userId);

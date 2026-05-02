@@ -1,8 +1,17 @@
 import { ReportProblemForm } from '@/components/report-problem-form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 import { createTranslator } from '@/src/i18n/messages';
-import { notFoundUnlessFeatureEnabled, resolveLocale } from '@/src/server/page-guards';
+import {
+  notFoundUnlessFeatureEnabled,
+  resolveLocale,
+} from '@/src/server/page-guards';
 
 export default async function ReportProblemPage({
   params,
@@ -21,8 +30,12 @@ export default async function ReportProblemPage({
           {t('eyebrow')}
         </p>
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">{t('title')}</h1>
-          <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">{t('description')}</p>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {t('title')}
+          </h1>
+          <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">
+            {t('description')}
+          </p>
         </div>
       </header>
 
@@ -33,9 +46,18 @@ export default async function ReportProblemPage({
             <CardDescription>{t('checklistDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ChecklistItem title={t('checklist.summary.title')} description={t('checklist.summary.description')} />
-            <ChecklistItem title={t('checklist.context.title')} description={t('checklist.context.description')} />
-            <ChecklistItem title={t('checklist.contact.title')} description={t('checklist.contact.description')} />
+            <ChecklistItem
+              title={t('checklist.summary.title')}
+              description={t('checklist.summary.description')}
+            />
+            <ChecklistItem
+              title={t('checklist.context.title')}
+              description={t('checklist.context.description')}
+            />
+            <ChecklistItem
+              title={t('checklist.contact.title')}
+              description={t('checklist.contact.description')}
+            />
           </CardContent>
         </Card>
 
@@ -65,11 +87,19 @@ export default async function ReportProblemPage({
   );
 }
 
-function ChecklistItem({ title, description }: { title: string; description: string }) {
+function ChecklistItem({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
   return (
     <div className="rounded-2xl border p-4 dark:border-zinc-800">
       <p className="font-medium">{title}</p>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{description}</p>
+      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+        {description}
+      </p>
     </div>
   );
 }

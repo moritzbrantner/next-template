@@ -12,15 +12,21 @@ describe('email templates', () => {
       body: 'Hi {{name}},\n\n{{message}}',
     });
 
-    const rendered = await renderEmailTemplate('adminMessage', {
-      name: 'Casey',
-      message: 'Review the updated workspace policy.',
-      actionUrl: 'https://example.com/settings',
-      siteName: 'Test App',
-    }, content);
+    const rendered = await renderEmailTemplate(
+      'adminMessage',
+      {
+        name: 'Casey',
+        message: 'Review the updated workspace policy.',
+        actionUrl: 'https://example.com/settings',
+        siteName: 'Test App',
+      },
+      content,
+    );
 
     expect(rendered.subject).toBe('Notice for Casey');
     expect(rendered.html).toContain('Review the updated workspace policy.');
-    expect(rendered.text).toContain('Open workspace https://example.com/settings');
+    expect(rendered.text).toContain(
+      'Open workspace https://example.com/settings',
+    );
   });
 });

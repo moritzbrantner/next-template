@@ -107,23 +107,22 @@ describe('app routes', () => {
       ],
       hiddenKeys: ['login', 'register'],
     },
-  ] satisfies readonly VisibilityCase[])('exposes the right hotkey destinations for $label', ({
-    input,
-    visibleKeys,
-    hiddenKeys,
-  }) => {
-    const visiblePageKeys = new Set(
-      getVisibleAppPages(input).map((page) => page.key),
-    );
+  ] satisfies readonly VisibilityCase[])(
+    'exposes the right hotkey destinations for $label',
+    ({ input, visibleKeys, hiddenKeys }) => {
+      const visiblePageKeys = new Set(
+        getVisibleAppPages(input).map((page) => page.key),
+      );
 
-    for (const key of visibleKeys) {
-      expect(visiblePageKeys.has(key)).toBe(true);
-    }
+      for (const key of visibleKeys) {
+        expect(visiblePageKeys.has(key)).toBe(true);
+      }
 
-    for (const key of hiddenKeys) {
-      expect(visiblePageKeys.has(key)).toBe(false);
-    }
-  });
+      for (const key of hiddenKeys) {
+        expect(visiblePageKeys.has(key)).toBe(false);
+      }
+    },
+  );
 
   it('filters pages whose dynamic feature state is disabled for the active user', () => {
     const visiblePageKeys = new Set(

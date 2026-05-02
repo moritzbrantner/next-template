@@ -43,11 +43,21 @@ describe('scaffold-v2 contract', () => {
       'packages/app-pack-react',
     ]);
     expect(packageJson.dependencies['@moritzbrantner/ui']).toBe('^0.5.1');
-    expect(packageJson.dependencies['@moritzbrantner/storytelling']).toBe('^0.2.0');
-    expect(Object.values(packageJson.dependencies).some((version) => version.startsWith('file:'))).toBe(false);
+    expect(packageJson.dependencies['@moritzbrantner/storytelling']).toBe(
+      '^0.2.0',
+    );
+    expect(
+      Object.values(packageJson.dependencies).some((version) =>
+        version.startsWith('file:'),
+      ),
+    ).toBe(false);
     expect(packageJson.overrides?.['@moritzbrantner/ui']).toBeUndefined();
-    expect(npmrc).toContain('@moritzbrantner:registry=https://npm.pkg.github.com');
-    expect(npmrc).toContain('//npm.pkg.github.com/:_authToken=${GH_PACKAGES_TOKEN}');
+    expect(npmrc).toContain(
+      '@moritzbrantner:registry=https://npm.pkg.github.com',
+    );
+    expect(npmrc).toContain(
+      '//npm.pkg.github.com/:_authToken=${GH_PACKAGES_TOKEN}',
+    );
   });
 
   it('removes subtree-sync guidance and workflow hooks from the public contract', () => {
@@ -60,6 +70,13 @@ describe('scaffold-v2 contract', () => {
     expect(updateGuide).toContain('This repo no longer assumes subtree sync');
     expect(updateGuide).toContain('@moritzbrantner/platform-upgrader');
     expect(readme).toContain('app.manifest.ts');
-    expect(existsSync(path.join(process.cwd(), '.github/workflows/notify-monorepo-subtree-sync.yml'))).toBe(false);
+    expect(
+      existsSync(
+        path.join(
+          process.cwd(),
+          '.github/workflows/notify-monorepo-subtree-sync.yml',
+        ),
+      ),
+    ).toBe(false);
   });
 });

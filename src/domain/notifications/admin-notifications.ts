@@ -5,4 +5,9 @@ export {
   sendAdminNotificationUseCase,
 } from './shared';
 
-export type { AdminUserDetail, AdminUserSearchResult, AdminUsersPageData, SendAdminNotificationInput } from './shared';
+export type {
+  AdminUserDetail,
+  AdminUserSearchResult,
+  AdminUsersPageData,
+  SendAdminNotificationInput,
+} from './shared';

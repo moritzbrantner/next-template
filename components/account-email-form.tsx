@@ -23,7 +23,11 @@ type AccountEmailFormProps = {
   };
 };
 
-export function AccountEmailForm({ currentEmail, disabled = false, labels }: AccountEmailFormProps) {
+export function AccountEmailForm({
+  currentEmail,
+  disabled = false,
+  labels,
+}: AccountEmailFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [displayEmail, setDisplayEmail] = useState(currentEmail ?? '');
@@ -108,8 +112,16 @@ export function AccountEmailForm({ currentEmail, disabled = false, labels }: Acc
       </Button>
 
       <div role="status" className="space-y-1">
-        {state.error ? <p className="text-sm text-red-600 dark:text-red-400">{state.error}</p> : null}
-        {state.success ? <p className="text-sm text-emerald-600 dark:text-emerald-400">{labels.success}</p> : null}
+        {state.error ? (
+          <p className="text-sm text-red-600 dark:text-red-400">
+            {state.error}
+          </p>
+        ) : null}
+        {state.success ? (
+          <p className="text-sm text-emerald-600 dark:text-emerald-400">
+            {labels.success}
+          </p>
+        ) : null}
       </div>
     </form>
   );

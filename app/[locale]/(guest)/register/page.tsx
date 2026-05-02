@@ -1,9 +1,19 @@
 import { ForgotPasswordForm } from '@/components/auth/forgot-password-form';
 import { RegisterForm } from '@/components/auth/register-form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { resolveOAuthPageError } from '@/src/auth/oauth/page-state';
 import { createTranslator } from '@/src/i18n/messages';
-import { notFoundUnlessFeatureEnabled, requireGuest, resolveLocale } from '@/src/server/page-guards';
+import {
+  notFoundUnlessFeatureEnabled,
+  requireGuest,
+  resolveLocale,
+} from '@/src/server/page-guards';
 
 export default async function RegisterPage({
   params,
@@ -17,7 +27,9 @@ export default async function RegisterPage({
   await notFoundUnlessFeatureEnabled('account.register');
   await requireGuest(locale);
   const t = createTranslator(locale, 'AuthPages.register');
-  const oauthErrorState = resolveOAuthPageError(searchParams ? await searchParams : undefined);
+  const oauthErrorState = resolveOAuthPageError(
+    searchParams ? await searchParams : undefined,
+  );
   const oauthErrorMessage = oauthErrorState
     ? t(`form.socialErrors.${oauthErrorState.error}`, {
         provider: t(`form.social.providers.${oauthErrorState.provider}`),
@@ -27,10 +39,16 @@ export default async function RegisterPage({
   return (
     <div className="mx-auto grid min-h-[calc(100vh-10rem)] max-w-5xl items-center gap-8 lg:grid-cols-[0.95fr_1.05fr]">
       <section className="order-2 space-y-6 lg:order-1">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-400">{t('eyebrow')}</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-zinc-500 dark:text-zinc-400">
+          {t('eyebrow')}
+        </p>
         <div className="space-y-4">
-          <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{t('heroTitle')}</h1>
-          <p className="max-w-xl text-base leading-7 text-zinc-600 dark:text-zinc-400">{t('heroDescription')}</p>
+          <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            {t('heroTitle')}
+          </h1>
+          <p className="max-w-xl text-base leading-7 text-zinc-600 dark:text-zinc-400">
+            {t('heroDescription')}
+          </p>
         </div>
       </section>
 

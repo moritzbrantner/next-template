@@ -3,11 +3,28 @@ import { alias } from 'drizzle-orm/pg-core';
 
 import { getDb } from '@/src/db/client';
 import { userBlocks, userFollows, users } from '@/src/db/schema';
-import { failure, success, type ServiceResult } from '@/src/domain/shared/result';
-import { ImageValidationError, validateImageUpload } from '@/src/profile/image-validation';
-import { buildProfileImageUrl, deleteProfileImage, uploadProfileImage } from '@/src/profile/object-storage';
-import { canViewerSeeFollower, type FollowerVisibilityRole } from '@/src/profile/follower-visibility';
-import { normalizeProfileTagInput, validateProfileTag } from '@/src/profile/tags';
+import {
+  failure,
+  success,
+  type ServiceResult,
+} from '@/src/domain/shared/result';
+import {
+  ImageValidationError,
+  validateImageUpload,
+} from '@/src/profile/image-validation';
+import {
+  buildProfileImageUrl,
+  deleteProfileImage,
+  uploadProfileImage,
+} from '@/src/profile/object-storage';
+import {
+  canViewerSeeFollower,
+  type FollowerVisibilityRole,
+} from '@/src/profile/follower-visibility';
+import {
+  normalizeProfileTagInput,
+  validateProfileTag,
+} from '@/src/profile/tags';
 
 const DISPLAY_NAME_MIN_LENGTH = 2;
 const DISPLAY_NAME_MAX_LENGTH = 60;
@@ -100,22 +117,55 @@ type BlockRelationshipState = {
 export type ProfileUseCaseDeps = {
   findUserById: (userId: string) => Promise<ProfileUserRecord | undefined>;
   findUserByTag: (tag: string) => Promise<ProfileUserRecord | undefined>;
-  findUserByTagExcludingId: (tag: string, userId: string) => Promise<ProfileUserRecord | undefined>;
+  findUserByTagExcludingId: (
+    tag: string,
+    userId: string,
+  ) => Promise<ProfileUserRecord | undefined>;
   countFollowers: (userId: string) => Promise<number>;
-  hasFollowRelationship: (followerId: string, followingId: string) => Promise<boolean>;
-  createFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
-  deleteFollowRelationship: (followerId: string, followingId: string) => Promise<void>;
-  deleteFollowRelationshipsBetweenUsers: (firstUserId: string, secondUserId: string) => Promise<void>;
-  getBlockRelationshipState: (viewerUserId: string, otherUserId: string) => Promise<BlockRelationshipState>;
-  createBlockRelationship: (blockerId: string, blockedId: string) => Promise<void>;
-  deleteBlockRelationship: (blockerId: string, blockedId: string) => Promise<void>;
+  hasFollowRelationship: (
+    followerId: string,
+    followingId: string,
+  ) => Promise<boolean>;
+  createFollowRelationship: (
+    followerId: string,
+    followingId: string,
+  ) => Promise<void>;
+  deleteFollowRelationship: (
+    followerId: string,
+    followingId: string,
+  ) => Promise<void>;
+  deleteFollowRelationshipsBetweenUsers: (
+    firstUserId: string,
+    secondUserId: string,
+  ) => Promise<void>;
+  getBlockRelationshipState: (
+    viewerUserId: string,
+    otherUserId: string,
+  ) => Promise<BlockRelationshipState>;
+  createBlockRelationship: (
+    blockerId: string,
+    blockedId: string,
+  ) => Promise<void>;
+  deleteBlockRelationship: (
+    blockerId: string,
+    blockedId: string,
+  ) => Promise<void>;
   listFollowingUsers: (followerId: string) => Promise<ProfileUserRecord[]>;
   listFriendUsers: (userId: string) => Promise<ProfileUserRecord[]>;
   listBlockedUsers: (blockerId: string) => Promise<ProfileUserRecord[]>;
   listFollowersForUser: (followingId: string) => Promise<ProfileUserRecord[]>;
-  searchUsersToFollow: (viewerUserId: string, query: string) => Promise<ProfileUserRecord[]>;
-  updateUserSearchVisibility: (userId: string, isSearchable: boolean) => Promise<void>;
-  updateUserFollowerVisibility: (userId: string, followerVisibility: FollowerVisibilityRole) => Promise<void>;
+  searchUsersToFollow: (
+    viewerUserId: string,
+    query: string,
+  ) => Promise<ProfileUserRecord[]>;
+  updateUserSearchVisibility: (
+    userId: string,
+    isSearchable: boolean,
+  ) => Promise<void>;
+  updateUserFollowerVisibility: (
+    userId: string,
+    followerVisibility: FollowerVisibilityRole,
+  ) => Promise<void>;
   updateUserTag: (userId: string, tag: string) => Promise<void>;
 };
 
@@ -149,7 +199,10 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
     hasFollowRelationship: async (followerId, followingId) => {
       const relationship = await getDb().query.userFollows.findFirst({
         where: (table, { and: innerAnd, eq: innerEq }) =>
-          innerAnd(innerEq(table.followerId, followerId), innerEq(table.followingId, followingId)),
+          innerAnd(
+            innerEq(table.followerId, followerId),
+            innerEq(table.followingId, followingId),
+          ),
       });
 
       return Boolean(relationship);
@@ -166,15 +219,29 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
     deleteFollowRelationship: async (followerId, followingId) => {
       await getDb()
         .delete(userFollows)
-        .where(and(eq(userFollows.followerId, followerId), eq(userFollows.followingId, followingId)));
+        .where(
+          and(
+            eq(userFollows.followerId, followerId),
+            eq(userFollows.followingId, followingId),
+          ),
+        );
     },
-    deleteFollowRelationshipsBetweenUsers: async (firstUserId, secondUserId) => {
+    deleteFollowRelationshipsBetweenUsers: async (
+      firstUserId,
+      secondUserId,
+    ) => {
       await getDb()
         .delete(userFollows)
         .where(
           or(
-            and(eq(userFollows.followerId, firstUserId), eq(userFollows.followingId, secondUserId)),
-            and(eq(userFollows.followerId, secondUserId), eq(userFollows.followingId, firstUserId)),
+            and(
+              eq(userFollows.followerId, firstUserId),
+              eq(userFollows.followingId, secondUserId),
+            ),
+            and(
+              eq(userFollows.followerId, secondUserId),
+              eq(userFollows.followingId, firstUserId),
+            ),
           ),
         );
     },
@@ -182,11 +249,17 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
       const [isBlockedByViewer, hasBlockedViewer] = await Promise.all([
         getDb().query.userBlocks.findFirst({
           where: (table, { and: innerAnd, eq: innerEq }) =>
-            innerAnd(innerEq(table.blockerId, viewerUserId), innerEq(table.blockedId, otherUserId)),
+            innerAnd(
+              innerEq(table.blockerId, viewerUserId),
+              innerEq(table.blockedId, otherUserId),
+            ),
         }),
         getDb().query.userBlocks.findFirst({
           where: (table, { and: innerAnd, eq: innerEq }) =>
-            innerAnd(innerEq(table.blockerId, otherUserId), innerEq(table.blockedId, viewerUserId)),
+            innerAnd(
+              innerEq(table.blockerId, otherUserId),
+              innerEq(table.blockedId, viewerUserId),
+            ),
         }),
       ]);
 
@@ -207,7 +280,12 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
     deleteBlockRelationship: async (blockerId, blockedId) => {
       await getDb()
         .delete(userBlocks)
-        .where(and(eq(userBlocks.blockerId, blockerId), eq(userBlocks.blockedId, blockedId)));
+        .where(
+          and(
+            eq(userBlocks.blockerId, blockerId),
+            eq(userBlocks.blockedId, blockedId),
+          ),
+        );
     },
     listFollowingUsers: async (followerId) => {
       const rows = await getDb()
@@ -241,7 +319,10 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .from(userFollows)
         .innerJoin(
           reciprocalFollows,
-          and(eq(reciprocalFollows.followerId, userFollows.followingId), eq(reciprocalFollows.followingId, userId)),
+          and(
+            eq(reciprocalFollows.followerId, userFollows.followingId),
+            eq(reciprocalFollows.followingId, userId),
+          ),
         )
         .innerJoin(users, eq(userFollows.followingId, users.id))
         .where(eq(userFollows.followerId, userId))
@@ -299,15 +380,24 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         .from(users)
         .leftJoin(
           userFollows,
-          and(eq(userFollows.followingId, users.id), eq(userFollows.followerId, viewerUserId)),
+          and(
+            eq(userFollows.followingId, users.id),
+            eq(userFollows.followerId, viewerUserId),
+          ),
         )
         .leftJoin(
           viewerBlocks,
-          and(eq(viewerBlocks.blockerId, viewerUserId), eq(viewerBlocks.blockedId, users.id)),
+          and(
+            eq(viewerBlocks.blockerId, viewerUserId),
+            eq(viewerBlocks.blockedId, users.id),
+          ),
         )
         .leftJoin(
           targetBlocks,
-          and(eq(targetBlocks.blockerId, users.id), eq(targetBlocks.blockedId, viewerUserId)),
+          and(
+            eq(targetBlocks.blockerId, users.id),
+            eq(targetBlocks.blockedId, viewerUserId),
+          ),
         )
         .where(
           and(
@@ -316,7 +406,11 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
             isNull(userFollows.followingId),
             isNull(viewerBlocks.blockerId),
             isNull(targetBlocks.blockerId),
-            or(ilike(users.name, `%${query}%`), ilike(users.email, `%${query}%`), ilike(users.tag, `%${query}%`)),
+            or(
+              ilike(users.name, `%${query}%`),
+              ilike(users.email, `%${query}%`),
+              ilike(users.tag, `%${query}%`),
+            ),
           ),
         )
         .orderBy(asc(users.name), asc(users.tag), asc(users.email))
@@ -345,7 +439,9 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
   };
 }
 
-function resolveProfileDisplayName(user: Pick<ProfileUserRecord, 'name' | 'email'>) {
+function resolveProfileDisplayName(
+  user: Pick<ProfileUserRecord, 'name' | 'email'>,
+) {
   const trimmedName = user.name?.trim();
 
   if (trimmedName) {
@@ -356,7 +452,9 @@ function resolveProfileDisplayName(user: Pick<ProfileUserRecord, 'name' | 'email
   return emailPrefix || 'User';
 }
 
-function toProfileDirectoryEntry(user: ProfileUserRecord): ProfileDirectoryEntry {
+function toProfileDirectoryEntry(
+  user: ProfileUserRecord,
+): ProfileDirectoryEntry {
   return {
     userId: user.id,
     tag: user.tag,
@@ -469,7 +567,10 @@ async function updateFollowRelationship(
   }
 
   if (shouldFollow) {
-    const blockState = await deps.getBlockRelationshipState(actorUserId, targetUserId);
+    const blockState = await deps.getBlockRelationshipState(
+      actorUserId,
+      targetUserId,
+    );
 
     if (blockState.isBlockedByViewer) {
       return failure({
@@ -749,7 +850,10 @@ export async function listProfileFollowersByTagUseCase(
   }
 
   if (viewerUserId && viewerUserId !== user.id) {
-    const blockState = await deps.getBlockRelationshipState(viewerUserId, user.id);
+    const blockState = await deps.getBlockRelationshipState(
+      viewerUserId,
+      user.id,
+    );
 
     if (blockState.hasBlockedViewer) {
       return failure({
@@ -777,7 +881,10 @@ export async function listProfileFollowersByTagUseCase(
     },
     followers: visibleFollowers.map(toProfileFollowerEntry),
     totalFollowerCount: followers.length,
-    hiddenFollowerCount: Math.max(0, followers.length - visibleFollowers.length),
+    hiddenFollowerCount: Math.max(
+      0,
+      followers.length - visibleFollowers.length,
+    ),
     isOwnProfile: Boolean(viewerUserId && viewerUserId === user.id),
   });
 }
