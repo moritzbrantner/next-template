@@ -1,6 +1,6 @@
 'use client';
 
-import { useOptimistic } from 'react';
+import { startTransition, useOptimistic } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -86,7 +86,9 @@ export function NotificationsFeedCard({
           <MarkAllReadButton
             disabled={state.unreadCount === 0}
             onSuccess={() => {
-              applyOptimisticUpdate({ type: 'mark-all-read' });
+              startTransition(() => {
+                applyOptimisticUpdate({ type: 'mark-all-read' });
+              });
             }}
           />
         </div>
@@ -127,9 +129,11 @@ export function NotificationsFeedCard({
                       pendingLabel={t('feed.markingRead')}
                       errorLabel={t('feed.markReadError')}
                       onSuccess={() => {
-                        applyOptimisticUpdate({
-                          type: 'mark-read',
-                          notificationId: item.id,
+                        startTransition(() => {
+                          applyOptimisticUpdate({
+                            type: 'mark-read',
+                            notificationId: item.id,
+                          });
                         });
                       }}
                       className="shrink-0"

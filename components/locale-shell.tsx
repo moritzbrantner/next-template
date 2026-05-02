@@ -190,20 +190,20 @@ export async function LocaleShell({
         />
       </header>
       <PageContent className="app-shell mx-auto min-h-[calc(100vh-4rem)] w-full max-w-5xl px-4 py-10">
-          <DeferredConsentBanner />
-          {announcements ? (
-            announcements.map((announcement) => (
-              <SiteAnnouncementBanner
-                key={announcement.id}
-                announcement={announcement}
-                locale={locale}
-              />
-            ))
-          ) : (
-            <Suspense fallback={null}>
-              <SiteAnnouncementStack locale={locale} />
-            </Suspense>
-          )}
+        <DeferredConsentBanner />
+        {announcements ? (
+          announcements.map((announcement) => (
+            <SiteAnnouncementBanner
+              key={announcement.id}
+              announcement={announcement}
+              locale={locale}
+            />
+          ))
+        ) : (
+          <Suspense fallback={null}>
+            <SiteAnnouncementStack locale={locale} />
+          </Suspense>
+        )}
         {children}
       </PageContent>
     </>
