@@ -2,13 +2,6 @@
 
 import type { ReactNode } from 'react';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useLocale, useTranslations } from '@/src/i18n';
 import {
@@ -16,23 +9,20 @@ import {
   formatDatePreview,
 } from '@/src/settings/preferences';
 import { useAppSettings } from '@/src/settings/provider';
+import type { AppSettingsSection } from '@/src/settings/sections';
 
 const sampleDate = new Date('2026-04-27T09:00:00.000Z');
 
-export function AppSettingsPanel() {
+export function AppSettingsPanel({ section }: { section: AppSettingsSection }) {
   const t = useTranslations('SettingsPage');
   const locale = useLocale();
   const { settings, updateSettings } = useAppSettings();
   const datePreview = formatDatePreview(sampleDate, settings, locale);
 
-  return (
-    <div className="grid gap-6 xl:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('appearance.title')}</CardTitle>
-          <CardDescription>{t('appearance.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
+  switch (section) {
+    case 'appearance':
+      return (
+        <div className="space-y-5">
           <div className="grid gap-3 sm:grid-cols-2">
             {backgroundOptions.map((option) => {
               const isActive = settings.background === option;
@@ -74,15 +64,12 @@ export function AppSettingsPanel() {
             checked={settings.reducedMotion}
             onChange={(checked) => updateSettings({ reducedMotion: checked })}
           />
-        </CardContent>
-      </Card>
+        </div>
+      );
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('dates.title')}</CardTitle>
-          <CardDescription>{t('dates.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
+    case 'dates':
+      return (
+        <div className="space-y-5">
           <FieldBlock label={t('dates.formatLabel')}>
             <select
               aria-label={t('dates.formatLabel')}
@@ -129,15 +116,12 @@ export function AppSettingsPanel() {
               {datePreview}
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      );
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('workflow.title')}</CardTitle>
-          <CardDescription>{t('workflow.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
+    case 'workflow':
+      return (
+        <div className="space-y-5">
           <ToggleRow
             title={t('workflow.hotkeyHints')}
             description={t('workflow.hotkeyHintsDescription')}
@@ -148,15 +132,12 @@ export function AppSettingsPanel() {
           <div className="rounded-2xl border border-dashed border-zinc-300 p-4 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
             {t('workflow.hotkeySummary')}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      );
 
-      <Card id="notifications" className="scroll-mt-6">
-        <CardHeader>
-          <CardTitle>{t('notifications.title')}</CardTitle>
-          <CardDescription>{t('notifications.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
+    case 'notifications':
+      return (
+        <div className="space-y-5">
           <ToggleRow
             title={t('notifications.enabled')}
             description={t('notifications.enabledDescription')}
@@ -218,10 +199,9 @@ export function AppSettingsPanel() {
               );
             })}
           </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+        </div>
+      );
+  }
 }
 
 function FieldBlock({

@@ -38,6 +38,7 @@ const DISPLAY_LABELS: Record<string, string> = {
   '/profile/[userId]/followers': 'Profile followers',
   '/profile/[userId]/blog': 'Profile blog',
   '/settings': 'Settings',
+  '/settings/[section]': 'Settings section',
   '/data-entry': 'Data entry',
   '/admin': 'Admin overview',
   '/admin/content': 'Admin content',
@@ -152,6 +153,10 @@ export function classifyNavigationPathname(
     segments[2] === 'blog'
   ) {
     return buildClassification('/profile/[userId]/blog', 'public');
+  }
+
+  if (segments[0] === 'settings' && segments.length === 2) {
+    return buildClassification('/settings/[section]', 'authenticated');
   }
 
   if (

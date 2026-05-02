@@ -17,6 +17,7 @@ export const protectedWebsiteNamespaces = [
   'GroupsPage',
   'NotificationsPage',
   'PeoplePage',
+  'ProfileChatPage',
   'SettingsPage',
 ] as const;
 

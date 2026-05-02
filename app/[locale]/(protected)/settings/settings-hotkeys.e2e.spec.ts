@@ -18,17 +18,20 @@ test.describe('settings and hotkeys', () => {
       .getByRole('button', { name: /Aurora Cool cyan and green gradients\./ })
       .click();
 
+    await gotoAndWaitForHydration(page, '/en/settings/dates');
     await page.getByLabel('Date format').selectOption('iso');
     await expect(page.getByText(/\d{4}-\d{2}-\d{2}/)).toBeVisible();
 
+    await gotoAndWaitForHydration(page, '/en/settings/workflow');
     await page.getByRole('switch', { name: 'Show hotkey hints' }).click();
     await expect(page.getByRole('button', { name: 'Hotkeys' })).toHaveCount(0);
 
+    await gotoAndWaitForHydration(page, '/en/settings/notifications');
     await page.getByRole('switch', { name: 'Enable notifications' }).click();
     await page.getByRole('button', { name: 'Digest' }).click();
 
     await page.reload();
-    await gotoAndWaitForHydration(page, '/en/settings');
+    await gotoAndWaitForHydration(page, '/en/settings/notifications');
 
     await expect(page.locator('html')).toHaveAttribute(
       'data-hotkey-hints',
@@ -36,23 +39,28 @@ test.describe('settings and hotkeys', () => {
     );
     await expect(page.getByRole('button', { name: 'Hotkeys' })).toHaveCount(0);
 
+    await gotoAndWaitForHydration(page, '/en/settings');
     await expect(
       page.getByRole('button', {
         name: /Aurora Cool cyan and green gradients\./,
       }),
     ).toHaveAttribute('aria-pressed', 'true');
 
+    await gotoAndWaitForHydration(page, '/en/settings/dates');
     await expect(page.getByText(/\d{4}-\d{2}-\d{2}/)).toBeVisible();
 
+    await gotoAndWaitForHydration(page, '/en/settings/workflow');
     await expect(
       page.getByRole('switch', { name: 'Show hotkey hints' }),
     ).toHaveAttribute('aria-checked', 'false');
 
+    await gotoAndWaitForHydration(page, '/en/settings/notifications');
     await expect(
       page.getByRole('switch', { name: 'Enable notifications' }),
     ).toHaveAttribute('aria-checked', 'false');
     await expect(page.getByLabel('Notification type')).toHaveValue('digest');
 
+    await gotoAndWaitForHydration(page, '/en/settings/privacy');
     await expect(
       page.getByRole('switch', { name: 'Allow people to find me' }),
     ).toBeVisible();
@@ -119,7 +127,7 @@ test.describe('settings and hotkeys', () => {
     await page.getByRole('button', { name: 'Create account' }).click();
 
     await expect(page).toHaveURL('/en/profile');
-    await gotoAndWaitForHydration(page, '/en/settings');
+    await gotoAndWaitForHydration(page, '/en/settings/account');
 
     await page.getByLabel('New email address').fill(nextEmail);
     await page.getByLabel('Current password').first().fill(password);

@@ -21,6 +21,11 @@ describe('navigation classification', () => {
       routeGroup: 'authenticated',
       displayLabel: 'Friends',
     });
+    expect(classifyNavigationPathname('/en/settings/privacy')).toEqual({
+      canonicalPath: '/settings/[section]',
+      routeGroup: 'authenticated',
+      displayLabel: 'Settings section',
+    });
   });
 
   it('classifies profile routes and repo-managed public pages', () => {

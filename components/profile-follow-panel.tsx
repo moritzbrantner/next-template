@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import {
+  buildProfileChatPath,
   buildPublicProfileFollowersPath,
   formatProfileTag,
 } from '@/src/profile/tags';
@@ -58,6 +59,7 @@ type ProfileFollowPanelProps = {
     sendMessageSubmit: string;
     sendMessageSending: string;
     sendMessageSent: string;
+    sendMessageOpenChat: string;
     sendMessageError: string;
   };
 };
@@ -402,7 +404,9 @@ export function ProfileFollowPanel({
         isSending={isSendingMessage}
         feedback={messageFeedback}
         error={messageError}
+        chatHref={buildProfileChatPath(profileUserId)}
         labels={labels}
+        locale={locale}
         onMessageChange={setMessage}
         onSubmit={handleMessageSubmit}
         onClose={() => {
@@ -422,7 +426,9 @@ function ProfileMessageDialog({
   isSending,
   feedback,
   error,
+  chatHref,
   labels,
+  locale,
   onMessageChange,
   onSubmit,
   onClose,
@@ -433,7 +439,9 @@ function ProfileMessageDialog({
   isSending: boolean;
   feedback: string | null;
   error: string | null;
+  chatHref: string;
   labels: ProfileFollowPanelProps['labels'];
+  locale: AppLocale;
   onMessageChange: (message: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onClose: () => void;
@@ -493,9 +501,18 @@ function ProfileMessageDialog({
           />
 
           {feedback ? (
-            <p className="text-sm text-emerald-700 dark:text-emerald-400">
-              {feedback}
-            </p>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <p className="text-emerald-700 dark:text-emerald-400">
+                {feedback}
+              </p>
+              <Link
+                href={chatHref}
+                locale={locale}
+                className="font-medium text-zinc-950 underline-offset-4 hover:underline dark:text-zinc-50"
+              >
+                {labels.sendMessageOpenChat}
+              </Link>
+            </div>
           ) : null}
           {error ? (
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>

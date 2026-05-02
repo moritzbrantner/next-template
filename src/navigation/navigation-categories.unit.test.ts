@@ -69,6 +69,7 @@ describe('navigation categories', () => {
     expect(socialCategory?.links.map((link) => link.key)).toEqual([
       'profile',
       'friends',
+      'memberChat',
       'groups',
       'notifications',
     ]);

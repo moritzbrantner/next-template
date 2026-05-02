@@ -74,6 +74,16 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     featureKey: 'people.directory',
   },
   {
+    key: 'memberChat',
+    href: '/chat',
+    translationKey: 'links.chat',
+    visibility: 'authenticated',
+    navigationCategory: 'social',
+    hotkey: ['alt', 'u'],
+    order: 225,
+    featureKey: 'people.directory',
+  },
+  {
     key: 'groups',
     href: '/groups',
     translationKey: 'links.groups',

@@ -1,5 +1,7 @@
 export type {
   ProfileBlockMutationPayload,
+  ProfileChatMessage,
+  ProfileChatPayload,
   ProfileDirectoryEntry,
   ProfileError,
   ProfileFollowMutationPayload,

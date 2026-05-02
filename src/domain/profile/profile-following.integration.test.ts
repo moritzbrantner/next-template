@@ -4,6 +4,7 @@ import {
   blockUserUseCase,
   followUserUseCase,
   getProfileFollowerVisibilityUseCase,
+  getProfileChatUseCase,
   getProfileViewByTagUseCase,
   getProfileViewUseCase,
   getProfileSearchVisibilityUseCase,
@@ -43,6 +44,7 @@ function createDeps(
     listFriendUsers: vi.fn().mockResolvedValue([]),
     listBlockedUsers: vi.fn().mockResolvedValue([]),
     listFollowersForUser: vi.fn().mockResolvedValue([]),
+    listProfileMessagesBetweenUsers: vi.fn().mockResolvedValue([]),
     searchUsersToFollow: vi.fn().mockResolvedValue([]),
     updateUserSearchVisibility: vi.fn().mockResolvedValue(undefined),
     updateUserFollowerVisibility: vi.fn().mockResolvedValue(undefined),
@@ -271,7 +273,7 @@ describe('profile follow use cases', () => {
         targetUserId: 'user_2',
         title: 'Sender sent you a message',
         body: 'Hello there',
-        href: '/profile/@sender',
+        href: '/chat/user_1',
       }),
     );
   });
@@ -304,6 +306,67 @@ describe('profile follow use cases', () => {
       },
     });
     expect(deps.createProfileMessageNotification).not.toHaveBeenCalled();
+  });
+
+  it('loads a chat with a friend from direct profile messages', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockImplementation((userId: string) =>
+        Promise.resolve(
+          userId === 'user_1'
+            ? {
+                id: 'user_1',
+                email: 'sender@example.com',
+                tag: 'sender',
+                name: 'Sender',
+                image: null,
+                bannerImage: null,
+                isSearchable: true,
+                followerVisibility: 'PUBLIC',
+              }
+            : {
+                id: 'user_2',
+                email: 'target@example.com',
+                tag: 'target',
+                name: 'Target',
+                image: null,
+                bannerImage: null,
+                isSearchable: true,
+                followerVisibility: 'PUBLIC',
+              },
+        ),
+      ),
+      hasFollowRelationship: vi.fn().mockResolvedValue(true),
+      listProfileMessagesBetweenUsers: vi.fn().mockResolvedValue([
+        {
+          id: 'message_1',
+          actorId: 'user_2',
+          body: 'Hello',
+          createdAt: new Date('2026-05-02T10:00:00.000Z'),
+        },
+      ]),
+    });
+
+    await expect(
+      getProfileChatUseCase('user_1', 'user_2', deps),
+    ).resolves.toEqual({
+      ok: true,
+      data: {
+        member: {
+          userId: 'user_2',
+          tag: 'target',
+          displayName: 'Target',
+          imageUrl: null,
+        },
+        messages: [
+          {
+            id: 'message_1',
+            senderUserId: 'user_2',
+            body: 'Hello',
+            createdAt: '2026-05-02T10:00:00.000Z',
+          },
+        ],
+      },
+    });
   });
 
   it('rejects follow attempts when the actor has already blocked the target', async () => {

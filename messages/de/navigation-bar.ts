@@ -10,6 +10,7 @@ export const navigationBar = {
     changelog: 'Changelog',
     reportProblem: 'Problem melden',
     friends: 'Freunde',
+    chat: 'Chat',
     groups: 'Gruppen',
     notifications: 'Benachrichtigungen',
     profile: 'Profil',

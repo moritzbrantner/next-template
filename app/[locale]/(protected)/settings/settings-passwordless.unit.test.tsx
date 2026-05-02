@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 
@@ -30,6 +31,19 @@ vi.mock('@/components/privacy/consent-settings-card', () => ({
 }));
 
 vi.mock('@/i18n/navigation', () => ({
+  Link: ({
+    children,
+    href,
+    ...props
+  }: {
+    children: ReactNode;
+    href: string;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+  usePathname: () => '/settings/account',
   useRouter: () => ({
     refresh: vi.fn(),
     replace: vi.fn(),
@@ -70,6 +84,7 @@ describe('passwordless settings state', () => {
     render(
       <SettingsClient
         locale="en"
+        section="account"
         session={{
           user: {
             id: 'user_1',
@@ -87,7 +102,6 @@ describe('passwordless settings state', () => {
           canDeleteWithPassword: false,
         }}
         consent={{ necessary: true, analytics: false, marketing: false }}
-        currentPermissions={[]}
         initialSearchVisibility
         initialFollowerVisibility="PUBLIC"
         initialBlockedProfiles={[]}

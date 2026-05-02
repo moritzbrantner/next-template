@@ -45,7 +45,7 @@ test.describe('profile image uploads', () => {
     await expectSignedInProfile(page, displayName);
     await expect(page.getByLabel('Choose a profile picture')).toHaveCount(0);
 
-    await gotoAndWaitForHydration(page, '/en/settings');
+    await gotoAndWaitForHydration(page, '/en/settings/profile');
     await expect(
       page.getByRole('heading', { name: 'Profile picture' }),
     ).toBeVisible();
@@ -96,7 +96,7 @@ test.describe('profile image uploads', () => {
     );
 
     await page.reload();
-    await gotoAndWaitForHydration(page, '/en/settings');
+    await gotoAndWaitForHydration(page, '/en/settings/profile');
     await expect(
       page.getByRole('button', { name: 'Remove picture' }),
     ).toBeVisible();

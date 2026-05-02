@@ -46,7 +46,7 @@ test.describe('account deletion', () => {
         deletionUser.password,
       );
 
-      await gotoAndWaitForHydration(page, '/en/settings');
+      await gotoAndWaitForHydration(page, '/en/settings/account');
       await expect(
         page.getByRole('heading', { name: 'Delete account' }),
       ).toBeVisible();
@@ -67,7 +67,7 @@ test.describe('account deletion', () => {
         }),
       ).toBeVisible();
 
-      await gotoAndWaitForHydration(page, '/en/settings');
+      await gotoAndWaitForHydration(page, '/en/settings/account');
       await expect(page).toHaveURL('/en');
 
       await gotoAndWaitForHydration(page, '/en/login');

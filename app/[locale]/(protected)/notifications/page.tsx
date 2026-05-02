@@ -32,7 +32,7 @@ export default async function NotificationsPage({
     <section className="mx-auto max-w-4xl space-y-4">
       <div className="flex justify-end">
         <LocalizedLink
-          href="/settings#notifications"
+          href="/settings/notifications"
           locale={locale}
           className={buttonVariants({ variant: 'outline' })}
         >

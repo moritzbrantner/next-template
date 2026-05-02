@@ -24,6 +24,7 @@ export const profilePage = {
     sendMessageSubmit: 'Send',
     sendMessageSending: 'Sending…',
     sendMessageSent: 'Message sent.',
+    sendMessageOpenChat: 'Open chat',
     sendMessageError:
       'Unable to send this message right now. Please try again.',
     blockedDescription:

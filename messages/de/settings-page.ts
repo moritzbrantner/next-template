@@ -2,12 +2,14 @@ export const settingsPage = {
   title: 'Einstellungen',
   description:
     'Passe Erscheinungsbild, Datumsverhalten, Benachrichtigungseinstellungen, Datenschutz, Hotkey-Sichtbarkeit und Profilsteuerung an einer Stelle an.',
+  navigationLabel: 'Einstellungsbereiche',
   saveState: 'Einstellungen werden automatisch gespeichert',
   tabs: {
     appearance: 'Darstellung',
     dates: 'Datum',
     workflow: 'Arbeitsfluss',
     notifications: 'Benachrichtigungen',
+    profile: 'Profil',
     privacy: 'Datenschutz',
     account: 'Konto',
   },

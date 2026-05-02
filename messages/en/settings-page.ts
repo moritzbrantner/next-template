@@ -2,12 +2,14 @@ export const settingsPage = {
   title: 'Settings',
   description:
     'Tune appearance, date behavior, notification preferences, privacy, hotkey visibility, and profile controls in one place.',
+  navigationLabel: 'Settings sections',
   saveState: 'Settings save automatically',
   tabs: {
     appearance: 'Appearance',
     dates: 'Dates',
     workflow: 'Workflow',
     notifications: 'Notifications',
+    profile: 'Profile',
     privacy: 'Privacy',
     account: 'Account',
   },

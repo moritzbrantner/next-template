@@ -24,6 +24,7 @@ import {
   type FollowerVisibilityRole,
 } from '@/src/profile/follower-visibility';
 import {
+  buildProfileChatPath,
   buildPublicProfilePath,
   normalizeProfileTagInput,
   validateProfileTag,
@@ -101,6 +102,18 @@ export type ProfileMessagePayload = {
   notificationId: string;
 };
 
+export type ProfileChatMessage = {
+  id: string;
+  senderUserId: string;
+  body: string;
+  createdAt: string;
+};
+
+export type ProfileChatPayload = {
+  member: ProfileDirectoryEntry;
+  messages: ProfileChatMessage[];
+};
+
 export type ProfileFollowersPayload = {
   profile: {
     userId: string;
@@ -169,6 +182,17 @@ export type ProfileUseCaseDeps = {
   listFriendUsers: (userId: string) => Promise<ProfileUserRecord[]>;
   listBlockedUsers: (blockerId: string) => Promise<ProfileUserRecord[]>;
   listFollowersForUser: (followingId: string) => Promise<ProfileUserRecord[]>;
+  listProfileMessagesBetweenUsers: (
+    firstUserId: string,
+    secondUserId: string,
+  ) => Promise<
+    Array<{
+      id: string;
+      actorId: string | null;
+      body: string;
+      createdAt: Date;
+    }>
+  >;
   searchUsersToFollow: (
     viewerUserId: string,
     query: string,
@@ -393,6 +417,32 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
 
       return rows;
     },
+    listProfileMessagesBetweenUsers: (firstUserId, secondUserId) =>
+      getDb()
+        .select({
+          id: notifications.id,
+          actorId: notifications.actorId,
+          body: notifications.body,
+          createdAt: notifications.createdAt,
+        })
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.audience, 'user'),
+            or(
+              and(
+                eq(notifications.userId, firstUserId),
+                eq(notifications.actorId, secondUserId),
+              ),
+              and(
+                eq(notifications.userId, secondUserId),
+                eq(notifications.actorId, firstUserId),
+              ),
+            ),
+          ),
+        )
+        .orderBy(asc(notifications.createdAt))
+        .limit(100),
     searchUsersToFollow: async (viewerUserId, query) => {
       const rows = await getDb()
         .select({
@@ -729,11 +779,77 @@ export async function sendProfileMessageUseCase(
     targetUserId,
     title: `${senderName} sent you a message`,
     body: message,
-    href: buildPublicProfilePath(senderUser.tag),
+    href: buildProfileChatPath(actorUserId),
     createdAt: new Date(),
   });
 
   return success({ notificationId });
+}
+
+export async function getProfileChatUseCase(
+  actorUserId: string,
+  memberUserId: string,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileChatPayload, ProfileError>> {
+  if (actorUserId === memberUserId) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: 'You cannot chat with yourself.',
+    });
+  }
+
+  const [actorUser, memberUser] = await Promise.all([
+    deps.findUserById(actorUserId),
+    deps.findUserById(memberUserId),
+  ]);
+
+  if (!actorUser || !memberUser) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const blockState = await deps.getBlockRelationshipState(
+    actorUserId,
+    memberUserId,
+  );
+
+  if (blockState.isBlockedByViewer || blockState.hasBlockedViewer) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You cannot chat with this user.',
+    });
+  }
+
+  const [actorFollowsMember, memberFollowsActor] = await Promise.all([
+    deps.hasFollowRelationship(actorUserId, memberUserId),
+    deps.hasFollowRelationship(memberUserId, actorUserId),
+  ]);
+
+  if (!actorFollowsMember || !memberFollowsActor) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You can only chat with friends.',
+    });
+  }
+
+  const messages = await deps.listProfileMessagesBetweenUsers(
+    actorUserId,
+    memberUserId,
+  );
+
+  return success({
+    member: toProfileDirectoryEntry(memberUser),
+    messages: messages
+      .filter((message) => message.actorId)
+      .map((message) => ({
+        id: message.id,
+        senderUserId: message.actorId!,
+        body: message.body,
+        createdAt: message.createdAt.toISOString(),
+      })),
+  });
 }
 
 async function updateBlockRelationship(

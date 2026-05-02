@@ -43,6 +43,7 @@ describe('app routes', () => {
       visibleKeys: ['home', 'about', 'forms', 'login', 'register'],
       hiddenKeys: [
         'friends',
+        'memberChat',
         'groups',
         'notifications',
         'dataEntry',
@@ -57,6 +58,7 @@ describe('app routes', () => {
       visibleKeys: [
         'home',
         'friends',
+        'memberChat',
         'groups',
         'notifications',
         'dataEntry',
@@ -71,6 +73,7 @@ describe('app routes', () => {
       visibleKeys: [
         'home',
         'friends',
+        'memberChat',
         'groups',
         'notifications',
         'dataEntry',
@@ -84,6 +87,7 @@ describe('app routes', () => {
       input: { isAuthenticated: true, role: 'ADMIN' as const },
       visibleKeys: [
         'friends',
+        'memberChat',
         'groups',
         'notifications',
         'dataEntry',
@@ -141,6 +145,7 @@ describe('app routes', () => {
     expect(visiblePageKeys.has('groups')).toBe(false);
     expect(visiblePageKeys.has('notifications')).toBe(false);
     expect(visiblePageKeys.has('friends')).toBe(false);
+    expect(visiblePageKeys.has('memberChat')).toBe(false);
     expect(visiblePageKeys.has('dataEntry')).toBe(true);
   });
 });

@@ -126,6 +126,7 @@ export default async function PublicProfilePage({
           sendMessageSubmit: t('view.sendMessageSubmit'),
           sendMessageSending: t('view.sendMessageSending'),
           sendMessageSent: t('view.sendMessageSent'),
+          sendMessageOpenChat: t('view.sendMessageOpenChat'),
           sendMessageError: t('view.sendMessageError'),
         }}
       />

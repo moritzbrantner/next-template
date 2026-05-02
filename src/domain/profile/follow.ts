@@ -1,5 +1,6 @@
 export {
   followUserUseCase,
+  getProfileChatUseCase,
   listFriendProfilesUseCase,
   listFollowingProfilesUseCase,
   searchUsersToFollowUseCase,
@@ -7,4 +8,8 @@ export {
   unfollowUserUseCase,
 } from './shared';
 
-export type { ProfileDirectoryEntry } from './shared';
+export type {
+  ProfileChatMessage,
+  ProfileChatPayload,
+  ProfileDirectoryEntry,
+} from './shared';
