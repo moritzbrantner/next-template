@@ -6,6 +6,7 @@ export const shellNamespaces = [
 
 export const publicWebsiteNamespaces = [
   ...shellNamespaces,
+  'PeoplePage',
   'ReportProblemPage',
 ] as const;
 

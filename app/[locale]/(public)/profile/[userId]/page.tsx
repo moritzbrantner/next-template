@@ -97,10 +97,14 @@ export default async function PublicProfilePage({
         canManageFollowState={Boolean(viewerUserId) && followEnabled}
         canManageBlockState={Boolean(viewerUserId)}
         canViewFollowersPage={followEnabled}
+        canAddFriends={
+          profile.isOwnProfile && Boolean(viewerUserId) && followEnabled
+        }
         labels={{
           followers: t('view.followers'),
           followingCount: t('view.followingCount'),
           friends: t('view.friends'),
+          addFriend: t('view.addFriend'),
           follow: t('view.follow'),
           unfollow: t('view.unfollow'),
           following: t('view.following'),

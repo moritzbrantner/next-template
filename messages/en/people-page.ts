@@ -3,9 +3,8 @@ export const peoplePage = {
   description: 'Manage mutual follows and add new friends from search.',
   search: {
     title: 'Add friends',
-    description:
-      'Search by display name or email to find discoverable profiles.',
-    placeholder: 'Search profiles',
+    description: 'Search by name to find discoverable profiles.',
+    placeholder: 'Search by name',
     close: 'Close friend search',
     loading: 'Searching…',
     idle: 'Start typing to search for someone to add.',

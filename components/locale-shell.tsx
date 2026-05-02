@@ -190,7 +190,6 @@ export async function LocaleShell({
         />
       </header>
       <PageContent className="app-shell mx-auto min-h-[calc(100vh-4rem)] w-full max-w-5xl px-4 py-10">
-        <div className="space-y-4">
           <DeferredConsentBanner />
           {announcements ? (
             announcements.map((announcement) => (
@@ -205,7 +204,6 @@ export async function LocaleShell({
               <SiteAnnouncementStack locale={locale} />
             </Suspense>
           )}
-        </div>
         {children}
       </PageContent>
     </>

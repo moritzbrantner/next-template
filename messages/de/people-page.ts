@@ -4,9 +4,8 @@ export const peoplePage = {
     'Verwalte gegenseitige Follow-Verbindungen und füge neue Freunde über die Suche hinzu.',
   search: {
     title: 'Freunde hinzufügen',
-    description:
-      'Suche nach Anzeigename oder E-Mail, um auffindbare Profile zu entdecken.',
-    placeholder: 'Profile suchen',
+    description: 'Suche nach Namen, um auffindbare Profile zu entdecken.',
+    placeholder: 'Nach Namen suchen',
     close: 'Freundesuche schließen',
     loading: 'Suche läuft…',
     idle: 'Beginne zu tippen, um jemanden hinzuzufügen.',

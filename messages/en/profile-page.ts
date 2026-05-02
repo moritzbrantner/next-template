@@ -7,6 +7,7 @@ export const profilePage = {
     followers: 'followers',
     followingCount: 'following',
     friends: 'friends',
+    addFriend: 'Add friend',
     follow: 'Follow',
     unfollow: 'Unfollow',
     following: 'Following…',

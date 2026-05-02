@@ -4,6 +4,7 @@ import {
   listFriendProfilesUseCase,
   listFollowingProfilesUseCase,
 } from '@/src/domain/profile/use-cases';
+import { isFeatureEnabledForUser } from '@/src/foundation/features/access';
 import { createTranslator } from '@/src/i18n/messages';
 import { requireAuth, resolveLocale } from '@/src/server/page-guards';
 
@@ -16,13 +17,13 @@ export default async function ProfilePage({
   const locale = resolveLocale(rawLocale);
   const session = await requireAuth(locale);
   const t = createTranslator(locale, 'ProfilePage');
-  const [profileViewResult, followingResult, friendsResult] = await Promise.all(
-    [
+  const [profileViewResult, followingResult, friendsResult, followEnabled] =
+    await Promise.all([
       getProfileViewUseCase(session.user.id, session.user.id),
       listFollowingProfilesUseCase(session.user.id),
       listFriendProfilesUseCase(session.user.id),
-    ],
-  );
+      isFeatureEnabledForUser('profiles.follow', session.user),
+    ]);
   const displayName =
     session.user.name ?? session.user.email?.split('@')[0] ?? 'User';
   const profile = profileViewResult.ok ? profileViewResult.data : null;
@@ -52,10 +53,12 @@ export default async function ProfilePage({
         canManageFollowState={false}
         canManageBlockState={false}
         canViewFollowersPage={true}
+        canAddFriends={followEnabled}
         labels={{
           followers: t('view.followers'),
           followingCount: t('view.followingCount'),
           friends: t('view.friends'),
+          addFriend: t('view.addFriend'),
           follow: t('view.follow'),
           unfollow: t('view.unfollow'),
           following: t('view.following'),

@@ -1,9 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { Search, UserPlus, X } from 'lucide-react';
-import { useDeferredValue, useEffect, useState } from 'react';
+import { UserPlus } from 'lucide-react';
+import { useState } from 'react';
 
+import { ProfileFriendSearchDialog } from '@/components/profile-friend-search-dialog';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
@@ -28,99 +28,13 @@ type FollowMutationResponse = {
 
 export function FriendsDirectory({ initialFriends }: FriendsDirectoryProps) {
   const t = useTranslations('PeoplePage');
-  const searchErrorMessage = t('search.error');
   const followErrorMessage = t('actions.error');
   const blockErrorMessage = t('actions.blockError');
   const [friendProfiles, setFriendProfiles] = useState(initialFriends);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const deferredQuery = useDeferredValue(query);
-  const [searchResults, setSearchResults] = useState<ProfileDirectoryEntry[]>(
-    [],
-  );
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [pendingUserIds, setPendingUserIds] = useState<string[]>([]);
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    if (!isSearchOpen) {
-      return;
-    }
-
-    const normalizedQuery = deferredQuery.trim();
-
-    if (!normalizedQuery) {
-      setIsSearching(false);
-      setSearchError(null);
-      setSearchResults([]);
-      return;
-    }
-
-    const abortController = new AbortController();
-
-    async function loadSearchResults() {
-      setIsSearching(true);
-      setSearchError(null);
-
-      try {
-        const searchParams = new URLSearchParams({
-          query: normalizedQuery,
-          refresh: String(refreshKey),
-        });
-        const response = await fetch(
-          `/api/profile/search?${searchParams.toString()}`,
-          {
-            signal: abortController.signal,
-          },
-        );
-
-        if (!response.ok) {
-          const problem = await readProblemDetail(response, searchErrorMessage);
-          setSearchError(problem.message);
-          setSearchResults([]);
-          return;
-        }
-
-        const payload = (await response.json()) as {
-          profiles?: ProfileDirectoryEntry[];
-        };
-        setSearchResults(payload.profiles ?? []);
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          return;
-        }
-
-        setSearchError(searchErrorMessage);
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    }
-
-    void loadSearchResults();
-
-    return () => {
-      abortController.abort();
-    };
-  }, [deferredQuery, isSearchOpen, refreshKey, searchErrorMessage]);
-
-  useEffect(() => {
-    if (!isSearchOpen) {
-      return;
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setIsSearchOpen(false);
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isSearchOpen]);
 
   function markPendingUser(userId: string, isPending: boolean) {
     setPendingUserIds((current) => {
@@ -174,11 +88,6 @@ export function FriendsDirectory({ initialFriends }: FriendsDirectoryProps) {
             t('actions.followAdded', { name: profile.displayName }),
           );
         }
-        setSearchResults((current) =>
-          current.filter(
-            (currentProfile) => currentProfile.userId !== profile.userId,
-          ),
-        );
       } else {
         setFriendProfiles((current) =>
           current.filter(
@@ -186,8 +95,6 @@ export function FriendsDirectory({ initialFriends }: FriendsDirectoryProps) {
           ),
         );
       }
-
-      setRefreshKey((current) => current + 1);
     } catch {
       setActionError(followErrorMessage);
     } finally {
@@ -220,17 +127,41 @@ export function FriendsDirectory({ initialFriends }: FriendsDirectoryProps) {
           (currentProfile) => currentProfile.userId !== profile.userId,
         ),
       );
-      setSearchResults((current) =>
-        current.filter(
-          (currentProfile) => currentProfile.userId !== profile.userId,
-        ),
-      );
-      setRefreshKey((current) => current + 1);
     } catch {
       setActionError(blockErrorMessage);
     } finally {
       markPendingUser(profile.userId, false);
     }
+  }
+
+  function handleSearchProfileFollowed(
+    profile: ProfileDirectoryEntry,
+    payload: FollowMutationResponse,
+  ) {
+    setActionError(null);
+    if (payload.isFriend) {
+      setFriendProfiles((current) =>
+        current.some(
+          (currentProfile) => currentProfile.userId === profile.userId,
+        )
+          ? current
+          : [profile, ...current],
+      );
+      setActionMessage(t('actions.friendAdded', { name: profile.displayName }));
+      return;
+    }
+
+    setActionMessage(t('actions.followAdded', { name: profile.displayName }));
+  }
+
+  function handleSearchProfileBlocked(profile: ProfileDirectoryEntry) {
+    setActionError(null);
+    setActionMessage(null);
+    setFriendProfiles((current) =>
+      current.filter(
+        (currentProfile) => currentProfile.userId !== profile.userId,
+      ),
+    );
   }
 
   return (
@@ -289,119 +220,12 @@ export function FriendsDirectory({ initialFriends }: FriendsDirectoryProps) {
         </CardContent>
       </Card>
 
-      {isSearchOpen ? (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-zinc-950/55 px-4 py-16 backdrop-blur-sm sm:items-center sm:py-8"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setIsSearchOpen(false);
-            }
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="friend-search-title"
-            className="w-full max-w-2xl overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
-          >
-            <div className="flex items-start justify-between gap-4 border-b border-zinc-200 p-5 dark:border-zinc-800">
-              <div className="space-y-1">
-                <h2
-                  id="friend-search-title"
-                  className="text-lg font-semibold text-zinc-950 dark:text-zinc-50"
-                >
-                  {t('search.title')}
-                </h2>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  {t('search.description')}
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-9 w-9 px-0"
-                aria-label={t('search.close')}
-                onClick={() => setIsSearchOpen(false)}
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </Button>
-            </div>
-
-            <div className="space-y-4 p-5">
-              <div className="relative">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
-                  aria-hidden="true"
-                />
-                <Input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder={t('search.placeholder')}
-                  aria-label={t('search.placeholder')}
-                  autoFocus
-                  className="pl-9"
-                />
-              </div>
-
-              {isSearching ? (
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  {t('search.loading')}
-                </p>
-              ) : null}
-              {searchError ? (
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  {searchError}
-                </p>
-              ) : null}
-              {actionError ? (
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  {actionError}
-                </p>
-              ) : null}
-              {actionMessage ? (
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  {actionMessage}
-                </p>
-              ) : null}
-
-              {!deferredQuery.trim() ? (
-                <div className="rounded-lg border border-dashed border-zinc-300 p-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
-                  {t('search.idle')}
-                </div>
-              ) : null}
-
-              {deferredQuery.trim() &&
-              !isSearching &&
-              !searchError &&
-              searchResults.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-zinc-300 p-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
-                  {t('search.empty')}
-                </div>
-              ) : null}
-
-              {searchResults.length > 0 ? (
-                <div className="max-h-[50vh] space-y-3 overflow-y-auto pr-1">
-                  {searchResults.map((profile) => (
-                    <ProfileRow
-                      key={profile.userId}
-                      profile={profile}
-                      actionLabel={t('actions.follow')}
-                      pendingLabel={t('actions.following')}
-                      actionVariant="default"
-                      isPending={pendingUserIds.includes(profile.userId)}
-                      onAction={() => updateFollowState(profile, true)}
-                      secondaryActionLabel={t('actions.block')}
-                      secondaryPendingLabel={t('actions.blocking')}
-                      onSecondaryAction={() => blockProfile(profile)}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ProfileFriendSearchDialog
+        isOpen={isSearchOpen}
+        onOpenChange={setIsSearchOpen}
+        onProfileFollowed={handleSearchProfileFollowed}
+        onProfileBlocked={handleSearchProfileBlocked}
+      />
     </>
   );
 }
