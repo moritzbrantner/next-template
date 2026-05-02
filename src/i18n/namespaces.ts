@@ -14,6 +14,7 @@ export const guestWebsiteNamespaces = [...shellNamespaces] as const;
 
 export const protectedWebsiteNamespaces = [
   ...shellNamespaces,
+  'GroupsPage',
   'NotificationsPage',
   'PeoplePage',
   'SettingsPage',

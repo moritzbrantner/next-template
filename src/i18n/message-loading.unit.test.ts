@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { getMessages } from '@/src/i18n/messages';
+import { protectedWebsiteNamespaces } from '@/src/i18n/namespaces';
 
 describe('message loading', () => {
   it('merges foundation namespaces with the active app namespaces', () => {
@@ -16,5 +17,13 @@ describe('message loading', () => {
     expect(auth.login).toBe('Log in');
     expect(links.home).toBe('Home');
     expect(homePage.title).toBeDefined();
+  });
+
+  it('loads protected page namespaces required by client components', () => {
+    const messages = getMessages('en', protectedWebsiteNamespaces);
+    const groupsPage = messages.GroupsPage as Record<string, unknown>;
+    const create = groupsPage.create as Record<string, string>;
+
+    expect(create.title).toBe('Create group');
   });
 });
