@@ -6,7 +6,6 @@ export const homePage = {
   visitForm: 'Open Form Example',
   visitStory: 'Open Story Example',
   visitCommunication: 'Open Communication Example',
-  visitUploads: 'Open Upload Example',
   sections: {
     foundation: {
       title: 'Application foundation',

@@ -6,7 +6,6 @@ export const homePage = {
   visitForm: 'Formularbeispiel öffnen',
   visitStory: 'Story-Beispiel öffnen',
   visitCommunication: 'Kommunikationsbeispiel öffnen',
-  visitUploads: 'Upload-Beispiel öffnen',
   sections: {
     foundation: {
       title: 'Anwendungsfundament',

@@ -1,11 +1,9 @@
 'use client';
 
+import { Badge, Button, Input } from '@moritzbrantner/ui';
 import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useAppSettings } from '@/src/settings/provider';
 
 type NavigationHotkey = readonly [string, string];
@@ -37,7 +35,12 @@ function isTypingTarget(target: EventTarget | null) {
   }
 
   const tagName = target.tagName.toLowerCase();
-  return tagName === 'input' || tagName === 'textarea' || tagName === 'select' || target.isContentEditable;
+  return (
+    tagName === 'input' ||
+    tagName === 'textarea' ||
+    tagName === 'select' ||
+    target.isContentEditable
+  );
 }
 
 function getShortcutCode(shortcut: NavigationHotkey) {
@@ -75,7 +78,10 @@ export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
         return;
       }
 
-      if ((event.key === '?' && !event.metaKey && !event.ctrlKey) || ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k')) {
+      if (
+        (event.key === '?' && !event.metaKey && !event.ctrlKey) ||
+        ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k')
+      ) {
         event.preventDefault();
         setOpen((currentOpenState) => !currentOpenState);
         return;
@@ -85,7 +91,9 @@ export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
         return;
       }
 
-      const matchingPage = items.find((page) => getShortcutCode(page.hotkey) === event.code);
+      const matchingPage = items.find(
+        (page) => getShortcutCode(page.hotkey) === event.code,
+      );
 
       if (!matchingPage) {
         return;
@@ -103,30 +111,42 @@ export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
     };
   }, [items, open, router]);
 
-  const groupedPages = items.reduce<Record<string, NavigationHotkeyItem[]>>((groups, page) => {
-    groups[page.groupLabel] ??= [];
-    groups[page.groupLabel].push(page);
-    return groups;
-  }, {});
+  const groupedPages = items.reduce<Record<string, NavigationHotkeyItem[]>>(
+    (groups, page) => {
+      groups[page.groupLabel] ??= [];
+      groups[page.groupLabel].push(page);
+      return groups;
+    },
+    {},
+  );
 
   const normalizedQuery = query.trim().toLowerCase();
   const filteredGroups = Object.entries(groupedPages)
-    .map(([groupLabel, groupPages]) => [
-      groupLabel,
-      groupPages.filter((page) => {
-        if (!normalizedQuery) {
-          return true;
-        }
+    .map(
+      ([groupLabel, groupPages]) =>
+        [
+          groupLabel,
+          groupPages.filter((page) => {
+            if (!normalizedQuery) {
+              return true;
+            }
 
-        return page.searchText.includes(normalizedQuery);
-      }),
-    ] as const)
+            return page.searchText.includes(normalizedQuery);
+          }),
+        ] as const,
+    )
     .filter(([, groupPages]) => groupPages.length > 0);
 
   return (
     <>
       {settings.showHotkeyHints ? (
-        <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setOpen(true)}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => setOpen(true)}
+        >
           {labels.button}
           <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
             ?
@@ -149,7 +169,9 @@ export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
           >
             <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
               <p className="text-sm font-semibold">{labels.title}</p>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{labels.description}</p>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+                {labels.description}
+              </p>
             </div>
 
             <div className="border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
@@ -164,7 +186,9 @@ export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
 
             <div className="max-h-[24rem] overflow-y-auto px-3 py-3">
               {filteredGroups.length === 0 ? (
-                <p className="rounded-2xl px-3 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">{labels.empty}</p>
+                <p className="rounded-2xl px-3 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                  {labels.empty}
+                </p>
               ) : (
                 filteredGroups.map(([groupLabel, groupPages]) => (
                   <section key={groupLabel} className="mb-4 last:mb-0">
@@ -183,7 +207,9 @@ export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
                           }}
                         >
                           <span className="font-medium">{page.label}</span>
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">{page.hotkeyLabel}</span>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {page.hotkeyLabel}
+                          </span>
                         </button>
                       ))}
                     </div>

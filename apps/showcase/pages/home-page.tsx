@@ -36,9 +36,6 @@ export default async function HomePage({ locale }: { locale: AppLocale }) {
           <LocalizedLink href="/examples/communication" locale={routingLocale} prefetch={false} className={ghostLinkClassName}>
             {t('visitCommunication')}
           </LocalizedLink>
-          <LocalizedLink href="/examples/uploads" locale={routingLocale} prefetch={false} className={ghostLinkClassName}>
-            {t('visitUploads')}
-          </LocalizedLink>
         </div>
       </div>
 

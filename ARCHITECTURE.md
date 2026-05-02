@@ -49,6 +49,7 @@ src/
 ## Import rules
 
 - Use canonical aliases only: `@/src/*`, `@/components/*`, `@/lib/*`, `@/i18n/*`, `@/messages/*`, `@/emails/*`, `@/scripts/*`.
+- Prefer components from `@moritzbrantner/ui` for shared UI surfaces and controls. Add local components only for app-specific behavior or composition that the package does not provide.
 - Do not introduce `features/`, `stores/`, or `lib/services/` namespaces.
 - `src/domain/**` must not import app or component layer modules directly.
 - `src/db/**` stays infrastructure-only.
