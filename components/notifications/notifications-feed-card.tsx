@@ -4,13 +4,8 @@ import { startTransition, useOptimistic } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { buttonVariants } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MarkAllReadButton } from '@/components/notifications/mark-all-read-button';
 import { MarkNotificationReadButton } from '@/components/notifications/mark-notification-read-button';
 import type { NotificationFeedItem } from '@/src/domain/notifications/use-cases';
@@ -30,11 +25,27 @@ type NotificationFeedAction =
 type NotificationsFeedCardProps = {
   items: NotificationFeedItem[];
   unreadCount: number;
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+  previousHref: string;
+  nextHref: string;
 };
 
 export function NotificationsFeedCard({
   items: initialItems,
   unreadCount: initialUnreadCount,
+  totalCount,
+  page,
+  pageSize,
+  totalPages,
+  hasPreviousPage,
+  hasNextPage,
+  previousHref,
+  nextHref,
 }: NotificationsFeedCardProps) {
   const t = useTranslations('NotificationsPage');
   const [state, applyOptimisticUpdate] = useOptimistic<
@@ -81,7 +92,6 @@ export function NotificationsFeedCard({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <CardTitle>{t('feed.title')}</CardTitle>
-            <CardDescription>{t('feed.description')}</CardDescription>
           </div>
           <MarkAllReadButton
             disabled={state.unreadCount === 0}
@@ -148,6 +158,56 @@ export function NotificationsFeedCard({
             {t('feed.empty')}
           </div>
         )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+          <p className="text-sm text-zinc-600 dark:text-zinc-300">
+            {t('feed.pagination.summary', {
+              start: totalCount === 0 ? 0 : (page - 1) * pageSize + 1,
+              end: Math.min(page * pageSize, totalCount),
+              total: totalCount,
+              page,
+              totalPages,
+            })}
+          </p>
+          <div className="flex items-center gap-2">
+            {hasPreviousPage ? (
+              <Link
+                href={previousHref}
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                {t('feed.pagination.previous')}
+              </Link>
+            ) : (
+              <span
+                className={buttonVariants({
+                  variant: 'outline',
+                  size: 'sm',
+                  className: 'pointer-events-none opacity-50',
+                })}
+              >
+                {t('feed.pagination.previous')}
+              </span>
+            )}
+            {hasNextPage ? (
+              <Link
+                href={nextHref}
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                {t('feed.pagination.next')}
+              </Link>
+            ) : (
+              <span
+                className={buttonVariants({
+                  variant: 'outline',
+                  size: 'sm',
+                  className: 'pointer-events-none opacity-50',
+                })}
+              >
+                {t('feed.pagination.next')}
+              </span>
+            )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

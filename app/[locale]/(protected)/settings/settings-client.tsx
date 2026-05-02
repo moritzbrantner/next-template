@@ -2,6 +2,7 @@
 
 import { AccountDeleteForm } from '@/components/account-delete-form';
 import { AccountEmailForm } from '@/components/account-email-form';
+import { ProfileBannerForm } from '@/components/profile-banner-form';
 import { ProfileBlockedUsersForm } from '@/components/profile-blocked-users-form';
 import { ProfileFollowerVisibilityForm } from '@/components/profile-follower-visibility-form';
 import { ProfileImageForm } from '@/components/profile-image-form';
@@ -141,6 +142,29 @@ export function SettingsClient({
                 cropCancel: t('form.cropCancel'),
                 cropApply: t('form.cropApply'),
                 ready: t('form.ready'),
+              }}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('profileBannerTitle')}</CardTitle>
+            <CardDescription>{t('profileBannerDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProfileBannerForm
+              currentImage={session.user.bannerImage ?? null}
+              labels={{
+                chooseImage: t('bannerForm.chooseImage'),
+                hint: t('bannerForm.hint'),
+                upload: t('bannerForm.upload'),
+                uploading: t('bannerForm.uploading'),
+                remove: t('bannerForm.remove'),
+                success: t('bannerForm.success'),
+                empty: t('bannerForm.empty'),
+                alt: t('bannerForm.alt'),
+                ready: t('bannerForm.ready'),
               }}
             />
           </CardContent>

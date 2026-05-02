@@ -77,6 +77,7 @@ describe('passwordless settings state', () => {
             tag: 'person',
             name: 'Person Example',
             image: null,
+            bannerImage: null,
             role: 'USER',
           },
         }}

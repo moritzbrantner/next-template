@@ -1,3 +1,11 @@
-export { removeProfileImageUseCase, updateProfileImageUseCase } from './shared';
+export {
+  removeProfileBannerImageUseCase,
+  removeProfileImageUseCase,
+  updateProfileBannerImageUseCase,
+  updateProfileImageUseCase,
+} from './shared';
 
-export type { UpdateProfileImagePayload } from './shared';
+export type {
+  UpdateProfileBannerImagePayload,
+  UpdateProfileImagePayload,
+} from './shared';

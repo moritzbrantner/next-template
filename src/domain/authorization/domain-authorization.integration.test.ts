@@ -29,6 +29,7 @@ function createSession(
               ? 'manager'
               : 'user',
       image: null,
+      bannerImage: null,
       name: null,
       role,
     },

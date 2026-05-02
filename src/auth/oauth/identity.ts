@@ -10,6 +10,7 @@ type ResolvedSessionUser = {
   tag: string;
   name: string | null;
   image: string | null;
+  bannerImage: string | null;
   role: AppRole;
 };
 
@@ -89,6 +90,7 @@ function resolveDefaultDependencies(): SocialAccountResolverDependencies {
                   tag: user.tag,
                   name: user.name,
                   image: user.image,
+                  bannerImage: user.bannerImage,
                   role: user.role,
                 }
               : undefined;
@@ -105,6 +107,7 @@ function resolveDefaultDependencies(): SocialAccountResolverDependencies {
                   tag: user.tag,
                   name: user.name,
                   image: user.image,
+                  bannerImage: user.bannerImage,
                   role: user.role,
                 }
               : undefined;
@@ -121,6 +124,7 @@ function resolveDefaultDependencies(): SocialAccountResolverDependencies {
                   tag: user.tag,
                   name: user.name,
                   image: user.image,
+                  bannerImage: user.bannerImage,
                   role: user.role,
                 }
               : undefined;

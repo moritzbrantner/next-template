@@ -1,5 +1,5 @@
 import type { AppRole } from '@/lib/authorization';
-import { and, asc, count, eq, gte, ilike, inArray, or, sql } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, inArray, or, sql } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
 import { notifications, pageVisits, userFollows, users } from '@/src/db/schema';
@@ -30,7 +30,12 @@ export type NotificationPreview = {
 };
 
 export type NotificationsPageData = NotificationPreview & {
-  todayCount: number;
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
 };
 
 export type AdminUsersPageData = {
@@ -249,26 +254,52 @@ export async function getNotificationPreviewUseCase(
 
 export async function getNotificationsPageDataUseCase(
   userId: string,
+  options: { page?: number; pageSize?: number } = {},
 ): Promise<NotificationsPageData> {
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
+  const pageSize = Math.min(
+    Math.max(Math.trunc(options.pageSize ?? 20), 1),
+    100,
+  );
+  const requestedPage = Math.max(Math.trunc(options.page ?? 1), 1);
 
-  const [preview, todayCountResult] = await Promise.all([
-    getNotificationPreviewUseCase(userId, 20),
+  const [totalCountResult, unreadCountResult] = await Promise.all([
+    getDb()
+      .select({ value: count() })
+      .from(notifications)
+      .where(eq(notifications.userId, userId)),
     getDb()
       .select({ value: count() })
       .from(notifications)
       .where(
         and(
           eq(notifications.userId, userId),
-          gte(notifications.createdAt, startOfToday),
+          eq(notifications.status, 'unread'),
         ),
       ),
   ]);
 
+  const totalCount = totalCountResult[0]?.value ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const page = Math.min(requestedPage, totalPages);
+  const items =
+    totalCount > 0
+      ? await getDb().query.notifications.findMany({
+          where: (table, { eq: innerEq }) => innerEq(table.userId, userId),
+          orderBy: (table, { desc: innerDesc }) => [innerDesc(table.createdAt)],
+          limit: pageSize,
+          offset: (page - 1) * pageSize,
+        })
+      : [];
+
   return {
-    ...preview,
-    todayCount: todayCountResult[0]?.value ?? 0,
+    unreadCount: unreadCountResult[0]?.value ?? 0,
+    items: items.map(mapNotificationFeedItem),
+    totalCount,
+    page,
+    pageSize,
+    totalPages,
+    hasPreviousPage: page > 1,
+    hasNextPage: page < totalPages,
   };
 }
 

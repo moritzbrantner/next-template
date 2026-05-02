@@ -93,7 +93,7 @@ export async function getAuthSession(): Promise<AppSession | null> {
 export async function signInSession(
   user: Pick<
     AppSessionUser,
-    'id' | 'email' | 'tag' | 'name' | 'image' | 'role'
+    'id' | 'email' | 'tag' | 'name' | 'image' | 'bannerImage' | 'role'
   >,
 ): Promise<AppSession> {
   const normalizedUser: AppSessionUser = {
@@ -102,6 +102,7 @@ export async function signInSession(
     tag: user.tag ?? null,
     name: user.name ?? null,
     image: buildProfileImageUrl(user.image) ?? null,
+    bannerImage: buildProfileImageUrl(user.bannerImage) ?? null,
     role: user.role,
   };
 

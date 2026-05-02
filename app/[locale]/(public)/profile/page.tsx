@@ -44,6 +44,7 @@ export default async function ProfilePage({
         profileTag={profileTag}
         displayName={profile?.displayName ?? displayName}
         imageUrl={profile?.imageUrl ?? null}
+        bannerImageUrl={profile?.bannerImageUrl ?? null}
         initialFollowerCount={followerCount}
         initialFollowingCount={followingCount}
         initialFriendCount={friendCount}

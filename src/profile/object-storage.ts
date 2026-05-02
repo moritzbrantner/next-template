@@ -12,6 +12,8 @@ export type StoredProfileImage = {
 type S3Module = typeof import('@aws-sdk/client-s3');
 
 const LOCAL_PROFILE_IMAGE_PREFIX = 'local-profile-images/';
+const PROFILE_IMAGE_OBJECT_PREFIX = 'profile-images';
+const PROFILE_BANNER_OBJECT_PREFIX = 'profile-banners';
 
 let s3ModulePromise: Promise<S3Module> | null = null;
 
@@ -128,8 +130,10 @@ export function buildProfileImageUrl(keyOrUrl: string | null | undefined) {
 async function uploadProfileImageToLocalDisk(
   userId: string,
   image: ValidatedImageUpload,
+  folder = '',
 ): Promise<StoredProfileImage> {
-  const key = `${LOCAL_PROFILE_IMAGE_PREFIX}${userId}/${Date.now()}-${crypto.randomUUID()}.${extensionForMime(image.mimeType)}`;
+  const localFolder = folder ? `${folder}/` : '';
+  const key = `${LOCAL_PROFILE_IMAGE_PREFIX}${localFolder}${userId}/${Date.now()}-${crypto.randomUUID()}.${extensionForMime(image.mimeType)}`;
   const filePath = getLocalProfileImagePath(key);
 
   await mkdir(path.dirname(filePath), { recursive: true });
@@ -149,8 +153,20 @@ export async function uploadProfileImage(
     return uploadProfileImageToLocalDisk(userId, image);
   }
 
+  return uploadProfileImageToObjectStorage(
+    userId,
+    image,
+    PROFILE_IMAGE_OBJECT_PREFIX,
+  );
+}
+
+async function uploadProfileImageToObjectStorage(
+  userId: string,
+  image: ValidatedImageUpload,
+  objectPrefix: string,
+): Promise<StoredProfileImage> {
   const { PutObjectCommand } = await loadS3Module();
-  const key = `profile-images/${userId}/${Date.now()}-${crypto.randomUUID()}.${extensionForMime(image.mimeType)}`;
+  const key = `${objectPrefix}/${userId}/${Date.now()}-${crypto.randomUUID()}.${extensionForMime(image.mimeType)}`;
   const client = await getClient();
 
   await client.send(
@@ -172,6 +188,21 @@ export async function uploadProfileImage(
     key,
     url: buildProfileImageUrl(key) ?? key,
   };
+}
+
+export async function uploadProfileBannerImage(
+  userId: string,
+  image: ValidatedImageUpload,
+): Promise<StoredProfileImage> {
+  if (!isObjectStorageConfigured()) {
+    return uploadProfileImageToLocalDisk(userId, image, 'banners');
+  }
+
+  return uploadProfileImageToObjectStorage(
+    userId,
+    image,
+    PROFILE_BANNER_OBJECT_PREFIX,
+  );
 }
 
 export async function deleteProfileImage(keyOrUrl: string | null | undefined) {

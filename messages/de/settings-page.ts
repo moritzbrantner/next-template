@@ -147,6 +147,9 @@ export const settingsPage = {
   profilePictureTitle: 'Profilbild',
   profilePictureDescription:
     'Lade ein neues Profilbild hoch oder entferne dein aktuelles Bild.',
+  profileBannerTitle: 'Profilbanner',
+  profileBannerDescription:
+    'Lade ein breites Bannerbild fuer den Kopf deines oeffentlichen Profils hoch.',
   profileDiscovery: {
     title: 'Suche und Auffindbarkeit',
     description:
@@ -211,5 +214,16 @@ export const settingsPage = {
     cropCancel: 'Zuschneiden abbrechen',
     cropApply: 'Ausschnitt verwenden',
     ready: 'Zugeschnittenes Bild bereit zum Hochladen.',
+  },
+  bannerForm: {
+    chooseImage: 'Profilbanner auswaehlen',
+    hint: 'Verwende fuer beste Ergebnisse ein breites PNG- oder JPEG-Bild.',
+    upload: 'Banner hochladen',
+    uploading: 'Wird hochgeladen…',
+    remove: 'Banner entfernen',
+    success: 'Profilbanner aktualisiert.',
+    empty: 'Kein Banner',
+    alt: 'Profilbanner',
+    ready: 'Bannerbild bereit zum Hochladen.',
   },
 };

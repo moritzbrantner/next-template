@@ -1,6 +1,11 @@
 const MAX_UPLOAD_BYTES = 1024 * 1024;
 const MAX_IMAGE_DIMENSION_PX = 512;
 const MIN_IMAGE_DIMENSION_PX = 64;
+const MAX_BANNER_UPLOAD_BYTES = 2 * 1024 * 1024;
+const MIN_BANNER_WIDTH_PX = 640;
+const MIN_BANNER_HEIGHT_PX = 160;
+const MAX_BANNER_WIDTH_PX = 2400;
+const MAX_BANNER_HEIGHT_PX = 1200;
 const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg'] as const;
 
 export class ImageValidationError extends Error {
@@ -153,9 +158,60 @@ export async function validateImageUpload(
   };
 }
 
+export async function validateBannerImageUpload(
+  file: File,
+): Promise<ValidatedImageUpload> {
+  if (!file.size) {
+    throw new ImageValidationError('Please select an image file.');
+  }
+
+  if (file.size > MAX_BANNER_UPLOAD_BYTES) {
+    throw new ImageValidationError('Banner image must be 2MB or smaller.');
+  }
+
+  if (
+    !ALLOWED_MIME_TYPES.includes(
+      file.type as (typeof ALLOWED_MIME_TYPES)[number],
+    )
+  ) {
+    throw new ImageValidationError('Only PNG and JPEG images are supported.');
+  }
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const { width, height } = getDimensions(bytes, file.type);
+
+  if (
+    width < MIN_BANNER_WIDTH_PX ||
+    height < MIN_BANNER_HEIGHT_PX ||
+    width > MAX_BANNER_WIDTH_PX ||
+    height > MAX_BANNER_HEIGHT_PX
+  ) {
+    throw new ImageValidationError(
+      `Banner dimensions must be between ${MIN_BANNER_WIDTH_PX}x${MIN_BANNER_HEIGHT_PX} and ${MAX_BANNER_WIDTH_PX}x${MAX_BANNER_HEIGHT_PX}.`,
+    );
+  }
+
+  return {
+    bytes,
+    mimeType: file.type,
+    width,
+    height,
+    size: file.size,
+  };
+}
+
 export const imageConstraints = {
   maxUploadBytes: MAX_UPLOAD_BYTES,
   minDimensionPx: MIN_IMAGE_DIMENSION_PX,
   maxDimensionPx: MAX_IMAGE_DIMENSION_PX,
+  allowedMimeTypes: ALLOWED_MIME_TYPES,
+};
+
+export const bannerImageConstraints = {
+  maxUploadBytes: MAX_BANNER_UPLOAD_BYTES,
+  minWidthPx: MIN_BANNER_WIDTH_PX,
+  minHeightPx: MIN_BANNER_HEIGHT_PX,
+  maxWidthPx: MAX_BANNER_WIDTH_PX,
+  maxHeightPx: MAX_BANNER_HEIGHT_PX,
   allowedMimeTypes: ALLOWED_MIME_TYPES,
 };

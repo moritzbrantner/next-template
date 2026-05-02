@@ -149,7 +149,7 @@ export function AppSettingsPanel() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="notifications" className="scroll-mt-6">
         <CardHeader>
           <CardTitle>{t('notifications.title')}</CardTitle>
           <CardDescription>{t('notifications.description')}</CardDescription>

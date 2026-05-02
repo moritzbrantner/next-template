@@ -51,6 +51,7 @@ export const POST = createApiRoute({
       email: user.email,
       tag: user.tag,
       image: user.image,
+      bannerImage: user.bannerImage,
       name: user.name,
       role: user.role,
     });

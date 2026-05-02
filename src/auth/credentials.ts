@@ -23,6 +23,7 @@ type DbUser = {
   tag: string;
   name: string | null;
   image: string | null;
+  bannerImage: string | null;
   role: AppRole;
   passwordHash: string | null;
   lockoutUntil: Date | null;
@@ -116,6 +117,7 @@ export async function authorizeCredentials(
     tag: user.tag,
     name: user.name,
     image: user.image,
+    bannerImage: user.bannerImage,
     role: user.role,
   };
 }

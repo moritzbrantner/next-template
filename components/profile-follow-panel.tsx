@@ -18,6 +18,7 @@ type ProfileFollowPanelProps = {
   profileTag: string;
   displayName: string;
   imageUrl: string | null;
+  bannerImageUrl: string | null;
   initialFollowerCount: number;
   initialFollowingCount: number;
   initialFriendCount?: number;
@@ -56,6 +57,7 @@ export function ProfileFollowPanel({
   profileTag,
   displayName,
   imageUrl,
+  bannerImageUrl,
   initialFollowerCount,
   initialFollowingCount,
   initialFriendCount,
@@ -164,7 +166,19 @@ export function ProfileFollowPanel({
     <>
       <section className="mx-auto max-w-3xl">
         <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white/80 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/70">
-          <div className="h-28 bg-gradient-to-r from-sky-100 via-white to-emerald-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900" />
+          <div className="relative h-28 bg-gradient-to-r from-sky-100 via-white to-emerald-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900">
+            {bannerImageUrl ? (
+              <Image
+                src={bannerImageUrl}
+                alt=""
+                fill
+                sizes="(min-width: 768px) 768px, calc(100vw - 32px)"
+                unoptimized
+                className="object-cover"
+                priority
+              />
+            ) : null}
+          </div>
 
           <div className="flex flex-col gap-6 px-6 pb-6 md:flex-row md:items-end md:justify-between">
             <div className="-mt-12 flex items-end gap-4">

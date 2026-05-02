@@ -224,6 +224,7 @@ describe('oauth service', () => {
         tag: 'person',
         name: 'Person Example',
         image: null,
+        bannerImage: null,
         role: 'USER',
       }),
     }));
@@ -263,6 +264,7 @@ describe('oauth service', () => {
       tag: 'person',
       name: 'Person Example',
       image: null,
+      bannerImage: null,
       role: 'USER',
     });
     expect(response.headers.get('location')).toBe(

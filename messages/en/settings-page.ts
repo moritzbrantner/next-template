@@ -145,6 +145,9 @@ export const settingsPage = {
   profilePictureTitle: 'Profile picture',
   profilePictureDescription:
     'Upload a new profile picture or remove your current one.',
+  profileBannerTitle: 'Profile banner',
+  profileBannerDescription:
+    'Upload a wide banner image for the top of your public profile.',
   profileDiscovery: {
     title: 'Search and discovery',
     description:
@@ -206,5 +209,16 @@ export const settingsPage = {
     cropCancel: 'Cancel crop',
     cropApply: 'Use crop',
     ready: 'Cropped image ready to upload.',
+  },
+  bannerForm: {
+    chooseImage: 'Choose a profile banner',
+    hint: 'Use a wide PNG or JPEG image for best results.',
+    upload: 'Upload banner',
+    uploading: 'Uploading…',
+    remove: 'Remove banner',
+    success: 'Profile banner updated.',
+    empty: 'No banner',
+    alt: 'Profile banner',
+    ready: 'Banner image ready to upload.',
   },
 };

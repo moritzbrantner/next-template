@@ -65,6 +65,7 @@ export const users = pgTable(
     tag: text('tag').notNull(),
     name: text('name'),
     image: text('image'),
+    bannerImage: text('bannerImage'),
     emailVerified: timestamp('emailVerified', {
       withTimezone: false,
       mode: 'date',

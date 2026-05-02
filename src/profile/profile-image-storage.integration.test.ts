@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   buildProfileImageUrl,
   deleteProfileImage,
+  uploadProfileBannerImage,
   uploadProfileImage,
 } from '@/src/profile/object-storage';
 
@@ -56,6 +57,33 @@ describe('profile image storage', () => {
     expect(buildProfileImageUrl(uploaded.key)).toBe(uploaded.url);
 
     // should be null or undefined
+    await expect(access(localFilePath)).resolves.toBeFalsy();
+
+    await deleteProfileImage(uploaded.key);
+
+    await expect(access(localFilePath)).rejects.toThrow();
+  });
+
+  it('stores profile banners on local disk with a banner path', async () => {
+    for (const key of PROFILE_IMAGE_ENV_KEYS) {
+      delete process.env[key];
+    }
+
+    const uploaded = await uploadProfileBannerImage('local-test-user', {
+      bytes: new Uint8Array([0x89, 0x50, 0x4e, 0x47]),
+      mimeType: 'image/png',
+      width: 1200,
+      height: 400,
+      size: 4,
+    });
+    const localFilePath = path.resolve(process.cwd(), 'public', uploaded.key);
+
+    expect(uploaded.key).toMatch(
+      /^local-profile-images\/banners\/local-test-user\//,
+    );
+    expect(uploaded.url).toBe(`/${uploaded.key}`);
+    expect(buildProfileImageUrl(uploaded.key)).toBe(uploaded.url);
+
     await expect(access(localFilePath)).resolves.toBeFalsy();
 
     await deleteProfileImage(uploaded.key);

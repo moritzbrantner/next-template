@@ -10,6 +10,7 @@ export type AppSessionUser = {
   tag: string | null;
   name: string | null;
   image: string | null;
+  bannerImage: string | null;
   role: AppRole;
 };
 

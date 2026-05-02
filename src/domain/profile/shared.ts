@@ -10,11 +10,13 @@ import {
 } from '@/src/domain/shared/result';
 import {
   ImageValidationError,
+  validateBannerImageUpload,
   validateImageUpload,
 } from '@/src/profile/image-validation';
 import {
   buildProfileImageUrl,
   deleteProfileImage,
+  uploadProfileBannerImage,
   uploadProfileImage,
 } from '@/src/profile/object-storage';
 import {
@@ -40,6 +42,7 @@ export type ProfileViewPayload = {
   tag: string;
   displayName: string;
   imageUrl: string | null;
+  bannerImageUrl: string | null;
   followerCount: number;
   isOwnProfile: boolean;
   isFollowing: boolean;
@@ -55,6 +58,11 @@ export type UpdateProfileTagPayload = {
 };
 
 export type UpdateProfileImagePayload = {
+  imageKey: string;
+  imageUrl: string;
+};
+
+export type UpdateProfileBannerImagePayload = {
   imageKey: string;
   imageUrl: string;
 };
@@ -105,6 +113,7 @@ type ProfileUserRecord = {
   tag: string;
   name: string | null;
   image: string | null;
+  bannerImage: string | null;
   isSearchable: boolean;
   followerVisibility: FollowerVisibilityRole;
 };
@@ -295,6 +304,7 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           tag: users.tag,
           name: users.name,
           image: users.image,
+          bannerImage: users.bannerImage,
           isSearchable: users.isSearchable,
           followerVisibility: users.followerVisibility,
         })
@@ -313,6 +323,7 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           tag: users.tag,
           name: users.name,
           image: users.image,
+          bannerImage: users.bannerImage,
           isSearchable: users.isSearchable,
           followerVisibility: users.followerVisibility,
         })
@@ -338,6 +349,7 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           tag: users.tag,
           name: users.name,
           image: users.image,
+          bannerImage: users.bannerImage,
           isSearchable: users.isSearchable,
           followerVisibility: users.followerVisibility,
         })
@@ -356,6 +368,7 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           tag: users.tag,
           name: users.name,
           image: users.image,
+          bannerImage: users.bannerImage,
           isSearchable: users.isSearchable,
           followerVisibility: users.followerVisibility,
         })
@@ -374,6 +387,7 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           tag: users.tag,
           name: users.name,
           image: users.image,
+          bannerImage: users.bannerImage,
           isSearchable: users.isSearchable,
           followerVisibility: users.followerVisibility,
         })
@@ -503,6 +517,7 @@ async function buildProfileView(
     tag: user.tag,
     displayName: resolveProfileDisplayName(user),
     imageUrl: buildProfileImageUrl(user.image) ?? null,
+    bannerImageUrl: buildProfileImageUrl(user.bannerImage) ?? null,
     followerCount,
     isOwnProfile,
     isFollowing,
@@ -1039,6 +1054,77 @@ export async function removeProfileImageUseCase(
     .where(eq(users.id, userId));
 
   await deleteProfileImage(existingUser.image);
+
+  return success({ removed: true });
+}
+
+export async function updateProfileBannerImageUseCase(
+  userId: string,
+  file: File,
+): Promise<ServiceResult<UpdateProfileBannerImagePayload, ProfileError>> {
+  const existingUser = await getDb().query.users.findFirst({
+    where: (table, { eq: innerEq }) => innerEq(table.id, userId),
+  });
+
+  if (!existingUser) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  try {
+    const validated = await validateBannerImageUpload(file);
+    const uploaded = await uploadProfileBannerImage(userId, validated);
+
+    try {
+      await getDb()
+        .update(users)
+        .set({ bannerImage: uploaded.key, updatedAt: new Date() })
+        .where(eq(users.id, userId));
+    } catch (error) {
+      await deleteProfileImage(uploaded.key);
+      throw error;
+    }
+
+    await deleteProfileImage(existingUser.bannerImage);
+
+    return success({
+      imageKey: uploaded.key,
+      imageUrl: uploaded.url,
+    });
+  } catch (error) {
+    if (error instanceof ImageValidationError) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: error.message,
+      });
+    }
+
+    throw error;
+  }
+}
+
+export async function removeProfileBannerImageUseCase(
+  userId: string,
+): Promise<ServiceResult<{ removed: true }, ProfileError>> {
+  const existingUser = await getDb().query.users.findFirst({
+    where: (table, { eq: innerEq }) => innerEq(table.id, userId),
+  });
+
+  if (!existingUser) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  await getDb()
+    .update(users)
+    .set({ bannerImage: null, updatedAt: new Date() })
+    .where(eq(users.id, userId));
+
+  await deleteProfileImage(existingUser.bannerImage);
 
   return success({ removed: true });
 }

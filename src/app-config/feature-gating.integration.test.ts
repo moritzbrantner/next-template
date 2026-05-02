@@ -142,6 +142,7 @@ describe('feature gating', () => {
           tag: 'person',
           displayName: 'Person',
           imageUrl: null,
+          bannerImageUrl: null,
           followerCount: 3,
           isOwnProfile: false,
           isFollowing: true,
