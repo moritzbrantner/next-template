@@ -36,37 +36,30 @@ describe('showcase manifest contract', () => {
     }
   });
 
-  it('resolves aliases for enabled pages and blocks them when the feature is disabled', () => {
-    const formsPage = showcaseManifest.publicPages.find(
-      (page) => page.id === 'forms',
-    );
-    expect(formsPage?.aliases).toEqual(['forms']);
+  it('keeps temporary showcase routes unregistered', () => {
+    expect(showcaseManifest.publicPages.map((page) => page.id)).toEqual([
+      'home',
+      'about',
+    ]);
 
-    expect(
-      resolveEnabledPublicRoute(showcaseManifest, ['forms'])?.page.id,
-    ).toBe('forms');
-
-    const disabledManifest = {
-      ...showcaseManifest,
-      enabledFeatures: {
-        ...showcaseManifest.enabledFeatures,
-        'showcase.forms': false,
-      },
-    };
-
-    expect(resolveEnabledPublicRoute(disabledManifest, ['forms'])).toBeNull();
+    for (const slug of [
+      ['remocn'],
+      ['forms'],
+      ['story'],
+      ['communication'],
+      ['chat'],
+      ['table'],
+      ['examples', 'forms'],
+      ['examples', 'story'],
+      ['examples', 'communication'],
+      ['examples', 'chat'],
+    ]) {
+      expect(resolveEnabledPublicRoute(showcaseManifest, slug)).toBeNull();
+    }
   });
 
-  it('provides valid example API route modules', async () => {
-    const routeModules = await Promise.all(
-      Object.values(showcaseManifest.exampleApis).map((definition) =>
-        definition.loadRouteModule(),
-      ),
-    );
-
-    expect(
-      routeModules.every((routeModule) => Object.keys(routeModule).length > 0),
-    ).toBe(true);
+  it('does not expose temporary showcase API routes', async () => {
+    expect(showcaseManifest.exampleApis).toEqual({});
   });
 
   it('supports every configured locale', () => {

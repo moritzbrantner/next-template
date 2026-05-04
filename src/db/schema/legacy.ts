@@ -19,6 +19,20 @@ export const roleEnum = pgEnum('Role', [
   'MANAGER',
   'USER',
 ]);
+
+export const appRoles = pgTable('AppRole', {
+  id: text('id').primaryKey(),
+  label: text('label').notNull(),
+  description: text('description'),
+  permissions: jsonb('permissions').$type<readonly string[]>().notNull(),
+  createdAt: timestamp('createdAt', { withTimezone: false, mode: 'date' })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updatedAt', { withTimezone: false, mode: 'date' })
+    .notNull()
+    .defaultNow(),
+});
+
 export const followerVisibilityEnum = pgEnum(
   'FollowerVisibility',
   followerVisibilityRoles,
@@ -96,6 +110,32 @@ export const users = pgTable(
     index('User_role_idx').on(table.role),
     index('User_isSearchable_idx').on(table.isSearchable),
     index('User_followerVisibility_idx').on(table.followerVisibility),
+  ],
+);
+
+export const userRoles = pgTable(
+  'UserRole',
+  {
+    userId: text('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
+    roleId: text('roleId')
+      .notNull()
+      .references(() => appRoles.id, {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+      }),
+    createdAt: timestamp('createdAt', { withTimezone: false, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.userId, table.roleId],
+      name: 'UserRole_pkey',
+    }),
+    index('UserRole_userId_idx').on(table.userId),
+    index('UserRole_roleId_idx').on(table.roleId),
   ],
 );
 

@@ -19,6 +19,7 @@ export const authorizationSiteSettingKeys = [
 
 export const foundationSiteSettingKeys = [
   'foundation.featureOverrides',
+  'foundation.roleFeatureOverrides',
 ] as const;
 
 export const siteSettingKeys = [

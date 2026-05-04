@@ -1,8 +1,6 @@
 import { createElement } from 'react';
 
 import type { AppManifest } from '@moritzbrantner/app-pack';
-import { isGithubPagesBuild, withLocalePath } from '@moritzbrantner/app-pack';
-import { StaticRedirectPage } from '@moritzbrantner/app-pack-react';
 
 import { loadShowcaseMessages } from './messages';
 
@@ -26,12 +24,6 @@ const enabledFeatures = {
   'admin.users': true,
   'admin.systemSettings': true,
   'admin.dataStudio': true,
-  'showcase.forms': true,
-  'showcase.story': true,
-  'showcase.communication': true,
-  'showcase.remocn': !isGithubPagesBuild,
-  'showcase.employeeTable': true,
-  'showcase.unlighthouse': true,
 } as const;
 
 const showcaseManifest: AppManifest = {
@@ -66,179 +58,10 @@ const showcaseManifest: AppManifest = {
         return createElement(AboutPage, { locale });
       },
     },
-    {
-      id: 'remocn',
-      slug: 'remocn',
-      kind: 'component',
-      namespace: 'RemocnPage',
-      featureKey: 'showcase.remocn',
-      render: async ({ locale }) => {
-        const pageModule = await import('./pages/remocn-page');
-        const RemocnPage = pageModule.default;
-        return createElement(RemocnPage, { locale });
-      },
-    },
-    {
-      id: 'forms',
-      slug: 'examples/forms',
-      kind: 'component',
-      namespace: 'FormsPage',
-      featureKey: 'showcase.forms',
-      aliases: ['forms'],
-      render: async ({ locale, matchedSlug }) => {
-        if (matchedSlug === 'forms') {
-          if (isGithubPagesBuild) {
-            return createElement(StaticRedirectPage, {
-              href: '../examples/forms/',
-            });
-          }
-
-          return {
-            kind: 'redirect',
-            href: withLocalePath('/examples/forms', locale),
-          };
-        }
-
-        const pageModule = await import('./pages/examples/forms-page');
-        const FormsPage = pageModule.default;
-        return createElement(FormsPage, { locale });
-      },
-    },
-    {
-      id: 'story',
-      slug: 'examples/story',
-      kind: 'component',
-      namespace: 'StoryPage',
-      featureKey: 'showcase.story',
-      aliases: ['story'],
-      render: async ({ locale, matchedSlug }) => {
-        if (matchedSlug === 'story') {
-          if (isGithubPagesBuild) {
-            return createElement(StaticRedirectPage, {
-              href: '../examples/story/',
-            });
-          }
-
-          return {
-            kind: 'redirect',
-            href: withLocalePath('/examples/story', locale),
-          };
-        }
-
-        const pageModule = await import('./pages/examples/story-page');
-        const StoryPage = pageModule.default;
-        return createElement(StoryPage, { locale });
-      },
-    },
-    {
-      id: 'communication',
-      slug: 'examples/communication',
-      kind: 'component',
-      namespace: 'CommunicationPage',
-      featureKey: 'showcase.communication',
-      aliases: ['communication'],
-      render: async ({ locale, matchedSlug }) => {
-        if (matchedSlug === 'communication') {
-          if (isGithubPagesBuild) {
-            return createElement(StaticRedirectPage, {
-              href: '../examples/communication/',
-            });
-          }
-
-          return {
-            kind: 'redirect',
-            href: withLocalePath('/examples/communication', locale),
-          };
-        }
-
-        const pageModule = await import('./pages/examples/communication-page');
-        const CommunicationPage = pageModule.default;
-        return createElement(CommunicationPage, { locale });
-      },
-    },
-    {
-      id: 'chat',
-      slug: 'examples/chat',
-      kind: 'component',
-      namespace: 'ChatPage',
-      featureKey: 'showcase.communication',
-      aliases: ['chat'],
-      generateMetadata: async () => ({
-        title: 'Team Chat',
-        description:
-          'A chat room interface with Tenor GIF search and share support.',
-      }),
-      render: async ({ locale, matchedSlug }) => {
-        if (matchedSlug === 'chat') {
-          if (isGithubPagesBuild) {
-            return createElement(StaticRedirectPage, {
-              href: '../examples/chat/',
-            });
-          }
-
-          return {
-            kind: 'redirect',
-            href: withLocalePath('/examples/chat', locale),
-          };
-        }
-
-        const pageModule = await import('./pages/examples/chat-page');
-        const ChatPage = pageModule.default;
-        return createElement(ChatPage, { locale });
-      },
-    },
-    {
-      id: 'table',
-      slug: 'table',
-      kind: 'component',
-      namespace: 'NavigationBar',
-      featureKey: 'showcase.employeeTable',
-      render: async ({ locale }) => {
-        const pageModule = await import('./pages/table-page');
-        const TablePage = pageModule.default;
-        return createElement(TablePage, { locale });
-      },
-    },
   ],
   publicNavigation: [
     { pageId: 'home', category: 'discover', hotkey: ['alt', 'h'], order: 10 },
     { pageId: 'about', category: 'discover', hotkey: ['alt', 'a'], order: 20 },
-    {
-      pageId: 'remocn',
-      category: 'discover',
-      hotkey: ['alt', 'v'],
-      prefetch: false,
-      order: 30,
-    },
-    {
-      pageId: 'story',
-      category: 'discover',
-      hotkey: ['alt', 's'],
-      prefetch: false,
-      order: 40,
-    },
-    {
-      pageId: 'communication',
-      category: 'discover',
-      hotkey: ['alt', 'c'],
-      prefetch: false,
-      order: 50,
-    },
-    {
-      pageId: 'chat',
-      category: 'workspace',
-      hotkey: ['alt', 'x'],
-      prefetch: false,
-      order: 60,
-    },
-    {
-      pageId: 'forms',
-      category: 'workspace',
-      hotkey: ['alt', 'f'],
-      prefetch: false,
-      order: 70,
-    },
-    { pageId: 'table', category: 'workspace', hotkey: ['alt', 't'], order: 80 },
   ],
   contentRoots: {
     pages: ['apps/showcase/content/pages'],
@@ -246,12 +69,7 @@ const showcaseManifest: AppManifest = {
     changelog: ['apps/showcase/content/changelog'],
   },
   loadMessages: loadShowcaseMessages,
-  exampleApis: {
-    employees: {
-      featureKey: 'showcase.employeeTable',
-      loadRouteModule: () => import('./api/examples/employees'),
-    },
-  },
+  exampleApis: {},
 };
 
 export default showcaseManifest;

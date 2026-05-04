@@ -2,10 +2,7 @@ export const homePage = {
   eyebrow: 'Start',
   title: 'One template, multiple production-ready starting points.',
   description:
-    'The merged starter now combines localized navigation, auth, forms, data views, storytelling, communication notes, and upload scaffolding in one Next.js base.',
-  visitForm: 'Open Form Example',
-  visitStory: 'Open Story Example',
-  visitCommunication: 'Open Communication Example',
+    'The starter combines localized navigation, auth, profile workflows, admin tooling, content collections, and Drizzle/Postgres persistence in one Next.js base.',
   sections: {
     foundation: {
       title: 'Application foundation',
@@ -13,14 +10,14 @@ export const homePage = {
         'Authentication, locale routing, profile management, admin controls, and typed service boundaries.',
     },
     interaction: {
-      title: 'Interaction demos',
+      title: 'User workflows',
       description:
-        'Form state, scroll-driven storytelling, data tables, and richer UI patterns for future features.',
+        'Profiles, groups, notifications, settings, and protected workspaces are wired as real application surfaces.',
     },
     delivery: {
-      title: 'Delivery scaffolding',
+      title: 'Delivery foundation',
       description:
-        'Upload handling rules, communication guidance, and dedicated lanes for 3D or realtime work.',
+        'Typed service boundaries, feature gates, observability hooks, and deployment scripts are ready to adapt.',
     },
   },
 };

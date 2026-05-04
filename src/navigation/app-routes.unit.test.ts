@@ -40,7 +40,7 @@ describe('app routes', () => {
     {
       label: 'guests',
       input: { isAuthenticated: false, role: null },
-      visibleKeys: ['home', 'about', 'forms', 'login', 'register'],
+      visibleKeys: ['home', 'about', 'login', 'register'],
       hiddenKeys: [
         'friends',
         'memberChat',

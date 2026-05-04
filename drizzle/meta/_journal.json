@@ -141,6 +141,13 @@
       "when": 1777740322394,
       "tag": "0019_green_star_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1777919704280,
+      "tag": "0020_tough_makkari",
+      "breakpoints": true
     }
   ]
 }

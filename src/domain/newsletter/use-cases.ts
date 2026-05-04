@@ -59,13 +59,13 @@ export async function subscribeToNewsletter(input: {
       id: crypto.randomUUID(),
       email,
       locale,
-      source: input.source ?? 'communication-page',
+      source: input.source ?? 'newsletter-api',
       createdAt: now,
       updatedAt: now,
     });
   }
 
-  const manageUrl = `${getBaseUrl()}${withLocalePath('/examples/communication', locale)}`;
+  const manageUrl = `${getBaseUrl()}${withLocalePath('/', locale)}`;
 
   try {
     const message = await renderEmailTemplate(

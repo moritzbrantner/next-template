@@ -77,7 +77,7 @@ export default async function AdminUserFunctionalityPage({
     role: user.role,
   });
   const disabledCount = featureStates.filter(
-    (state) => !state.userEnabled,
+    (state) => state.userEnabled === false,
   ).length;
   const effectiveCount = featureStates.filter(
     (state) => state.effectiveEnabled,
@@ -115,8 +115,9 @@ export default async function AdminUserFunctionalityPage({
           <CardTitle>Override scope</CardTitle>
           <CardDescription>
             These controls only affect functionality that supports per-user
-            overrides for signed-in members and managers. Site-wide disables
-            still take precedence over any user-level setting.
+            overrides for signed-in members and managers. User settings take
+            precedence over role settings and global defaults, while the active
+            build manifest remains the hard ceiling.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -144,7 +145,12 @@ export default async function AdminUserFunctionalityPage({
                   {state.effectiveEnabled ? 'Available now' : 'Unavailable now'}
                 </Badge>
                 {!state.siteEnabled ? (
-                  <Badge variant="outline">site-wide disable active</Badge>
+                  <Badge variant="outline">global default disabled</Badge>
+                ) : null}
+                {state.roleEnabled !== null ? (
+                  <Badge variant="outline">
+                    role override {state.roleEnabled ? 'enabled' : 'disabled'}
+                  </Badge>
                 ) : null}
                 {!state.manifestEnabled ? (
                   <Badge variant="outline">missing from current build</Badge>
@@ -170,9 +176,13 @@ export default async function AdminUserFunctionalityPage({
                 </p>
                 <p>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    User status:
+                    User override:
                   </span>{' '}
-                  {state.userEnabled ? 'Enabled' : 'Disabled'}
+                  {state.userEnabled === null
+                    ? 'Inherited'
+                    : state.userEnabled
+                      ? 'Enabled'
+                      : 'Disabled'}
                 </p>
               </div>
             </div>
@@ -182,7 +192,9 @@ export default async function AdminUserFunctionalityPage({
                 <input
                   type="checkbox"
                   name="enabled"
-                  defaultChecked={state.userEnabled ?? true}
+                  defaultChecked={
+                    state.userEnabled ?? state.roleEnabled ?? state.siteEnabled
+                  }
                   disabled={!state.manifestEnabled}
                 />
                 Enabled for this user

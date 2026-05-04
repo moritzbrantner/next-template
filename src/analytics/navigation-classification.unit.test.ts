@@ -28,16 +28,16 @@ describe('navigation classification', () => {
     });
   });
 
-  it('classifies profile routes and repo-managed public pages', () => {
+  it('classifies profile routes and removed showcase paths', () => {
     expect(classifyNavigationPathname('/en/profile/@alice/followers')).toEqual({
       canonicalPath: '/profile/[userId]/followers',
       routeGroup: 'public',
       displayLabel: 'Profile followers',
     });
     expect(classifyNavigationPathname('/en/forms')).toEqual({
-      canonicalPath: '/[publicSlug*]',
-      routeGroup: 'public',
-      displayLabel: 'Public page',
+      canonicalPath: '/[unknown]',
+      routeGroup: 'unknown',
+      displayLabel: 'Unknown route',
     });
   });
 });

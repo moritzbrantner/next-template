@@ -117,6 +117,7 @@ const siteConfigDefaults: Record<SiteSettingKey, string> = {
     defaultRolePermissionAssignments,
   ),
   'foundation.featureOverrides': JSON.stringify({}),
+  'foundation.roleFeatureOverrides': JSON.stringify({}),
 };
 
 const featureFlagDefaults: Record<FeatureFlagKey, boolean> = {

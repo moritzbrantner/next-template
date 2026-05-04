@@ -1,7 +1,10 @@
 import {
+  appRoles,
   profiles,
   securityAuditLogs,
   securityRateLimitCounters,
+  userFeatureOverrides,
+  userRoles,
   users,
 } from '@/src/db/schema';
 
@@ -10,7 +13,10 @@ export type WritableTableConfig = {
   label: string;
   description?: string;
   table:
+    | typeof appRoles
     | typeof users
+    | typeof userRoles
+    | typeof userFeatureOverrides
     | typeof profiles
     | typeof securityAuditLogs
     | typeof securityRateLimitCounters;
@@ -20,6 +26,29 @@ export type WritableTableConfig = {
 };
 
 export const writableTableConfigs: WritableTableConfig[] = [
+  {
+    name: 'AppRole',
+    label: 'Role',
+    description: 'Create or repair role definitions and permission JSON.',
+    table: appRoles,
+    includeFields: ['id', 'label', 'description', 'permissions'],
+  },
+  {
+    name: 'UserRole',
+    label: 'User Role',
+    description: 'Assign roles to users through the many-to-many join table.',
+    table: userRoles,
+    includeFields: ['userId', 'roleId'],
+  },
+  {
+    name: 'UserFeatureOverride',
+    label: 'User Functionality Override',
+    description:
+      'Enable or disable user-specific functionality by feature key.',
+    table: userFeatureOverrides,
+    includeFields: ['userId', 'featureKey', 'enabled'],
+    includeDefaultedFields: true,
+  },
   {
     name: 'Profile',
     label: 'Profile',

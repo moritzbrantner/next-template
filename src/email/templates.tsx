@@ -111,7 +111,7 @@ export const emailTemplateDefinitions: readonly EmailTemplateDefinition[] = [
       preview: 'Thanks for joining the newsletter.',
       heading: 'You are subscribed',
       body: 'Thanks for joining the newsletter. We will use this inbox for product updates, release notes, and feature announcements.',
-      ctaLabel: 'View communication page',
+      ctaLabel: 'Visit site',
       footer:
         'If this was not you, reply to this message and we can remove the subscription.',
     },
@@ -119,7 +119,7 @@ export const emailTemplateDefinitions: readonly EmailTemplateDefinition[] = [
       {
         key: 'manageUrl',
         label: 'Manage URL',
-        defaultValue: 'https://example.com/examples/communication',
+        defaultValue: 'https://example.com',
       },
     ],
   },

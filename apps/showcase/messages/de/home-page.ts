@@ -2,10 +2,7 @@ export const homePage = {
   eyebrow: 'Start',
   title: 'Eine Vorlage mit mehreren produktionsnahen Ausgangspunkten.',
   description:
-    'Der zusammengefuehrte Starter vereint lokalisierte Navigation, Auth, Formulare, Datenansichten, Storytelling, Kommunikationsleitlinien und Upload-Grundlagen in einer Next.js-Basis.',
-  visitForm: 'Formularbeispiel öffnen',
-  visitStory: 'Story-Beispiel öffnen',
-  visitCommunication: 'Kommunikationsbeispiel öffnen',
+    'Der Starter vereint lokalisierte Navigation, Auth, Profilablaeufe, Admin-Werkzeuge, Content Collections und Drizzle/Postgres-Persistenz in einer Next.js-Basis.',
   sections: {
     foundation: {
       title: 'Anwendungsfundament',
@@ -13,14 +10,14 @@ export const homePage = {
         'Authentifizierung, Locale-Routing, Profilverwaltung, Admin-Steuerung und typisierte Service-Grenzen.',
     },
     interaction: {
-      title: 'Interaktionsdemos',
+      title: 'Nutzerablaeufe',
       description:
-        'Formularzustand, scrollgesteuertes Storytelling, Datentabellen und staerkere UI-Muster fuer kommende Features.',
+        'Profile, Gruppen, Benachrichtigungen, Einstellungen und geschuetzte Arbeitsbereiche sind als echte App-Oberflaechen verdrahtet.',
     },
     delivery: {
-      title: 'Auslieferungsgrundlagen',
+      title: 'Auslieferungsbasis',
       description:
-        'Upload-Regeln, Kommunikationsleitlinien und reservierte Bereiche fuer 3D- oder Echtzeit-Arbeit.',
+        'Typisierte Service-Grenzen, Feature Gates, Observability-Hooks und Deployment-Skripte sind bereit zur Anpassung.',
     },
   },
 };

@@ -1,1 +1,7 @@
-export { accounts, sessions, verificationTokens } from './legacy';
+export {
+  accounts,
+  appRoles,
+  sessions,
+  userRoles,
+  verificationTokens,
+} from './legacy';
