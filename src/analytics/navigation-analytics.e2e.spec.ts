@@ -12,6 +12,23 @@ import {
 const adminUser = getSeededUser('admin@example.com');
 const memberUser = getSeededUser('user@example.com');
 
+async function gotoAndWaitForTrackedVisit(
+  page: Parameters<typeof gotoAndWaitForHydration>[0],
+  path: string,
+) {
+  const visitRequestPromise = page.waitForRequest(
+    (request) =>
+      request.url().endsWith('/api/analytics/page-visits') &&
+      request.method() === 'POST',
+    { timeout: 15_000 },
+  );
+
+  await page.goto(path);
+  await waitForAppHydration(page);
+  await visitRequestPromise;
+  await page.waitForTimeout(250);
+}
+
 test.describe('navigation analytics', () => {
   test('captures an anonymous home to blog to login path and lets admins refine filters', async ({
     page,
@@ -21,10 +38,8 @@ test.describe('navigation analytics', () => {
     await page.reload();
     await waitForAppHydration(page);
 
-    await page.goto('/en/blog');
-    await waitForAppHydration(page);
-    await page.goto('/en/login');
-    await waitForAppHydration(page);
+    await gotoAndWaitForTrackedVisit(page, '/en/blog');
+    await gotoAndWaitForTrackedVisit(page, '/en/login');
 
     await page.getByLabel('Email').fill(adminUser.email);
     await page.getByLabel('Password').fill(adminUser.password);
@@ -60,12 +75,9 @@ test.describe('navigation analytics', () => {
     await expect(page).toHaveURL('/en/profile');
     await waitForAppHydration(page);
 
-    await page.goto('/en/friends');
-    await waitForAppHydration(page);
-    await page.goto('/en/profile');
-    await waitForAppHydration(page);
-    await page.goto('/en/notifications');
-    await waitForAppHydration(page);
+    await gotoAndWaitForTrackedVisit(page, '/en/friends');
+    await gotoAndWaitForTrackedVisit(page, '/en/profile');
+    await gotoAndWaitForTrackedVisit(page, '/en/notifications');
 
     await logoutFromProfileMenu(page);
     await loginWithCredentials(page, adminUser.email, adminUser.password);

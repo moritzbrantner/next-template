@@ -1,13 +1,21 @@
 import { expect, test } from '@playwright/test';
-import { gotoAndWaitForHydration } from '@/scripts/e2e/helpers';
+import {
+  getSeededUser,
+  gotoAndWaitForHydration,
+  loginWithCredentials,
+} from '@/scripts/e2e/helpers';
+
+const memberUser = getSeededUser('user@example.com');
 
 test('navbar groups destinations into categories and reveals submenu links on click', async ({
   page,
 }) => {
+  await loginWithCredentials(page, memberUser.email, memberUser.password);
   await gotoAndWaitForHydration(page, '/en');
   const discoverSubmenu = page.locator('[data-slot="platform-navbar-submenu"]');
 
   await expect(page.getByRole('button', { name: 'Discover' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Social' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Workspace' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'About' })).toHaveCount(0);
 
