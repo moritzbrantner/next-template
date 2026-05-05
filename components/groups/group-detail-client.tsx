@@ -1,8 +1,9 @@
 'use client';
 
 import Image from 'next/image';
+import { Send } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useDeferredValue, useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useState, type FormEvent } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -14,8 +15,10 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import type { AppLocale } from '@/i18n/routing';
 import type {
+  GroupChatMessage,
   GroupDetail,
   GroupMemberRole,
   GroupMemberSummary,
@@ -40,7 +43,10 @@ export function GroupDetailClient({
   const searchErrorMessage = t('errors.search');
   const inviteErrorMessage = t('errors.invite');
   const memberErrorMessage = t('errors.member');
+  const messageErrorMessage = t('errors.message');
   const [members, setMembers] = useState(group.members);
+  const [messages, setMessages] = useState(group.messages);
+  const [draftMessage, setDraftMessage] = useState('');
   const [pendingInvitations, setPendingInvitations] = useState(
     group.pendingInvitations,
   );
@@ -48,8 +54,10 @@ export function GroupDetailClient({
   const deferredQuery = useDeferredValue(query);
   const [candidates, setCandidates] = useState<GroupUserSummary[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [messageFeedback, setMessageFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     const normalizedQuery = deferredQuery.trim();
@@ -227,11 +235,141 @@ export function GroupDetailClient({
     }
   }
 
+  async function sendMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const message = draftMessage.trim();
+
+    if (!message) {
+      return;
+    }
+
+    setIsSendingMessage(true);
+    setError(null);
+    setMessageFeedback(null);
+
+    try {
+      const response = await fetch('/api/groups/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ groupId: group.id, message }),
+      });
+
+      if (!response.ok) {
+        const problem = await readProblemDetail(response, messageErrorMessage);
+        setError(problem.message);
+        return;
+      }
+
+      const payload = (await response.json()) as {
+        message?: GroupChatMessage;
+      };
+
+      if (payload.message) {
+        setMessages((current) => [...current, payload.message!]);
+      }
+
+      setDraftMessage('');
+      setMessageFeedback(t('detail.chatSent'));
+    } catch {
+      setError(messageErrorMessage);
+    } finally {
+      setIsSendingMessage(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {error ? (
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('detail.chatTitle')}</CardTitle>
+          <CardDescription>{t('detail.chatDescription')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="max-h-[28rem] space-y-3 overflow-y-auto rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
+            {messages.length > 0 ? (
+              messages.map((message) => {
+                const isOwnMessage = message.sender.userId === currentUserId;
+
+                return (
+                  <div
+                    key={message.id}
+                    className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[82%] rounded-lg px-3 py-2 text-sm shadow-sm ${
+                        isOwnMessage
+                          ? 'bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950'
+                          : 'border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100'
+                      }`}
+                    >
+                      <p
+                        className={`mb-1 text-xs font-medium ${
+                          isOwnMessage
+                            ? 'text-zinc-300 dark:text-zinc-600'
+                            : 'text-zinc-500 dark:text-zinc-400'
+                        }`}
+                      >
+                        {message.sender.displayName}
+                      </p>
+                      <p className="whitespace-pre-wrap break-words">
+                        {message.body}
+                      </p>
+                      <p
+                        className={`mt-1 text-xs ${
+                          isOwnMessage
+                            ? 'text-zinc-300 dark:text-zinc-600'
+                            : 'text-zinc-500 dark:text-zinc-400'
+                        }`}
+                      >
+                        {formatGroupMessageDate(message.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                {t('detail.chatEmpty')}
+              </p>
+            )}
+          </div>
+
+          {messageFeedback ? (
+            <p className="text-sm text-emerald-700 dark:text-emerald-400">
+              {messageFeedback}
+            </p>
+          ) : null}
+
+          <form className="space-y-3" onSubmit={sendMessage}>
+            <Textarea
+              value={draftMessage}
+              onChange={(event) => setDraftMessage(event.target.value)}
+              placeholder={t('detail.chatPlaceholder')}
+              aria-label={t('detail.chatPlaceholder')}
+              maxLength={500}
+            />
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                className="gap-2"
+                disabled={isSendingMessage || draftMessage.trim().length === 0}
+              >
+                <Send className="h-4 w-4" aria-hidden="true" />
+                {isSendingMessage
+                  ? t('detail.chatSending')
+                  : t('detail.chatSend')}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
 
       {group.canInvite ? (
         <Card>
@@ -416,4 +554,11 @@ function Avatar({
       )}
     </div>
   );
+}
+
+function formatGroupMessageDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
 }

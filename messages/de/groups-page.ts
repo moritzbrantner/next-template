@@ -46,6 +46,13 @@ export const groupsPage = {
   detail: {
     back: 'Zurueck zu Gruppen',
     meta: '{members} Mitglieder, {invitations} offene Einladungen',
+    chatTitle: 'Gruppenchat',
+    chatDescription: 'Teile Nachrichten mit allen Mitgliedern dieser Gruppe.',
+    chatEmpty: 'Noch keine Nachrichten in dieser Gruppe.',
+    chatPlaceholder: 'Schreibe eine Gruppennachricht',
+    chatSend: 'Senden',
+    chatSending: 'Wird gesendet...',
+    chatSent: 'Nachricht gesendet.',
     inviteTitle: 'Mitglieder einladen',
     inviteDescription:
       'Suche auffindbare Benutzer und sende ihnen eine Einladung zu dieser Gruppe.',
@@ -75,5 +82,7 @@ export const groupsPage = {
       'Dieser Benutzer konnte gerade nicht eingeladen werden. Bitte versuche es erneut.',
     member:
       'Dieses Mitglied konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+    message:
+      'Diese Nachricht konnte gerade nicht gesendet werden. Bitte versuche es erneut.',
   },
 };

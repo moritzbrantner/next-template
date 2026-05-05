@@ -8,6 +8,7 @@ import {
   requestPasswordReset as requestPasswordResetLifecycle,
   resetPasswordWithToken as resetPasswordWithTokenLifecycle,
   signUpWithCredentials as signUpWithCredentialsLifecycle,
+  sendAccountVerificationEmailForUser,
   verifyEmailByToken as verifyEmailByTokenLifecycle,
 } from '@/src/auth/account-lifecycle';
 
@@ -30,6 +31,7 @@ function createDeps() {
     clearFailureState: vi.fn(),
     hashPassword: vi.fn().mockResolvedValue('hashed-password'),
     verifyPassword: vi.fn(),
+    getManualAccountVerificationRequired: vi.fn().mockResolvedValue(false),
     enqueueEmailJob: vi.fn().mockResolvedValue('queued-email-job'),
   };
 }
@@ -62,6 +64,67 @@ describe('account lifecycle', () => {
     expect(deps.enqueueEmailJob).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'newuser@example.com',
+        subject: 'Verify your email address',
+        tags: ['account-verification'],
+      }),
+    );
+  });
+
+  it('holds verification emails when manual verification is required', async () => {
+    const deps = createDeps();
+    deps.findUserByEmail.mockResolvedValue(undefined);
+    deps.findUserByTag.mockResolvedValue(undefined);
+    deps.getManualAccountVerificationRequired.mockResolvedValue(true);
+
+    const result = await signUpWithCredentialsLifecycle(
+      {
+        email: 'manual@example.com',
+        password: 'VerySecure123',
+        name: 'Manual Review',
+      },
+      deps,
+    );
+
+    expect(result.ok).toBe(true);
+    expect(deps.createUser).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'manual@example.com',
+        passwordHash: 'hashed-password',
+      }),
+    );
+    expect(deps.issueToken).toHaveBeenCalledTimes(1);
+    expect(deps.enqueueEmailJob).not.toHaveBeenCalled();
+  });
+
+  it('lets pending account verification emails be sent manually', async () => {
+    const deps = createDeps();
+    deps.findUserById.mockResolvedValue({
+      id: 'user_pending',
+      email: 'pending@example.com',
+      name: 'Pending User',
+      tag: 'pending-user',
+      image: null,
+      bannerImage: null,
+      role: 'USER',
+      emailVerified: null,
+      failedSignInAttempts: 0,
+      lockoutUntil: null,
+    });
+
+    const result = await sendAccountVerificationEmailForUser(
+      'user_pending',
+      { locale: 'en' },
+      deps,
+    );
+
+    expect(result.ok).toBe(true);
+    expect(deps.deleteTokensByIdentifierPrefix).toHaveBeenCalledWith(
+      'email-verification:user_pending',
+    );
+    expect(deps.issueToken).toHaveBeenCalledTimes(1);
+    expect(deps.enqueueEmailJob).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'pending@example.com',
         subject: 'Verify your email address',
         tags: ['account-verification'],
       }),

@@ -46,6 +46,13 @@ export const groupsPage = {
   detail: {
     back: 'Back to groups',
     meta: '{members} members, {invitations} pending invitations',
+    chatTitle: 'Group chat',
+    chatDescription: 'Share messages with everyone in this group.',
+    chatEmpty: 'No messages in this group yet.',
+    chatPlaceholder: 'Write a group message',
+    chatSend: 'Send',
+    chatSending: 'Sending...',
+    chatSent: 'Message sent.',
     inviteTitle: 'Invite members',
     inviteDescription:
       'Search discoverable users and send them an invitation to join this group.',
@@ -70,5 +77,6 @@ export const groupsPage = {
     search: 'Unable to search invite candidates right now. Please try again.',
     invite: 'Unable to invite this user right now. Please try again.',
     member: 'Unable to update this member right now. Please try again.',
+    message: 'Unable to send this message right now. Please try again.',
   },
 };

@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { LocalizedLink } from '@/i18n/server-link';
 import { withLocalePath, type AppLocale } from '@/i18n/routing';
+import { isSuperAdmin } from '@/lib/authorization';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import { getAuthSession } from '@/src/auth.server';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
@@ -133,6 +134,14 @@ async function sendEmailTemplateAction(formData: FormData) {
 
   const locale = resolveLocale(String(formData.get('locale') ?? 'en'));
   const templateId = readTemplateId(formData);
+
+  if (
+    templateId === 'accountVerification' &&
+    !isSuperAdmin(session?.user.role)
+  ) {
+    throw new Error('Forbidden');
+  }
+
   const definition = getEmailTemplateDefinition(templateId);
   const values = Object.fromEntries(
     definition.variables.map((variable) => [
@@ -260,6 +269,10 @@ export default async function AdminEmailTemplatesPage({
   const selectedDefinition = getEmailTemplateDefinition(selectedTemplate.id);
   const preview = await renderAdminEmailTemplatePreview(selectedTemplate.id);
   const defaultSendValues = getDefaultEmailTemplateValues(selectedTemplate.id);
+  const canSendSelectedTemplate =
+    canSendTemplates &&
+    (selectedTemplate.id !== 'accountVerification' ||
+      isSuperAdmin(session.user.role));
 
   return (
     <AdminPageShell
@@ -422,7 +435,7 @@ export default async function AdminEmailTemplatesPage({
                       name="targetUserId"
                       className={selectClassName}
                       disabled={
-                        !canSendTemplates || data.recipients.length === 0
+                        !canSendSelectedTemplate || data.recipients.length === 0
                       }
                       required
                     >
@@ -448,7 +461,7 @@ export default async function AdminEmailTemplatesPage({
                             defaultSendValues[variable.key] ??
                             variable.defaultValue
                           }
-                          disabled={!canSendTemplates}
+                          disabled={!canSendSelectedTemplate}
                           required
                         />
                       ) : (
@@ -459,7 +472,7 @@ export default async function AdminEmailTemplatesPage({
                             defaultSendValues[variable.key] ??
                             variable.defaultValue
                           }
-                          disabled={!canSendTemplates}
+                          disabled={!canSendSelectedTemplate}
                           required
                         />
                       )}
@@ -468,7 +481,9 @@ export default async function AdminEmailTemplatesPage({
 
                   <button
                     type="submit"
-                    disabled={!canSendTemplates || data.recipients.length === 0}
+                    disabled={
+                      !canSendSelectedTemplate || data.recipients.length === 0
+                    }
                     className={buttonVariants({})}
                   >
                     Send email

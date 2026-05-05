@@ -3,6 +3,7 @@ export { siteAnnouncementStatuses } from './shared';
 export type {
   AdminAnalyticsSettings,
   AnalyticsPruneStatus,
+  AccountRegistrationSettings,
   SaveAnnouncementResult,
   SiteAnnouncementError,
   SiteAnnouncementInput,

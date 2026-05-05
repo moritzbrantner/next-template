@@ -2,9 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   createGroupUseCase,
+  getGroupMessagesUseCase,
   inviteUserToGroupUseCase,
   removeGroupMemberUseCase,
   respondToGroupInvitationUseCase,
+  sendGroupMessageUseCase,
   updateGroupMemberRoleUseCase,
   type GroupUseCaseDeps,
 } from '@/src/domain/groups/use-cases';
@@ -71,6 +73,7 @@ function createDeps(
       },
     ]),
     listPendingInvitations: vi.fn().mockResolvedValue([]),
+    listMessages: vi.fn().mockResolvedValue([]),
     findPendingInvitation: vi.fn().mockResolvedValue(undefined),
     findInvitationById: vi.fn().mockResolvedValue(undefined),
     createInvitation: vi.fn().mockResolvedValue({
@@ -81,6 +84,13 @@ function createDeps(
       status: 'pending',
       createdAt,
       respondedAt: null,
+    }),
+    createMessage: vi.fn().mockResolvedValue({
+      id: 'message_1',
+      groupId: 'group_1',
+      senderUserId: 'user_member',
+      body: 'Hello team',
+      createdAt,
     }),
     updateInvitationStatus: vi.fn().mockResolvedValue(undefined),
     addMember: vi.fn().mockResolvedValue(undefined),
@@ -275,5 +285,102 @@ describe('group use cases', () => {
       },
     });
     expect(deps.removeMember).toHaveBeenCalledWith('group_1', 'user_member');
+  });
+
+  it('loads group messages only for group members', async () => {
+    const deps = createDeps({
+      findMembership: vi
+        .fn()
+        .mockResolvedValue(membership('group_1', 'user_member', 'MEMBER')),
+      listMessages: vi.fn().mockResolvedValue([
+        {
+          id: 'message_1',
+          groupId: 'group_1',
+          senderUserId: 'user_owner',
+          body: 'Kickoff at 10',
+          createdAt,
+          sender: user('user_owner', 'Owner'),
+        },
+      ]),
+    });
+
+    await expect(
+      getGroupMessagesUseCase('user_member', 'group_1', deps),
+    ).resolves.toEqual({
+      ok: true,
+      data: {
+        messages: [
+          {
+            id: 'message_1',
+            groupId: 'group_1',
+            sender: {
+              userId: 'user_owner',
+              tag: 'user_owner',
+              displayName: 'Owner',
+              imageUrl: null,
+            },
+            body: 'Kickoff at 10',
+            createdAt: createdAt.toISOString(),
+          },
+        ],
+      },
+    });
+  });
+
+  it('sends group messages for members', async () => {
+    const deps = createDeps({
+      findMembership: vi
+        .fn()
+        .mockResolvedValue(membership('group_1', 'user_member', 'MEMBER')),
+    });
+
+    const result = await sendGroupMessageUseCase(
+      'user_member',
+      'group_1',
+      ' Hello team ',
+      deps,
+    );
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        message: {
+          id: 'message_1',
+          groupId: 'group_1',
+          sender: {
+            userId: 'user_member',
+            tag: 'user_member',
+            displayName: 'Member',
+            imageUrl: null,
+          },
+          body: 'Hello team',
+          createdAt: createdAt.toISOString(),
+        },
+      },
+    });
+    expect(deps.createMessage).toHaveBeenCalledWith({
+      id: expect.any(String),
+      groupId: 'group_1',
+      senderUserId: 'user_member',
+      body: 'Hello team',
+      createdAt: expect.any(Date),
+    });
+  });
+
+  it('rejects group messages from non-members', async () => {
+    const deps = createDeps({
+      findMembership: vi.fn().mockResolvedValue(undefined),
+    });
+
+    await expect(
+      sendGroupMessageUseCase('user_member', 'group_1', 'Hello team', deps),
+    ).resolves.toEqual({
+      ok: false,
+      error: {
+        code: 'FORBIDDEN',
+        message: 'You are not a member of this group.',
+      },
+    });
+    expect(deps.createMessage).not.toHaveBeenCalled();
   });
 });

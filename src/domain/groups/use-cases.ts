@@ -1,10 +1,22 @@
-import { and, asc, count, eq, ilike, isNull, ne, or, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  isNull,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 import { getDb } from '@/src/db/client';
 import {
   groupInvitations,
   groupMemberships,
+  groupMessages,
   groups,
   users,
 } from '@/src/db/schema';
@@ -18,6 +30,7 @@ import { buildProfileImageUrl } from '@/src/profile/object-storage';
 const GROUP_NAME_MIN_LENGTH = 2;
 const GROUP_NAME_MAX_LENGTH = 80;
 const GROUP_DESCRIPTION_MAX_LENGTH = 500;
+const GROUP_MESSAGE_MAX_LENGTH = 500;
 const SEARCH_QUERY_MAX_LENGTH = 80;
 
 export type GroupMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
@@ -69,6 +82,14 @@ export type GroupPendingInvitation = {
   createdAt: string;
 };
 
+export type GroupChatMessage = {
+  id: string;
+  groupId: string;
+  sender: GroupUserSummary;
+  body: string;
+  createdAt: string;
+};
+
 export type GroupsPageData = {
   groups: GroupSummary[];
   invitations: GroupInvitationSummary[];
@@ -77,6 +98,7 @@ export type GroupsPageData = {
 export type GroupDetail = GroupSummary & {
   members: GroupMemberSummary[];
   pendingInvitations: GroupPendingInvitation[];
+  messages: GroupChatMessage[];
   canInvite: boolean;
   canManageMembers: boolean;
 };
@@ -136,6 +158,18 @@ type PendingInvitationRow = InvitationRecord & {
   invitedBy: UserRecord;
 };
 
+type GroupMessageRecord = {
+  id: string;
+  groupId: string;
+  senderUserId: string;
+  body: string;
+  createdAt: Date;
+};
+
+type GroupMessageRow = GroupMessageRecord & {
+  sender: UserRecord;
+};
+
 export type GroupUseCaseDeps = {
   findUserById: (userId: string) => Promise<UserRecord | undefined>;
   createGroupWithOwner: (input: {
@@ -155,6 +189,7 @@ export type GroupUseCaseDeps = {
   ) => Promise<MembershipRecord | undefined>;
   listMembers: (groupId: string) => Promise<MemberRow[]>;
   listPendingInvitations: (groupId: string) => Promise<PendingInvitationRow[]>;
+  listMessages: (groupId: string) => Promise<GroupMessageRow[]>;
   findPendingInvitation: (
     groupId: string,
     invitedUserId: string,
@@ -168,6 +203,13 @@ export type GroupUseCaseDeps = {
     invitedUserId: string;
     invitedByUserId: string;
   }) => Promise<InvitationRecord>;
+  createMessage: (input: {
+    id: string;
+    groupId: string;
+    senderUserId: string;
+    body: string;
+    createdAt: Date;
+  }) => Promise<GroupMessageRecord>;
   updateInvitationStatus: (
     invitationId: string,
     status: Exclude<GroupInvitationStatus, 'pending'>,
@@ -383,6 +425,30 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
 
       return rows;
     },
+    listMessages: async (groupId) => {
+      const rows = await getDb()
+        .select({
+          id: groupMessages.id,
+          groupId: groupMessages.groupId,
+          senderUserId: groupMessages.senderUserId,
+          body: groupMessages.body,
+          createdAt: groupMessages.createdAt,
+          sender: {
+            id: users.id,
+            email: users.email,
+            tag: users.tag,
+            name: users.name,
+            image: users.image,
+          },
+        })
+        .from(groupMessages)
+        .innerJoin(users, eq(groupMessages.senderUserId, users.id))
+        .where(eq(groupMessages.groupId, groupId))
+        .orderBy(desc(groupMessages.createdAt))
+        .limit(100);
+
+      return rows.reverse();
+    },
     findPendingInvitation: (groupId, invitedUserId) =>
       getDb().query.groupInvitations.findFirst({
         where: (table, { and: innerAnd, eq: innerEq }) =>
@@ -448,6 +514,24 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
       }
 
       return createdInvitation;
+    },
+    createMessage: async ({ id, groupId, senderUserId, body, createdAt }) => {
+      const [createdMessage] = await getDb()
+        .insert(groupMessages)
+        .values({
+          id,
+          groupId,
+          senderUserId,
+          body,
+          createdAt,
+        })
+        .returning();
+
+      if (!createdMessage) {
+        throw new Error('Expected group message to be created.');
+      }
+
+      return createdMessage;
     },
     updateInvitationStatus: async (invitationId, status) => {
       await getDb()
@@ -614,6 +698,16 @@ function toPendingInvitation(
   };
 }
 
+function toChatMessage(row: GroupMessageRow): GroupChatMessage {
+  return {
+    id: row.id,
+    groupId: row.groupId,
+    sender: toUserSummary(row.sender),
+    body: row.body,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
 function isGroupAdmin(role: GroupMemberRole | null | undefined) {
   return role === 'OWNER' || role === 'ADMIN';
 }
@@ -747,9 +841,10 @@ export async function getGroupDetailUseCase(
     });
   }
 
-  const [memberRows, invitationRows] = await Promise.all([
+  const [memberRows, invitationRows, messageRows] = await Promise.all([
     deps.listMembers(groupId),
     deps.listPendingInvitations(groupId),
+    deps.listMessages(groupId),
   ]);
 
   return success({
@@ -762,9 +857,99 @@ export async function getGroupDetailUseCase(
     pendingInvitationCount: invitationRows.length,
     members: memberRows.map(toMemberSummary),
     pendingInvitations: invitationRows.map(toPendingInvitation),
+    messages: messageRows.map(toChatMessage),
     canInvite: isGroupAdmin(membership.role),
     canManageMembers:
       membership.role === 'OWNER' || membership.role === 'ADMIN',
+  });
+}
+
+export async function getGroupMessagesUseCase(
+  actorUserId: string,
+  groupId: string,
+  deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
+): Promise<ServiceResult<{ messages: GroupChatMessage[] }, GroupError>> {
+  const [group, membership] = await Promise.all([
+    deps.findGroupById(groupId),
+    deps.findMembership(groupId, actorUserId),
+  ]);
+
+  if (!group) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'Group was not found.',
+    });
+  }
+
+  if (!membership) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You are not a member of this group.',
+    });
+  }
+
+  const messages = await deps.listMessages(groupId);
+
+  return success({
+    messages: messages.map(toChatMessage),
+  });
+}
+
+export async function sendGroupMessageUseCase(
+  actorUserId: string,
+  groupId: string,
+  rawMessage: string,
+  deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
+): Promise<ServiceResult<{ message: GroupChatMessage }, GroupError>> {
+  const body = rawMessage.trim();
+
+  if (body.length < 1 || body.length > GROUP_MESSAGE_MAX_LENGTH) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: `Messages must be between 1 and ${GROUP_MESSAGE_MAX_LENGTH} characters.`,
+    });
+  }
+
+  const [group, membership, actor] = await Promise.all([
+    deps.findGroupById(groupId),
+    deps.findMembership(groupId, actorUserId),
+    deps.findUserById(actorUserId),
+  ]);
+
+  if (!group) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'Group was not found.',
+    });
+  }
+
+  if (!membership) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You are not a member of this group.',
+    });
+  }
+
+  if (!actor) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const message = await deps.createMessage({
+    id: crypto.randomUUID(),
+    groupId,
+    senderUserId: actorUserId,
+    body,
+    createdAt: new Date(),
+  });
+
+  return success({
+    message: toChatMessage({
+      ...message,
+      sender: actor,
+    }),
   });
 }
 

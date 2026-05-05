@@ -292,6 +292,36 @@ export const groupInvitations = pgTable(
   ],
 );
 
+export const groupMessages = pgTable(
+  'GroupMessage',
+  {
+    id: text('id').primaryKey(),
+    groupId: text('groupId')
+      .notNull()
+      .references(() => groups.id, {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+      }),
+    senderUserId: text('senderUserId')
+      .notNull()
+      .references(() => users.id, {
+        onDelete: 'cascade',
+        onUpdate: 'cascade',
+      }),
+    body: text('body').notNull(),
+    createdAt: timestamp('createdAt', { withTimezone: false, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('GroupMessage_groupId_createdAt_idx').on(
+      table.groupId,
+      table.createdAt,
+    ),
+    index('GroupMessage_senderUserId_idx').on(table.senderUserId),
+  ],
+);
+
 export const blogPosts = pgTable(
   'BlogPost',
   {

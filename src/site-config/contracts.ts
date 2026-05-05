@@ -13,6 +13,10 @@ export const analyticsSiteSettingKeys = [
   'analytics.defaultAdminReportWindow',
 ] as const;
 
+export const accountSiteSettingKeys = [
+  'account.manualVerificationRequired',
+] as const;
+
 export const authorizationSiteSettingKeys = [
   'authorization.rolePermissions',
 ] as const;
@@ -25,6 +29,7 @@ export const foundationSiteSettingKeys = [
 export const siteSettingKeys = [
   ...publicSiteSettingKeys,
   ...analyticsSiteSettingKeys,
+  ...accountSiteSettingKeys,
   ...authorizationSiteSettingKeys,
   ...foundationSiteSettingKeys,
 ] as const;
@@ -32,6 +37,7 @@ export const siteSettingKeys = [
 export type SiteSettingKey = (typeof siteSettingKeys)[number];
 export type PublicSiteSettingKey = (typeof publicSiteSettingKeys)[number];
 export type AnalyticsSiteSettingKey = (typeof analyticsSiteSettingKeys)[number];
+export type AccountSiteSettingKey = (typeof accountSiteSettingKeys)[number];
 export type AuthorizationSiteSettingKey =
   (typeof authorizationSiteSettingKeys)[number];
 export type FoundationSiteSettingKey =

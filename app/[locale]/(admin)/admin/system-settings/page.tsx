@@ -33,6 +33,7 @@ import type {
 import {
   getAnalyticsPruneStatus,
   getAdminAnalyticsSettings,
+  listAccountRegistrationSettings,
   listFeatureFlags,
   listSiteSettings,
   upsertFeatureFlag,
@@ -115,6 +116,25 @@ async function saveAnalyticsSettings(formData: FormData) {
   revalidatePath(`/${locale}/admin/system-settings`);
 }
 
+async function saveManualAccountVerificationSetting(formData: FormData) {
+  'use server';
+
+  const session = await getAuthSession();
+
+  if (!isSuperAdmin(session?.user.role)) {
+    throw new Error('Forbidden');
+  }
+
+  const locale = String(formData.get('locale') ?? 'en');
+  const enabled = formData.get('manualVerificationRequired') === 'on';
+
+  await upsertSiteSetting(
+    'account.manualVerificationRequired',
+    String(enabled),
+  );
+  revalidatePath(`/${locale}/admin/system-settings`);
+}
+
 async function saveRolePermissions(formData: FormData) {
   'use server';
 
@@ -154,15 +174,22 @@ export default async function SystemSettingsPage({
     settings,
     flags,
     analyticsSettings,
+    accountRegistrationSettings,
     analyticsPruneStatus,
     rolePermissions,
   ] = await Promise.all([
     listSiteSettings(),
     listFeatureFlags(),
     getAdminAnalyticsSettings(),
+    listAccountRegistrationSettings(),
     getAnalyticsPruneStatus(),
     getRolePermissionAssignments(),
   ]);
+  const accountManualVerificationRequired =
+    accountRegistrationSettings.find(
+      (setting) => setting.key === 'account.manualVerificationRequired',
+    )?.value === 'true';
+  const canEditManualVerification = isSuperAdmin(session.user.role);
 
   return (
     <AdminPageShell
@@ -183,6 +210,50 @@ export default async function SystemSettingsPage({
           Open functionality controls
         </LocalizedLink>
       ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Account verification</CardTitle>
+          <CardDescription>
+            Require a superadmin to manually send account verification emails
+            for newly requested accounts.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form
+            action={saveManualAccountVerificationSetting}
+            className="space-y-4 rounded-2xl border p-4 dark:border-zinc-800"
+          >
+            <input type="hidden" name="locale" value={locale} />
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                name="manualVerificationRequired"
+                defaultChecked={accountManualVerificationRequired}
+                disabled={!canEditManualVerification}
+                className="mt-1"
+              />
+              <span className="space-y-1">
+                <span className="block font-medium">
+                  Manual verification is needed
+                </span>
+                <span className="block text-zinc-600 dark:text-zinc-300">
+                  Registration still creates a pending account, but no
+                  verification email is sent until a superadmin sends it from
+                  the user detail page.
+                </span>
+              </span>
+            </label>
+            <button
+              type="submit"
+              disabled={!canEditManualVerification}
+              className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950"
+            >
+              Save account verification setting
+            </button>
+          </form>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

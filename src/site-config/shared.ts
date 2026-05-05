@@ -14,12 +14,14 @@ import { getLogger } from '@/src/observability/logger';
 import type { AppLocale } from '@/i18n/routing';
 import type {
   AnalyticsSiteSettingKey,
+  AccountSiteSettingKey,
   FeatureFlagKey,
   PublicSiteConfig,
   PublicSiteSettingKey,
   SiteSettingKey,
 } from '@/src/site-config/contracts';
 import {
+  accountSiteSettingKeys,
   analyticsSiteSettingKeys,
   featureFlagKeys,
   publicSiteSettingKeys,
@@ -83,6 +85,10 @@ export type AdminAnalyticsSettings = {
   defaultAdminReportWindow: AdminReportWindow;
 };
 
+export type AccountRegistrationSettings = {
+  manualVerificationRequired: boolean;
+};
+
 export type AnalyticsPruneStatus = {
   pruningPolicy: string;
   lastSuccessfulRunAt: string | null;
@@ -111,6 +117,7 @@ const siteConfigDefaults: Record<SiteSettingKey, string> = {
     'Next.js application with auth, admin examples, and Drizzle/Postgres persistence.',
   'seo.defaultOgImage': '',
   'contact.supportEmail': 'support@example.com',
+  'account.manualVerificationRequired': 'false',
   'analytics.pageVisitRetentionDays': '365',
   'analytics.defaultAdminReportWindow': '7d',
   'authorization.rolePermissions': JSON.stringify(
@@ -425,6 +432,10 @@ function parseAdminReportWindow(value: string): AdminReportWindow {
   return value === '24h' || value === '30d' || value === '7d' ? value : '7d';
 }
 
+function parseBooleanSetting(value: string): boolean {
+  return value === 'true' || value === '1' || value === 'on';
+}
+
 async function listSiteSettingsByKeys(keys: readonly SiteSettingKey[]) {
   let rows: SiteSettingsRows;
 
@@ -456,6 +467,23 @@ async function listSiteSettingsByKeys(keys: readonly SiteSettingKey[]) {
 
 export async function listAnalyticsSettings() {
   return listSiteSettingsByKeys(analyticsSiteSettingKeys);
+}
+
+export async function listAccountRegistrationSettings() {
+  return listSiteSettingsByKeys(accountSiteSettingKeys);
+}
+
+export async function getAccountRegistrationSettings(): Promise<AccountRegistrationSettings> {
+  const settings = await listAccountRegistrationSettings();
+  const values = Object.fromEntries(
+    settings.map((setting) => [setting.key, setting.value]),
+  ) as Record<AccountSiteSettingKey, string>;
+
+  return {
+    manualVerificationRequired: parseBooleanSetting(
+      values['account.manualVerificationRequired'],
+    ),
+  };
 }
 
 export async function getAdminAnalyticsSettings(): Promise<AdminAnalyticsSettings> {

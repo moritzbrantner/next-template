@@ -148,6 +148,13 @@
       "when": 1777919704280,
       "tag": "0020_tough_makkari",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1777982906430,
+      "tag": "0021_groovy_triton",
+      "breakpoints": true
     }
   ]
 }

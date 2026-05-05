@@ -1,5 +1,6 @@
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+import { notFound, redirect } from 'next/navigation';
 
 import { AdminNotificationComposer } from '@/components/admin/admin-notification-composer';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
@@ -14,8 +15,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { LocalizedLink } from '@/i18n/server-link';
-import { isAdmin } from '@/lib/authorization';
+import { withLocalePath } from '@/i18n/routing';
+import { isAdmin, isSuperAdmin } from '@/lib/authorization';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
+import { getAuthSession } from '@/src/auth.server';
+import { sendAccountVerificationEmailForUser } from '@/src/auth/account-lifecycle';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { getAdminUserDetailUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
@@ -25,12 +29,45 @@ import {
   resolveLocale,
 } from '@/src/server/page-guards';
 
+async function sendAccountVerificationEmailAction(formData: FormData) {
+  'use server';
+
+  const session = await getAuthSession();
+
+  if (!isSuperAdmin(session?.user.role)) {
+    throw new Error('Forbidden');
+  }
+
+  const locale = resolveLocale(String(formData.get('locale') ?? 'en'));
+  const userId = String(formData.get('userId') ?? '');
+  const result = await sendAccountVerificationEmailForUser(userId, { locale });
+  const basePath = withLocalePath(`/admin/users/${userId}`, locale);
+
+  revalidatePath(basePath);
+
+  if (!result.ok) {
+    redirect(
+      `${basePath}?status=verification-email-error:${encodeURIComponent(
+        result.error,
+      )}`,
+    );
+  }
+
+  redirect(`${basePath}?status=verification-email-sent`);
+}
+
 export default async function AdminUserDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; userId: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale: rawLocale, userId } = await params;
+  const requestedSearchParams = await searchParams;
+  const status = Array.isArray(requestedSearchParams?.status)
+    ? (requestedSearchParams?.status[0] ?? null)
+    : (requestedSearchParams?.status ?? null);
   const locale = resolveLocale(rawLocale);
   await notFoundUnlessFeatureEnabled('admin.users');
   const session = await requirePermission(locale, 'admin.users.read');
@@ -50,12 +87,19 @@ export default async function AdminUserDetailPage({
     notFound();
   }
 
+  const canSendAccountVerificationEmail =
+    isSuperAdmin(session.user.role) &&
+    !user.emailVerifiedAt &&
+    user.email !== 'No email';
+
   return (
     <AdminPageShell
       title={t('users.detail.title')}
       description={t('users.detail.description', { name: user.displayName })}
       adminPages={adminPages}
     >
+      <StatusBanner status={status} />
+
       <LocalizedLink
         href="/admin/users"
         locale={locale}
@@ -268,6 +312,33 @@ export default async function AdminUserDetailPage({
             </Card>
           ) : null}
 
+          {!user.emailVerifiedAt ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Account verification</CardTitle>
+                <CardDescription>
+                  Send a fresh verification link to this pending account.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                  Only superadmins can send account verification emails.
+                </p>
+                <form action={sendAccountVerificationEmailAction}>
+                  <input type="hidden" name="locale" value={locale} />
+                  <input type="hidden" name="userId" value={user.id} />
+                  <button
+                    type="submit"
+                    disabled={!canSendAccountVerificationEmail}
+                    className={buttonVariants({})}
+                  >
+                    Send verification email
+                  </button>
+                </form>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {canEditRoles ? (
             <Card>
               <CardHeader>
@@ -341,6 +412,30 @@ export default async function AdminUserDetailPage({
       </div>
     </AdminPageShell>
   );
+}
+
+function StatusBanner({ status }: { status: string | null }) {
+  if (!status) {
+    return null;
+  }
+
+  if (status.startsWith('verification-email-error:')) {
+    return (
+      <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+        {decodeURIComponent(status.slice('verification-email-error:'.length))}
+      </div>
+    );
+  }
+
+  if (status === 'verification-email-sent') {
+    return (
+      <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+        Verification email sent.
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function SummaryCard({ label, value }: { label: string; value: string }) {

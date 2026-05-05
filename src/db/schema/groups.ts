@@ -1,1 +1,6 @@
-export { groupInvitations, groupMemberships, groups } from './legacy';
+export {
+  groupInvitations,
+  groupMemberships,
+  groupMessages,
+  groups,
+} from './legacy';

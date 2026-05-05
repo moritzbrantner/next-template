@@ -19,6 +19,7 @@ import { enqueueJob } from '@/src/jobs/service';
 import type { JobPayloadMap } from '@/src/jobs/contracts';
 import { getLogger } from '@/src/observability/logger';
 import { getInitialProfileTagCandidates } from '@/src/profile/tags';
+import { getAccountRegistrationSettings } from '@/src/site-config/service';
 
 const EMAIL_VERIFICATION_PREFIX = 'email-verification:';
 const PASSWORD_RESET_PREFIX = 'password-reset:';
@@ -109,6 +110,7 @@ type LifecycleDependencies = {
   clearFailureState: (userId: string) => Promise<void>;
   findUserById: (userId: string) => Promise<DbUser | undefined>;
   hashPassword: (password: string) => Promise<string>;
+  getManualAccountVerificationRequired?: () => Promise<boolean>;
   enqueueEmailJob?: (
     payload: JobPayloadMap['sendEmail'],
   ) => Promise<string | void>;
@@ -209,6 +211,10 @@ async function resolveDependencies(): Promise<LifecycleDependencies> {
         .where(eq(users.id, userId));
     },
     hashPassword,
+    getManualAccountVerificationRequired: async () => {
+      const settings = await getAccountRegistrationSettings();
+      return settings.manualVerificationRequired;
+    },
   };
 }
 
@@ -264,6 +270,71 @@ function validatePasswordStrength(
   return { ok: true };
 }
 
+async function issueEmailVerificationToken(
+  d: LifecycleDependencies,
+  userId: string,
+) {
+  const rawToken = createRawToken();
+
+  await d.issueToken({
+    identifier: `${EMAIL_VERIFICATION_PREFIX}${userId}`,
+    token: hashToken(rawToken),
+    expires: new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS),
+  });
+
+  return rawToken;
+}
+
+async function queueEmailVerificationMessage(
+  d: LifecycleDependencies,
+  input: {
+    email: string;
+    name: string | null | undefined;
+    rawToken: string;
+    locale?: string;
+  },
+) {
+  const locale = normalizeLocale(input.locale);
+  const verificationUrl = `${getBaseUrl()}${withLocalePath(
+    `/verify-email?token=${encodeURIComponent(input.rawToken)}`,
+    locale,
+  )}`;
+
+  getLogger({ subsystem: 'auth' }).info(
+    {
+      email: input.email,
+      verificationUrl,
+    },
+    'Email verification token issued',
+  );
+
+  try {
+    const message = await renderEmailTemplate(
+      'accountVerification',
+      {
+        verificationUrl,
+        name: input.name?.trim() || 'there',
+      },
+      await getEmailTemplateContentForLifecycle('accountVerification'),
+    );
+
+    await (
+      d.enqueueEmailJob ?? ((payload) => enqueueJob('sendEmail', payload))
+    )({
+      to: input.email,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+      tags: ['account-verification'],
+    });
+  } catch (error) {
+    getLogger({ subsystem: 'auth' }).error(
+      { email: input.email, err: error },
+      'Failed to send verification email',
+    );
+  }
+}
+
 export async function signUpWithCredentials(
   input: SignupInput,
   deps?: LifecycleDependencies,
@@ -299,59 +370,55 @@ export async function signUpWithCredentials(
     passwordHash: passwordHashValue,
   });
 
-  const rawToken = createRawToken();
-  const locale = normalizeLocale(input.locale);
-  const verificationUrl = `${getBaseUrl()}${withLocalePath(
-    `/verify-email?token=${encodeURIComponent(rawToken)}`,
-    locale,
-  )}`;
+  const rawToken = await issueEmailVerificationToken(d, userId);
+  const manualVerificationRequired =
+    (await d.getManualAccountVerificationRequired?.()) ?? false;
 
-  await d.issueToken({
-    identifier: `${EMAIL_VERIFICATION_PREFIX}${userId}`,
-    token: hashToken(rawToken),
-    expires: new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS),
-  });
-
-  getLogger({ subsystem: 'auth' }).info(
-    {
+  if (!manualVerificationRequired) {
+    await queueEmailVerificationMessage(d, {
       email,
-      verificationUrl,
-    },
-    'Email verification token issued',
-  );
-
-  try {
-    const message = await renderEmailTemplate(
-      'accountVerification',
-      {
-        verificationUrl,
-        name: input.name?.trim() || 'there',
-      },
-      await getEmailTemplateContentForLifecycle('accountVerification'),
-    );
-
-    void (d.enqueueEmailJob ?? ((payload) => enqueueJob('sendEmail', payload)))(
-      {
-        to: email,
-        subject: message.subject,
-        html: message.html,
-        text: message.text,
-        tags: ['account-verification'],
-      },
-    ).catch((error) => {
-      getLogger({ subsystem: 'auth' }).error(
-        { email, err: error },
-        'Failed to send verification email',
-      );
+      name: input.name,
+      rawToken,
+      locale: input.locale,
     });
-  } catch (error) {
-    getLogger({ subsystem: 'auth' }).error(
-      { email, err: error },
-      'Failed to build verification email',
-    );
   }
 
   return { ok: true, userId, verificationToken: rawToken };
+}
+
+export async function sendAccountVerificationEmailForUser(
+  userId: string,
+  optionsOrDeps?: { locale?: string } | LifecycleDependencies,
+  deps?: LifecycleDependencies,
+): Promise<{ ok: true; token: string } | { ok: false; error: string }> {
+  const options = isLifecycleDependencies(optionsOrDeps)
+    ? undefined
+    : optionsOrDeps;
+  const d =
+    (isLifecycleDependencies(optionsOrDeps) ? optionsOrDeps : deps) ??
+    (await resolveDependencies());
+  const user = await d.findUserById(userId);
+
+  if (!user?.email) {
+    return { ok: false, error: 'Choose a user with an email address.' };
+  }
+
+  if (user.emailVerified) {
+    return { ok: false, error: 'This account is already verified.' };
+  }
+
+  await d.deleteTokensByIdentifierPrefix(
+    `${EMAIL_VERIFICATION_PREFIX}${user.id}`,
+  );
+  const rawToken = await issueEmailVerificationToken(d, user.id);
+  await queueEmailVerificationMessage(d, {
+    email: user.email,
+    name: user.name,
+    rawToken,
+    locale: options?.locale,
+  });
+
+  return { ok: true, token: rawToken };
 }
 
 export async function verifyEmailByToken(
