@@ -1,6 +1,9 @@
+import { createHmac, randomInt } from 'node:crypto';
+
 import { eq, like } from 'drizzle-orm';
 
 import { hashPassword } from '@/lib/password';
+import type { AppRole } from '@/lib/authorization';
 import {
   withLocalePath,
   type AppLocale,
@@ -19,8 +22,10 @@ import { getInitialProfileTagCandidates } from '@/src/profile/tags';
 
 const EMAIL_VERIFICATION_PREFIX = 'email-verification:';
 const PASSWORD_RESET_PREFIX = 'password-reset:';
+const LOGIN_OTP_PREFIX = 'login-otp:';
 const EMAIL_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
+const LOGIN_OTP_TTL_MS = 10 * 60 * 1000;
 const LOCKOUT_THRESHOLD = 5;
 const LOCKOUT_WINDOW_MS = 15 * 60 * 1000;
 
@@ -36,6 +41,16 @@ function createRawToken(): string {
   return `${crypto.randomUUID()}${crypto.randomUUID()}`;
 }
 
+function createOneTimePassword(): string {
+  return String(randomInt(0, 1_000_000)).padStart(6, '0');
+}
+
+function hashOneTimePassword(identifier: string, code: string): string {
+  return createHmac('sha256', getEnv().auth.secret)
+    .update(`${identifier}:${code}`)
+    .digest('base64url');
+}
+
 function getBaseUrl(): string {
   return getEnv().auth.url;
 }
@@ -47,6 +62,11 @@ function normalizeLocale(locale?: string): AppLocale {
 type DbUser = {
   id: string;
   email: string | null;
+  tag: string;
+  name: string | null;
+  image: string | null;
+  bannerImage: string | null;
+  role: AppRole;
   failedSignInAttempts: number;
   lockoutUntil: Date | null;
 };
@@ -443,6 +463,126 @@ export async function resetPasswordWithToken(
   );
   await d.deleteToken(tokenRecord.token);
   return { ok: true };
+}
+
+export async function requestLoginOneTimePassword(
+  emailInput: string,
+  optionsOrDeps?: { locale?: string } | LifecycleDependencies,
+  deps?: LifecycleDependencies,
+): Promise<{ ok: true; code?: string }> {
+  const options = isLifecycleDependencies(optionsOrDeps)
+    ? undefined
+    : optionsOrDeps;
+  const d =
+    (isLifecycleDependencies(optionsOrDeps) ? optionsOrDeps : deps) ??
+    (await resolveDependencies());
+  const email = normalizeEmail(emailInput);
+  if (!email || !email.includes('@')) return { ok: true };
+
+  const user = await d.findUserByEmail(email);
+  if (!user?.email) return { ok: true };
+
+  const identifier = `${LOGIN_OTP_PREFIX}${user.id}`;
+  const code = createOneTimePassword();
+  await d.deleteTokensByIdentifierPrefix(identifier);
+  await d.issueToken({
+    identifier,
+    token: hashOneTimePassword(identifier, code),
+    expires: new Date(Date.now() + LOGIN_OTP_TTL_MS),
+  });
+
+  getLogger({ subsystem: 'auth' }).info(
+    { email },
+    'Login one-time password issued',
+  );
+
+  try {
+    const message = await renderEmailTemplate(
+      'loginOneTimePassword',
+      { code },
+      await getEmailTemplateContentForLifecycle('loginOneTimePassword'),
+    );
+
+    await (
+      d.enqueueEmailJob ?? ((payload) => enqueueJob('sendEmail', payload))
+    )({
+      to: email,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+      tags: ['login-otp'],
+    });
+  } catch (error) {
+    getLogger({ subsystem: 'auth' }).error(
+      { email, err: error },
+      'Failed to send login one-time password email',
+    );
+  }
+
+  return { ok: true, code };
+}
+
+export async function verifyLoginOneTimePassword(
+  emailInput: string,
+  codeInput: string,
+  deps?: LifecycleDependencies,
+): Promise<
+  | {
+      ok: true;
+      user: {
+        id: string;
+        email: string;
+        tag: string;
+        name: string | null;
+        image: string | null;
+        bannerImage: string | null;
+        role: AppRole;
+      };
+    }
+  | { ok: false; error: string }
+> {
+  const email = normalizeEmail(emailInput);
+  const code = codeInput.trim();
+  if (!email || !email.includes('@') || !/^\d{6}$/.test(code)) {
+    return { ok: false, error: 'The one-time password is invalid.' };
+  }
+
+  const d = deps ?? (await resolveDependencies());
+  const user = await d.findUserByEmail(email);
+  if (!user?.email) {
+    return { ok: false, error: 'The one-time password is invalid.' };
+  }
+
+  const identifier = `${LOGIN_OTP_PREFIX}${user.id}`;
+  const tokenRecord = await d.findToken(
+    hashOneTimePassword(identifier, code),
+    LOGIN_OTP_PREFIX,
+  );
+  if (!tokenRecord || tokenRecord.identifier !== identifier) {
+    return { ok: false, error: 'The one-time password is invalid.' };
+  }
+
+  if (tokenRecord.expires.getTime() < Date.now()) {
+    await d.deleteToken(tokenRecord.token);
+    return { ok: false, error: 'The one-time password has expired.' };
+  }
+
+  await d.markEmailVerified(user.id);
+  await d.deleteToken(tokenRecord.token);
+  await d.clearFailureState(user.id);
+
+  return {
+    ok: true,
+    user: {
+      id: user.id,
+      email: user.email,
+      tag: user.tag,
+      name: user.name,
+      image: user.image,
+      bannerImage: user.bannerImage,
+      role: user.role,
+    },
+  };
 }
 
 export async function registerCredentialFailureForUser(

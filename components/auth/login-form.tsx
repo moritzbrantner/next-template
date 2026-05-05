@@ -15,6 +15,7 @@ import { readProblemDetail } from '@/src/http/problem-client';
 type LoginFormValues = {
   email: string;
   password: string;
+  otpCode: string;
 };
 
 type LoginFormProps = {
@@ -22,12 +23,21 @@ type LoginFormProps = {
   labels: {
     email: string;
     password: string;
+    otpCode: string;
     submit: string;
     submitting: string;
+    requestOtp: string;
+    requestingOtp: string;
+    verifyOtp: string;
+    verifyingOtp: string;
+    otpSent: string;
+    otpRequestError: string;
+    invalidOtp: string;
     invalidCredentials: string;
     requiredEmail: string;
     invalidEmail: string;
     requiredPassword: string;
+    requiredOtp: string;
     registerPrompt: string;
     registerCta: string;
     socialDivider: string;
@@ -45,15 +55,21 @@ export function LoginForm({
 }: LoginFormProps) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [otpPending, setOtpPending] = useState(false);
+  const [otpRequested, setOtpRequested] = useState(false);
   const {
     register,
     handleSubmit,
+    getValues,
     setError,
+    clearErrors,
+    trigger,
     formState: { errors },
   } = useForm<LoginFormValues>({
     defaultValues: {
       email: '',
       password: '',
+      otpCode: '',
     },
   });
 
@@ -108,6 +124,83 @@ export function LoginForm({
     router.push('/profile', locale);
     router.refresh();
   });
+
+  async function requestOtp() {
+    const emailIsValid = await trigger('email');
+    if (!emailIsValid) {
+      return;
+    }
+
+    setOtpPending(true);
+    clearErrors();
+
+    const response = await fetch('/api/auth/login/otp/request', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: getValues('email'),
+        locale,
+      }),
+    });
+
+    if (!response.ok) {
+      const problem = await readProblemDetail(response, labels.otpRequestError);
+      setError('root', {
+        type: 'server',
+        message: problem.formMessage ?? problem.message,
+      });
+      setOtpPending(false);
+      return;
+    }
+
+    setOtpRequested(true);
+    setOtpPending(false);
+  }
+
+  async function verifyOtp() {
+    const emailIsValid = await trigger('email');
+    if (!emailIsValid) {
+      return;
+    }
+
+    const code = getValues('otpCode').trim();
+    if (!/^\d{6}$/.test(code)) {
+      setError('otpCode', {
+        type: 'manual',
+        message: labels.requiredOtp,
+      });
+      return;
+    }
+
+    setOtpPending(true);
+    clearErrors();
+
+    const response = await fetch('/api/auth/login/otp/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: getValues('email'),
+        code,
+      }),
+    });
+
+    if (!response.ok) {
+      const problem = await readProblemDetail(response, labels.invalidOtp);
+      setError('otpCode', {
+        type: 'server',
+        message: problem.formMessage ?? problem.message,
+      });
+      setOtpPending(false);
+      return;
+    }
+
+    router.push('/profile', locale);
+    router.refresh();
+  }
 
   return (
     <form className="space-y-5" onSubmit={onSubmit} noValidate>
@@ -170,6 +263,56 @@ export function LoginForm({
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? labels.submitting : labels.submit}
       </Button>
+
+      <div className="space-y-3 border-t border-zinc-200 pt-5 dark:border-zinc-800">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          disabled={otpPending || pending}
+          onClick={requestOtp}
+        >
+          {otpPending && !otpRequested
+            ? labels.requestingOtp
+            : labels.requestOtp}
+        </Button>
+
+        {otpRequested ? (
+          <div className="space-y-3">
+            <p
+              className="text-sm text-zinc-600 dark:text-zinc-400"
+              aria-live="polite"
+            >
+              {labels.otpSent}
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="otp-code">{labels.otpCode}</Label>
+              <Input
+                id="otp-code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                aria-invalid={errors.otpCode ? 'true' : 'false'}
+                {...register('otpCode')}
+              />
+              {errors.otpCode ? (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {errors.otpCode.message}
+                </p>
+              ) : null}
+            </div>
+            <Button
+              type="button"
+              className="w-full"
+              disabled={otpPending || pending}
+              onClick={verifyOtp}
+            >
+              {otpPending ? labels.verifyingOtp : labels.verifyOtp}
+            </Button>
+          </div>
+        ) : null}
+      </div>
 
       <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
         {labels.registerPrompt}{' '}

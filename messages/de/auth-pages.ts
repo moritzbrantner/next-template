@@ -10,12 +10,22 @@ export const authPages = {
     form: {
       email: 'E-Mail',
       password: 'Passwort',
+      otpCode: 'Einmalpasswort',
       submit: 'Anmelden',
       submitting: 'Anmeldung laeuft...',
+      requestOtp: 'Login-Code per E-Mail senden',
+      requestingOtp: 'Code wird gesendet...',
+      verifyOtp: 'Mit Code anmelden',
+      verifyingOtp: 'Code wird geprueft...',
+      otpSent:
+        'Falls das Konto existiert, ist ein Login-Code per E-Mail unterwegs.',
+      otpRequestError: 'Der Login-Code konnte gerade nicht gesendet werden.',
+      invalidOtp: 'Das Einmalpasswort ist ungueltig oder abgelaufen.',
       invalidCredentials: 'E-Mail oder Passwort ist nicht korrekt.',
       requiredEmail: 'E-Mail ist erforderlich.',
       invalidEmail: 'Gib eine gueltige E-Mail-Adresse ein.',
       requiredPassword: 'Passwort ist erforderlich.',
+      requiredOtp: 'Gib den 6-stelligen Code aus deiner E-Mail ein.',
       registerPrompt: 'Noch kein Konto?',
       registerCta: 'Registrieren',
       social: {

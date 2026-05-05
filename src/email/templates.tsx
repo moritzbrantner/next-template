@@ -15,6 +15,7 @@ import { render } from '@react-email/render';
 export const emailTemplateIds = [
   'accountVerification',
   'passwordReset',
+  'loginOneTimePassword',
   'newsletterWelcome',
   'adminMessage',
 ] as const;
@@ -99,6 +100,27 @@ export const emailTemplateDefinitions: readonly EmailTemplateDefinition[] = [
         key: 'resetUrl',
         label: 'Reset URL',
         defaultValue: 'https://example.com/reset-password?token=preview',
+      },
+    ],
+  },
+  {
+    id: 'loginOneTimePassword',
+    label: 'Login one-time password',
+    description:
+      'Sent when a user requests a short-lived one-time password to sign in.',
+    defaultContent: {
+      subject: 'Your login code',
+      preview: 'Use this one-time password to sign in.',
+      heading: 'Your login code',
+      body: 'Use this one-time password to sign in. It expires in 10 minutes.\n\n{{code}}',
+      ctaLabel: '',
+      footer: 'If you did not request this code, you can ignore this message.',
+    },
+    variables: [
+      {
+        key: 'code',
+        label: 'One-time password',
+        defaultValue: '123456',
       },
     ],
   },
@@ -226,6 +248,10 @@ function resolveActionUrl(
 
   if (templateId === 'passwordReset') {
     return values.resetUrl;
+  }
+
+  if (templateId === 'loginOneTimePassword') {
+    return '';
   }
 
   if (templateId === 'newsletterWelcome') {
@@ -370,6 +396,12 @@ export async function createVerificationEmail(input: {
 export async function createPasswordResetEmail(input: { resetUrl: string }) {
   return renderEmailTemplate('passwordReset', {
     resetUrl: input.resetUrl,
+  });
+}
+
+export async function createLoginOneTimePasswordEmail(input: { code: string }) {
+  return renderEmailTemplate('loginOneTimePassword', {
+    code: input.code,
   });
 }
 
