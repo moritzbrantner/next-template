@@ -67,6 +67,7 @@ type DbUser = {
   image: string | null;
   bannerImage: string | null;
   role: AppRole;
+  emailVerified: Date | null;
   failedSignInAttempts: number;
   lockoutUntil: Date | null;
 };
@@ -480,7 +481,7 @@ export async function requestLoginOneTimePassword(
   if (!email || !email.includes('@')) return { ok: true };
 
   const user = await d.findUserByEmail(email);
-  if (!user?.email) return { ok: true };
+  if (!user?.email || !user.emailVerified) return { ok: true };
 
   const identifier = `${LOGIN_OTP_PREFIX}${user.id}`;
   const code = createOneTimePassword();
@@ -549,7 +550,7 @@ export async function verifyLoginOneTimePassword(
 
   const d = deps ?? (await resolveDependencies());
   const user = await d.findUserByEmail(email);
-  if (!user?.email) {
+  if (!user?.email || !user.emailVerified) {
     return { ok: false, error: 'The one-time password is invalid.' };
   }
 

@@ -95,6 +95,7 @@ describe('auth social forms', () => {
           confirmPassword: 'Confirm password',
           submit: 'Create account',
           submitting: 'Creating account...',
+          success: 'Check your email.',
           requiredEmail: 'Email is required.',
           invalidEmail: 'Enter a valid email address.',
           requiredPassword: 'Password is required.',

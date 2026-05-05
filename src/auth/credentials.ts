@@ -25,9 +25,24 @@ type DbUser = {
   image: string | null;
   bannerImage: string | null;
   role: AppRole;
+  emailVerified: Date | null;
   passwordHash: string | null;
   lockoutUntil: Date | null;
 };
+
+type AuthorizedCredentialsUser = {
+  id: string;
+  email: string | null;
+  tag: string;
+  name: string | null;
+  image: string | null;
+  bannerImage: string | null;
+  role: AppRole;
+};
+
+type CredentialsAuthorizationResult =
+  | { ok: true; user: AuthorizedCredentialsUser }
+  | { ok: false; reason: 'invalid_credentials' | 'email_unverified' };
 
 type CredentialsDependencies = {
   findUserByEmail: (email: string) => Promise<DbUser | undefined>;
@@ -64,23 +79,37 @@ export async function authorizeCredentials(
   dependencies?: CredentialsDependencies,
   request?: unknown,
 ) {
+  const result = await authorizeCredentialsDetailed(
+    credentials,
+    dependencies,
+    request,
+  );
+
+  return result.ok ? result.user : null;
+}
+
+export async function authorizeCredentialsDetailed(
+  credentials: CredentialsInput | undefined,
+  dependencies?: CredentialsDependencies,
+  request?: unknown,
+): Promise<CredentialsAuthorizationResult> {
   const email = credentials?.email;
   const password = credentials?.password;
 
   if (typeof email !== 'string' || typeof password !== 'string') {
-    return null;
+    return { ok: false, reason: 'invalid_credentials' };
   }
 
   const normalizedEmail = email.trim().toLowerCase();
   if (!normalizedEmail) {
-    return null;
+    return { ok: false, reason: 'invalid_credentials' };
   }
 
   const clientIp = getClientIpFromRequest(request);
   const throttleKey = buildCredentialThrottleKey(normalizedEmail, clientIp);
 
   if (isCredentialAttemptThrottled(throttleKey)) {
-    return null;
+    return { ok: false, reason: 'invalid_credentials' };
   }
 
   const resolvedDependencies =
@@ -90,12 +119,12 @@ export async function authorizeCredentials(
   if (!user?.passwordHash) {
     registerCredentialAttemptFailure(throttleKey);
     await resolvedDependencies.onAuthenticationFailure(user?.id ?? null);
-    return null;
+    return { ok: false, reason: 'invalid_credentials' };
   }
 
   if (user.lockoutUntil && user.lockoutUntil.getTime() > Date.now()) {
     registerCredentialAttemptFailure(throttleKey);
-    return null;
+    return { ok: false, reason: 'invalid_credentials' };
   }
 
   const isValidPassword = await resolvedDependencies.verifyPassword(
@@ -105,19 +134,26 @@ export async function authorizeCredentials(
   if (!isValidPassword) {
     registerCredentialAttemptFailure(throttleKey);
     await resolvedDependencies.onAuthenticationFailure(user.id);
-    return null;
+    return { ok: false, reason: 'invalid_credentials' };
+  }
+
+  if (!user.emailVerified) {
+    return { ok: false, reason: 'email_unverified' };
   }
 
   clearCredentialAttemptFailures(throttleKey);
   await resolvedDependencies.onAuthenticationSuccess(user.id);
 
   return {
-    id: user.id,
-    email: user.email,
-    tag: user.tag,
-    name: user.name,
-    image: user.image,
-    bannerImage: user.bannerImage,
-    role: user.role,
+    ok: true,
+    user: {
+      id: user.id,
+      email: user.email,
+      tag: user.tag,
+      name: user.name,
+      image: user.image,
+      bannerImage: user.bannerImage,
+      role: user.role,
+    },
   };
 }

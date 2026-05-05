@@ -69,6 +69,7 @@ export default async function RegisterPage({
               confirmPassword: t('form.confirmPassword'),
               submit: t('form.submit'),
               submitting: t('form.submitting'),
+              success: t('form.success'),
               requiredEmail: t('form.requiredEmail'),
               invalidEmail: t('form.invalidEmail'),
               requiredPassword: t('form.requiredPassword'),

@@ -20,6 +20,7 @@ function createOtpDeps() {
     image: null,
     bannerImage: null,
     role: 'USER' as const,
+    emailVerified: new Date() as Date | null,
     failedSignInAttempts: 0,
     lockoutUntil: null,
   };
@@ -131,6 +132,17 @@ describe('login one-time passwords', () => {
       'missing@example.com',
       deps,
     );
+
+    expect(result).toEqual({ ok: true });
+    expect(deps.issueToken).not.toHaveBeenCalled();
+    expect(deps.enqueueEmailJob).not.toHaveBeenCalled();
+  });
+
+  it('does not issue login codes for unverified accounts', async () => {
+    const { deps, user } = createOtpDeps();
+    user.emailVerified = null;
+
+    const result = await requestLoginOneTimePassword(user.email, deps);
 
     expect(result).toEqual({ ok: true });
     expect(deps.issueToken).not.toHaveBeenCalled();

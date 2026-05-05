@@ -1,6 +1,6 @@
 import * as z from 'zod';
 
-import { authorizeCredentials } from '@/src/auth/credentials';
+import { authorizeCredentialsDetailed } from '@/src/auth/credentials';
 import { signInSession } from '@/src/auth.server';
 import { problem, ProblemError } from '@/src/http/errors';
 import { createApiRoute } from '@/src/http/route';
@@ -14,7 +14,7 @@ export const POST = createApiRoute({
   action: 'auth.login',
   bodySchema: loginBodySchema,
   async handler({ request, body }) {
-    const user = await authorizeCredentials(
+    const result = await authorizeCredentialsDetailed(
       {
         email: body.email,
         password: body.password,
@@ -23,7 +23,31 @@ export const POST = createApiRoute({
       request,
     );
 
-    if (!user?.email) {
+    if (!result.ok) {
+      if (result.reason === 'email_unverified') {
+        throw new ProblemError(
+          problem(
+            '/problems/email-unverified',
+            'Email verification required',
+            403,
+            'Please verify your email address before logging in.',
+          ),
+        );
+      }
+
+      throw new ProblemError(
+        problem(
+          '/problems/invalid-credentials',
+          'Invalid credentials',
+          401,
+          'Email or password is incorrect.',
+        ),
+      );
+    }
+
+    const { user } = result;
+
+    if (!user.email) {
       throw new ProblemError(
         problem(
           '/problems/invalid-credentials',

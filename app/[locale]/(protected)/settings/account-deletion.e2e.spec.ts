@@ -2,9 +2,11 @@ import { expect, test } from '@playwright/test';
 
 import { getE2EBaseURL } from '@/scripts/e2e/environment';
 import {
+  extractFirstUrl,
   getSeededUser,
   gotoAndWaitForHydration,
   loginWithCredentials,
+  waitForMailpitMessage,
 } from '@/scripts/e2e/helpers';
 
 const deletionUser = getSeededUser('delete-account@example.com');
@@ -25,6 +27,30 @@ async function recreateDeletionUserIfNeeded() {
   });
 
   if (response.ok) {
+    const verificationMessage = await waitForMailpitMessage({
+      to: deletionUser.email,
+      subject: 'Verify your email address',
+    });
+    const verificationUrl = new URL(extractFirstUrl(verificationMessage.raw));
+    const verificationToken = verificationUrl.searchParams.get('token');
+
+    if (!verificationToken) {
+      throw new Error('Unable to restore deletion user without a token.');
+    }
+
+    const verificationResponse = await fetch(
+      new URL(
+        `/api/account/verify-email?token=${encodeURIComponent(verificationToken)}`,
+        getE2EBaseURL(),
+      ),
+    );
+
+    if (!verificationResponse.ok) {
+      throw new Error(
+        `Unable to verify restored ${deletionUser.email} after account deletion test.`,
+      );
+    }
+
     return;
   }
 

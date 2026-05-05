@@ -60,9 +60,9 @@ export const authPages = {
   },
   register: {
     eyebrow: 'Konto erstellen',
-    heroTitle: 'Erstelle ein sicheres Konto und lege sofort los.',
+    heroTitle: 'Erstelle ein sicheres Konto und bestaetige deine E-Mail.',
     heroDescription:
-      'Registriere dich mit einer gueltigen E-Mail-Adresse und einem starken Passwort. Danach wirst du direkt angemeldet.',
+      'Registriere dich mit einer gueltigen E-Mail-Adresse und einem starken Passwort. Du kannst dich anmelden, nachdem du den Link in deinem Postfach bestaetigt hast.',
     title: 'Registrieren',
     description:
       'Lege dein Konto mit Zugangsdaten an, die die Sicherheitsregeln erfuellen.',
@@ -73,6 +73,8 @@ export const authPages = {
       confirmPassword: 'Passwort bestaetigen',
       submit: 'Konto erstellen',
       submitting: 'Konto wird erstellt...',
+      success:
+        'Konto erstellt. Pruefe deine E-Mails und bestaetige den Verifizierungslink, bevor du dich anmeldest.',
       requiredEmail: 'E-Mail ist erforderlich.',
       invalidEmail: 'Gib eine gueltige E-Mail-Adresse ein.',
       requiredPassword: 'Passwort ist erforderlich.',
@@ -84,7 +86,7 @@ export const authPages = {
       continue: 'Weiter',
       back: 'Zurueck',
       genericError:
-        'Konto erstellt, aber automatische Anmeldung fehlgeschlagen. Bitte manuell anmelden.',
+        'Dein Konto konnte gerade nicht erstellt werden. Bitte versuche es erneut.',
       loginPrompt: 'Bereits registriert?',
       loginCta: 'Anmelden',
       social: {

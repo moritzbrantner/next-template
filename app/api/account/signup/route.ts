@@ -1,8 +1,6 @@
 import * as z from 'zod';
 
 import { signUpWithCredentials } from '@/src/auth/account-lifecycle';
-import { signInSession } from '@/src/auth.server';
-import { getDb } from '@/src/db/client';
 import { problem, ProblemError } from '@/src/http/errors';
 import { createApiRoute } from '@/src/http/route';
 
@@ -31,31 +29,6 @@ export const POST = createApiRoute({
       );
     }
 
-    const user = await getDb().query.users.findFirst({
-      where: (table, { eq }) => eq(table.id, result.userId),
-    });
-
-    if (!user?.email) {
-      throw new ProblemError(
-        problem(
-          '/problems/session-bootstrap-failed',
-          'Automatic sign-in failed',
-          500,
-          'Account created, but automatic sign-in failed. Try logging in manually.',
-        ),
-      );
-    }
-
-    await signInSession({
-      id: user.id,
-      email: user.email,
-      tag: user.tag,
-      image: user.image,
-      bannerImage: user.bannerImage,
-      name: user.name,
-      role: user.role,
-    });
-
-    return { ok: true };
+    return { ok: true, requiresEmailVerification: true };
   },
 });

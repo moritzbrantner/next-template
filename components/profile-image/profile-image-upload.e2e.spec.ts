@@ -2,8 +2,11 @@ import { expect, test, type Locator } from '@playwright/test';
 
 import {
   createSolidPngBuffer,
+  extractFirstUrl,
   expectSignedInProfile,
   gotoAndWaitForHydration,
+  loginWithCredentials,
+  waitForMailpitMessage,
 } from '@/scripts/e2e/helpers';
 
 async function readImageState(locator: Locator) {
@@ -42,6 +45,15 @@ test.describe('profile image uploads', () => {
     await page.getByLabel('Display name').fill(displayName);
     await page.getByRole('button', { name: 'Create account' }).click();
 
+    const verificationMessage = await waitForMailpitMessage({
+      to: email,
+      subject: 'Verify your email address',
+    });
+    await gotoAndWaitForHydration(
+      page,
+      extractFirstUrl(verificationMessage.raw),
+    );
+    await loginWithCredentials(page, email, password);
     await expectSignedInProfile(page, displayName);
     await expect(page.getByLabel('Choose a profile picture')).toHaveCount(0);
 

@@ -55,9 +55,9 @@ export const authPages = {
   },
   register: {
     eyebrow: 'Create your account',
-    heroTitle: 'Start with a secure account and get into the app immediately.',
+    heroTitle: 'Start with a secure account and verify your email.',
     heroDescription:
-      'Register with a valid email and a strong password. You will be signed in as soon as your account is created.',
+      'Register with a valid email and a strong password. You can sign in after you confirm the link in your inbox.',
     title: 'Register',
     description:
       'Set up your account with credentials that meet the security requirements.',
@@ -68,6 +68,8 @@ export const authPages = {
       confirmPassword: 'Confirm password',
       submit: 'Create account',
       submitting: 'Creating account...',
+      success:
+        'Account created. Check your email and confirm the verification link before logging in.',
       requiredEmail: 'Email is required.',
       invalidEmail: 'Enter a valid email address.',
       requiredPassword: 'Password is required.',
@@ -79,7 +81,7 @@ export const authPages = {
       continue: 'Continue',
       back: 'Back',
       genericError:
-        'Account created, but automatic sign-in failed. Try logging in manually.',
+        'Unable to create your account right now. Please try again.',
       loginPrompt: 'Already have an account?',
       loginCta: 'Log in',
       social: {

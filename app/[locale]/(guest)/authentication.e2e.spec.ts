@@ -67,7 +67,7 @@ test.describe('authentication', () => {
     await expect(page).toHaveURL('/en/login');
   });
 
-  test('registers a new account and lands on the profile page', async ({
+  test('registers a new account and waits for email verification before login', async ({
     page,
   }) => {
     const email = `playwright-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
@@ -77,7 +77,7 @@ test.describe('authentication', () => {
 
     await expect(
       page.getByRole('heading', {
-        name: 'Start with a secure account and get into the app immediately.',
+        name: 'Start with a secure account and verify your email.',
       }),
     ).toBeVisible();
 
@@ -87,7 +87,18 @@ test.describe('authentication', () => {
       password,
     });
 
-    await expectSignedInProfile(page, 'Playwright User');
+    await expect(page.getByRole('status')).toContainText(
+      'Account created. Check your email and confirm the verification link before logging in.',
+    );
+    await expect(page).toHaveURL('/en/register');
+
+    await gotoAndWaitForHydration(page, '/en/login');
+    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Password').fill(password);
+    await page.getByRole('button', { name: 'Log in' }).click();
+    await expect(
+      page.getByText('Please verify your email address before logging in.'),
+    ).toBeVisible();
 
     const verificationMessage = await waitForMailpitMessage({
       to: email,
@@ -102,7 +113,8 @@ test.describe('authentication', () => {
       ),
     ).toBeVisible();
 
-    await gotoAndWaitForHydration(page, '/en/profile');
+    await loginWithCredentials(page, email, password);
+    await expectSignedInProfile(page, 'Playwright User');
     await logoutFromProfileMenu(page);
     await expect(page.getByRole('link', { name: 'Register' })).toBeVisible();
   });
@@ -122,8 +134,14 @@ test.describe('authentication', () => {
       password,
     });
 
-    await expect(page).toHaveURL('/en/profile');
-    await logoutFromProfileMenu(page);
+    const verificationMessage = await waitForMailpitMessage({
+      to: email,
+      subject: 'Verify your email address',
+    });
+    await gotoAndWaitForHydration(
+      page,
+      extractFirstUrl(verificationMessage.raw),
+    );
 
     await gotoAndWaitForHydration(page, '/en/register');
 

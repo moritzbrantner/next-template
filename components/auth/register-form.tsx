@@ -8,7 +8,7 @@ import {
   useWatch,
 } from 'react-hook-form';
 
-import { Link, useRouter } from '@/i18n/navigation';
+import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,7 @@ type RegisterFormProps = {
     confirmPassword: string;
     submit: string;
     submitting: string;
+    success: string;
     requiredEmail: string;
     invalidEmail: string;
     requiredPassword: string;
@@ -239,9 +240,9 @@ export function RegisterForm({
   oauthErrorMessage,
   returnTo,
 }: RegisterFormProps) {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [step, setStep] = useState<RegisterStep>('email');
+  const [submitted, setSubmitted] = useState(false);
   const {
     control,
     register,
@@ -346,9 +347,31 @@ export function RegisterForm({
     }
 
     setPending(false);
-    router.push('/profile', locale);
-    router.refresh();
+    setSubmitted(true);
   });
+
+  if (submitted) {
+    return (
+      <div className="space-y-5">
+        <p
+          role="status"
+          className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+        >
+          {labels.success}
+        </p>
+        <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+          {labels.loginPrompt}{' '}
+          <Link
+            href="/login"
+            locale={locale}
+            className="font-medium text-zinc-900 underline underline-offset-4 dark:text-zinc-50"
+          >
+            {labels.loginCta}
+          </Link>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form className="space-y-5" onSubmit={onSubmit} noValidate>

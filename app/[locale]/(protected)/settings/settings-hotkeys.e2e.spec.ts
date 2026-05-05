@@ -1,9 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 import {
+  extractFirstUrl,
   getSeededUser,
   gotoAndWaitForHydration,
   loginWithCredentials,
+  waitForMailpitMessage,
 } from '@/scripts/e2e/helpers';
 
 const managerUser = getSeededUser('manager@example.com');
@@ -126,7 +128,15 @@ test.describe('settings and hotkeys', () => {
     await page.getByLabel('Display name').fill('Settings User');
     await page.getByRole('button', { name: 'Create account' }).click();
 
-    await expect(page).toHaveURL('/en/profile');
+    const verificationMessage = await waitForMailpitMessage({
+      to: email,
+      subject: 'Verify your email address',
+    });
+    await gotoAndWaitForHydration(
+      page,
+      extractFirstUrl(verificationMessage.raw),
+    );
+    await loginWithCredentials(page, email, password);
     await gotoAndWaitForHydration(page, '/en/settings/account');
 
     await page.getByLabel('New email address').fill(nextEmail);

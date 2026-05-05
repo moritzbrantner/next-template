@@ -15,7 +15,9 @@ describe('authorizeCredentials', () => {
       tag: 'person',
       name: 'Person',
       image: null,
+      bannerImage: null,
       role: 'ADMIN',
+      emailVerified: new Date(),
       passwordHash: 'hashed',
       lockoutUntil: null,
     });
@@ -45,6 +47,7 @@ describe('authorizeCredentials', () => {
       tag: 'person',
       name: 'Person',
       image: null,
+      bannerImage: null,
       role: 'ADMIN',
     });
   });
@@ -88,7 +91,9 @@ describe('authorizeCredentials', () => {
           tag: 'person',
           name: null,
           image: null,
+          bannerImage: null,
           role: 'USER',
+          emailVerified: new Date(),
           passwordHash: 'hashed',
           lockoutUntil: new Date(Date.now() + 60_000),
         }),
@@ -113,7 +118,9 @@ describe('authorizeCredentials', () => {
           tag: 'person',
           name: null,
           image: null,
+          bannerImage: null,
           role: 'USER',
+          emailVerified: new Date(),
           passwordHash: 'hashed',
           lockoutUntil: null,
         }),
@@ -124,6 +131,36 @@ describe('authorizeCredentials', () => {
     );
 
     expect(onAuthenticationFailure).toHaveBeenCalledWith('user_3');
+    expect(result).toBeNull();
+  });
+
+  it('returns null when email verification is still pending', async () => {
+    const onAuthenticationSuccess = vi.fn();
+    const onAuthenticationFailure = vi.fn();
+
+    const result = await authorizeCredentials(
+      { email: 'person@example.com', password: 'password' },
+      {
+        findUserByEmail: vi.fn().mockResolvedValue({
+          id: 'user_4',
+          email: 'person@example.com',
+          tag: 'person',
+          name: null,
+          image: null,
+          bannerImage: null,
+          role: 'USER',
+          emailVerified: null,
+          passwordHash: 'hashed',
+          lockoutUntil: null,
+        }),
+        verifyPassword: vi.fn().mockResolvedValue(true),
+        onAuthenticationFailure,
+        onAuthenticationSuccess,
+      },
+    );
+
+    expect(onAuthenticationFailure).not.toHaveBeenCalled();
+    expect(onAuthenticationSuccess).not.toHaveBeenCalled();
     expect(result).toBeNull();
   });
 });
