@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { ArrowRight, Mail, Plus, Users } from 'lucide-react';
+import { ArrowRight, Globe2, Lock, Mail, Plus, Users } from 'lucide-react';
 
 import { Link } from '@/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +37,7 @@ export function GroupsClient({
   const [invitations, setInvitations] = useState(initialInvitations);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [visibility, setVisibility] = useState<'PRIVATE' | 'PUBLIC'>('PRIVATE');
   const [isCreating, setIsCreating] = useState(false);
   const [pendingInvitationId, setPendingInvitationId] = useState<string | null>(
     null,
@@ -82,6 +83,7 @@ export function GroupsClient({
         body: JSON.stringify({
           name: trimmedName,
           description: trimmedDescription,
+          visibility,
         }),
       });
 
@@ -97,6 +99,7 @@ export function GroupsClient({
         setGroups((current) => [payload.group!, ...current]);
         setName('');
         setDescription('');
+        setVisibility('PRIVATE');
       }
     } catch {
       setError(t('errors.create'));
@@ -213,6 +216,22 @@ export function GroupsClient({
                     maxLength={500}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="group-visibility">
+                    {t('create.visibilityLabel')}
+                  </Label>
+                  <select
+                    id="group-visibility"
+                    value={visibility}
+                    onChange={(event) =>
+                      setVisibility(event.target.value as 'PRIVATE' | 'PUBLIC')
+                    }
+                    className="h-10 w-full rounded-md border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+                  >
+                    <option value="PRIVATE">{t('visibility.PRIVATE')}</option>
+                    <option value="PUBLIC">{t('visibility.PUBLIC')}</option>
+                  </select>
+                </div>
                 <Button
                   type="submit"
                   className="gap-2"
@@ -315,6 +334,14 @@ export function GroupsClient({
                       ) : null}
                     </div>
                     <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="gap-1">
+                        {group.visibility === 'PUBLIC' ? (
+                          <Globe2 className="h-3 w-3" aria-hidden="true" />
+                        ) : (
+                          <Lock className="h-3 w-3" aria-hidden="true" />
+                        )}
+                        {t(`visibility.${group.visibility}`)}
+                      </Badge>
                       <Badge
                         variant={
                           group.role === 'OWNER'

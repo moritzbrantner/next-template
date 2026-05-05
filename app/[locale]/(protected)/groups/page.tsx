@@ -19,7 +19,10 @@ export default async function GroupsPage({
   const session = await requireAuth(locale);
   await notFoundUnlessFeatureEnabledForUser('groups', session.user);
   const t = createTranslator(locale, 'GroupsPage');
-  const result = await getGroupsPageDataUseCase(session.user.id);
+  const result = await getGroupsPageDataUseCase(
+    session.user.id,
+    session.user.role,
+  );
 
   if (!result.ok) {
     notFound();

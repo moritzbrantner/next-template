@@ -20,7 +20,11 @@ export default async function GroupDetailPage({
   const session = await requireAuth(locale);
   await notFoundUnlessFeatureEnabledForUser('groups', session.user);
   const t = createTranslator(locale, 'GroupsPage');
-  const result = await getGroupDetailUseCase(session.user.id, groupId);
+  const result = await getGroupDetailUseCase(
+    session.user.id,
+    session.user.role,
+    groupId,
+  );
 
   if (!result.ok) {
     notFound();

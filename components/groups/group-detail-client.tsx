@@ -347,27 +347,31 @@ export function GroupDetailClient({
             </p>
           ) : null}
 
-          <form className="space-y-3" onSubmit={sendMessage}>
-            <Textarea
-              value={draftMessage}
-              onChange={(event) => setDraftMessage(event.target.value)}
-              placeholder={t('detail.chatPlaceholder')}
-              aria-label={t('detail.chatPlaceholder')}
-              maxLength={500}
-            />
-            <div className="flex justify-end">
-              <Button
-                type="submit"
-                className="gap-2"
-                disabled={isSendingMessage || draftMessage.trim().length === 0}
-              >
-                <Send className="h-4 w-4" aria-hidden="true" />
-                {isSendingMessage
-                  ? t('detail.chatSending')
-                  : t('detail.chatSend')}
-              </Button>
-            </div>
-          </form>
+          {group.canSendMessages ? (
+            <form className="space-y-3" onSubmit={sendMessage}>
+              <Textarea
+                value={draftMessage}
+                onChange={(event) => setDraftMessage(event.target.value)}
+                placeholder={t('detail.chatPlaceholder')}
+                aria-label={t('detail.chatPlaceholder')}
+                maxLength={500}
+              />
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  className="gap-2"
+                  disabled={
+                    isSendingMessage || draftMessage.trim().length === 0
+                  }
+                >
+                  <Send className="h-4 w-4" aria-hidden="true" />
+                  {isSendingMessage
+                    ? t('detail.chatSending')
+                    : t('detail.chatSend')}
+                </Button>
+              </div>
+            </form>
+          ) : null}
         </CardContent>
       </Card>
 

@@ -70,6 +70,10 @@ export const groupInvitationStatusEnum = pgEnum('GroupInvitationStatus', [
   'declined',
   'revoked',
 ]);
+export const groupVisibilityEnum = pgEnum('GroupVisibility', [
+  'PUBLIC',
+  'PRIVATE',
+]);
 
 export const users = pgTable(
   'User',
@@ -211,6 +215,7 @@ export const groups = pgTable(
     id: text('id').primaryKey(),
     name: text('name').notNull(),
     description: text('description'),
+    visibility: groupVisibilityEnum('visibility').notNull().default('PRIVATE'),
     ownerId: text('ownerId')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
@@ -224,6 +229,7 @@ export const groups = pgTable(
   (table) => [
     index('Group_ownerId_idx').on(table.ownerId),
     index('Group_name_idx').on(table.name),
+    index('Group_visibility_idx').on(table.visibility),
   ],
 );
 

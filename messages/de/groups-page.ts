@@ -11,6 +11,11 @@ export const groupsPage = {
     OWNER: 'Owner',
     ADMIN: 'Admin',
     MEMBER: 'Mitglied',
+    VIEWER: 'Betrachter',
+  },
+  visibility: {
+    PUBLIC: 'Oeffentlich',
+    PRIVATE: 'Privat',
   },
   create: {
     title: 'Gruppe erstellen',
@@ -20,6 +25,7 @@ export const groupsPage = {
     namePlaceholder: 'Gruppenname',
     descriptionLabel: 'Gruppenbeschreibung',
     descriptionPlaceholder: 'Beschreibung',
+    visibilityLabel: 'Sichtbarkeit',
     submit: 'Gruppe erstellen',
     creating: 'Wird erstellt...',
   },

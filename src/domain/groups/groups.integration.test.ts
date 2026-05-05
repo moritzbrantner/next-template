@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   createGroupUseCase,
+  getGroupDetailUseCase,
+  getGroupsPageDataUseCase,
   getGroupMessagesUseCase,
   inviteUserToGroupUseCase,
   removeGroupMemberUseCase,
@@ -42,6 +44,7 @@ function group(id = 'group_1') {
     id,
     name: 'Product team',
     description: 'Launch planning',
+    visibility: 'PRIVATE' as const,
     ownerId: 'user_owner',
     createdAt,
     updatedAt: createdAt,
@@ -117,6 +120,7 @@ describe('group use cases', () => {
         id: 'group_1',
         name: 'Product team',
         description: 'Launch planning',
+        visibility: 'PRIVATE',
         ownerId: 'user_owner',
         role: 'OWNER',
         memberCount: 1,
@@ -127,7 +131,104 @@ describe('group use cases', () => {
       id: expect.any(String),
       name: 'Product team',
       description: 'Launch planning',
+      visibility: 'PRIVATE',
       ownerId: 'user_owner',
+    });
+  });
+
+  it('shows public groups to admins as viewers', async () => {
+    const deps = createDeps({
+      listGroupsForUser: vi.fn().mockResolvedValue([
+        {
+          ...group('group_public'),
+          visibility: 'PUBLIC',
+          role: 'VIEWER',
+          memberCount: 2,
+          pendingInvitationCount: 0,
+        },
+      ]),
+    });
+
+    await expect(
+      getGroupsPageDataUseCase('user_admin', 'ADMIN', deps),
+    ).resolves.toEqual({
+      ok: true,
+      data: {
+        groups: [
+          {
+            id: 'group_public',
+            name: 'Product team',
+            description: 'Launch planning',
+            visibility: 'PUBLIC',
+            ownerId: 'user_owner',
+            role: 'VIEWER',
+            memberCount: 2,
+            pendingInvitationCount: 0,
+          },
+        ],
+        invitations: [],
+      },
+    });
+    expect(deps.listGroupsForUser).toHaveBeenCalledWith('user_admin', 'ADMIN');
+  });
+
+  it('lets superadmins view private group details without membership', async () => {
+    const deps = createDeps({
+      findMembership: vi.fn().mockResolvedValue(undefined),
+      listMessages: vi.fn().mockResolvedValue([
+        {
+          id: 'message_1',
+          groupId: 'group_1',
+          senderUserId: 'user_owner',
+          body: 'Kickoff at 10',
+          createdAt,
+          sender: user('user_owner', 'Owner'),
+        },
+      ]),
+    });
+
+    await expect(
+      getGroupDetailUseCase('user_admin', 'SUPERADMIN', 'group_1', deps),
+    ).resolves.toEqual({
+      ok: true,
+      data: {
+        id: 'group_1',
+        name: 'Product team',
+        description: 'Launch planning',
+        visibility: 'PRIVATE',
+        ownerId: 'user_owner',
+        role: 'VIEWER',
+        memberCount: 1,
+        pendingInvitationCount: 0,
+        members: [
+          {
+            userId: 'user_owner',
+            tag: 'user_owner',
+            displayName: 'Owner',
+            imageUrl: null,
+            role: 'OWNER',
+            joinedAt: createdAt.toISOString(),
+          },
+        ],
+        pendingInvitations: [],
+        messages: [
+          {
+            id: 'message_1',
+            groupId: 'group_1',
+            sender: {
+              userId: 'user_owner',
+              tag: 'user_owner',
+              displayName: 'Owner',
+              imageUrl: null,
+            },
+            body: 'Kickoff at 10',
+            createdAt: createdAt.toISOString(),
+          },
+        ],
+        canInvite: false,
+        canManageMembers: false,
+        canSendMessages: false,
+      },
     });
   });
 

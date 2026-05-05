@@ -11,6 +11,7 @@ import { createApiRoute } from '@/src/http/route';
 const createGroupBodySchema = z.object({
   name: z.string().min(1),
   description: z.string().max(500).optional().nullable(),
+  visibility: z.enum(['PUBLIC', 'PRIVATE']).optional().nullable(),
 });
 
 function mapGroupProblem(error: GroupError, type = '/problems/groups') {
@@ -31,8 +32,8 @@ export const GET = createApiRoute({
   action: 'groups.list',
   featureKey: 'groups',
   auth: true,
-  async handler({ actorId }) {
-    const result = await getGroupsPageDataUseCase(actorId!);
+  async handler({ actorId, session }) {
+    const result = await getGroupsPageDataUseCase(actorId!, session!.user.role);
 
     if (!result.ok) {
       throw mapGroupProblem(result.error);

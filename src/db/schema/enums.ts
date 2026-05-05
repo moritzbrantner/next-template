@@ -2,6 +2,7 @@ export {
   followerVisibilityEnum,
   groupInvitationStatusEnum,
   groupMemberRoleEnum,
+  groupVisibilityEnum,
   jobOutboxStatusEnum,
   notificationAudienceEnum,
   notificationStatusEnum,

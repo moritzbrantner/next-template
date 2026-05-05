@@ -20,6 +20,7 @@ import {
   groups,
   users,
 } from '@/src/db/schema';
+import { isAdmin, isSuperAdmin, type AppRole } from '@/lib/authorization';
 import {
   failure,
   success,
@@ -34,6 +35,8 @@ const GROUP_MESSAGE_MAX_LENGTH = 500;
 const SEARCH_QUERY_MAX_LENGTH = 80;
 
 export type GroupMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+export type GroupVisibility = 'PUBLIC' | 'PRIVATE';
+export type GroupViewerRole = GroupMemberRole | 'VIEWER';
 export type GroupInvitationStatus =
   | 'pending'
   | 'accepted'
@@ -56,8 +59,9 @@ export type GroupSummary = {
   id: string;
   name: string;
   description: string | null;
+  visibility: GroupVisibility;
   ownerId: string;
-  role: GroupMemberRole;
+  role: GroupViewerRole;
   memberCount: number;
   pendingInvitationCount: number;
 };
@@ -101,6 +105,7 @@ export type GroupDetail = GroupSummary & {
   messages: GroupChatMessage[];
   canInvite: boolean;
   canManageMembers: boolean;
+  canSendMessages: boolean;
 };
 
 type UserRecord = {
@@ -115,6 +120,7 @@ type GroupRecord = {
   id: string;
   name: string;
   description: string | null;
+  visibility: GroupVisibility;
   ownerId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -139,7 +145,7 @@ type InvitationRecord = {
 };
 
 type GroupMembershipRow = GroupRecord & {
-  role: GroupMemberRole;
+  role: GroupViewerRole;
   memberCount: number;
   pendingInvitationCount: number;
 };
@@ -176,9 +182,13 @@ export type GroupUseCaseDeps = {
     id: string;
     name: string;
     description: string | null;
+    visibility: GroupVisibility;
     ownerId: string;
   }) => Promise<GroupRecord>;
-  listGroupsForUser: (userId: string) => Promise<GroupMembershipRow[]>;
+  listGroupsForUser: (
+    userId: string,
+    actorRole: AppRole,
+  ) => Promise<GroupMembershipRow[]>;
   listPendingInvitationsForUser: (
     userId: string,
   ) => Promise<PendingInvitationForUserRow[]>;
@@ -238,7 +248,13 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
       getDb().query.users.findFirst({
         where: (table, { eq: innerEq }) => innerEq(table.id, userId),
       }),
-    createGroupWithOwner: async ({ id, name, description, ownerId }) => {
+    createGroupWithOwner: async ({
+      id,
+      name,
+      description,
+      visibility,
+      ownerId,
+    }) => {
       return getDb().transaction(async (tx) => {
         const [createdGroup] = await tx
           .insert(groups)
@@ -246,6 +262,7 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
             id,
             name,
             description,
+            visibility,
             ownerId,
           })
           .returning();
@@ -263,24 +280,40 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
         return createdGroup;
       });
     },
-    listGroupsForUser: async (userId) => {
+    listGroupsForUser: async (userId, actorRole) => {
+      const visibilityCondition = isSuperAdmin(actorRole)
+        ? sql`true`
+        : isAdmin(actorRole)
+          ? or(
+              eq(groupMemberships.userId, userId),
+              eq(groups.visibility, 'PUBLIC'),
+            )
+          : eq(groupMemberships.userId, userId);
       const membershipRows = await getDb()
         .select({
           id: groups.id,
           name: groups.name,
           description: groups.description,
+          visibility: groups.visibility,
           ownerId: groups.ownerId,
           createdAt: groups.createdAt,
           updatedAt: groups.updatedAt,
           role: groupMemberships.role,
         })
-        .from(groupMemberships)
-        .innerJoin(groups, eq(groupMemberships.groupId, groups.id))
-        .where(eq(groupMemberships.userId, userId))
+        .from(groups)
+        .leftJoin(
+          groupMemberships,
+          and(
+            eq(groupMemberships.groupId, groups.id),
+            eq(groupMemberships.userId, userId),
+          ),
+        )
+        .where(visibilityCondition)
         .orderBy(asc(groups.name), asc(groups.createdAt));
 
       return Promise.all(
         membershipRows.map(async (group) => {
+          const role = group.role ?? 'VIEWER';
           const [memberCountResult, pendingInvitationCountResult] =
             await Promise.all([
               getDb()
@@ -300,8 +333,12 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
 
           return {
             ...group,
+            role,
             memberCount: memberCountResult[0]?.value ?? 0,
-            pendingInvitationCount: pendingInvitationCountResult[0]?.value ?? 0,
+            pendingInvitationCount:
+              role === 'VIEWER'
+                ? 0
+                : (pendingInvitationCountResult[0]?.value ?? 0),
           };
         }),
       );
@@ -321,6 +358,7 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
             id: groups.id,
             name: groups.name,
             description: groups.description,
+            visibility: groups.visibility,
             ownerId: groups.ownerId,
             createdAt: groups.createdAt,
             updatedAt: groups.updatedAt,
@@ -473,6 +511,7 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
             id: groups.id,
             name: groups.name,
             description: groups.description,
+            visibility: groups.visibility,
             ownerId: groups.ownerId,
             createdAt: groups.createdAt,
             updatedAt: groups.updatedAt,
@@ -635,6 +674,12 @@ function normalizeGroupDescription(value: string | null | undefined) {
   return description || null;
 }
 
+function normalizeGroupVisibility(
+  value: GroupVisibility | null | undefined,
+): GroupVisibility {
+  return value === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE';
+}
+
 function resolveDisplayName(user: Pick<UserRecord, 'name' | 'email'>) {
   const trimmedName = user.name?.trim();
 
@@ -660,6 +705,7 @@ function toGroupSummary(row: GroupMembershipRow): GroupSummary {
     id: row.id,
     name: row.name,
     description: row.description,
+    visibility: row.visibility,
     ownerId: row.ownerId,
     role: row.role,
     memberCount: Number(row.memberCount),
@@ -742,7 +788,7 @@ function validateGroupInput(
 
 async function buildGroupSummary(
   group: GroupRecord,
-  role: GroupMemberRole,
+  role: GroupViewerRole,
   deps: GroupUseCaseDeps,
 ): Promise<GroupSummary> {
   const [members, invitations] = await Promise.all([
@@ -754,15 +800,17 @@ async function buildGroupSummary(
     id: group.id,
     name: group.name,
     description: group.description,
+    visibility: group.visibility,
     ownerId: group.ownerId,
     role,
     memberCount: members.length,
-    pendingInvitationCount: invitations.length,
+    pendingInvitationCount: role === 'VIEWER' ? 0 : invitations.length,
   };
 }
 
 export async function getGroupsPageDataUseCase(
   userId: string,
+  actorRole: AppRole,
   deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
 ): Promise<ServiceResult<GroupsPageData, GroupError>> {
   const user = await deps.findUserById(userId);
@@ -775,7 +823,7 @@ export async function getGroupsPageDataUseCase(
   }
 
   const [groupRows, invitationRows] = await Promise.all([
-    deps.listGroupsForUser(userId),
+    deps.listGroupsForUser(userId, actorRole),
     deps.listPendingInvitationsForUser(userId),
   ]);
 
@@ -787,7 +835,11 @@ export async function getGroupsPageDataUseCase(
 
 export async function createGroupUseCase(
   actorUserId: string,
-  input: { name: string; description?: string | null },
+  input: {
+    name: string;
+    description?: string | null;
+    visibility?: GroupVisibility | null;
+  },
   deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
 ): Promise<ServiceResult<GroupSummary, GroupError>> {
   const actor = await deps.findUserById(actorUserId);
@@ -801,6 +853,7 @@ export async function createGroupUseCase(
 
   const name = normalizeGroupName(input.name);
   const description = normalizeGroupDescription(input.description);
+  const visibility = normalizeGroupVisibility(input.visibility);
   const validationError = validateGroupInput(name, description);
 
   if (validationError) {
@@ -811,6 +864,7 @@ export async function createGroupUseCase(
     id: crypto.randomUUID(),
     name,
     description,
+    visibility,
     ownerId: actorUserId,
   });
 
@@ -819,6 +873,7 @@ export async function createGroupUseCase(
 
 export async function getGroupDetailUseCase(
   actorUserId: string,
+  actorRole: AppRole,
   groupId: string,
   deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
 ): Promise<ServiceResult<GroupDetail, GroupError>> {
@@ -834,16 +889,26 @@ export async function getGroupDetailUseCase(
     });
   }
 
-  if (!membership) {
+  const canViewAsAdmin =
+    isSuperAdmin(actorRole) ||
+    (isAdmin(actorRole) && group.visibility === 'PUBLIC');
+
+  if (!membership && !canViewAsAdmin) {
     return failure({
       code: 'FORBIDDEN',
       message: 'You are not a member of this group.',
     });
   }
 
+  const viewerRole = membership?.role ?? 'VIEWER';
+  const canInvite = membership ? isGroupAdmin(membership.role) : false;
+  const canManageMembers = membership
+    ? membership.role === 'OWNER' || membership.role === 'ADMIN'
+    : false;
+
   const [memberRows, invitationRows, messageRows] = await Promise.all([
     deps.listMembers(groupId),
-    deps.listPendingInvitations(groupId),
+    canInvite ? deps.listPendingInvitations(groupId) : Promise.resolve([]),
     deps.listMessages(groupId),
   ]);
 
@@ -851,16 +916,17 @@ export async function getGroupDetailUseCase(
     id: group.id,
     name: group.name,
     description: group.description,
+    visibility: group.visibility,
     ownerId: group.ownerId,
-    role: membership.role,
+    role: viewerRole,
     memberCount: memberRows.length,
     pendingInvitationCount: invitationRows.length,
     members: memberRows.map(toMemberSummary),
     pendingInvitations: invitationRows.map(toPendingInvitation),
     messages: messageRows.map(toChatMessage),
-    canInvite: isGroupAdmin(membership.role),
-    canManageMembers:
-      membership.role === 'OWNER' || membership.role === 'ADMIN',
+    canInvite,
+    canManageMembers,
+    canSendMessages: Boolean(membership),
   });
 }
 
