@@ -25,7 +25,7 @@ export type AppPageDefinition = {
   translationKey: string;
   visibility: Visibility;
   navigationCategory?: NavigationCategoryKey;
-  hotkey: AppHotkey;
+  hotkey?: AppHotkey;
   order: number;
   prefetch?: boolean;
   featureKey?: FoundationFeatureKey;
@@ -169,28 +169,33 @@ function hrefFromSlug(slug: string) {
 export function getAppPublicPageDefinitionsForManifest(
   manifest = loadActiveApp(),
 ): AppPageDefinition[] {
-  const pagesById = new Map(
-    manifest.publicPages.map((page) => [page.id, page]),
+  const publicNavigationByPageId = new Map(
+    manifest.publicNavigation.map((item) => [item.pageId, item]),
   );
 
-  return manifest.publicNavigation.map((item) => {
-    const page = pagesById.get(item.pageId);
+  for (const item of manifest.publicNavigation) {
+    const page = manifest.publicPages.find(
+      (candidate) => candidate.id === item.pageId,
+    );
 
     if (!page) {
       throw new Error(
         `Public navigation item "${item.pageId}" does not match any public page in manifest "${manifest.id}".`,
       );
     }
+  }
 
+  return manifest.publicPages.map((page, index) => {
+    const navigationItem = publicNavigationByPageId.get(page.id);
     return {
       key: page.id,
       href: hrefFromSlug(page.slug),
       translationKey: `links.${page.id}`,
       visibility: 'public',
-      navigationCategory: item.category,
-      hotkey: item.hotkey,
-      order: item.order,
-      prefetch: item.prefetch,
+      navigationCategory: navigationItem?.category,
+      hotkey: navigationItem?.hotkey,
+      order: navigationItem?.order ?? 100 + index,
+      prefetch: navigationItem?.prefetch,
       featureKey: page.featureKey,
     } satisfies AppPageDefinition;
   });

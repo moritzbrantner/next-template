@@ -4,6 +4,7 @@ import { Badge, Button, Input } from '@moritzbrantner/ui';
 import { useEffect, useRef, useState } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
+import { normalizeNavigationSearchText } from '@/src/navigation/search-index';
 import { useAppSettings } from '@/src/settings/provider';
 
 type NavigationHotkey = readonly [string, string];
@@ -13,8 +14,8 @@ type NavigationHotkeyItem = {
   href: string;
   label: string;
   groupLabel: string;
-  hotkey: NavigationHotkey;
-  hotkeyLabel: string;
+  hotkey?: NavigationHotkey;
+  hotkeyLabel?: string;
   searchText: string;
 };
 
@@ -92,7 +93,7 @@ export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
       }
 
       const matchingPage = items.find(
-        (page) => getShortcutCode(page.hotkey) === event.code,
+        (page) => page.hotkey && getShortcutCode(page.hotkey) === event.code,
       );
 
       if (!matchingPage) {
@@ -120,7 +121,7 @@ export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
     {},
   );
 
-  const normalizedQuery = query.trim().toLowerCase();
+  const normalizedQuery = normalizeNavigationSearchText(query.trim());
   const filteredGroups = Object.entries(groupedPages)
     .map(
       ([groupLabel, groupPages]) =>
@@ -207,9 +208,11 @@ export function NavigationHotkeys({ items, labels }: NavigationHotkeysProps) {
                           }}
                         >
                           <span className="font-medium">{page.label}</span>
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {page.hotkeyLabel}
-                          </span>
+                          {page.hotkeyLabel ? (
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {page.hotkeyLabel}
+                            </span>
+                          ) : null}
                         </button>
                       ))}
                     </div>

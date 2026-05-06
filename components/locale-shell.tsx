@@ -19,6 +19,7 @@ import {
   getVisibleAppPages,
 } from '@/src/navigation/app-routes';
 import { buildNavigationCategories } from '@/src/navigation/navigation-categories';
+import { buildNavigationSearchText } from '@/src/navigation/search-index';
 import { buildPublicProfilePath } from '@/src/profile/tags';
 import { loadAppContext } from '@/src/runtime.functions';
 
@@ -40,6 +41,7 @@ type LocaleShellProps = {
 function getHotkeyGroupLabel(
   category: 'discover' | 'social' | 'workspace' | 'admin' | undefined,
   t: ReturnType<typeof createTranslator>,
+  fallbackCategory?: 'discover',
 ) {
   if (category === 'discover') {
     return t('categories.discover');
@@ -57,11 +59,34 @@ function getHotkeyGroupLabel(
     return t('categories.admin');
   }
 
+  if (fallbackCategory === 'discover') {
+    return t('categories.discover');
+  }
+
   return t('hotkeys.accountGroup');
 }
 
 function getPlatformNavbarItemId(categoryKey: string, href: string) {
   return `${categoryKey}:${href}`;
+}
+
+function getSearchFallbackLabel(pageKey: string) {
+  return pageKey
+    .replace(/[-_]+/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function getSearchLabel(
+  t: ReturnType<typeof createTranslator>,
+  translationKey: string,
+  pageKey: string,
+) {
+  try {
+    return t(translationKey);
+  } catch {
+    return getSearchFallbackLabel(pageKey);
+  }
 }
 
 export async function LocaleShell({
@@ -114,9 +139,13 @@ export async function LocaleShell({
     permissionSet,
     featureStateByKey,
   }).map((page) => {
-    const label = t(page.translationKey);
-    const groupLabel = getHotkeyGroupLabel(page.navigationCategory, t);
-    const hotkeyLabel = formatAppHotkey(page.hotkey);
+    const label = getSearchLabel(t, page.translationKey, page.key);
+    const groupLabel = getHotkeyGroupLabel(
+      page.navigationCategory,
+      t,
+      page.visibility === 'public' ? 'discover' : undefined,
+    );
+    const hotkeyLabel = page.hotkey ? formatAppHotkey(page.hotkey) : undefined;
 
     return {
       key: page.key,
@@ -125,8 +154,14 @@ export async function LocaleShell({
       groupLabel,
       hotkey: page.hotkey,
       hotkeyLabel,
-      searchText:
-        `${groupLabel} ${label} ${page.hotkey.join(' ')} ${hotkeyLabel}`.toLowerCase(),
+      searchText: buildNavigationSearchText([
+        groupLabel,
+        label,
+        page.key,
+        page.href,
+        page.hotkey?.join(' ') ?? '',
+        hotkeyLabel ?? '',
+      ]),
     };
   });
   const actions = (

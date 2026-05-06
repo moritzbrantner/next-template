@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
   appPageDefinitions,
+  composeAppPageDefinitions,
   getVisibleAppPages,
   type AppPageKey,
 } from '@/src/navigation/app-routes';
+import type { AppManifest } from '@/src/app-config/contracts';
 
 type VisibilityCase = {
   label: string;
@@ -22,6 +24,10 @@ describe('app routes', () => {
     const duplicates: string[] = [];
 
     for (const page of appPageDefinitions) {
+      if (!page.hotkey) {
+        continue;
+      }
+
       const hotkey = page.hotkey.join('+');
       const existingRoute = seenRoutesByHotkey.get(hotkey);
 
@@ -34,6 +40,59 @@ describe('app routes', () => {
     }
 
     expect(duplicates).toEqual([]);
+  });
+
+  it('indexes public pages even when they are not in navigation', () => {
+    const manifest = {
+      id: 'searchable-public-pages',
+      siteName: 'Searchable Public Pages',
+      defaultLocaleMetadata: {
+        title: 'Searchable Public Pages',
+        description: 'Search fixture',
+      },
+      enabledFeatures: {},
+      publicPages: [
+        {
+          id: 'home',
+          slug: '',
+          kind: 'component',
+          namespace: 'HomePage',
+          render: () => null,
+        },
+        {
+          id: 'legal',
+          slug: 'legal',
+          kind: 'component',
+          namespace: 'LegalPage',
+          render: () => null,
+        },
+      ],
+      publicNavigation: [
+        {
+          pageId: 'home',
+          category: 'discover',
+          hotkey: ['alt', 'h'],
+          order: 10,
+        },
+      ],
+      contentRoots: {
+        pages: [],
+        blog: [],
+        changelog: [],
+      },
+      loadMessages: () => ({}),
+      exampleApis: {},
+    } satisfies AppManifest;
+
+    const pages = composeAppPageDefinitions(manifest);
+    const legalPage = pages.find((page) => page.key === 'legal');
+
+    expect(legalPage).toMatchObject({
+      href: '/legal',
+      translationKey: 'links.legal',
+      visibility: 'public',
+    });
+    expect(legalPage?.hotkey).toBeUndefined();
   });
 
   it.each([

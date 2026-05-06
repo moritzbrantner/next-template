@@ -39,10 +39,10 @@ export const navigationBar = {
     viewAll: 'Alle Benachrichtigungen',
   },
   hotkeys: {
-    button: 'Hotkeys',
-    title: 'Navigations-Hotkeys',
+    button: 'Suche',
+    title: 'Suche',
     description:
-      'Wechsle mit Alt-Kürzeln zwischen Seiten, ohne das Menü zu öffnen.',
+      'Finde Seiten und wechsle zwischen Routen, ohne das Menü zu öffnen.',
     searchPlaceholder: 'Seiten suchen…',
     empty: 'Keine passenden Seiten.',
     pending: 'Halte Alt gedrückt, während du eine Kürzeltaste drückst',

@@ -1,6 +1,7 @@
 import type { AppPermissionKey, AppRole } from '@/lib/authorization';
 import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import {
+  type AppPageDefinition,
   type AppHotkey,
   getVisibleAppPages,
 } from '@/src/navigation/app-routes';
@@ -30,6 +31,16 @@ export type NavigationCategory = {
   links: readonly NavigationLinkDefinition[];
 };
 
+function isNavigationPage(
+  page: AppPageDefinition,
+  category: NavigationCategoryKey,
+): page is AppPageDefinition & {
+  navigationCategory: NavigationCategoryKey;
+  hotkey: AppHotkey;
+} {
+  return page.navigationCategory === category && Boolean(page.hotkey);
+}
+
 export function buildNavigationCategories({
   isAuthenticated,
   role,
@@ -53,7 +64,7 @@ export function buildNavigationCategories({
       {
         key: 'discover',
         links: pages
-          .filter((page) => page.navigationCategory === 'discover')
+          .filter((page) => isNavigationPage(page, 'discover'))
           .map((page) => ({
             href: page.href,
             key: page.key,
@@ -66,7 +77,7 @@ export function buildNavigationCategories({
       {
         key: 'social',
         links: pages
-          .filter((page) => page.navigationCategory === 'social')
+          .filter((page) => isNavigationPage(page, 'social'))
           .map((page) => ({
             href: page.href,
             key: page.key,
@@ -79,7 +90,7 @@ export function buildNavigationCategories({
       {
         key: 'workspace',
         links: pages
-          .filter((page) => page.navigationCategory === 'workspace')
+          .filter((page) => isNavigationPage(page, 'workspace'))
           .map((page) => ({
             href: page.href,
             key: page.key,
@@ -92,7 +103,7 @@ export function buildNavigationCategories({
       {
         key: 'admin',
         links: pages
-          .filter((page) => page.navigationCategory === 'admin')
+          .filter((page) => isNavigationPage(page, 'admin'))
           .map((page) => ({
             href: page.href,
             key: page.key,

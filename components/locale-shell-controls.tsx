@@ -30,8 +30,8 @@ type NavigationHotkeyItem = {
   href: string;
   label: string;
   groupLabel: string;
-  hotkey: NavigationHotkey;
-  hotkeyLabel: string;
+  hotkey?: NavigationHotkey;
+  hotkeyLabel?: string;
   searchText: string;
 };
 

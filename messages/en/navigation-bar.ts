@@ -38,10 +38,10 @@ export const navigationBar = {
     viewAll: 'View all notifications',
   },
   hotkeys: {
-    button: 'Hotkeys',
-    title: 'Navigation hotkeys',
+    button: 'Search',
+    title: 'Search',
     description:
-      'Jump between routes with Alt shortcuts without reaching for the menu.',
+      'Find pages and jump between routes without reaching for the menu.',
     searchPlaceholder: 'Search pages…',
     empty: 'No matching pages.',
     pending: 'Hold Alt while pressing a shortcut key',

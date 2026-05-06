@@ -26,7 +26,7 @@ test.describe('settings and hotkeys', () => {
 
     await gotoAndWaitForHydration(page, '/en/settings/workflow');
     await page.getByRole('switch', { name: 'Show hotkey hints' }).click();
-    await expect(page.getByRole('button', { name: 'Hotkeys' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Search' })).toHaveCount(0);
 
     await gotoAndWaitForHydration(page, '/en/settings/notifications');
     await page.getByRole('switch', { name: 'Enable notifications' }).click();
@@ -39,7 +39,7 @@ test.describe('settings and hotkeys', () => {
       'data-hotkey-hints',
       'hidden',
     );
-    await expect(page.getByRole('button', { name: 'Hotkeys' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Search' })).toHaveCount(0);
 
     await gotoAndWaitForHydration(page, '/en/settings');
     await expect(
@@ -71,12 +71,12 @@ test.describe('settings and hotkeys', () => {
   test('does not expose admin hotkeys to manager roles', async ({ page }) => {
     await loginWithCredentials(page, managerUser.email, managerUser.password);
 
-    const hotkeysButton = page.getByRole('button', { name: 'Hotkeys' });
+    const hotkeysButton = page.getByRole('button', { name: 'Search' });
     await expect(hotkeysButton).toBeVisible();
 
     await hotkeysButton.click();
     const hotkeysDialog = page.getByRole('dialog', {
-      name: 'Navigation hotkeys',
+      name: 'Search',
     });
     await expect(
       hotkeysDialog.getByRole('button', { name: 'Admin' }),
