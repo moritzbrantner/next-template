@@ -6,6 +6,7 @@ export {
   searchUsersToFollowUseCase,
   sendProfileMessageUseCase,
   unfollowUserUseCase,
+  updateProfileChatMessageUseCase,
 } from './shared';
 
 export type {

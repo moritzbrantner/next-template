@@ -45,13 +45,22 @@ function createDeps(
     listBlockedUsers: vi.fn().mockResolvedValue([]),
     listFollowersForUser: vi.fn().mockResolvedValue([]),
     listProfileMessagesBetweenUsers: vi.fn().mockResolvedValue([]),
+    findProfileMessageById: vi.fn().mockResolvedValue(undefined),
     searchUsersToFollow: vi.fn().mockResolvedValue([]),
     updateUserSearchVisibility: vi.fn().mockResolvedValue(undefined),
     updateUserFollowerVisibility: vi.fn().mockResolvedValue(undefined),
     updateUserTag: vi.fn().mockResolvedValue(undefined),
-    createProfileMessageNotification: vi
-      .fn()
-      .mockResolvedValue('notification_1'),
+    createProfileMessageNotification: vi.fn().mockResolvedValue({
+      id: 'notification_1',
+      userId: 'user_2',
+      actorId: 'user_1',
+      body: 'Hello there',
+      kind: 'text',
+      metadata: {},
+      pinnedAt: null,
+      createdAt: new Date('2026-05-02T10:00:00.000Z'),
+    }),
+    updateProfileMessage: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -264,7 +273,15 @@ describe('profile follow use cases', () => {
     ).resolves.toEqual({
       ok: true,
       data: {
-        notificationId: 'notification_1',
+        message: {
+          id: 'notification_1',
+          senderUserId: 'user_1',
+          body: 'Hello there',
+          kind: 'text',
+          metadata: {},
+          pinnedAt: null,
+          createdAt: '2026-05-02T10:00:00.000Z',
+        },
       },
     });
     expect(deps.createProfileMessageNotification).toHaveBeenCalledWith(
@@ -273,6 +290,8 @@ describe('profile follow use cases', () => {
         targetUserId: 'user_2',
         title: 'Sender sent you a message',
         body: 'Hello there',
+        kind: 'text',
+        metadata: {},
         href: '/chat/user_1',
       }),
     );
@@ -341,6 +360,9 @@ describe('profile follow use cases', () => {
           id: 'message_1',
           actorId: 'user_2',
           body: 'Hello',
+          kind: 'text',
+          metadata: {},
+          pinnedAt: null,
           createdAt: new Date('2026-05-02T10:00:00.000Z'),
         },
       ]),
@@ -362,6 +384,9 @@ describe('profile follow use cases', () => {
             id: 'message_1',
             senderUserId: 'user_2',
             body: 'Hello',
+            kind: 'text',
+            metadata: {},
+            pinnedAt: null,
             createdAt: '2026-05-02T10:00:00.000Z',
           },
         ],

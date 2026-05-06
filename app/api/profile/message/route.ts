@@ -1,12 +1,26 @@
 import * as z from 'zod';
 
-import { sendProfileMessageUseCase } from '@/src/domain/profile/use-cases';
+import {
+  sendProfileMessageUseCase,
+  updateProfileChatMessageUseCase,
+} from '@/src/domain/profile/use-cases';
 import { problem, ProblemError } from '@/src/http/errors';
 import { createApiRoute } from '@/src/http/route';
 
 const messageBodySchema = z.object({
   userId: z.string().min(1),
   message: z.string().min(1).max(500),
+  kind: z.enum(['text', 'poll', 'todo']).optional(),
+  options: z.array(z.string()).optional(),
+  items: z.array(z.string()).optional(),
+});
+
+const messageUpdateBodySchema = z.object({
+  messageId: z.string().min(1),
+  action: z.enum(['pin', 'unpin', 'vote-poll', 'toggle-todo']),
+  optionId: z.string().optional(),
+  itemId: z.string().optional(),
+  completed: z.boolean().optional(),
 });
 
 function mapMessageProblem(
@@ -38,11 +52,12 @@ export const POST = createApiRoute({
   permission: 'profile.follow',
   bodySchema: messageBodySchema,
   async handler({ actorId, body }) {
-    const result = await sendProfileMessageUseCase(
-      actorId!,
-      body.userId,
-      body.message,
-    );
+    const result = await sendProfileMessageUseCase(actorId!, body.userId, {
+      body: body.message,
+      kind: body.kind,
+      options: body.options,
+      items: body.items,
+    });
 
     if (!result.ok) {
       throw mapMessageProblem(result.error.code, result.error.message);
@@ -50,7 +65,27 @@ export const POST = createApiRoute({
 
     return {
       ok: true,
-      notificationId: result.data.notificationId,
+      message: result.data.message,
+    };
+  },
+});
+
+export const PATCH = createApiRoute({
+  action: 'profile.messageUpdate',
+  featureKey: 'profiles.follow',
+  auth: true,
+  permission: 'profile.follow',
+  bodySchema: messageUpdateBodySchema,
+  async handler({ actorId, body }) {
+    const result = await updateProfileChatMessageUseCase(actorId!, body);
+
+    if (!result.ok) {
+      throw mapMessageProblem(result.error.code, result.error.message);
+    }
+
+    return {
+      ok: true,
+      message: result.data.message,
     };
   },
 });

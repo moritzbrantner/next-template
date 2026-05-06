@@ -315,6 +315,12 @@ export const groupMessages = pgTable(
         onUpdate: 'cascade',
       }),
     body: text('body').notNull(),
+    kind: text('kind').notNull().default('text'),
+    metadata: jsonb('metadata')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    pinnedAt: timestamp('pinnedAt', { withTimezone: false, mode: 'date' }),
     createdAt: timestamp('createdAt', { withTimezone: false, mode: 'date' })
       .notNull()
       .defaultNow(),
@@ -323,6 +329,10 @@ export const groupMessages = pgTable(
     index('GroupMessage_groupId_createdAt_idx').on(
       table.groupId,
       table.createdAt,
+    ),
+    index('GroupMessage_groupId_pinnedAt_idx').on(
+      table.groupId,
+      table.pinnedAt,
     ),
     index('GroupMessage_senderUserId_idx').on(table.senderUserId),
   ],
@@ -555,6 +565,12 @@ export const notifications = pgTable(
     }),
     title: text('title').notNull(),
     body: text('body').notNull(),
+    kind: text('kind').notNull().default('text'),
+    metadata: jsonb('metadata')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    pinnedAt: timestamp('pinnedAt', { withTimezone: false, mode: 'date' }),
     href: text('href'),
     status: notificationStatusEnum('status').notNull().default('unread'),
     audience: notificationAudienceEnum('audience').notNull().default('user'),
@@ -570,6 +586,7 @@ export const notifications = pgTable(
       table.createdAt,
     ),
     index('Notification_userId_status_idx').on(table.userId, table.status),
+    index('Notification_userId_pinnedAt_idx').on(table.userId, table.pinnedAt),
     index('Notification_actorId_idx').on(table.actorId),
     index('Notification_audience_idx').on(table.audience, table.audienceValue),
   ],

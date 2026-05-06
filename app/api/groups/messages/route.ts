@@ -2,6 +2,7 @@ import * as z from 'zod';
 
 import {
   sendGroupMessageUseCase,
+  updateGroupChatMessageUseCase,
   type GroupError,
 } from '@/src/domain/groups/use-cases';
 import { problem, ProblemError } from '@/src/http/errors';
@@ -10,6 +11,18 @@ import { createApiRoute } from '@/src/http/route';
 const groupMessageBodySchema = z.object({
   groupId: z.string().min(1),
   message: z.string().min(1).max(500),
+  kind: z.enum(['text', 'poll', 'todo']).optional(),
+  options: z.array(z.string()).optional(),
+  items: z.array(z.string()).optional(),
+});
+
+const groupMessageUpdateBodySchema = z.object({
+  groupId: z.string().min(1),
+  messageId: z.string().min(1),
+  action: z.enum(['pin', 'unpin', 'vote-poll', 'toggle-todo']),
+  optionId: z.string().optional(),
+  itemId: z.string().optional(),
+  completed: z.boolean().optional(),
 });
 
 function mapGroupMessageProblem(error: GroupError) {
@@ -37,11 +50,31 @@ export const POST = createApiRoute({
   auth: true,
   bodySchema: groupMessageBodySchema,
   async handler({ actorId, body }) {
-    const result = await sendGroupMessageUseCase(
-      actorId!,
-      body.groupId,
-      body.message,
-    );
+    const result = await sendGroupMessageUseCase(actorId!, body.groupId, {
+      body: body.message,
+      kind: body.kind,
+      options: body.options,
+      items: body.items,
+    });
+
+    if (!result.ok) {
+      throw mapGroupMessageProblem(result.error);
+    }
+
+    return {
+      ok: true,
+      message: result.data.message,
+    };
+  },
+});
+
+export const PATCH = createApiRoute({
+  action: 'groups.messageUpdate',
+  featureKey: 'groups',
+  auth: true,
+  bodySchema: groupMessageUpdateBodySchema,
+  async handler({ actorId, body }) {
+    const result = await updateGroupChatMessageUseCase(actorId!, body);
 
     if (!result.ok) {
       throw mapGroupMessageProblem(result.error);

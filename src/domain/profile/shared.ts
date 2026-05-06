@@ -9,6 +9,16 @@ import {
   type ServiceResult,
 } from '@/src/domain/shared/result';
 import {
+  isChatMessageKind,
+  normalizeChatMessageInput,
+  parseChatMessageMetadata,
+  toggleTodoMetadata,
+  voteInPollMetadata,
+  type ChatMessageInput,
+  type ChatMessageKind,
+  type ChatMessageMetadata,
+} from '@/src/domain/chat/messages';
+import {
   ImageValidationError,
   validateBannerImageUpload,
   validateImageUpload,
@@ -99,13 +109,16 @@ export type ProfileFollowMutationPayload = {
 };
 
 export type ProfileMessagePayload = {
-  notificationId: string;
+  message: ProfileChatMessage;
 };
 
 export type ProfileChatMessage = {
   id: string;
   senderUserId: string;
   body: string;
+  kind: ChatMessageKind;
+  metadata: ChatMessageMetadata;
+  pinnedAt: string | null;
   createdAt: string;
 };
 
@@ -140,6 +153,17 @@ type ProfileUserRecord = {
 type BlockRelationshipState = {
   isBlockedByViewer: boolean;
   hasBlockedViewer: boolean;
+};
+
+type ProfileMessageRecord = {
+  id: string;
+  userId: string;
+  actorId: string | null;
+  body: string;
+  kind: string;
+  metadata: unknown;
+  pinnedAt: Date | null;
+  createdAt: Date;
 };
 
 export type ProfileUseCaseDeps = {
@@ -190,9 +214,15 @@ export type ProfileUseCaseDeps = {
       id: string;
       actorId: string | null;
       body: string;
+      kind: string;
+      metadata: unknown;
+      pinnedAt: Date | null;
       createdAt: Date;
     }>
   >;
+  findProfileMessageById: (
+    messageId: string,
+  ) => Promise<ProfileMessageRecord | undefined>;
   searchUsersToFollow: (
     viewerUserId: string,
     query: string,
@@ -211,9 +241,18 @@ export type ProfileUseCaseDeps = {
     targetUserId: string;
     title: string;
     body: string;
+    kind: ChatMessageKind;
+    metadata: ChatMessageMetadata;
     href: string;
     createdAt: Date;
-  }) => Promise<string>;
+  }) => Promise<ProfileMessageRecord>;
+  updateProfileMessage: (
+    messageId: string,
+    input: {
+      metadata?: ChatMessageMetadata;
+      pinnedAt?: Date | null;
+    },
+  ) => Promise<ProfileMessageRecord | undefined>;
 };
 
 function getProfileUseCaseDeps(): ProfileUseCaseDeps {
@@ -423,6 +462,9 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           id: notifications.id,
           actorId: notifications.actorId,
           body: notifications.body,
+          kind: notifications.kind,
+          metadata: notifications.metadata,
+          pinnedAt: notifications.pinnedAt,
           createdAt: notifications.createdAt,
         })
         .from(notifications)
@@ -443,6 +485,10 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         )
         .orderBy(asc(notifications.createdAt))
         .limit(100),
+    findProfileMessageById: (messageId) =>
+      getDb().query.notifications.findFirst({
+        where: (table, { eq: innerEq }) => innerEq(table.id, messageId),
+      }),
     searchUsersToFollow: async (viewerUserId, query) => {
       const rows = await getDb()
         .select({
@@ -517,19 +563,37 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
     createProfileMessageNotification: async (input) => {
       const notificationId = crypto.randomUUID();
 
-      await getDb().insert(notifications).values({
-        id: notificationId,
-        userId: input.targetUserId,
-        actorId: input.senderUserId,
-        title: input.title,
-        body: input.body,
-        href: input.href,
-        audience: 'user',
-        audienceValue: input.targetUserId,
-        createdAt: input.createdAt,
-      });
+      const [notification] = await getDb()
+        .insert(notifications)
+        .values({
+          id: notificationId,
+          userId: input.targetUserId,
+          actorId: input.senderUserId,
+          title: input.title,
+          body: input.body,
+          kind: input.kind,
+          metadata: input.metadata,
+          href: input.href,
+          audience: 'user',
+          audienceValue: input.targetUserId,
+          createdAt: input.createdAt,
+        })
+        .returning();
 
-      return notificationId;
+      if (!notification) {
+        throw new Error('Expected profile message notification to be created.');
+      }
+
+      return notification;
+    },
+    updateProfileMessage: async (messageId, input) => {
+      const [message] = await getDb()
+        .update(notifications)
+        .set(input)
+        .where(eq(notifications.id, messageId))
+        .returning();
+
+      return message;
     },
   };
 }
@@ -718,10 +782,10 @@ export function unfollowUserUseCase(
 export async function sendProfileMessageUseCase(
   actorUserId: string,
   targetUserId: string,
-  rawMessage: string,
+  input: string | ChatMessageInput,
   deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
 ): Promise<ServiceResult<ProfileMessagePayload, ProfileError>> {
-  const message = rawMessage.trim();
+  const normalizedMessage = normalizeChatMessageInput(input);
 
   if (actorUserId === targetUserId) {
     return failure({
@@ -730,10 +794,10 @@ export async function sendProfileMessageUseCase(
     });
   }
 
-  if (message.length < 1 || message.length > 500) {
+  if (!normalizedMessage.ok) {
     return failure({
       code: 'VALIDATION_ERROR',
-      message: 'Messages must be between 1 and 500 characters.',
+      message: normalizedMessage.error,
     });
   }
 
@@ -774,16 +838,117 @@ export async function sendProfileMessageUseCase(
   }
 
   const senderName = resolveProfileDisplayName(senderUser);
-  const notificationId = await deps.createProfileMessageNotification({
+  const createdMessage = await deps.createProfileMessageNotification({
     senderUserId: actorUserId,
     targetUserId,
     title: `${senderName} sent you a message`,
-    body: message,
+    body: normalizedMessage.value.body,
+    kind: normalizedMessage.value.kind,
+    metadata: normalizedMessage.value.metadata,
     href: buildProfileChatPath(actorUserId),
     createdAt: new Date(),
   });
 
-  return success({ notificationId });
+  return success({
+    message: toProfileChatMessage(createdMessage),
+  });
+}
+
+export async function updateProfileChatMessageUseCase(
+  actorUserId: string,
+  input: {
+    messageId: string;
+    action: 'pin' | 'unpin' | 'vote-poll' | 'toggle-todo';
+    optionId?: string;
+    itemId?: string;
+    completed?: boolean;
+  },
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<{ message: ProfileChatMessage }, ProfileError>> {
+  const message = await deps.findProfileMessageById(input.messageId);
+
+  if (!message || !message.actorId) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'Message was not found.',
+    });
+  }
+
+  if (message.userId !== actorUserId && message.actorId !== actorUserId) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You cannot update this message.',
+    });
+  }
+
+  const kind = resolveChatMessageKind(message.kind);
+  const metadata = parseChatMessageMetadata(kind, message.metadata);
+  let update: { metadata?: ChatMessageMetadata; pinnedAt?: Date | null };
+
+  if (input.action === 'pin' || input.action === 'unpin') {
+    update = {
+      pinnedAt: input.action === 'pin' ? new Date() : null,
+    };
+  } else if (input.action === 'vote-poll') {
+    if (kind !== 'poll' || !input.optionId) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Choose a poll option.',
+      });
+    }
+
+    const updatedMetadata = voteInPollMetadata(
+      metadata,
+      input.optionId,
+      actorUserId,
+    );
+
+    if (!updatedMetadata) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Choose a poll option.',
+      });
+    }
+
+    update = { metadata: updatedMetadata };
+  } else {
+    if (kind !== 'todo' || !input.itemId || input.completed === undefined) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Choose a todo item.',
+      });
+    }
+
+    const updatedMetadata = toggleTodoMetadata(
+      metadata,
+      input.itemId,
+      actorUserId,
+      input.completed,
+    );
+
+    if (!updatedMetadata) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Choose a todo item.',
+      });
+    }
+
+    update = { metadata: updatedMetadata };
+  }
+
+  const updatedMessage = await deps.updateProfileMessage(
+    input.messageId,
+    update,
+  );
+
+  if (!updatedMessage || !updatedMessage.actorId) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'Message was not found.',
+    });
+  }
+
+  return success({ message: toProfileChatMessage(updatedMessage) });
 }
 
 export async function getProfileChatUseCase(
@@ -843,13 +1008,34 @@ export async function getProfileChatUseCase(
     member: toProfileDirectoryEntry(memberUser),
     messages: messages
       .filter((message) => message.actorId)
-      .map((message) => ({
-        id: message.id,
-        senderUserId: message.actorId!,
-        body: message.body,
-        createdAt: message.createdAt.toISOString(),
-      })),
+      .map(toProfileChatMessage),
   });
+}
+
+function toProfileChatMessage(message: {
+  id: string;
+  actorId: string | null;
+  body: string;
+  kind: string;
+  metadata: unknown;
+  pinnedAt: Date | null;
+  createdAt: Date;
+}): ProfileChatMessage {
+  const kind = resolveChatMessageKind(message.kind);
+
+  return {
+    id: message.id,
+    senderUserId: message.actorId!,
+    body: message.body,
+    kind,
+    metadata: parseChatMessageMetadata(kind, message.metadata),
+    pinnedAt: message.pinnedAt?.toISOString() ?? null,
+    createdAt: message.createdAt.toISOString(),
+  };
+}
+
+function resolveChatMessageKind(kind: string): ChatMessageKind {
+  return isChatMessageKind(kind) ? kind : 'text';
 }
 
 async function updateBlockRelationship(

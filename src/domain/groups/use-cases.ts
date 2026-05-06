@@ -26,6 +26,16 @@ import {
   success,
   type ServiceResult,
 } from '@/src/domain/shared/result';
+import {
+  isChatMessageKind,
+  normalizeChatMessageInput,
+  parseChatMessageMetadata,
+  toggleTodoMetadata,
+  voteInPollMetadata,
+  type ChatMessageInput,
+  type ChatMessageKind,
+  type ChatMessageMetadata,
+} from '@/src/domain/chat/messages';
 import { buildProfileImageUrl } from '@/src/profile/object-storage';
 
 const GROUP_NAME_MIN_LENGTH = 2;
@@ -91,6 +101,9 @@ export type GroupChatMessage = {
   groupId: string;
   sender: GroupUserSummary;
   body: string;
+  kind: ChatMessageKind;
+  metadata: ChatMessageMetadata;
+  pinnedAt: string | null;
   createdAt: string;
 };
 
@@ -169,6 +182,9 @@ type GroupMessageRecord = {
   groupId: string;
   senderUserId: string;
   body: string;
+  kind: string;
+  metadata: unknown;
+  pinnedAt: Date | null;
   createdAt: Date;
 };
 
@@ -200,6 +216,9 @@ export type GroupUseCaseDeps = {
   listMembers: (groupId: string) => Promise<MemberRow[]>;
   listPendingInvitations: (groupId: string) => Promise<PendingInvitationRow[]>;
   listMessages: (groupId: string) => Promise<GroupMessageRow[]>;
+  findMessageById: (
+    messageId: string,
+  ) => Promise<GroupMessageRecord | undefined>;
   findPendingInvitation: (
     groupId: string,
     invitedUserId: string,
@@ -218,8 +237,17 @@ export type GroupUseCaseDeps = {
     groupId: string;
     senderUserId: string;
     body: string;
+    kind: ChatMessageKind;
+    metadata: ChatMessageMetadata;
     createdAt: Date;
   }) => Promise<GroupMessageRecord>;
+  updateMessage: (
+    messageId: string,
+    input: {
+      metadata?: ChatMessageMetadata;
+      pinnedAt?: Date | null;
+    },
+  ) => Promise<GroupMessageRecord | undefined>;
   updateInvitationStatus: (
     invitationId: string,
     status: Exclude<GroupInvitationStatus, 'pending'>,
@@ -470,6 +498,9 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
           groupId: groupMessages.groupId,
           senderUserId: groupMessages.senderUserId,
           body: groupMessages.body,
+          kind: groupMessages.kind,
+          metadata: groupMessages.metadata,
+          pinnedAt: groupMessages.pinnedAt,
           createdAt: groupMessages.createdAt,
           sender: {
             id: users.id,
@@ -487,6 +518,10 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
 
       return rows.reverse();
     },
+    findMessageById: (messageId) =>
+      getDb().query.groupMessages.findFirst({
+        where: (table, { eq: innerEq }) => innerEq(table.id, messageId),
+      }),
     findPendingInvitation: (groupId, invitedUserId) =>
       getDb().query.groupInvitations.findFirst({
         where: (table, { and: innerAnd, eq: innerEq }) =>
@@ -554,7 +589,15 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
 
       return createdInvitation;
     },
-    createMessage: async ({ id, groupId, senderUserId, body, createdAt }) => {
+    createMessage: async ({
+      id,
+      groupId,
+      senderUserId,
+      body,
+      kind,
+      metadata,
+      createdAt,
+    }) => {
       const [createdMessage] = await getDb()
         .insert(groupMessages)
         .values({
@@ -562,6 +605,8 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
           groupId,
           senderUserId,
           body,
+          kind,
+          metadata,
           createdAt,
         })
         .returning();
@@ -571,6 +616,15 @@ function getGroupUseCaseDeps(): GroupUseCaseDeps {
       }
 
       return createdMessage;
+    },
+    updateMessage: async (messageId, input) => {
+      const [message] = await getDb()
+        .update(groupMessages)
+        .set(input)
+        .where(eq(groupMessages.id, messageId))
+        .returning();
+
+      return message;
     },
     updateInvitationStatus: async (invitationId, status) => {
       await getDb()
@@ -745,13 +799,22 @@ function toPendingInvitation(
 }
 
 function toChatMessage(row: GroupMessageRow): GroupChatMessage {
+  const kind = resolveChatMessageKind(row.kind);
+
   return {
     id: row.id,
     groupId: row.groupId,
     sender: toUserSummary(row.sender),
     body: row.body,
+    kind,
+    metadata: parseChatMessageMetadata(kind, row.metadata),
+    pinnedAt: row.pinnedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
   };
+}
+
+function resolveChatMessageKind(kind: string): ChatMessageKind {
+  return isChatMessageKind(kind) ? kind : 'text';
 }
 
 function isGroupAdmin(role: GroupMemberRole | null | undefined) {
@@ -964,15 +1027,19 @@ export async function getGroupMessagesUseCase(
 export async function sendGroupMessageUseCase(
   actorUserId: string,
   groupId: string,
-  rawMessage: string,
+  input: string | ChatMessageInput,
   deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
 ): Promise<ServiceResult<{ message: GroupChatMessage }, GroupError>> {
-  const body = rawMessage.trim();
+  const normalizedMessage = normalizeChatMessageInput(input);
 
-  if (body.length < 1 || body.length > GROUP_MESSAGE_MAX_LENGTH) {
+  if (!normalizedMessage.ok) {
     return failure({
       code: 'VALIDATION_ERROR',
-      message: `Messages must be between 1 and ${GROUP_MESSAGE_MAX_LENGTH} characters.`,
+      message:
+        normalizedMessage.error ===
+        'Messages must be between 1 and 500 characters.'
+          ? `Messages must be between 1 and ${GROUP_MESSAGE_MAX_LENGTH} characters.`
+          : normalizedMessage.error,
     });
   }
 
@@ -1007,13 +1074,126 @@ export async function sendGroupMessageUseCase(
     id: crypto.randomUUID(),
     groupId,
     senderUserId: actorUserId,
-    body,
+    body: normalizedMessage.value.body,
+    kind: normalizedMessage.value.kind,
+    metadata: normalizedMessage.value.metadata,
     createdAt: new Date(),
   });
 
   return success({
     message: toChatMessage({
       ...message,
+      sender: actor,
+    }),
+  });
+}
+
+export async function updateGroupChatMessageUseCase(
+  actorUserId: string,
+  input: {
+    groupId: string;
+    messageId: string;
+    action: 'pin' | 'unpin' | 'vote-poll' | 'toggle-todo';
+    optionId?: string;
+    itemId?: string;
+    completed?: boolean;
+  },
+  deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
+): Promise<ServiceResult<{ message: GroupChatMessage }, GroupError>> {
+  const [message, membership, actor] = await Promise.all([
+    deps.findMessageById(input.messageId),
+    deps.findMembership(input.groupId, actorUserId),
+    deps.findUserById(actorUserId),
+  ]);
+
+  if (!message || message.groupId !== input.groupId) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'Message was not found.',
+    });
+  }
+
+  if (!membership) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You are not a member of this group.',
+    });
+  }
+
+  if (!actor) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const kind = resolveChatMessageKind(message.kind);
+  const metadata = parseChatMessageMetadata(kind, message.metadata);
+  let update: { metadata?: ChatMessageMetadata; pinnedAt?: Date | null };
+
+  if (input.action === 'pin' || input.action === 'unpin') {
+    update = {
+      pinnedAt: input.action === 'pin' ? new Date() : null,
+    };
+  } else if (input.action === 'vote-poll') {
+    if (kind !== 'poll' || !input.optionId) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Choose a poll option.',
+      });
+    }
+
+    const updatedMetadata = voteInPollMetadata(
+      metadata,
+      input.optionId,
+      actorUserId,
+    );
+
+    if (!updatedMetadata) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Choose a poll option.',
+      });
+    }
+
+    update = { metadata: updatedMetadata };
+  } else {
+    if (kind !== 'todo' || !input.itemId || input.completed === undefined) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Choose a todo item.',
+      });
+    }
+
+    const updatedMetadata = toggleTodoMetadata(
+      metadata,
+      input.itemId,
+      actorUserId,
+      input.completed,
+    );
+
+    if (!updatedMetadata) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: 'Choose a todo item.',
+      });
+    }
+
+    update = { metadata: updatedMetadata };
+  }
+
+  const updatedMessage = await deps.updateMessage(input.messageId, update);
+
+  if (!updatedMessage) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'Message was not found.',
+    });
+  }
+
+  return success({
+    message: toChatMessage({
+      ...updatedMessage,
       sender: actor,
     }),
   });

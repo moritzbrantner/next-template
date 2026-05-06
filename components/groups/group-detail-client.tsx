@@ -1,10 +1,16 @@
 'use client';
 
 import Image from 'next/image';
-import { Send } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useDeferredValue, useEffect, useState, type FormEvent } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 
+import {
+  ChatMessageComposer,
+  ChatMessageContent,
+  PinMessageButton,
+  PinnedMessagesSummary,
+  type ChatMessageLabels,
+} from '@/components/chat-message-tools';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,8 +21,8 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import type { AppLocale } from '@/i18n/routing';
+import type { ChatMessageInput } from '@/src/domain/chat/messages';
 import type {
   GroupChatMessage,
   GroupDetail,
@@ -46,7 +52,6 @@ export function GroupDetailClient({
   const messageErrorMessage = t('errors.message');
   const [members, setMembers] = useState(group.members);
   const [messages, setMessages] = useState(group.messages);
-  const [draftMessage, setDraftMessage] = useState('');
   const [pendingInvitations, setPendingInvitations] = useState(
     group.pendingInvitations,
   );
@@ -55,6 +60,9 @@ export function GroupDetailClient({
   const [candidates, setCandidates] = useState<GroupUserSummary[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [updatingMessageId, setUpdatingMessageId] = useState<string | null>(
+    null,
+  );
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [messageFeedback, setMessageFeedback] = useState<string | null>(null);
@@ -235,15 +243,7 @@ export function GroupDetailClient({
     }
   }
 
-  async function sendMessage(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const message = draftMessage.trim();
-
-    if (!message) {
-      return;
-    }
-
+  async function sendMessage(input: ChatMessageInput) {
     setIsSendingMessage(true);
     setError(null);
     setMessageFeedback(null);
@@ -254,7 +254,13 @@ export function GroupDetailClient({
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ groupId: group.id, message }),
+        body: JSON.stringify({
+          groupId: group.id,
+          message: input.body,
+          kind: input.kind,
+          options: input.options,
+          items: input.items,
+        }),
       });
 
       if (!response.ok) {
@@ -271,7 +277,6 @@ export function GroupDetailClient({
         setMessages((current) => [...current, payload.message!]);
       }
 
-      setDraftMessage('');
       setMessageFeedback(t('detail.chatSent'));
     } catch {
       setError(messageErrorMessage);
@@ -279,6 +284,57 @@ export function GroupDetailClient({
       setIsSendingMessage(false);
     }
   }
+
+  async function updateMessage(
+    messageId: string,
+    input: {
+      action: 'pin' | 'unpin' | 'vote-poll' | 'toggle-todo';
+      optionId?: string;
+      itemId?: string;
+      completed?: boolean;
+    },
+  ) {
+    setUpdatingMessageId(messageId);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/groups/messages', {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          groupId: group.id,
+          messageId,
+          ...input,
+        }),
+      });
+
+      if (!response.ok) {
+        const problem = await readProblemDetail(response, messageErrorMessage);
+        setError(problem.message);
+        return;
+      }
+
+      const payload = (await response.json()) as {
+        message?: GroupChatMessage;
+      };
+
+      if (payload.message) {
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === payload.message!.id ? payload.message! : message,
+          ),
+        );
+      }
+    } catch {
+      setError(messageErrorMessage);
+    } finally {
+      setUpdatingMessageId(null);
+    }
+  }
+
+  const chatLabels = getGroupChatLabels(t);
 
   return (
     <div className="space-y-6">
@@ -292,6 +348,8 @@ export function GroupDetailClient({
           <CardDescription>{t('detail.chatDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <PinnedMessagesSummary messages={messages} labels={chatLabels} />
+
           <div className="max-h-[28rem] space-y-3 overflow-y-auto rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
             {messages.length > 0 ? (
               messages.map((message) => {
@@ -318,9 +376,40 @@ export function GroupDetailClient({
                       >
                         {message.sender.displayName}
                       </p>
-                      <p className="whitespace-pre-wrap break-words">
-                        {message.body}
-                      </p>
+                      <div className="mb-1 flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <ChatMessageContent
+                            message={message}
+                            currentUserId={currentUserId}
+                            labels={chatLabels}
+                            isOwnMessage={isOwnMessage}
+                            disabled={updatingMessageId === message.id}
+                            onVote={(messageId, optionId) =>
+                              updateMessage(messageId, {
+                                action: 'vote-poll',
+                                optionId,
+                              })
+                            }
+                            onToggleTodo={(messageId, itemId, completed) =>
+                              updateMessage(messageId, {
+                                action: 'toggle-todo',
+                                itemId,
+                                completed,
+                              })
+                            }
+                          />
+                        </div>
+                        <PinMessageButton
+                          pinned={Boolean(message.pinnedAt)}
+                          labels={chatLabels}
+                          disabled={updatingMessageId === message.id}
+                          onClick={() =>
+                            updateMessage(message.id, {
+                              action: message.pinnedAt ? 'unpin' : 'pin',
+                            })
+                          }
+                        />
+                      </div>
                       <p
                         className={`mt-1 text-xs ${
                           isOwnMessage
@@ -348,29 +437,11 @@ export function GroupDetailClient({
           ) : null}
 
           {group.canSendMessages ? (
-            <form className="space-y-3" onSubmit={sendMessage}>
-              <Textarea
-                value={draftMessage}
-                onChange={(event) => setDraftMessage(event.target.value)}
-                placeholder={t('detail.chatPlaceholder')}
-                aria-label={t('detail.chatPlaceholder')}
-                maxLength={500}
-              />
-              <div className="flex justify-end">
-                <Button
-                  type="submit"
-                  className="gap-2"
-                  disabled={
-                    isSendingMessage || draftMessage.trim().length === 0
-                  }
-                >
-                  <Send className="h-4 w-4" aria-hidden="true" />
-                  {isSendingMessage
-                    ? t('detail.chatSending')
-                    : t('detail.chatSend')}
-                </Button>
-              </div>
-            </form>
+            <ChatMessageComposer
+              labels={chatLabels}
+              isSending={isSendingMessage}
+              onSubmit={sendMessage}
+            />
           ) : null}
         </CardContent>
       </Card>
@@ -510,6 +581,28 @@ export function GroupDetailClient({
       </div>
     </div>
   );
+}
+
+function getGroupChatLabels(
+  t: ReturnType<typeof useTranslations>,
+): ChatMessageLabels {
+  return {
+    textMode: t('detail.chatComposer.text'),
+    pollMode: t('detail.chatComposer.poll'),
+    todoMode: t('detail.chatComposer.todo'),
+    messagePlaceholder: t('detail.chatPlaceholder'),
+    pollPlaceholder: t('detail.chatComposer.pollPlaceholder'),
+    todoPlaceholder: t('detail.chatComposer.todoPlaceholder'),
+    send: t('detail.chatSend'),
+    sending: t('detail.chatSending'),
+    pinned: t('detail.chatPinned'),
+    pin: t('detail.chatPin'),
+    unpin: t('detail.chatUnpin'),
+    voteFor: t('detail.chatVoteFor'),
+    votes: t('detail.chatVotes'),
+    voted: t('detail.chatVoted'),
+    completeItem: t('detail.chatCompleteItem'),
+  };
 }
 
 function UserRow({

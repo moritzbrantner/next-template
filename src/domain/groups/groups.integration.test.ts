@@ -9,6 +9,7 @@ import {
   removeGroupMemberUseCase,
   respondToGroupInvitationUseCase,
   sendGroupMessageUseCase,
+  updateGroupChatMessageUseCase,
   updateGroupMemberRoleUseCase,
   type GroupUseCaseDeps,
 } from '@/src/domain/groups/use-cases';
@@ -77,6 +78,7 @@ function createDeps(
     ]),
     listPendingInvitations: vi.fn().mockResolvedValue([]),
     listMessages: vi.fn().mockResolvedValue([]),
+    findMessageById: vi.fn().mockResolvedValue(undefined),
     findPendingInvitation: vi.fn().mockResolvedValue(undefined),
     findInvitationById: vi.fn().mockResolvedValue(undefined),
     createInvitation: vi.fn().mockResolvedValue({
@@ -93,8 +95,12 @@ function createDeps(
       groupId: 'group_1',
       senderUserId: 'user_member',
       body: 'Hello team',
+      kind: 'text',
+      metadata: {},
+      pinnedAt: null,
       createdAt,
     }),
+    updateMessage: vi.fn().mockResolvedValue(undefined),
     updateInvitationStatus: vi.fn().mockResolvedValue(undefined),
     addMember: vi.fn().mockResolvedValue(undefined),
     updateMemberRole: vi.fn().mockResolvedValue(undefined),
@@ -181,6 +187,9 @@ describe('group use cases', () => {
           groupId: 'group_1',
           senderUserId: 'user_owner',
           body: 'Kickoff at 10',
+          kind: 'text',
+          metadata: {},
+          pinnedAt: null,
           createdAt,
           sender: user('user_owner', 'Owner'),
         },
@@ -222,6 +231,9 @@ describe('group use cases', () => {
               imageUrl: null,
             },
             body: 'Kickoff at 10',
+            kind: 'text',
+            metadata: {},
+            pinnedAt: null,
             createdAt: createdAt.toISOString(),
           },
         ],
@@ -399,6 +411,9 @@ describe('group use cases', () => {
           groupId: 'group_1',
           senderUserId: 'user_owner',
           body: 'Kickoff at 10',
+          kind: 'text',
+          metadata: {},
+          pinnedAt: null,
           createdAt,
           sender: user('user_owner', 'Owner'),
         },
@@ -421,6 +436,9 @@ describe('group use cases', () => {
               imageUrl: null,
             },
             body: 'Kickoff at 10',
+            kind: 'text',
+            metadata: {},
+            pinnedAt: null,
             createdAt: createdAt.toISOString(),
           },
         ],
@@ -455,6 +473,9 @@ describe('group use cases', () => {
             imageUrl: null,
           },
           body: 'Hello team',
+          kind: 'text',
+          metadata: {},
+          pinnedAt: null,
           createdAt: createdAt.toISOString(),
         },
       },
@@ -464,7 +485,78 @@ describe('group use cases', () => {
       groupId: 'group_1',
       senderUserId: 'user_member',
       body: 'Hello team',
+      kind: 'text',
+      metadata: {},
       createdAt: expect.any(Date),
+    });
+  });
+
+  it('lets group members vote in poll messages', async () => {
+    const deps = createDeps({
+      findMembership: vi
+        .fn()
+        .mockResolvedValue(membership('group_1', 'user_member', 'MEMBER')),
+      findMessageById: vi.fn().mockResolvedValue({
+        id: 'message_1',
+        groupId: 'group_1',
+        senderUserId: 'user_owner',
+        body: 'Pick a day',
+        kind: 'poll',
+        metadata: {
+          poll: {
+            options: [
+              { id: 'option_1', text: 'Monday', voterUserIds: [] },
+              { id: 'option_2', text: 'Tuesday', voterUserIds: [] },
+            ],
+          },
+        },
+        pinnedAt: null,
+        createdAt,
+      }),
+      updateMessage: vi.fn().mockResolvedValue({
+        id: 'message_1',
+        groupId: 'group_1',
+        senderUserId: 'user_owner',
+        body: 'Pick a day',
+        kind: 'poll',
+        metadata: {
+          poll: {
+            options: [
+              {
+                id: 'option_1',
+                text: 'Monday',
+                voterUserIds: ['user_member'],
+              },
+              { id: 'option_2', text: 'Tuesday', voterUserIds: [] },
+            ],
+          },
+        },
+        pinnedAt: null,
+        createdAt,
+      }),
+    });
+
+    const result = await updateGroupChatMessageUseCase(
+      'user_member',
+      {
+        groupId: 'group_1',
+        messageId: 'message_1',
+        action: 'vote-poll',
+        optionId: 'option_1',
+      },
+      deps,
+    );
+
+    expect(result.ok).toBe(true);
+    expect(deps.updateMessage).toHaveBeenCalledWith('message_1', {
+      metadata: {
+        poll: {
+          options: [
+            { id: 'option_1', text: 'Monday', voterUserIds: ['user_member'] },
+            { id: 'option_2', text: 'Tuesday', voterUserIds: [] },
+          ],
+        },
+      },
     });
   });
 

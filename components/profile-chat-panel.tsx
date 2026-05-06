@@ -1,12 +1,17 @@
 'use client';
 
 import Image from 'next/image';
-import { Send } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
+import {
+  ChatMessageComposer,
+  ChatMessageContent,
+  PinMessageButton,
+  PinnedMessagesSummary,
+  type ChatMessageLabels,
+} from '@/components/chat-message-tools';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
+import type { ChatMessageInput } from '@/src/domain/chat/messages';
 import type {
   ProfileChatMessage,
   ProfileDirectoryEntry,
@@ -21,7 +26,11 @@ type ProfileChatPanelProps = {
 };
 
 type SendMessageResponse = {
-  notificationId?: string;
+  message?: ProfileChatMessage;
+};
+
+type UpdateMessageResponse = {
+  message?: ProfileChatMessage;
 };
 
 export function ProfileChatPanel({
@@ -31,20 +40,14 @@ export function ProfileChatPanel({
 }: ProfileChatPanelProps) {
   const t = useTranslations('ProfileChatPage');
   const [messages, setMessages] = useState(initialMessages);
-  const [draft, setDraft] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [updatingMessageId, setUpdatingMessageId] = useState<string | null>(
+    null,
+  );
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const body = draft.trim();
-
-    if (!body) {
-      return;
-    }
-
+  async function sendMessage(input: ChatMessageInput) {
     setIsSending(true);
     setFeedback(null);
     setError(null);
@@ -55,7 +58,13 @@ export function ProfileChatPanel({
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ userId: member.userId, message: body }),
+        body: JSON.stringify({
+          userId: member.userId,
+          message: input.body,
+          kind: input.kind,
+          options: input.options,
+          items: input.items,
+        }),
       });
 
       if (!response.ok) {
@@ -65,16 +74,12 @@ export function ProfileChatPanel({
       }
 
       const payload = (await response.json()) as SendMessageResponse;
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        {
-          id: payload.notificationId ?? `local-${Date.now()}`,
-          senderUserId: currentUserId,
-          body,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-      setDraft('');
+      if (payload.message) {
+        setMessages((currentMessages) => [
+          ...currentMessages,
+          payload.message!,
+        ]);
+      }
       setFeedback(t('sent'));
     } catch {
       setError(t('error'));
@@ -82,6 +87,51 @@ export function ProfileChatPanel({
       setIsSending(false);
     }
   }
+
+  async function updateMessage(
+    messageId: string,
+    input: {
+      action: 'pin' | 'unpin' | 'vote-poll' | 'toggle-todo';
+      optionId?: string;
+      itemId?: string;
+      completed?: boolean;
+    },
+  ) {
+    setUpdatingMessageId(messageId);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/profile/message', {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ messageId, ...input }),
+      });
+
+      if (!response.ok) {
+        const problem = await readProblemDetail(response, t('error'));
+        setError(problem.message);
+        return;
+      }
+
+      const payload = (await response.json()) as UpdateMessageResponse;
+
+      if (payload.message) {
+        setMessages((currentMessages) =>
+          currentMessages.map((message) =>
+            message.id === payload.message!.id ? payload.message! : message,
+          ),
+        );
+      }
+    } catch {
+      setError(t('error'));
+    } finally {
+      setUpdatingMessageId(null);
+    }
+  }
+
+  const labels = getProfileChatLabels(t);
 
   return (
     <Card>
@@ -92,6 +142,8 @@ export function ProfileChatPanel({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <PinnedMessagesSummary messages={messages} labels={labels} />
+
         <div className="max-h-[32rem] space-y-3 overflow-y-auto rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
           {messages.length > 0 ? (
             messages.map((message) => {
@@ -109,9 +161,40 @@ export function ProfileChatPanel({
                         : 'border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap break-words">
-                      {message.body}
-                    </p>
+                    <div className="mb-1 flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <ChatMessageContent
+                          message={message}
+                          currentUserId={currentUserId}
+                          labels={labels}
+                          isOwnMessage={isOwnMessage}
+                          disabled={updatingMessageId === message.id}
+                          onVote={(messageId, optionId) =>
+                            updateMessage(messageId, {
+                              action: 'vote-poll',
+                              optionId,
+                            })
+                          }
+                          onToggleTodo={(messageId, itemId, completed) =>
+                            updateMessage(messageId, {
+                              action: 'toggle-todo',
+                              itemId,
+                              completed,
+                            })
+                          }
+                        />
+                      </div>
+                      <PinMessageButton
+                        pinned={Boolean(message.pinnedAt)}
+                        labels={labels}
+                        disabled={updatingMessageId === message.id}
+                        onClick={() =>
+                          updateMessage(message.id, {
+                            action: message.pinnedAt ? 'unpin' : 'pin',
+                          })
+                        }
+                      />
+                    </div>
                     <p
                       className={`mt-1 text-xs ${
                         isOwnMessage
@@ -141,28 +224,36 @@ export function ProfileChatPanel({
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         ) : null}
 
-        <form className="space-y-3" onSubmit={handleSubmit}>
-          <Textarea
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder={t('messagePlaceholder')}
-            aria-label={t('messagePlaceholder')}
-            maxLength={500}
-          />
-          <div className="flex justify-end">
-            <Button
-              type="submit"
-              className="gap-2"
-              disabled={isSending || draft.trim().length === 0}
-            >
-              <Send className="h-4 w-4" aria-hidden="true" />
-              {isSending ? t('sending') : t('send')}
-            </Button>
-          </div>
-        </form>
+        <ChatMessageComposer
+          labels={labels}
+          isSending={isSending}
+          onSubmit={sendMessage}
+        />
       </CardContent>
     </Card>
   );
+}
+
+function getProfileChatLabels(
+  t: ReturnType<typeof useTranslations>,
+): ChatMessageLabels {
+  return {
+    textMode: t('composer.text'),
+    pollMode: t('composer.poll'),
+    todoMode: t('composer.todo'),
+    messagePlaceholder: t('messagePlaceholder'),
+    pollPlaceholder: t('composer.pollPlaceholder'),
+    todoPlaceholder: t('composer.todoPlaceholder'),
+    send: t('send'),
+    sending: t('sending'),
+    pinned: t('pinned'),
+    pin: t('pin'),
+    unpin: t('unpin'),
+    voteFor: t('voteFor'),
+    votes: t('votes'),
+    voted: t('voted'),
+    completeItem: t('completeItem'),
+  };
 }
 
 function Avatar({
