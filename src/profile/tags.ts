@@ -67,6 +67,10 @@ export function buildPublicProfileFollowersPath(tag: string) {
   return `${buildPublicProfilePath(tag)}/followers`;
 }
 
+export function buildPublicProfileFollowingPath(tag: string) {
+  return `${buildPublicProfilePath(tag)}/following`;
+}
+
 export function buildProfileChatPath(userId: string) {
   return `/chat/${encodeURIComponent(userId)}`;
 }

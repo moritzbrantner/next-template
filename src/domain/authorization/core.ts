@@ -352,7 +352,7 @@ export const appPermissionMetadata: Record<
     category: 'profile',
   },
   'workspace.access': {
-    label: 'Access data-entry workspace',
+    label: 'Access workspace',
     description: 'Open protected workspace surfaces.',
     category: 'workspace',
   },
@@ -685,7 +685,7 @@ export function canExportReports(role: AppRole | null | undefined): boolean {
 export function canAccessDataEntryWorkspace(
   role: AppRole | null | undefined,
 ): boolean {
-  return hasPermission(role, 'workspace.access');
+  return hasPermission(role, 'admin.dataStudio.read');
 }
 
 export function canWriteDataEntryRecords(

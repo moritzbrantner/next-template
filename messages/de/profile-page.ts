@@ -52,6 +52,13 @@ export const profilePage = {
       PRIVATE: 'Privat',
     },
   },
+  followingPage: {
+    title: 'Folgt',
+    description: '{name} folgt {count} Profilen.',
+    backToProfile: 'Zurück zum Profil',
+    summary: '{visibleCount} von {totalCount} Profilen werden angezeigt.',
+    empty: 'Dieses Profil folgt noch niemandem.',
+  },
   form: {
     displayName: {
       label: 'Anzeigename',

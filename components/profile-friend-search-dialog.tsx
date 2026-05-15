@@ -7,12 +7,16 @@ import { useDeferredValue, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from '@/i18n/navigation';
-import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
+import type {
+  ProfileDirectoryEntry,
+  ProfileSearchEntry,
+} from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
 import { formatProfileTag } from '@/src/profile/tags';
 
 type FollowMutationResponse = {
+  following?: boolean;
   isFriend?: boolean;
 };
 
@@ -23,6 +27,7 @@ type ProfileFriendSearchDialogProps = {
     profile: ProfileDirectoryEntry,
     payload: FollowMutationResponse,
   ) => void;
+  onProfileUnfollowed?: (profile: ProfileSearchEntry) => void;
   onProfileBlocked?: (profile: ProfileDirectoryEntry) => void;
 };
 
@@ -30,6 +35,7 @@ export function ProfileFriendSearchDialog({
   isOpen,
   onOpenChange,
   onProfileFollowed,
+  onProfileUnfollowed,
   onProfileBlocked,
 }: ProfileFriendSearchDialogProps) {
   const t = useTranslations('PeoplePage');
@@ -38,9 +44,7 @@ export function ProfileFriendSearchDialog({
   const blockErrorMessage = t('actions.blockError');
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
-  const [searchResults, setSearchResults] = useState<ProfileDirectoryEntry[]>(
-    [],
-  );
+  const [searchResults, setSearchResults] = useState<ProfileSearchEntry[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -55,13 +59,6 @@ export function ProfileFriendSearchDialog({
 
     const normalizedQuery = deferredQuery.trim();
 
-    if (!normalizedQuery) {
-      setIsSearching(false);
-      setSearchError(null);
-      setSearchResults([]);
-      return;
-    }
-
     const abortController = new AbortController();
 
     async function loadSearchResults() {
@@ -70,9 +67,11 @@ export function ProfileFriendSearchDialog({
 
       try {
         const searchParams = new URLSearchParams({
-          query: normalizedQuery,
           refresh: String(refreshKey),
         });
+        if (normalizedQuery) {
+          searchParams.set('query', normalizedQuery);
+        }
         const response = await fetch(
           `/api/profile/search?${searchParams.toString()}`,
           {
@@ -88,7 +87,7 @@ export function ProfileFriendSearchDialog({
         }
 
         const payload = (await response.json()) as {
-          profiles?: ProfileDirectoryEntry[];
+          profiles?: ProfileSearchEntry[];
         };
         setSearchResults(payload.profiles ?? []);
       } catch (error) {
@@ -135,7 +134,20 @@ export function ProfileFriendSearchDialog({
     });
   }
 
-  async function followProfile(profile: ProfileDirectoryEntry) {
+  function replaceSearchProfile(
+    profile: ProfileSearchEntry,
+    updates: Partial<ProfileSearchEntry>,
+  ) {
+    setSearchResults((current) =>
+      current.map((currentProfile) =>
+        currentProfile.userId === profile.userId
+          ? { ...currentProfile, ...updates }
+          : currentProfile,
+      ),
+    );
+  }
+
+  async function followProfile(profile: ProfileSearchEntry) {
     markPendingUser(profile.userId, true);
     setActionError(null);
     setActionMessage(null);
@@ -162,12 +174,11 @@ export function ProfileFriendSearchDialog({
           ? t('actions.friendAdded', { name: profile.displayName })
           : t('actions.followAdded', { name: profile.displayName }),
       );
-      setSearchResults((current) =>
-        current.filter(
-          (currentProfile) => currentProfile.userId !== profile.userId,
-        ),
-      );
-      setRefreshKey((current) => current + 1);
+      replaceSearchProfile(profile, {
+        isFollowing: true,
+        isFriend: Boolean(payload.isFriend),
+        followerCount: profile.followerCount + 1,
+      });
       onProfileFollowed?.(profile, payload);
     } catch {
       setActionError(followErrorMessage);
@@ -176,7 +187,40 @@ export function ProfileFriendSearchDialog({
     }
   }
 
-  async function blockProfile(profile: ProfileDirectoryEntry) {
+  async function unfollowProfile(profile: ProfileSearchEntry) {
+    markPendingUser(profile.userId, true);
+    setActionError(null);
+    setActionMessage(null);
+
+    try {
+      const response = await fetch('/api/profile/follow', {
+        method: 'DELETE',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ userId: profile.userId }),
+      });
+
+      if (!response.ok) {
+        const problem = await readProblemDetail(response, followErrorMessage);
+        setActionError(problem.message);
+        return;
+      }
+
+      replaceSearchProfile(profile, {
+        isFollowing: false,
+        isFriend: false,
+        followerCount: Math.max(0, profile.followerCount - 1),
+      });
+      onProfileUnfollowed?.(profile);
+    } catch {
+      setActionError(followErrorMessage);
+    } finally {
+      markPendingUser(profile.userId, false);
+    }
+  }
+
+  async function blockProfile(profile: ProfileSearchEntry) {
     markPendingUser(profile.userId, true);
     setActionError(null);
     setActionMessage(null);
@@ -290,7 +334,9 @@ export function ProfileFriendSearchDialog({
             </p>
           ) : null}
 
-          {!deferredQuery.trim() ? (
+          {!deferredQuery.trim() &&
+          !isSearching &&
+          searchResults.length === 0 ? (
             <div className="rounded-lg border border-dashed border-zinc-300 p-5 text-sm text-zinc-600 dark:border-zinc-700 dark:text-zinc-300">
               {t('search.idle')}
             </div>
@@ -313,6 +359,7 @@ export function ProfileFriendSearchDialog({
                   profile={profile}
                   isPending={pendingUserIds.includes(profile.userId)}
                   onFollow={() => followProfile(profile)}
+                  onUnfollow={() => unfollowProfile(profile)}
                   onBlock={() => blockProfile(profile)}
                 />
               ))}
@@ -328,14 +375,23 @@ function ProfileSearchResultRow({
   profile,
   isPending,
   onFollow,
+  onUnfollow,
   onBlock,
 }: {
-  profile: ProfileDirectoryEntry;
+  profile: ProfileSearchEntry;
   isPending: boolean;
   onFollow: () => void;
+  onUnfollow: () => void;
   onBlock: () => void;
 }) {
   const t = useTranslations('PeoplePage');
+  const relationshipLabel = profile.isFriend
+    ? t('search.badges.friend')
+    : profile.followsViewer
+      ? t('search.badges.followsYou')
+      : profile.followerCount > 0
+        ? t('search.badges.popular', { count: profile.followerCount })
+        : null;
 
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border p-3 dark:border-zinc-800">
@@ -351,6 +407,11 @@ function ProfileSearchResultRow({
           <p className="text-sm text-zinc-600 dark:text-zinc-300">
             {formatProfileTag(profile.tag)}
           </p>
+          {relationshipLabel ? (
+            <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              {relationshipLabel}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -365,8 +426,20 @@ function ProfileSearchResultRow({
           {isPending ? t('actions.blocking') : t('actions.block')}
         </Button>
 
-        <Button type="button" size="sm" disabled={isPending} onClick={onFollow}>
-          {isPending ? t('actions.following') : t('actions.follow')}
+        <Button
+          type="button"
+          size="sm"
+          variant={profile.isFollowing ? 'outline' : 'default'}
+          disabled={isPending}
+          onClick={profile.isFollowing ? onUnfollow : onFollow}
+        >
+          {isPending
+            ? profile.isFollowing
+              ? t('actions.unfollowing')
+              : t('actions.following')
+            : profile.isFollowing
+              ? t('actions.unfollow')
+              : t('actions.follow')}
         </Button>
       </div>
     </div>

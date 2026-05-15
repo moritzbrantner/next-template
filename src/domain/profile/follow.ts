@@ -14,4 +14,5 @@ export type {
   ProfileChatMessage,
   ProfileChatPayload,
   ProfileDirectoryEntry,
+  ProfileSearchEntry,
 } from './shared';

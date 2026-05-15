@@ -13,9 +13,10 @@ import { getFallbackProfileTag } from '@/src/profile/tags';
 export async function POST(request: Request) {
   const guard = await secureRoute({
     request,
-    action: 'workspace.dataEntry.createRow',
-    requiredFeatureKey: 'workspace.dataEntry',
-    requiredPermission: 'workspace.dataEntry.write',
+    action: 'admin.dataEntry.createRow',
+    requiredFeatureKey: 'admin.dataStudio',
+    allowedRoles: ['ADMIN', 'SUPERADMIN'],
+    requiredPermission: 'admin.dataStudio.write',
   });
 
   if (!guard.ok) {

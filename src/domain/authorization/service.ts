@@ -59,7 +59,11 @@ export async function getPermissionSetForRole(
   }
 
   const assignments = await getRolePermissionAssignments();
-  return new Set(assignments[role]);
+  return new Set(
+    assignments[role].filter((permission) =>
+      hasPermission(role, permission, assignments),
+    ),
+  );
 }
 
 export async function hasPermissionForRole(

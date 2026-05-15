@@ -9,11 +9,15 @@ import type { AppLocale } from '@/i18n/routing';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
+import type {
+  ProfileDirectoryEntry,
+  ProfileSearchEntry,
+} from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import {
   buildProfileChatPath,
   buildPublicProfileFollowersPath,
+  buildPublicProfileFollowingPath,
   formatProfileTag,
 } from '@/src/profile/tags';
 
@@ -224,6 +228,15 @@ export function ProfileFollowPanel({
     }
   }
 
+  function handleProfileUnfollowed(profile: ProfileSearchEntry) {
+    setFollowingCount((current) => Math.max(0, current - 1));
+    if (profile.isFriend) {
+      setFriendCount((current) =>
+        typeof current === 'number' ? Math.max(0, current - 1) : current,
+      );
+    }
+  }
+
   return (
     <>
       <section className="mx-auto max-w-3xl">
@@ -282,10 +295,19 @@ export function ProfileFollowPanel({
                       value={followerCount}
                     />
                   )}
-                  <ProfileStatPill
-                    label={labels.followingCount}
-                    value={followingCount}
-                  />
+                  {canViewFollowersPage ? (
+                    <ProfileStatLink
+                      href={buildPublicProfileFollowingPath(profileTag)}
+                      locale={locale}
+                      label={labels.followingCount}
+                      value={followingCount}
+                    />
+                  ) : (
+                    <ProfileStatPill
+                      label={labels.followingCount}
+                      value={followingCount}
+                    />
+                  )}
                   {typeof friendCount === 'number' ? (
                     <ProfileStatLink
                       href="/friends"
@@ -395,6 +417,7 @@ export function ProfileFollowPanel({
         isOpen={isFriendSearchOpen}
         onOpenChange={setIsFriendSearchOpen}
         onProfileFollowed={handleProfileFollowed}
+        onProfileUnfollowed={handleProfileUnfollowed}
       />
 
       <ProfileMessageDialog

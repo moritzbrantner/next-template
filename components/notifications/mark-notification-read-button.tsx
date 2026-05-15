@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
 import { dispatchNotificationMarkedRead } from '@/components/notifications/events';
+import { postNotificationRead } from '@/components/notifications/read-action';
 import { Button } from '@/components/ui/button';
 import { readProblemDetail } from '@/src/http/problem-client';
 
@@ -41,9 +42,7 @@ export function MarkNotificationReadButton({
     setPending(true);
     setError(null);
 
-    const response = await fetch(`/api/notifications/${notificationId}/read`, {
-      method: 'POST',
-    });
+    const response = await postNotificationRead(notificationId);
 
     if (!response.ok) {
       const problem = await readProblemDetail(response, errorLabel);

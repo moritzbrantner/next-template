@@ -11,6 +11,7 @@ import {
   listBlockedProfilesUseCase,
   listFriendProfilesUseCase,
   listProfileFollowersByTagUseCase,
+  listProfileFollowingByTagUseCase,
   listFollowingProfilesUseCase,
   searchUsersToFollowUseCase,
   sendProfileMessageUseCase,
@@ -651,11 +652,86 @@ describe('profile follow use cases', () => {
             tag: 'casey',
             displayName: 'Casey',
             imageUrl: null,
+            followerCount: 0,
+            isFollowing: false,
+            followsViewer: false,
+            isFriend: false,
           },
         ],
       },
     });
     expect(deps.searchUsersToFollow).toHaveBeenCalledWith('user_1', 'case');
+  });
+
+  it('loads prioritized people recommendations when search is empty', async () => {
+    const deps = createDeps({
+      findUserById: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'viewer@example.com',
+        tag: 'viewer',
+        name: 'Viewer',
+        image: null,
+        isSearchable: true,
+        followerVisibility: 'PUBLIC',
+      }),
+      searchUsersToFollow: vi.fn().mockResolvedValue([
+        {
+          id: 'user_2',
+          email: 'friend@example.com',
+          tag: 'friend',
+          name: 'Friend',
+          image: null,
+          isSearchable: true,
+          followerVisibility: 'PUBLIC',
+          followerCount: 12,
+          isFollowing: true,
+          followsViewer: true,
+        },
+        {
+          id: 'user_3',
+          email: 'follower@example.com',
+          tag: 'follower',
+          name: 'Follower',
+          image: null,
+          isSearchable: true,
+          followerVisibility: 'PUBLIC',
+          followerCount: 8,
+          isFollowing: false,
+          followsViewer: true,
+        },
+      ]),
+    });
+
+    const result = await searchUsersToFollowUseCase('user_1', '', deps);
+
+    expect(result).toEqual({
+      ok: true,
+      data: {
+        profiles: [
+          {
+            userId: 'user_2',
+            tag: 'friend',
+            displayName: 'Friend',
+            imageUrl: null,
+            followerCount: 12,
+            isFollowing: true,
+            followsViewer: true,
+            isFriend: true,
+          },
+          {
+            userId: 'user_3',
+            tag: 'follower',
+            displayName: 'Follower',
+            imageUrl: null,
+            followerCount: 8,
+            isFollowing: false,
+            followsViewer: true,
+            isFriend: false,
+          },
+        ],
+      },
+    });
+    expect(deps.searchUsersToFollow).toHaveBeenCalledWith('user_1', '');
   });
 
   it('reads and updates whether a profile can be searched', async () => {
@@ -853,6 +929,74 @@ describe('profile follow use cases', () => {
         isOwnProfile: true,
       },
     });
+  });
+
+  it('lists the profiles a tagged user follows', async () => {
+    const deps = createDeps({
+      findUserByTag: vi.fn().mockResolvedValue({
+        id: 'user_1',
+        email: 'owner@example.com',
+        tag: 'owner',
+        name: 'Owner',
+        image: null,
+        isSearchable: true,
+        followerVisibility: 'PUBLIC',
+      }),
+      listFollowingUsers: vi.fn().mockResolvedValue([
+        {
+          id: 'user_2',
+          email: 'alpha@example.com',
+          tag: 'alpha-person',
+          name: 'Alpha Person',
+          image: null,
+          isSearchable: true,
+          followerVisibility: 'PUBLIC',
+        },
+        {
+          id: 'user_3',
+          email: 'bravo@example.com',
+          tag: 'bravo-person',
+          name: null,
+          image: 'local-profile-images/user_3/avatar.jpg',
+          isSearchable: false,
+          followerVisibility: 'PRIVATE',
+        },
+      ]),
+    });
+
+    await expect(
+      listProfileFollowingByTagUseCase('owner', 'user_9', deps),
+    ).resolves.toEqual({
+      ok: true,
+      data: {
+        profile: {
+          userId: 'user_1',
+          tag: 'owner',
+          displayName: 'Owner',
+        },
+        following: [
+          {
+            userId: 'user_2',
+            tag: 'alpha-person',
+            displayName: 'Alpha Person',
+            imageUrl: null,
+          },
+          {
+            userId: 'user_3',
+            tag: 'bravo-person',
+            displayName: 'bravo',
+            imageUrl: '/local-profile-images/user_3/avatar.jpg',
+          },
+        ],
+        totalFollowingCount: 2,
+        isOwnProfile: false,
+      },
+    });
+    expect(deps.getBlockRelationshipState).toHaveBeenCalledWith(
+      'user_9',
+      'user_1',
+    );
+    expect(deps.listFollowingUsers).toHaveBeenCalledWith('user_1');
   });
 
   it('loads a public profile by tag', async () => {

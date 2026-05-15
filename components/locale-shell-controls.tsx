@@ -8,10 +8,16 @@ import {
   NotificationMenu,
   ThemeModeSwitch,
 } from '@moritzbrantner/ui';
-import { useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 
 import { NavigationHotkeysTrigger } from '@/components/navigation-hotkeys-trigger';
-import { dispatchAllNotificationsMarkedRead } from '@/components/notifications/events';
+import {
+  dispatchAllNotificationsMarkedRead,
+  dispatchNotificationMarkedRead,
+  NOTIFICATION_MARK_ALL_READ_EVENT,
+  NOTIFICATION_MARK_READ_EVENT,
+} from '@/components/notifications/events';
+import { postNotificationRead } from '@/components/notifications/read-action';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import { type AppLocale, routing } from '@/i18n/routing';
 import {
@@ -33,6 +39,11 @@ type NavigationHotkeyItem = {
   hotkey?: NavigationHotkey;
   hotkeyLabel?: string;
   searchText: string;
+};
+
+type NotificationMenuState = {
+  items: NonNullable<NotificationPreview>['items'];
+  unreadCount: number;
 };
 
 type LocaleShellControlsProps = {
@@ -119,6 +130,24 @@ function formatNotificationDate(value: string) {
   }).format(new Date(value));
 }
 
+function markNotificationRead(
+  state: NotificationMenuState,
+  notificationId: string,
+): NotificationMenuState {
+  const target = state.items.find((item) => item.id === notificationId);
+
+  if (!target || target.status === 'read') {
+    return state;
+  }
+
+  return {
+    items: state.items.map((item) =>
+      item.id === notificationId ? { ...item, status: 'read' } : item,
+    ),
+    unreadCount: Math.max(0, state.unreadCount - 1),
+  };
+}
+
 export function LocaleShellControls({
   locale,
   session,
@@ -134,6 +163,11 @@ export function LocaleShellControls({
 }: LocaleShellControlsProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [notificationState, setNotificationState] =
+    useState<NotificationMenuState>({
+      items: notificationCenter?.items ?? [],
+      unreadCount: notificationCenter?.unreadCount ?? 0,
+    });
   const theme = useSyncExternalStore<Theme>(
     subscribeTheme,
     getThemeSnapshot,
@@ -142,6 +176,73 @@ export function LocaleShellControls({
   const languages = defaultLanguageSwitcherLanguages.filter((language) =>
     routing.locales.includes(language.value as AppLocale),
   );
+
+  useEffect(() => {
+    setNotificationState({
+      items: notificationCenter?.items ?? [],
+      unreadCount: notificationCenter?.unreadCount ?? 0,
+    });
+  }, [notificationCenter]);
+
+  useEffect(() => {
+    function handleMarkRead(event: Event) {
+      const detail = (event as CustomEvent<{ notificationId?: string }>).detail;
+      const notificationId = detail?.notificationId;
+
+      if (!notificationId) {
+        return;
+      }
+
+      setNotificationState((currentState) =>
+        markNotificationRead(currentState, notificationId),
+      );
+    }
+
+    function handleMarkAllRead() {
+      setNotificationState((currentState) => ({
+        items: currentState.items.map((item) =>
+          item.status === 'unread' ? { ...item, status: 'read' } : item,
+        ),
+        unreadCount: 0,
+      }));
+    }
+
+    window.addEventListener(NOTIFICATION_MARK_READ_EVENT, handleMarkRead);
+    window.addEventListener(
+      NOTIFICATION_MARK_ALL_READ_EVENT,
+      handleMarkAllRead,
+    );
+
+    return () => {
+      window.removeEventListener(NOTIFICATION_MARK_READ_EVENT, handleMarkRead);
+      window.removeEventListener(
+        NOTIFICATION_MARK_ALL_READ_EVENT,
+        handleMarkAllRead,
+      );
+    };
+  }, []);
+
+  async function markNotificationReadAndNavigate(
+    notificationId: string,
+    href?: string | null,
+  ) {
+    let markedRead = false;
+
+    try {
+      const response = await postNotificationRead(notificationId);
+
+      if (response.ok) {
+        markedRead = true;
+        dispatchNotificationMarkedRead(notificationId);
+      }
+    } finally {
+      if (href) {
+        router.push(href);
+      } else if (markedRead) {
+        router.refresh();
+      }
+    }
+  }
 
   async function markAllNotificationsRead() {
     const response = await fetch('/api/notifications/read', {
@@ -162,15 +263,18 @@ export function LocaleShellControls({
         <>
           <NotificationMenu
             label={notificationLabels.title}
-            unreadCount={notificationCenter?.unreadCount ?? 0}
+            unreadCount={notificationState.unreadCount}
             emptyLabel={notificationLabels.empty}
             markAllReadLabel={notificationLabels.markAllRead}
             onMarkAllRead={
-              (notificationCenter?.unreadCount ?? 0) > 0
+              notificationState.unreadCount > 0
                 ? markAllNotificationsRead
                 : undefined
             }
-            items={(notificationCenter?.items ?? []).map((item) => {
+            onMarkRead={(itemId) => {
+              void markNotificationReadAndNavigate(itemId);
+            }}
+            items={notificationState.items.map((item) => {
               const href = item.href;
 
               return {
@@ -179,7 +283,16 @@ export function LocaleShellControls({
                 description: item.body,
                 unread: item.status === 'unread',
                 meta: formatNotificationDate(item.createdAt),
-                onSelect: href ? () => router.push(href) : undefined,
+                onSelect: href
+                  ? () => {
+                      if (item.status === 'unread') {
+                        void markNotificationReadAndNavigate(item.id, href);
+                        return;
+                      }
+
+                      router.push(href);
+                    }
+                  : undefined,
               };
             })}
             maxItems={5}

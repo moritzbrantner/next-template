@@ -165,6 +165,16 @@ export function FriendsDirectory({ initialFriends }: FriendsDirectoryProps) {
     );
   }
 
+  function handleSearchProfileUnfollowed(profile: ProfileDirectoryEntry) {
+    setActionError(null);
+    setActionMessage(null);
+    setFriendProfiles((current) =>
+      current.filter(
+        (currentProfile) => currentProfile.userId !== profile.userId,
+      ),
+    );
+  }
+
   return (
     <>
       <Card>
@@ -225,6 +235,7 @@ export function FriendsDirectory({ initialFriends }: FriendsDirectoryProps) {
         isOpen={isSearchOpen}
         onOpenChange={setIsSearchOpen}
         onProfileFollowed={handleSearchProfileFollowed}
+        onProfileUnfollowed={handleSearchProfileUnfollowed}
         onProfileBlocked={handleSearchProfileBlocked}
       />
     </>

@@ -20,30 +20,32 @@ export type TablePermission = {
   writeRoles: readonly AppRole[];
 };
 
+const adminDataEntryRoles = ['ADMIN', 'SUPERADMIN'] as const;
+
 export const tablePermissions: readonly TablePermission[] = [
   {
     table: 'User',
     label: 'User',
-    readRoles: ['MANAGER', 'ADMIN', 'SUPERADMIN'],
-    writeRoles: ['ADMIN', 'SUPERADMIN'],
+    readRoles: adminDataEntryRoles,
+    writeRoles: adminDataEntryRoles,
   },
   {
     table: 'Profile',
     label: 'Profile',
-    readRoles: ['USER', 'MANAGER', 'ADMIN', 'SUPERADMIN'],
-    writeRoles: ['USER', 'MANAGER', 'ADMIN', 'SUPERADMIN'],
+    readRoles: adminDataEntryRoles,
+    writeRoles: adminDataEntryRoles,
   },
   {
     table: 'SecurityAuditLog',
     label: 'SecurityAuditLog',
-    readRoles: ['MANAGER', 'ADMIN', 'SUPERADMIN'],
-    writeRoles: ['ADMIN', 'SUPERADMIN'],
+    readRoles: adminDataEntryRoles,
+    writeRoles: adminDataEntryRoles,
   },
   {
     table: 'SecurityRateLimitCounter',
     label: 'SecurityRateLimitCounter',
-    readRoles: ['ADMIN', 'SUPERADMIN'],
-    writeRoles: ['ADMIN', 'SUPERADMIN'],
+    readRoles: adminDataEntryRoles,
+    writeRoles: adminDataEntryRoles,
   },
 ] as const;
 

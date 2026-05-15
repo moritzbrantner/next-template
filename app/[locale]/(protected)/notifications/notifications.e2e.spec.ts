@@ -59,10 +59,58 @@ test.describe('notifications', () => {
     await expect(notificationLink).toContainText('Unread');
     await expect(notificationLink).toContainText(body);
 
+    const markReadResponsePromise = waitForNotificationReadResponse(page);
     await notificationLink.click();
+    const markReadResponse = await markReadResponsePromise;
+    expect(markReadResponse.ok()).toBeTruthy();
+
     await expect(page).toHaveURL('/en/settings');
     await waitForAppHydration(page);
     await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+
+    await gotoAndWaitForHydration(page, '/en/notifications');
+    await expect(
+      page.locator('article').filter({ hasText: title }).first(),
+    ).toContainText('Read');
+  });
+
+  test('marks a linked notification as read when clicked from the notification bell', async ({
+    page,
+  }) => {
+    const token = createNotificationToken();
+    const title = `Bell link read ${token}`;
+    const body = `Click this bell notification link for ${token}.`;
+
+    await deliverNotificationToRecipient(page, {
+      title,
+      body,
+      href: '/settings',
+    });
+    const unreadBeforeClick = await getUnreadNotificationCount(page);
+
+    await openNotificationBell(page);
+    const notificationMenuItem = page
+      .getByRole('menuitem')
+      .filter({ hasText: title })
+      .first();
+    await expect(notificationMenuItem).toContainText(body);
+
+    const markReadResponsePromise = waitForNotificationReadResponse(page);
+    await notificationMenuItem.click();
+    const markReadResponse = await markReadResponsePromise;
+    expect(markReadResponse.ok()).toBeTruthy();
+
+    await expect(page).toHaveURL('/en/settings');
+    await waitForAppHydration(page);
+    await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
+    await expect
+      .poll(() => getUnreadNotificationCount(page))
+      .toBe(Math.max(0, unreadBeforeClick - 1));
+
+    await gotoAndWaitForHydration(page, '/en/notifications');
+    await expect(
+      page.locator('article').filter({ hasText: title }).first(),
+    ).toContainText('Read');
   });
 
   test('marks received notifications as read from the notifications page', async ({
@@ -174,6 +222,16 @@ async function openNotificationBell(page: Page) {
   await expect(
     page.getByRole('menu', { name: /^Notifications(?:, \d+ unread)?$/ }),
   ).toBeVisible();
+}
+
+function waitForNotificationReadResponse(page: Page) {
+  return page.waitForResponse((response) => {
+    return (
+      response.url().includes('/api/notifications/') &&
+      response.url().endsWith('/read') &&
+      response.request().method() === 'POST'
+    );
+  });
 }
 
 async function openUsersPageAsAdmin(page: Page) {

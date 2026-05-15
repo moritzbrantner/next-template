@@ -10,6 +10,7 @@ import {
   canViewDashboard,
   canViewReports,
   forbidUnless,
+  hasPermission,
   hasRole,
   isAdmin,
   isSuperAdmin,
@@ -36,18 +37,31 @@ describe('authorization helpers', () => {
   it('checks business action permissions', () => {
     expect(canViewDashboard('USER')).toBe(true);
     expect(canEditOwnProfile('USER')).toBe(true);
-    expect(canAccessDataEntryWorkspace('USER')).toBe(true);
+    expect(canAccessDataEntryWorkspace('USER')).toBe(false);
     expect(canViewReports('USER')).toBe(false);
     expect(canAccessAdminArea('USER')).toBe(false);
 
     expect(canViewReports('MANAGER')).toBe(false);
     expect(canManageUsers('MANAGER')).toBe(false);
+    expect(canAccessDataEntryWorkspace('MANAGER')).toBe(false);
     expect(canAccessAdminArea('MANAGER')).toBe(false);
     expect(canManageRoles('ADMIN')).toBe(false);
+    expect(canAccessDataEntryWorkspace('ADMIN')).toBe(true);
     expect(canViewReports('ADMIN')).toBe(true);
     expect(canManageUsers('ADMIN')).toBe(true);
     expect(canManageSystemSettings('ADMIN')).toBe(true);
     expect(canManageRoles('SUPERADMIN')).toBe(true);
+  });
+
+  it('does not allow raw role assignments to bypass role capabilities', () => {
+    expect(
+      hasPermission('USER', 'admin.dataStudio.read', {
+        USER: ['admin.dataStudio.read'],
+        MANAGER: [],
+        ADMIN: [],
+        SUPERADMIN: [],
+      }),
+    ).toBe(false);
   });
 
   it('throws when forbidUnless condition is false', () => {

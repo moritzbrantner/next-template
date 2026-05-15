@@ -26,6 +26,11 @@ describe('navigation classification', () => {
       routeGroup: 'authenticated',
       displayLabel: 'Settings section',
     });
+    expect(classifyNavigationPathname('/en/data-entry')).toEqual({
+      canonicalPath: '/data-entry',
+      routeGroup: 'admin',
+      displayLabel: 'Data entry',
+    });
   });
 
   it('classifies profile routes and removed showcase paths', () => {

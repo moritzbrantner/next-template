@@ -3,15 +3,20 @@ export const peoplePage = {
   description:
     'Verwalte gegenseitige Follow-Verbindungen und füge neue Freunde über die Suche hinzu.',
   search: {
-    title: 'Freunde hinzufügen',
-    description: 'Suche nach Namen, um auffindbare Profile zu entdecken.',
+    title: 'Personen finden',
+    description: 'Suche nach Namen oder stöbere in empfohlenen Profilen.',
     placeholder: 'Nach Namen suchen',
     close: 'Freundesuche schließen',
     loading: 'Suche läuft…',
-    idle: 'Beginne zu tippen, um jemanden hinzuzufügen.',
+    idle: 'Aktuell sind keine empfohlenen Personen verfügbar.',
     empty: 'Keine auffindbaren Benutzer passen zu deiner Suche.',
     error:
       'Profile konnten gerade nicht gesucht werden. Bitte versuche es erneut.',
+    badges: {
+      friend: 'Freund',
+      followsYou: 'Folgt dir',
+      popular: '{count} Follower',
+    },
   },
   following: {
     title: 'Du folgst',
@@ -25,7 +30,7 @@ export const peoplePage = {
       'Du hast noch keine Freunde. Füge jemanden hinzu, der dir auch folgt.',
   },
   actions: {
-    addFriend: 'Freund hinzufügen',
+    addFriend: 'Personen finden',
     follow: 'Folgen',
     unfollow: 'Nicht mehr folgen',
     following: 'Wird gefolgt…',

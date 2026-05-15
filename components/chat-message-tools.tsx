@@ -21,6 +21,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  applyChatComposerSlashCommand,
+  buildChatMessageInput,
+} from '@/src/domain/chat/composer';
 import { chatMediaConstraints } from '@/src/domain/chat/media';
 import type {
   ChatMessageInput,
@@ -74,7 +78,7 @@ export function ChatMessageComposer({
   const [attachment, setAttachment] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const input = useMemo(
-    () => buildMessageInput(kind, draft, attachment),
+    () => buildChatMessageInput(kind, draft, attachment),
     [attachment, draft, kind],
   );
 
@@ -110,6 +114,20 @@ export function ChatMessageComposer({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  }
+
+  function handleDraftChange(event: ChangeEvent<HTMLTextAreaElement>) {
+    const nextDraft = event.target.value;
+    const command = applyChatComposerSlashCommand(nextDraft);
+
+    if (!command) {
+      setDraft(nextDraft);
+      return;
+    }
+
+    clearAttachment();
+    setKind(command.kind);
+    setDraft(command.draft);
   }
 
   return (
@@ -184,7 +202,7 @@ export function ChatMessageComposer({
 
       <Textarea
         value={draft}
-        onChange={(event) => setDraft(event.target.value)}
+        onChange={handleDraftChange}
         placeholder={
           kind === 'poll'
             ? labels.pollPlaceholder
@@ -461,38 +479,6 @@ function ModeButton({
       {label}
     </Button>
   );
-}
-
-function buildMessageInput(
-  kind: ChatMessageKind,
-  draft: string,
-  attachment: File | null,
-): ChatMessageInput | null {
-  if (attachment) {
-    return { body: draft.trim(), kind: 'media', attachment };
-  }
-
-  const lines = draft
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  if (kind === 'text') {
-    const body = draft.trim();
-    return body ? { body, kind } : null;
-  }
-
-  const [body, ...entries] = lines;
-
-  if (!body) {
-    return null;
-  }
-
-  if (kind === 'poll') {
-    return entries.length >= 2 ? { body, kind, options: entries } : null;
-  }
-
-  return entries.length >= 1 ? { body, kind, items: entries } : null;
 }
 
 function formatFileSize(size: number) {

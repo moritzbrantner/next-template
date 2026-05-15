@@ -1,4 +1,15 @@
-import { and, asc, count, eq, ilike, isNull, ne, or } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  isNull,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 import { getDb } from '@/src/db/client';
@@ -92,6 +103,13 @@ export type ProfileDirectoryEntry = {
   imageUrl: string | null;
 };
 
+export type ProfileSearchEntry = ProfileDirectoryEntry & {
+  followerCount: number;
+  isFollowing: boolean;
+  followsViewer: boolean;
+  isFriend: boolean;
+};
+
 export type ProfileFollowerEntry = ProfileDirectoryEntry & {
   visibilityRole: FollowerVisibilityRole;
 };
@@ -149,6 +167,17 @@ export type ProfileFollowersPayload = {
   isOwnProfile: boolean;
 };
 
+export type ProfileFollowingPayload = {
+  profile: {
+    userId: string;
+    tag: string;
+    displayName: string;
+  };
+  following: ProfileDirectoryEntry[];
+  totalFollowingCount: number;
+  isOwnProfile: boolean;
+};
+
 type ProfileUserRecord = {
   id: string;
   email: string | null;
@@ -158,6 +187,12 @@ type ProfileUserRecord = {
   bannerImage: string | null;
   isSearchable: boolean;
   followerVisibility: FollowerVisibilityRole;
+};
+
+type ProfileSearchUserRecord = ProfileUserRecord & {
+  followerCount: number | null;
+  isFollowing: boolean | null;
+  followsViewer: boolean | null;
 };
 
 type BlockRelationshipState = {
@@ -236,7 +271,7 @@ export type ProfileUseCaseDeps = {
   searchUsersToFollow: (
     viewerUserId: string,
     query: string,
-  ) => Promise<ProfileUserRecord[]>;
+  ) => Promise<ProfileSearchUserRecord[]>;
   updateUserSearchVisibility: (
     userId: string,
     isSearchable: boolean,
@@ -269,6 +304,9 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
   const viewerBlocks = alias(userBlocks, 'viewerBlocks');
   const targetBlocks = alias(userBlocks, 'targetBlocks');
   const reciprocalFollows = alias(userFollows, 'reciprocalFollows');
+  const viewerFollows = alias(userFollows, 'viewerFollows');
+  const targetFollows = alias(userFollows, 'targetFollows');
+  const followerCounts = alias(userFollows, 'followerCounts');
 
   return {
     findUserById: (userId) =>
@@ -500,6 +538,30 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
         where: (table, { eq: innerEq }) => innerEq(table.id, messageId),
       }),
     searchUsersToFollow: async (viewerUserId, query) => {
+      const relationshipPriority = sql<number>`case
+        when ${viewerFollows.followingId} is not null and ${targetFollows.followerId} is not null then 0
+        when ${targetFollows.followerId} is not null then 1
+        when count(${followerCounts.followerId}) > 0 then 2
+        else 3
+      end`;
+      const followerCount = sql<number>`count(${followerCounts.followerId})::int`;
+      const searchFilter = query
+        ? or(
+            ilike(users.name, `%${query}%`),
+            ilike(users.email, `%${query}%`),
+            ilike(users.tag, `%${query}%`),
+          )
+        : undefined;
+      const filters = [
+        eq(users.isSearchable, true),
+        ne(users.id, viewerUserId),
+        isNull(viewerBlocks.blockerId),
+        isNull(targetBlocks.blockerId),
+      ];
+      if (searchFilter) {
+        filters.push(searchFilter);
+      }
+
       const rows = await getDb()
         .select({
           id: users.id,
@@ -510,15 +572,26 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
           bannerImage: users.bannerImage,
           isSearchable: users.isSearchable,
           followerVisibility: users.followerVisibility,
+          followerCount,
+          isFollowing: sql<boolean>`${viewerFollows.followingId} is not null`,
+          followsViewer: sql<boolean>`${targetFollows.followerId} is not null`,
         })
         .from(users)
         .leftJoin(
-          userFollows,
+          viewerFollows,
           and(
-            eq(userFollows.followingId, users.id),
-            eq(userFollows.followerId, viewerUserId),
+            eq(viewerFollows.followingId, users.id),
+            eq(viewerFollows.followerId, viewerUserId),
           ),
         )
+        .leftJoin(
+          targetFollows,
+          and(
+            eq(targetFollows.followerId, users.id),
+            eq(targetFollows.followingId, viewerUserId),
+          ),
+        )
+        .leftJoin(followerCounts, eq(followerCounts.followingId, users.id))
         .leftJoin(
           viewerBlocks,
           and(
@@ -533,21 +606,26 @@ function getProfileUseCaseDeps(): ProfileUseCaseDeps {
             eq(targetBlocks.blockedId, viewerUserId),
           ),
         )
-        .where(
-          and(
-            eq(users.isSearchable, true),
-            ne(users.id, viewerUserId),
-            isNull(userFollows.followingId),
-            isNull(viewerBlocks.blockerId),
-            isNull(targetBlocks.blockerId),
-            or(
-              ilike(users.name, `%${query}%`),
-              ilike(users.email, `%${query}%`),
-              ilike(users.tag, `%${query}%`),
-            ),
-          ),
+        .where(and(...filters))
+        .groupBy(
+          users.id,
+          users.email,
+          users.tag,
+          users.name,
+          users.image,
+          users.bannerImage,
+          users.isSearchable,
+          users.followerVisibility,
+          viewerFollows.followingId,
+          targetFollows.followerId,
         )
-        .orderBy(asc(users.name), asc(users.tag), asc(users.email))
+        .orderBy(
+          relationshipPriority,
+          desc(followerCount),
+          asc(users.name),
+          asc(users.tag),
+          asc(users.email),
+        )
         .limit(12);
 
       return rows;
@@ -629,6 +707,21 @@ function toProfileDirectoryEntry(
     tag: user.tag,
     displayName: resolveProfileDisplayName(user),
     imageUrl: buildProfileImageUrl(user.image) ?? null,
+  };
+}
+
+function toProfileSearchEntry(
+  user: ProfileSearchUserRecord,
+): ProfileSearchEntry {
+  const isFollowing = Boolean(user.isFollowing);
+  const followsViewer = Boolean(user.followsViewer);
+
+  return {
+    ...toProfileDirectoryEntry(user),
+    followerCount: user.followerCount ?? 0,
+    isFollowing,
+    followsViewer,
+    isFriend: isFollowing && followsViewer,
   };
 }
 
@@ -1264,7 +1357,7 @@ export async function searchUsersToFollowUseCase(
   userId: string,
   rawQuery: string,
   deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
-): Promise<ServiceResult<{ profiles: ProfileDirectoryEntry[] }, ProfileError>> {
+): Promise<ServiceResult<{ profiles: ProfileSearchEntry[] }, ProfileError>> {
   const user = await deps.findUserById(userId);
 
   if (!user) {
@@ -1276,10 +1369,6 @@ export async function searchUsersToFollowUseCase(
 
   const query = rawQuery.trim();
 
-  if (!query) {
-    return success({ profiles: [] });
-  }
-
   if (query.length > SEARCH_QUERY_MAX_LENGTH) {
     return failure({
       code: 'VALIDATION_ERROR',
@@ -1290,7 +1379,7 @@ export async function searchUsersToFollowUseCase(
   const profiles = await deps.searchUsersToFollow(userId, query);
 
   return success({
-    profiles: profiles.map(toProfileDirectoryEntry),
+    profiles: profiles.map(toProfileSearchEntry),
   });
 }
 
@@ -1422,6 +1511,48 @@ export async function listProfileFollowersByTagUseCase(
       0,
       followers.length - visibleFollowers.length,
     ),
+    isOwnProfile: Boolean(viewerUserId && viewerUserId === user.id),
+  });
+}
+
+export async function listProfileFollowingByTagUseCase(
+  profileTag: string,
+  viewerUserId?: string | null,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileFollowingPayload, ProfileError>> {
+  const user = await deps.findUserByTag(profileTag);
+
+  if (!user) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  if (viewerUserId && viewerUserId !== user.id) {
+    const blockState = await deps.getBlockRelationshipState(
+      viewerUserId,
+      user.id,
+    );
+
+    if (blockState.hasBlockedViewer) {
+      return failure({
+        code: 'FORBIDDEN',
+        message: 'You cannot view this profile.',
+      });
+    }
+  }
+
+  const following = await deps.listFollowingUsers(user.id);
+
+  return success({
+    profile: {
+      userId: user.id,
+      tag: user.tag,
+      displayName: resolveProfileDisplayName(user),
+    },
+    following: following.map(toProfileDirectoryEntry),
+    totalFollowingCount: following.length,
     isOwnProfile: Boolean(viewerUserId && viewerUserId === user.id),
   });
 }

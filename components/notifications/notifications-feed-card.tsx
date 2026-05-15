@@ -1,13 +1,15 @@
 'use client';
 
-import { startTransition, useOptimistic } from 'react';
+import { startTransition, useOptimistic, type MouseEvent } from 'react';
 
-import { Link } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { dispatchNotificationMarkedRead } from '@/components/notifications/events';
 import { MarkAllReadButton } from '@/components/notifications/mark-all-read-button';
 import { MarkNotificationReadButton } from '@/components/notifications/mark-notification-read-button';
+import { postNotificationRead } from '@/components/notifications/read-action';
 import type { NotificationFeedItem } from '@/src/domain/notifications/use-cases';
 import { useTranslations } from '@/src/i18n';
 
@@ -48,6 +50,7 @@ export function NotificationsFeedCard({
   nextHref,
 }: NotificationsFeedCardProps) {
   const t = useTranslations('NotificationsPage');
+  const router = useRouter();
   const [state, applyOptimisticUpdate] = useOptimistic<
     NotificationFeedState,
     NotificationFeedAction
@@ -86,6 +89,35 @@ export function NotificationsFeedCard({
     },
   );
 
+  async function handleNotificationLinkClick(
+    event: MouseEvent<HTMLAnchorElement>,
+    item: NotificationFeedItem,
+  ) {
+    if (item.status === 'read' || shouldUseNativeNavigation(event)) {
+      return;
+    }
+
+    event.preventDefault();
+
+    try {
+      const response = await postNotificationRead(item.id);
+
+      if (response.ok) {
+        startTransition(() => {
+          applyOptimisticUpdate({
+            type: 'mark-read',
+            notificationId: item.id,
+          });
+        });
+        dispatchNotificationMarkedRead(item.id);
+      }
+    } finally {
+      if (item.href) {
+        router.push(item.href);
+      }
+    }
+  }
+
   return (
     <Card className="rounded-[1.75rem]">
       <CardHeader>
@@ -115,7 +147,13 @@ export function NotificationsFeedCard({
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   {item.href ? (
-                    <Link href={item.href} className="min-w-0 flex-1">
+                    <Link
+                      href={item.href}
+                      onClick={(event) => {
+                        void handleNotificationLinkClick(event, item);
+                      }}
+                      className="min-w-0 flex-1"
+                    >
                       <NotificationContent
                         item={item}
                         badgeVariant={badgeVariants[status]}
@@ -210,6 +248,19 @@ export function NotificationsFeedCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function shouldUseNativeNavigation(event: MouseEvent<HTMLAnchorElement>) {
+  return (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    (event.currentTarget.target !== '' &&
+      event.currentTarget.target !== '_self')
   );
 }
 

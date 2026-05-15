@@ -96,9 +96,9 @@ export const foundationFeatureMetadata: Record<
   },
   'workspace.dataEntry': {
     label: 'Data entry workspace',
-    description: 'Open the protected data-entry workspace and write APIs.',
-    category: 'workspace',
-    supportsUserOverrides: true,
+    description: 'Open the admin-only data-entry workspace and write APIs.',
+    category: 'admin',
+    supportsUserOverrides: false,
   },
   'admin.workspace': {
     label: 'Admin workspace',

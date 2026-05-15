@@ -4,8 +4,7 @@
     "profiles.blog",
     "people.directory",
     "groups",
-    "notifications",
-    "workspace.dataEntry"
+    "notifications"
   ],
   "overrides": []
 }

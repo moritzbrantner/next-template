@@ -1,7 +1,6 @@
 import {
   type AppPermissionKey,
   type AppRole,
-  canAccessDataEntryWorkspace,
   canReadOwnNotifications,
   isAdmin,
 } from '@/lib/authorization';
@@ -108,12 +107,12 @@ const foundationPageDefinitions: readonly AppPageDefinition[] = [
     key: 'dataEntry',
     href: '/data-entry',
     translationKey: 'links.dataEntry',
-    visibility: 'workspace',
-    navigationCategory: 'workspace',
+    visibility: 'admin',
+    navigationCategory: 'admin',
     hotkey: ['alt', 'd'],
     order: 230,
-    featureKey: 'workspace.dataEntry',
-    permission: 'workspace.access',
+    featureKey: 'admin.dataStudio',
+    permission: 'admin.dataStudio.read',
   },
   {
     key: 'admin',
@@ -233,9 +232,8 @@ export function canViewAppPage(
     permissionSet?: ReadonlySet<AppPermissionKey>;
   },
 ) {
-  if (page.permission && permissionSet) {
-    return isAuthenticated && permissionSet.has(page.permission);
-  }
+  const hasRequiredPermission =
+    !page.permission || !permissionSet || permissionSet.has(page.permission);
 
   if (page.visibility === 'guest') {
     return !isAuthenticated;
@@ -243,21 +241,21 @@ export function canViewAppPage(
 
   if (page.visibility === 'authenticated') {
     if (page.permission === 'notifications.readOwn') {
-      return isAuthenticated && canReadOwnNotifications(role);
+      return (
+        isAuthenticated &&
+        hasRequiredPermission &&
+        canReadOwnNotifications(role)
+      );
     }
 
-    return isAuthenticated;
-  }
-
-  if (page.visibility === 'workspace') {
-    return isAuthenticated && canAccessDataEntryWorkspace(role);
+    return isAuthenticated && hasRequiredPermission;
   }
 
   if (page.visibility === 'admin') {
-    return isAuthenticated && isAdmin(role);
+    return isAuthenticated && hasRequiredPermission && isAdmin(role);
   }
 
-  return true;
+  return hasRequiredPermission;
 }
 
 export function getVisibleAppPages({

@@ -77,6 +77,27 @@ test.describe('social interactions', () => {
     await expect(page).toHaveURL('/en/profile/@alice');
   });
 
+  test('opens the following page from the following count', async ({
+    page,
+  }) => {
+    await loginWithCredentials(page, aliceUser.email, aliceUser.password);
+    await gotoAndWaitForHydration(page, '/en/profile/@test-user');
+
+    await page.getByRole('link', { name: /2 following/i }).click();
+
+    await expect(page).toHaveURL('/en/profile/@test-user/following');
+    await expect(
+      page.getByRole('heading', { name: 'Following' }),
+    ).toBeVisible();
+    await expect(page.getByText('Alice Archer', { exact: true })).toBeVisible();
+    await expect(page.getByText('Bob Baker', { exact: true })).toBeVisible();
+    await expect(page.getByText('@alice', { exact: true })).toBeVisible();
+    await expect(page.getByText('/@alice', { exact: true })).toHaveCount(0);
+
+    await page.getByText('Bob Baker', { exact: true }).click();
+    await expect(page).toHaveURL('/en/profile/@bob');
+  });
+
   test('lets a user add and remove friends from the search modal', async ({
     page,
   }) => {

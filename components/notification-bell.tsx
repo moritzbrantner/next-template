@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type MouseEvent } from 'react';
 
-import { Link } from '@/i18n/navigation';
+import { Link, useRouter } from '@/i18n/navigation';
 import {
+  dispatchNotificationMarkedRead,
   NOTIFICATION_MARK_ALL_READ_EVENT,
   NOTIFICATION_MARK_READ_EVENT,
 } from '@/components/notifications/events';
 import { MarkNotificationReadButton } from '@/components/notifications/mark-notification-read-button';
+import { postNotificationRead } from '@/components/notifications/read-action';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import type { NotificationFeedItem } from '@/src/domain/notifications/use-cases';
@@ -46,6 +48,7 @@ export function NotificationBell({
   unreadCount,
 }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   const navigationT = useTranslations('NavigationBar');
   const [state, setState] = useState<NotificationBellState>({
     items,
@@ -105,6 +108,32 @@ export function NotificationBell({
       );
     };
   }, []);
+
+  async function handleNotificationLinkClick(
+    event: MouseEvent<HTMLAnchorElement>,
+    item: NotificationFeedItem,
+  ) {
+    setOpen(false);
+
+    if (item.status === 'read' || shouldUseNativeNavigation(event)) {
+      return;
+    }
+
+    event.preventDefault();
+
+    try {
+      const response = await postNotificationRead(item.id);
+
+      if (response.ok) {
+        setState((currentState) => markNotificationRead(currentState, item.id));
+        dispatchNotificationMarkedRead(item.id);
+      }
+    } finally {
+      if (item.href) {
+        router.push(item.href);
+      }
+    }
+  }
 
   return (
     <div
@@ -181,7 +210,9 @@ export function NotificationBell({
                     {item.href ? (
                       <Link
                         href={item.href}
-                        onClick={() => setOpen(false)}
+                        onClick={(event) => {
+                          void handleNotificationLinkClick(event, item);
+                        }}
                         className="block transition-colors hover:text-zinc-950 dark:hover:text-zinc-50"
                       >
                         {content}
@@ -229,6 +260,19 @@ export function NotificationBell({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function shouldUseNativeNavigation(event: MouseEvent<HTMLAnchorElement>) {
+  return (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    (event.currentTarget.target !== '' &&
+      event.currentTarget.target !== '_self')
   );
 }
 

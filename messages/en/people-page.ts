@@ -2,14 +2,19 @@ export const peoplePage = {
   title: 'Friends',
   description: 'Manage mutual follows and add new friends from search.',
   search: {
-    title: 'Add friends',
-    description: 'Search by name to find discoverable profiles.',
+    title: 'Find people',
+    description: 'Search by name or browse recommended profiles.',
     placeholder: 'Search by name',
     close: 'Close friend search',
     loading: 'Searching…',
-    idle: 'Start typing to search for someone to add.',
+    idle: 'No recommended people are available right now.',
     empty: 'No discoverable users matched your search.',
     error: 'Unable to search for profiles right now. Please try again.',
+    badges: {
+      friend: 'Friend',
+      followsYou: 'Follows you',
+      popular: '{count} followers',
+    },
   },
   following: {
     title: 'Following',
@@ -22,7 +27,7 @@ export const peoplePage = {
     empty: 'You do not have any friends yet. Add someone who follows you back.',
   },
   actions: {
-    addFriend: 'Add friend',
+    addFriend: 'Find people',
     follow: 'Follow',
     unfollow: 'Unfollow',
     following: 'Following…',

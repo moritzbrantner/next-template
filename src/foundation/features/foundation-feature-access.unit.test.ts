@@ -88,6 +88,12 @@ describe('foundation feature access', () => {
 
   it('ignores user-specific overrides for features that are only global', () => {
     expect(canApplyUserFeatureOverrides('content.blog', 'USER')).toBe(false);
+    expect(canApplyUserFeatureOverrides('workspace.dataEntry', 'USER')).toBe(
+      false,
+    );
+    expect(canApplyRoleFeatureOverrides('workspace.dataEntry', 'USER')).toBe(
+      false,
+    );
     expect(
       resolveFeatureEnabledState({
         featureKey: 'content.blog',

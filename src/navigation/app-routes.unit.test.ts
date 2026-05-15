@@ -120,11 +120,10 @@ describe('app routes', () => {
         'memberChat',
         'groups',
         'notifications',
-        'dataEntry',
         'profile',
         'settings',
       ],
-      hiddenKeys: ['login', 'register', 'admin'],
+      hiddenKeys: ['login', 'register', 'dataEntry', 'admin'],
     },
     {
       label: 'managers',
@@ -135,11 +134,10 @@ describe('app routes', () => {
         'memberChat',
         'groups',
         'notifications',
-        'dataEntry',
         'profile',
         'settings',
       ],
-      hiddenKeys: ['login', 'register', 'admin'],
+      hiddenKeys: ['login', 'register', 'dataEntry', 'admin'],
     },
     {
       label: 'admins',
@@ -196,7 +194,7 @@ describe('app routes', () => {
           groups: false,
           notifications: false,
           'people.directory': false,
-          'workspace.dataEntry': true,
+          'admin.dataStudio': true,
         },
       }).map((page) => page.key),
     );
@@ -205,6 +203,19 @@ describe('app routes', () => {
     expect(visiblePageKeys.has('notifications')).toBe(false);
     expect(visiblePageKeys.has('friends')).toBe(false);
     expect(visiblePageKeys.has('memberChat')).toBe(false);
-    expect(visiblePageKeys.has('dataEntry')).toBe(true);
+    expect(visiblePageKeys.has('dataEntry')).toBe(false);
+  });
+
+  it('does not let a raw permission set bypass admin route visibility', () => {
+    const visiblePageKeys = new Set(
+      getVisibleAppPages({
+        isAuthenticated: true,
+        role: 'USER',
+        permissionSet: new Set(['admin.dataStudio.read', 'admin.access']),
+      }).map((page) => page.key),
+    );
+
+    expect(visiblePageKeys.has('dataEntry')).toBe(false);
+    expect(visiblePageKeys.has('admin')).toBe(false);
   });
 });

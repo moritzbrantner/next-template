@@ -108,7 +108,7 @@ export function classifyNavigationPathname(
     case '/settings':
       return buildClassification('/settings', 'authenticated');
     case '/data-entry':
-      return buildClassification('/data-entry', 'workspace');
+      return buildClassification('/data-entry', 'admin');
     case '/admin':
       return buildClassification('/admin', 'admin');
     case '/admin/content':
