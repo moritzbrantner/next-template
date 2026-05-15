@@ -62,9 +62,19 @@ test.describe('social interactions', () => {
     await expect(page.getByText('Alice Archer', { exact: true })).toBeVisible();
     await expect(page.getByText('Bob Baker', { exact: true })).toBeVisible();
     await expect(page.getByText('Test Manager', { exact: true })).toBeVisible();
+    await expect(page.getByText('@alice', { exact: true })).toBeVisible();
+    await expect(page.getByText('/@alice', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Public', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Members', { exact: true })).toHaveCount(0);
+    await expect(
+      page.getByText('1 hidden member', { exact: true }),
+    ).toBeVisible();
     await expect(page.getByText('Private Member', { exact: true })).toHaveCount(
       0,
     );
+
+    await page.getByText('Alice Archer', { exact: true }).click();
+    await expect(page).toHaveURL('/en/profile/@alice');
   });
 
   test('lets a user add and remove friends from the search modal', async ({

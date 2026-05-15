@@ -39,6 +39,9 @@ export const profilePage = {
     backToProfile: 'Back to profile',
     summary: 'Showing {visibleCount} of {totalCount} followers.',
     hiddenSummary: '{count} followers are hidden by visibility permissions.',
+    hiddenMember: '1 hidden member',
+    hiddenMembers: '{count} hidden members',
+    hiddenMembersDescription: 'These members keep their follower list private.',
     empty: 'No one is following this profile yet.',
     hiddenEmpty:
       'Followers exist, but their visibility roles do not allow them to appear here.',

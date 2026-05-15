@@ -39,6 +39,10 @@ export const profilePage = {
     backToProfile: 'Zurück zum Profil',
     summary: '{visibleCount} von {totalCount} Followern werden angezeigt.',
     hiddenSummary: '{count} Follower sind durch Sichtbarkeitsrechte verborgen.',
+    hiddenMember: '1 verborgenes Mitglied',
+    hiddenMembers: '{count} verborgene Mitglieder',
+    hiddenMembersDescription:
+      'Diese Mitglieder halten ihre Follower-Liste privat.',
     empty: 'Dieses Profil hat noch keine Follower.',
     hiddenEmpty:
       'Es gibt Follower, aber ihre Sichtbarkeitsrollen erlauben hier keine Anzeige.',

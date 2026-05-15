@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { LocalizedLink } from '@/i18n/server-link';
 import type { AppLocale } from '@/i18n/routing';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
-import { buildProfileChatPath } from '@/src/profile/tags';
+import { buildProfileChatPath, formatProfileTag } from '@/src/profile/tags';
 
 type ProfileChatShellProps = {
   locale: AppLocale;
@@ -74,7 +74,7 @@ export function ProfileChatShell({
                         .filter(Boolean)
                         .join(' ')}
                     >
-                      /@{profile.tag}
+                      {formatProfileTag(profile.tag)}
                     </span>
                   </span>
                 </LocalizedLink>

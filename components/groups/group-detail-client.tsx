@@ -33,6 +33,7 @@ import type {
 } from '@/src/domain/groups/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
+import { formatProfileTag } from '@/src/profile/tags';
 
 type GroupDetailClientProps = {
   group: GroupDetail;
@@ -644,7 +645,7 @@ function UserRow({
         <div className="min-w-0">
           <p className="truncate font-medium">{user.displayName}</p>
           <p className="truncate text-sm text-zinc-600 dark:text-zinc-300">
-            /@{user.tag}
+            {formatProfileTag(user.tag)}
           </p>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
+import { formatProfileTag } from '@/src/profile/tags';
 
 type ProfileBlockedUsersFormProps = {
   initialProfiles: ProfileDirectoryEntry[];
@@ -87,7 +88,7 @@ export function ProfileBlockedUsersForm({
                     {profile.displayName}
                   </Link>
                   <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                    /@{profile.tag}
+                    {formatProfileTag(profile.tag)}
                   </p>
                 </div>
               </div>

@@ -17,6 +17,7 @@ import {
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
+import { formatProfileTag } from '@/src/profile/tags';
 
 type FriendsDirectoryProps = {
   initialFriends: ProfileDirectoryEntry[];
@@ -263,7 +264,7 @@ function ProfileRow({
             {profile.displayName}
           </Link>
           <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            /@{profile.tag}
+            {formatProfileTag(profile.tag)}
           </p>
         </div>
       </div>
