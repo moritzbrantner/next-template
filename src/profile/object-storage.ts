@@ -2,6 +2,10 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { getEnv } from '@/src/config/env';
+import {
+  extensionForChatMediaMime,
+  type ValidatedChatMediaUpload,
+} from '@/src/domain/chat/media';
 import type { ValidatedImageUpload } from '@/src/profile/image-validation';
 
 export type StoredProfileImage = {
@@ -9,11 +13,15 @@ export type StoredProfileImage = {
   url: string;
 };
 
+export type StoredChatMedia = StoredProfileImage;
+
 type S3Module = typeof import('@aws-sdk/client-s3');
 
 const LOCAL_PROFILE_IMAGE_PREFIX = 'local-profile-images/';
+const LOCAL_CHAT_MEDIA_PREFIX = 'local-chat-media/';
 const PROFILE_IMAGE_OBJECT_PREFIX = 'profile-images';
 const PROFILE_BANNER_OBJECT_PREFIX = 'profile-banners';
+const CHAT_MEDIA_OBJECT_PREFIX = 'chat-media';
 
 let s3ModulePromise: Promise<S3Module> | null = null;
 
@@ -81,7 +89,9 @@ function isObjectStorageConfigured() {
 function isLocalProfileImageKey(keyOrUrl: string) {
   return (
     keyOrUrl.startsWith(LOCAL_PROFILE_IMAGE_PREFIX) ||
-    keyOrUrl.startsWith(`/${LOCAL_PROFILE_IMAGE_PREFIX}`)
+    keyOrUrl.startsWith(`/${LOCAL_PROFILE_IMAGE_PREFIX}`) ||
+    keyOrUrl.startsWith(LOCAL_CHAT_MEDIA_PREFIX) ||
+    keyOrUrl.startsWith(`/${LOCAL_CHAT_MEDIA_PREFIX}`)
   );
 }
 
@@ -138,6 +148,22 @@ async function uploadProfileImageToLocalDisk(
 
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, image.bytes);
+
+  return {
+    key,
+    url: `/${key}`,
+  };
+}
+
+async function uploadChatMediaToLocalDisk(
+  userId: string,
+  media: ValidatedChatMediaUpload,
+): Promise<StoredChatMedia> {
+  const key = `${LOCAL_CHAT_MEDIA_PREFIX}${userId}/${Date.now()}-${crypto.randomUUID()}.${extensionForChatMediaMime(media.mimeType)}`;
+  const filePath = getLocalProfileImagePath(key);
+
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, media.bytes);
 
   return {
     key,
@@ -203,6 +229,41 @@ export async function uploadProfileBannerImage(
     image,
     PROFILE_BANNER_OBJECT_PREFIX,
   );
+}
+
+export async function uploadChatMedia(
+  userId: string,
+  media: ValidatedChatMediaUpload,
+): Promise<StoredChatMedia> {
+  if (!isObjectStorageConfigured()) {
+    return uploadChatMediaToLocalDisk(userId, media);
+  }
+
+  const { PutObjectCommand } = await loadS3Module();
+  const key = `${CHAT_MEDIA_OBJECT_PREFIX}/${userId}/${Date.now()}-${crypto.randomUUID()}.${extensionForChatMediaMime(media.mimeType)}`;
+  const client = await getClient();
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: getBucket(),
+      Key: key,
+      Body: media.bytes,
+      ContentType: media.mimeType,
+      ContentDisposition: `inline; filename="${media.filename.replace(/"/g, '')}"`,
+      CacheControl: 'public, max-age=31536000, immutable',
+      Metadata: {
+        userId,
+        filename: media.filename,
+        mediaType: media.type,
+        size: String(media.size),
+      },
+    }),
+  );
+
+  return {
+    key,
+    url: buildProfileImageUrl(key) ?? key,
+  };
 }
 
 export async function deleteProfileImage(keyOrUrl: string | null | undefined) {

@@ -36,7 +36,15 @@ import {
   type ChatMessageKind,
   type ChatMessageMetadata,
 } from '@/src/domain/chat/messages';
-import { buildProfileImageUrl } from '@/src/profile/object-storage';
+import {
+  ChatMediaValidationError,
+  validateChatMediaUpload,
+} from '@/src/domain/chat/media';
+import {
+  buildProfileImageUrl,
+  deleteProfileImage,
+  uploadChatMedia,
+} from '@/src/profile/object-storage';
 
 const GROUP_NAME_MIN_LENGTH = 2;
 const GROUP_NAME_MAX_LENGTH = 80;
@@ -1086,6 +1094,94 @@ export async function sendGroupMessageUseCase(
       sender: actor,
     }),
   });
+}
+
+export async function sendGroupMediaMessageUseCase(
+  actorUserId: string,
+  groupId: string,
+  input: { body?: string; file: File },
+  deps: GroupUseCaseDeps = getGroupUseCaseDeps(),
+): Promise<ServiceResult<{ message: GroupChatMessage }, GroupError>> {
+  const caption = input.body?.trim() ?? '';
+
+  if (caption.length > GROUP_MESSAGE_MAX_LENGTH) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: `Messages must be ${GROUP_MESSAGE_MAX_LENGTH} characters or fewer.`,
+    });
+  }
+
+  const [group, membership, actor] = await Promise.all([
+    deps.findGroupById(groupId),
+    deps.findMembership(groupId, actorUserId),
+    deps.findUserById(actorUserId),
+  ]);
+
+  if (!group) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'Group was not found.',
+    });
+  }
+
+  if (!membership) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You are not a member of this group.',
+    });
+  }
+
+  if (!actor) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  try {
+    const validated = await validateChatMediaUpload(input.file);
+    const uploaded = await uploadChatMedia(actorUserId, validated);
+
+    try {
+      const message = await deps.createMessage({
+        id: crypto.randomUUID(),
+        groupId,
+        senderUserId: actorUserId,
+        body: caption || validated.filename,
+        kind: 'media',
+        metadata: {
+          media: {
+            key: uploaded.key,
+            url: uploaded.url,
+            filename: validated.filename,
+            mimeType: validated.mimeType,
+            size: validated.size,
+            type: validated.type,
+          },
+        },
+        createdAt: new Date(),
+      });
+
+      return success({
+        message: toChatMessage({
+          ...message,
+          sender: actor,
+        }),
+      });
+    } catch (error) {
+      await deleteProfileImage(uploaded.key);
+      throw error;
+    }
+  } catch (error) {
+    if (error instanceof ChatMediaValidationError) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: error.message,
+      });
+    }
+
+    throw error;
+  }
 }
 
 export async function updateGroupChatMessageUseCase(

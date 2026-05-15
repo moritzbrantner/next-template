@@ -1,6 +1,10 @@
-export const chatMessageKinds = ['text', 'poll', 'todo'] as const;
+export const chatMessageKinds = ['text', 'poll', 'todo', 'media'] as const;
 
 export type ChatMessageKind = (typeof chatMessageKinds)[number];
+
+export const chatMediaTypes = ['photo', 'audio', 'video'] as const;
+
+export type ChatMediaType = (typeof chatMediaTypes)[number];
 
 export type PollOption = {
   id: string;
@@ -15,6 +19,15 @@ export type TodoItem = {
   completedByUserId: string | null;
 };
 
+export type ChatMediaAttachment = {
+  key: string;
+  url: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  type: ChatMediaType;
+};
+
 export type ChatMessageMetadata = {
   poll?: {
     options: PollOption[];
@@ -22,6 +35,7 @@ export type ChatMessageMetadata = {
   todo?: {
     items: TodoItem[];
   };
+  media?: ChatMediaAttachment;
 };
 
 export type ChatMessageInput = {
@@ -29,6 +43,7 @@ export type ChatMessageInput = {
   kind?: ChatMessageKind;
   options?: string[];
   items?: string[];
+  attachment?: File;
 };
 
 export type NormalizedChatMessageInput = {
@@ -64,6 +79,10 @@ export function normalizeChatMessageInput(
 
   if (!isChatMessageKind(kind)) {
     return { ok: false, error: 'Unsupported message type.' };
+  }
+
+  if (kind === 'media') {
+    return { ok: false, error: 'Attach a photo, audio, or video.' };
   }
 
   if (body.length < 1 || body.length > MESSAGE_MAX_LENGTH) {
@@ -186,6 +205,13 @@ export function parseChatMessageMetadata(
     return items.length > 0 ? { todo: { items } } : {};
   }
 
+  if (kind === 'media') {
+    const media = isRecord(value.media) ? value.media : value;
+    const attachment = parseChatMediaAttachment(media);
+
+    return attachment ? { media: attachment } : {};
+  }
+
   return {};
 }
 
@@ -299,6 +325,38 @@ function parseTodoItem(value: unknown): TodoItem | null {
       typeof value.completedByUserId === 'string'
         ? value.completedByUserId
         : null,
+  };
+}
+
+function parseChatMediaAttachment(value: unknown): ChatMediaAttachment | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const type =
+    typeof value.type === 'string' &&
+    chatMediaTypes.includes(value.type as ChatMediaType)
+      ? (value.type as ChatMediaType)
+      : null;
+  const key = typeof value.key === 'string' ? value.key.trim() : '';
+  const url = typeof value.url === 'string' ? value.url.trim() : '';
+  const filename =
+    typeof value.filename === 'string' ? value.filename.trim() : '';
+  const mimeType =
+    typeof value.mimeType === 'string' ? value.mimeType.trim() : '';
+  const size = typeof value.size === 'number' ? value.size : 0;
+
+  if (!type || !key || !url || !filename || !mimeType || size <= 0) {
+    return null;
+  }
+
+  return {
+    key,
+    url,
+    filename,
+    mimeType,
+    size,
+    type,
   };
 }
 

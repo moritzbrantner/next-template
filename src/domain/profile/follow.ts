@@ -4,6 +4,7 @@ export {
   listFriendProfilesUseCase,
   listFollowingProfilesUseCase,
   searchUsersToFollowUseCase,
+  sendProfileMediaMessageUseCase,
   sendProfileMessageUseCase,
   unfollowUserUseCase,
   updateProfileChatMessageUseCase,

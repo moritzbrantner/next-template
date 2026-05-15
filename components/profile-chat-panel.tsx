@@ -53,18 +53,23 @@ export function ProfileChatPanel({
     setError(null);
 
     try {
+      const body = input.attachment
+        ? buildMediaMessageFormData(member.userId, input)
+        : JSON.stringify({
+            userId: member.userId,
+            message: input.body,
+            kind: input.kind,
+            options: input.options,
+            items: input.items,
+          });
       const response = await fetch('/api/profile/message', {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: member.userId,
-          message: input.body,
-          kind: input.kind,
-          options: input.options,
-          items: input.items,
-        }),
+        headers: input.attachment
+          ? undefined
+          : {
+              'content-type': 'application/json',
+            },
+        body,
       });
 
       if (!response.ok) {
@@ -241,6 +246,10 @@ function getProfileChatLabels(
     textMode: t('composer.text'),
     pollMode: t('composer.poll'),
     todoMode: t('composer.todo'),
+    attachMedia: t('composer.attachMedia'),
+    attachmentSelected: t('composer.attachmentSelected'),
+    removeAttachment: t('composer.removeAttachment'),
+    openAttachment: t('composer.openAttachment'),
     messagePlaceholder: t('messagePlaceholder'),
     pollPlaceholder: t('composer.pollPlaceholder'),
     todoPlaceholder: t('composer.todoPlaceholder'),
@@ -254,6 +263,19 @@ function getProfileChatLabels(
     voted: t('voted'),
     completeItem: t('completeItem'),
   };
+}
+
+function buildMediaMessageFormData(userId: string, input: ChatMessageInput) {
+  const formData = new FormData();
+  formData.set('userId', userId);
+  formData.set('message', input.body);
+  formData.set('kind', 'media');
+
+  if (input.attachment) {
+    formData.set('attachment', input.attachment);
+  }
+
+  return formData;
 }
 
 function Avatar({

@@ -19,6 +19,10 @@ import {
   type ChatMessageMetadata,
 } from '@/src/domain/chat/messages';
 import {
+  ChatMediaValidationError,
+  validateChatMediaUpload,
+} from '@/src/domain/chat/media';
+import {
   ImageValidationError,
   validateBannerImageUpload,
   validateImageUpload,
@@ -26,6 +30,7 @@ import {
 import {
   buildProfileImageUrl,
   deleteProfileImage,
+  uploadChatMedia,
   uploadProfileBannerImage,
   uploadProfileImage,
 } from '@/src/profile/object-storage';
@@ -110,6 +115,11 @@ export type ProfileFollowMutationPayload = {
 
 export type ProfileMessagePayload = {
   message: ProfileChatMessage;
+};
+
+export type ProfileMediaMessageInput = {
+  body?: string;
+  file: File;
 };
 
 export type ProfileChatMessage = {
@@ -852,6 +862,110 @@ export async function sendProfileMessageUseCase(
   return success({
     message: toProfileChatMessage(createdMessage),
   });
+}
+
+export async function sendProfileMediaMessageUseCase(
+  actorUserId: string,
+  targetUserId: string,
+  input: ProfileMediaMessageInput,
+  deps: ProfileUseCaseDeps = getProfileUseCaseDeps(),
+): Promise<ServiceResult<ProfileMessagePayload, ProfileError>> {
+  if (actorUserId === targetUserId) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: 'You cannot message your own profile.',
+    });
+  }
+
+  const caption = input.body?.trim() ?? '';
+
+  if (caption.length > 500) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: 'Messages must be 500 characters or fewer.',
+    });
+  }
+
+  const [senderUser, targetUser] = await Promise.all([
+    deps.findUserById(actorUserId),
+    deps.findUserById(targetUserId),
+  ]);
+
+  if (!senderUser || !targetUser) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'User account was not found.',
+    });
+  }
+
+  const blockState = await deps.getBlockRelationshipState(
+    actorUserId,
+    targetUserId,
+  );
+
+  if (blockState.isBlockedByViewer || blockState.hasBlockedViewer) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You cannot message this user.',
+    });
+  }
+
+  const [actorFollowsTarget, targetFollowsActor] = await Promise.all([
+    deps.hasFollowRelationship(actorUserId, targetUserId),
+    deps.hasFollowRelationship(targetUserId, actorUserId),
+  ]);
+
+  if (!actorFollowsTarget || !targetFollowsActor) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'You can only message friends.',
+    });
+  }
+
+  try {
+    const validated = await validateChatMediaUpload(input.file);
+    const uploaded = await uploadChatMedia(actorUserId, validated);
+    const body = caption || validated.filename;
+    const senderName = resolveProfileDisplayName(senderUser);
+
+    try {
+      const createdMessage = await deps.createProfileMessageNotification({
+        senderUserId: actorUserId,
+        targetUserId,
+        title: `${senderName} sent you a ${validated.type}`,
+        body,
+        kind: 'media',
+        metadata: {
+          media: {
+            key: uploaded.key,
+            url: uploaded.url,
+            filename: validated.filename,
+            mimeType: validated.mimeType,
+            size: validated.size,
+            type: validated.type,
+          },
+        },
+        href: buildProfileChatPath(actorUserId),
+        createdAt: new Date(),
+      });
+
+      return success({
+        message: toProfileChatMessage(createdMessage),
+      });
+    } catch (error) {
+      await deleteProfileImage(uploaded.key);
+      throw error;
+    }
+  } catch (error) {
+    if (error instanceof ChatMediaValidationError) {
+      return failure({
+        code: 'VALIDATION_ERROR',
+        message: error.message,
+      });
+    }
+
+    throw error;
+  }
 }
 
 export async function updateProfileChatMessageUseCase(

@@ -1,11 +1,27 @@
 'use client';
 
-import { BarChart3, ListChecks, MessageSquare, Pin, Send } from 'lucide-react';
-import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import {
+  BarChart3,
+  ListChecks,
+  MessageSquare,
+  Paperclip,
+  Pin,
+  Send,
+  X,
+} from 'lucide-react';
+import {
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+} from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { chatMediaConstraints } from '@/src/domain/chat/media';
 import type {
   ChatMessageInput,
   ChatMessageKind,
@@ -24,6 +40,10 @@ export type ChatMessageLabels = {
   textMode: string;
   pollMode: string;
   todoMode: string;
+  attachMedia: string;
+  attachmentSelected: string;
+  removeAttachment: string;
+  openAttachment: string;
   messagePlaceholder: string;
   pollPlaceholder: string;
   todoPlaceholder: string;
@@ -51,7 +71,12 @@ export function ChatMessageComposer({
 }: ChatMessageComposerProps) {
   const [kind, setKind] = useState<ChatMessageKind>('text');
   const [draft, setDraft] = useState('');
-  const input = useMemo(() => buildMessageInput(kind, draft), [draft, kind]);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const input = useMemo(
+    () => buildMessageInput(kind, draft, attachment),
+    [attachment, draft, kind],
+  );
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,7 +87,29 @@ export function ChatMessageComposer({
 
     await onSubmit(input);
     setDraft('');
+    setAttachment(null);
     setKind('text');
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setAttachment(file);
+
+    if (file) {
+      setKind('text');
+    }
+  }
+
+  function clearAttachment() {
+    setAttachment(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }
 
   return (
@@ -71,25 +118,69 @@ export function ChatMessageComposer({
         <ModeButton
           active={kind === 'text'}
           label={labels.textMode}
-          onClick={() => setKind('text')}
+          onClick={() => {
+            setKind('text');
+          }}
         >
           <MessageSquare className="h-4 w-4" aria-hidden="true" />
         </ModeButton>
         <ModeButton
           active={kind === 'poll'}
           label={labels.pollMode}
-          onClick={() => setKind('poll')}
+          onClick={() => {
+            clearAttachment();
+            setKind('poll');
+          }}
         >
           <BarChart3 className="h-4 w-4" aria-hidden="true" />
         </ModeButton>
         <ModeButton
           active={kind === 'todo'}
           label={labels.todoMode}
-          onClick={() => setKind('todo')}
+          onClick={() => {
+            clearAttachment();
+            setKind('todo');
+          }}
         >
           <ListChecks className="h-4 w-4" aria-hidden="true" />
         </ModeButton>
+        <Button
+          type="button"
+          size="sm"
+          variant={attachment ? 'default' : 'outline'}
+          className="gap-2"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Paperclip className="h-4 w-4" aria-hidden="true" />
+          {labels.attachMedia}
+        </Button>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={chatMediaConstraints.allowedMimeTypes.join(',')}
+        className="sr-only"
+        onChange={handleFileChange}
+        aria-label={labels.attachMedia}
+      />
+
+      {attachment ? (
+        <div className="flex items-center justify-between gap-3 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <span className="min-w-0 truncate">
+            {labels.attachmentSelected} {attachment.name}
+          </span>
+          <button
+            type="button"
+            onClick={clearAttachment}
+            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-200 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+            aria-label={labels.removeAttachment}
+            title={labels.removeAttachment}
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      ) : null}
 
       <Textarea
         value={draft}
@@ -137,6 +228,56 @@ export function ChatMessageContent({
   onVote: (messageId: string, optionId: string) => void;
   onToggleTodo: (messageId: string, itemId: string, completed: boolean) => void;
 }) {
+  if (message.kind === 'media' && message.metadata.media) {
+    const media = message.metadata.media;
+    const caption =
+      message.body.trim() && message.body.trim() !== media.filename
+        ? message.body
+        : '';
+
+    return (
+      <div className="space-y-2">
+        {media.type === 'photo' ? (
+          <img
+            src={media.url}
+            alt={caption || media.filename}
+            className="max-h-80 w-full rounded-md object-contain"
+          />
+        ) : media.type === 'audio' ? (
+          <audio controls className="w-full" src={media.url}>
+            <a href={media.url}>{media.filename}</a>
+          </audio>
+        ) : (
+          <video
+            controls
+            preload="metadata"
+            className="max-h-80 w-full rounded-md bg-black"
+            src={media.url}
+          >
+            <a href={media.url}>{media.filename}</a>
+          </video>
+        )}
+        {caption ? (
+          <p className="whitespace-pre-wrap break-words">{caption}</p>
+        ) : null}
+        <a
+          href={media.url}
+          target="_blank"
+          rel="noreferrer"
+          className={[
+            'block truncate text-xs underline-offset-2 hover:underline',
+            isOwnMessage
+              ? 'text-zinc-300 dark:text-zinc-600'
+              : 'text-zinc-500 dark:text-zinc-400',
+          ].join(' ')}
+          title={labels.openAttachment}
+        >
+          {media.filename} &middot; {formatFileSize(media.size)}
+        </a>
+      </div>
+    );
+  }
+
   if (message.kind === 'poll' && message.metadata.poll) {
     const options = message.metadata.poll.options;
     const totalVotes = options.reduce(
@@ -325,7 +466,12 @@ function ModeButton({
 function buildMessageInput(
   kind: ChatMessageKind,
   draft: string,
+  attachment: File | null,
 ): ChatMessageInput | null {
+  if (attachment) {
+    return { body: draft.trim(), kind: 'media', attachment };
+  }
+
   const lines = draft
     .split('\n')
     .map((line) => line.trim())
@@ -347,4 +493,16 @@ function buildMessageInput(
   }
 
   return entries.length >= 1 ? { body, kind, items: entries } : null;
+}
+
+function formatFileSize(size: number) {
+  if (size < 1024) {
+    return `${size} B`;
+  }
+
+  if (size < 1024 * 1024) {
+    return `${Math.round(size / 1024)} KB`;
+  }
+
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
 }

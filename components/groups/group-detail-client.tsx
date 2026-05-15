@@ -249,18 +249,23 @@ export function GroupDetailClient({
     setMessageFeedback(null);
 
     try {
+      const body = input.attachment
+        ? buildGroupMediaMessageFormData(group.id, input)
+        : JSON.stringify({
+            groupId: group.id,
+            message: input.body,
+            kind: input.kind,
+            options: input.options,
+            items: input.items,
+          });
       const response = await fetch('/api/groups/messages', {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          groupId: group.id,
-          message: input.body,
-          kind: input.kind,
-          options: input.options,
-          items: input.items,
-        }),
+        headers: input.attachment
+          ? undefined
+          : {
+              'content-type': 'application/json',
+            },
+        body,
       });
 
       if (!response.ok) {
@@ -590,6 +595,10 @@ function getGroupChatLabels(
     textMode: t('detail.chatComposer.text'),
     pollMode: t('detail.chatComposer.poll'),
     todoMode: t('detail.chatComposer.todo'),
+    attachMedia: t('detail.chatComposer.attachMedia'),
+    attachmentSelected: t('detail.chatComposer.attachmentSelected'),
+    removeAttachment: t('detail.chatComposer.removeAttachment'),
+    openAttachment: t('detail.chatComposer.openAttachment'),
     messagePlaceholder: t('detail.chatPlaceholder'),
     pollPlaceholder: t('detail.chatComposer.pollPlaceholder'),
     todoPlaceholder: t('detail.chatComposer.todoPlaceholder'),
@@ -603,6 +612,22 @@ function getGroupChatLabels(
     voted: t('detail.chatVoted'),
     completeItem: t('detail.chatCompleteItem'),
   };
+}
+
+function buildGroupMediaMessageFormData(
+  groupId: string,
+  input: ChatMessageInput,
+) {
+  const formData = new FormData();
+  formData.set('groupId', groupId);
+  formData.set('message', input.body);
+  formData.set('kind', 'media');
+
+  if (input.attachment) {
+    formData.set('attachment', input.attachment);
+  }
+
+  return formData;
 }
 
 function UserRow({

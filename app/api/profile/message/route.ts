@@ -1,6 +1,7 @@
 import * as z from 'zod';
 
 import {
+  sendProfileMediaMessageUseCase,
   sendProfileMessageUseCase,
   updateProfileChatMessageUseCase,
 } from '@/src/domain/profile/use-cases';
@@ -9,10 +10,11 @@ import { createApiRoute } from '@/src/http/route';
 
 const messageBodySchema = z.object({
   userId: z.string().min(1),
-  message: z.string().min(1).max(500),
-  kind: z.enum(['text', 'poll', 'todo']).optional(),
+  message: z.string().max(500).optional().default(''),
+  kind: z.enum(['text', 'poll', 'todo', 'media']).optional(),
   options: z.array(z.string()).optional(),
   items: z.array(z.string()).optional(),
+  attachment: z.instanceof(File).optional(),
 });
 
 const messageUpdateBodySchema = z.object({
@@ -52,6 +54,26 @@ export const POST = createApiRoute({
   permission: 'profile.follow',
   bodySchema: messageBodySchema,
   async handler({ actorId, body }) {
+    if (body.attachment) {
+      const result = await sendProfileMediaMessageUseCase(
+        actorId!,
+        body.userId,
+        {
+          body: body.message,
+          file: body.attachment,
+        },
+      );
+
+      if (!result.ok) {
+        throw mapMessageProblem(result.error.code, result.error.message);
+      }
+
+      return {
+        ok: true,
+        message: result.data.message,
+      };
+    }
+
     const result = await sendProfileMessageUseCase(actorId!, body.userId, {
       body: body.message,
       kind: body.kind,
