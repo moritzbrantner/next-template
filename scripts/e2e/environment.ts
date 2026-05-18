@@ -16,6 +16,14 @@ const DEFAULT_MINIO_ROOT_USER = 'minioadmin';
 const DEFAULT_MINIO_ROOT_PASSWORD = 'minioadmin';
 const DEFAULT_PROFILE_IMAGE_STORAGE_BUCKET = 'profile-images';
 const DEFAULT_PROFILE_IMAGE_STORAGE_REGION = 'us-east-1';
+const PROJECT_PROFILE_IMAGE_STORAGE_PLACEHOLDERS: Record<string, string> = {
+  PROFILE_IMAGE_STORAGE_ENDPOINT: 'https://example.r2.cloudflarestorage.com',
+  PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID: 'replace-me',
+  PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY: 'replace-me',
+  PROFILE_IMAGE_PUBLIC_BASE_URL: 'https://cdn.example.com/profile-images',
+  PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE: 'false',
+  PROFILE_IMAGE_STORAGE_REGION: 'auto',
+};
 const APP_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../..',
@@ -115,8 +123,16 @@ function getE2EEnvironmentValue(
 ) {
   const processValue = process.env[key];
   const projectEnvironmentValue = loadProjectEnvironment()[key];
+  const isStoragePlaceholder =
+    processValue !== undefined &&
+    isProjectProfileImageStoragePlaceholder(key, processValue);
 
-  if (processValue !== undefined && processValue !== projectEnvironmentValue) {
+  if (
+    processValue !== undefined &&
+    !isStoragePlaceholder &&
+    (isProjectProfileImageStorageKey(key) ||
+      processValue !== projectEnvironmentValue)
+  ) {
     return processValue;
   }
 
@@ -126,6 +142,56 @@ function getE2EEnvironmentValue(
     exampleEnvironment[key] ??
     fallback
   );
+}
+
+function trimTrailingSlash(value: string) {
+  return value.replace(/\/+$/u, '');
+}
+
+function isProjectProfileImageStorageKey(key: string) {
+  return key in PROJECT_PROFILE_IMAGE_STORAGE_PLACEHOLDERS;
+}
+
+function isProjectProfileImageStoragePlaceholder(key: string, value: string) {
+  const expectedValue = PROJECT_PROFILE_IMAGE_STORAGE_PLACEHOLDERS[key];
+
+  if (!expectedValue || !hasProjectProfileImageStoragePlaceholderSignal()) {
+    return false;
+  }
+
+  if (
+    key === 'PROFILE_IMAGE_STORAGE_ENDPOINT' ||
+    key === 'PROFILE_IMAGE_PUBLIC_BASE_URL'
+  ) {
+    return trimTrailingSlash(value) === trimTrailingSlash(expectedValue);
+  }
+
+  return value === expectedValue;
+}
+
+function hasProjectProfileImageStoragePlaceholderSignal() {
+  return [
+    'PROFILE_IMAGE_STORAGE_ENDPOINT',
+    'PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID',
+    'PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY',
+    'PROFILE_IMAGE_PUBLIC_BASE_URL',
+  ].some((key) => {
+    const value = process.env[key];
+    const expectedValue = PROJECT_PROFILE_IMAGE_STORAGE_PLACEHOLDERS[key];
+
+    if (value === undefined || expectedValue === undefined) {
+      return false;
+    }
+
+    if (
+      key === 'PROFILE_IMAGE_STORAGE_ENDPOINT' ||
+      key === 'PROFILE_IMAGE_PUBLIC_BASE_URL'
+    ) {
+      return trimTrailingSlash(value) === trimTrailingSlash(expectedValue);
+    }
+
+    return value === expectedValue;
+  });
 }
 
 export function getE2EBaseURL() {

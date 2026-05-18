@@ -95,7 +95,7 @@ describe('e2e environment', () => {
   it('prefers e2e storage defaults over project .env placeholders', () => {
     clearE2EEnvironment();
     process.env.PROFILE_IMAGE_STORAGE_ENDPOINT =
-      'https://example.r2.cloudflarestorage.com';
+      'https://example.r2.cloudflarestorage.com/';
     process.env.PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID = 'replace-me';
     process.env.PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY = 'replace-me';
     process.env.PROFILE_IMAGE_PUBLIC_BASE_URL =
@@ -117,5 +117,34 @@ describe('e2e environment', () => {
     );
     expect(environment.PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE).toBe('true');
     expect(environment.PROFILE_IMAGE_STORAGE_REGION).toBe('us-east-1');
+  });
+
+  it('keeps caller-provided non-placeholder object storage overrides', () => {
+    clearE2EEnvironment();
+    process.env.PROFILE_IMAGE_STORAGE_ENDPOINT =
+      'https://account-id.r2.cloudflarestorage.com';
+    process.env.PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID = 'access-key-id';
+    process.env.PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY = 'secret-access-key';
+    process.env.PROFILE_IMAGE_PUBLIC_BASE_URL =
+      'https://cdn.test/profile-images';
+    process.env.PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE = 'false';
+    process.env.PROFILE_IMAGE_STORAGE_REGION = 'auto';
+
+    const environment = createE2EEnvironment();
+
+    expect(environment.PROFILE_IMAGE_STORAGE_ENDPOINT).toBe(
+      'https://account-id.r2.cloudflarestorage.com',
+    );
+    expect(environment.PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID).toBe(
+      'access-key-id',
+    );
+    expect(environment.PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY).toBe(
+      'secret-access-key',
+    );
+    expect(environment.PROFILE_IMAGE_PUBLIC_BASE_URL).toBe(
+      'https://cdn.test/profile-images',
+    );
+    expect(environment.PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE).toBe('false');
+    expect(environment.PROFILE_IMAGE_STORAGE_REGION).toBe('auto');
   });
 });
