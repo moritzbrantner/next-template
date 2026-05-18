@@ -189,6 +189,8 @@ else
 fi
 
 if (( ${#STARTED_SERVICES[@]} > 0 )); then
+  COMPOSE_SERVICES=""
+
   if ! docker_available; then
     echo "❌ Required e2e services are unavailable, and Docker is not available." >&2
     echo "   Start Postgres/Mailpit yourself or run with Docker available." >&2
@@ -200,11 +202,16 @@ if (( ${#STARTED_SERVICES[@]} > 0 )); then
     exit 1
   fi
 
+  if ! COMPOSE_SERVICES="$(
+    cd "$APP_ROOT"
+    docker_compose config --services
+  )"; then
+    echo "❌ Failed to read docker compose services from $COMPOSE_FILE_PATH." >&2
+    exit 1
+  fi
+
   for service in "${STARTED_SERVICES[@]}"; do
-    if ! (
-      cd "$APP_ROOT"
-      docker_compose config --services | grep -Fxq "$service"
-    ); then
+    if ! grep -Fxq "$service" <<<"$COMPOSE_SERVICES"; then
       echo "❌ docker compose service '$service' is not defined in $APP_ROOT." >&2
       exit 1
     fi
