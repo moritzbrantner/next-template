@@ -25,11 +25,12 @@
 ### API hardening
 
 - **Status:** done
-- **Summary:** Shared rate limiting and audit logging protect public and privileged HTTP endpoints.
+- **Summary:** Shared rate limiting and audit logging protect public and privileged HTTP endpoints. Problem reports now persist to Postgres and are triaged from the admin workspace.
 - **Acceptance criteria:**
   - [x] Shared security helper handles rate limits and audit outcomes.
   - [x] Auth, account, profile, newsletter, report, data-entry, and admin mutation endpoints use the helper.
   - [x] Audit metadata is sanitized before persistence.
+  - [x] Problem-report submissions return stable references and remain reviewable by admins.
 
 ### Example accelerators
 
@@ -39,3 +40,12 @@
   - [x] Example pages are clearly separated from the core app surface.
   - [x] Example REST data is served from `/api/examples/*`.
   - [x] Home and navigation entry points label these routes as examples.
+
+### Localization
+
+- **Status:** done
+- **Summary:** The scaffold supports English, German, French, and Spanish routing with explicit message catalogs and localized repo-managed MDX content.
+- **Acceptance criteria:**
+  - [x] Locale catalogs are shape-checked across all supported locales.
+  - [x] Showcase app-pack messages cover each public page namespace.
+  - [x] Blog, changelog, and page content roots contain MDX for each supported locale.

@@ -74,6 +74,11 @@ export const groupVisibilityEnum = pgEnum('GroupVisibility', [
   'PUBLIC',
   'PRIVATE',
 ]);
+export const problemReportStatusEnum = pgEnum('ProblemReportStatus', [
+  'open',
+  'triaged',
+  'closed',
+]);
 
 export const users = pgTable(
   'User',
@@ -442,6 +447,38 @@ export const newsletterSubscriptions = pgTable(
   (table) => [
     uniqueIndex('NewsletterSubscription_email_key').on(table.email),
     index('NewsletterSubscription_locale_idx').on(table.locale),
+  ],
+);
+
+export const problemReports = pgTable(
+  'ProblemReport',
+  {
+    id: text('id').primaryKey(),
+    referenceId: text('referenceId').notNull(),
+    name: text('name'),
+    email: text('email').notNull(),
+    area: text('area').notNull(),
+    pageUrl: text('pageUrl'),
+    subject: text('subject').notNull(),
+    details: text('details').notNull(),
+    status: problemReportStatusEnum('status').notNull().default('open'),
+    adminNote: text('adminNote'),
+    closedAt: timestamp('closedAt', { withTimezone: false, mode: 'date' }),
+    createdAt: timestamp('createdAt', { withTimezone: false, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updatedAt', { withTimezone: false, mode: 'date' })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('ProblemReport_referenceId_key').on(table.referenceId),
+    index('ProblemReport_status_createdAt_idx').on(
+      table.status,
+      table.createdAt,
+    ),
+    index('ProblemReport_area_idx').on(table.area),
+    index('ProblemReport_email_idx').on(table.email),
   ],
 );
 

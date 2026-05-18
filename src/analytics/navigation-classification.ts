@@ -46,6 +46,8 @@ const DISPLAY_LABELS: Record<string, string> = {
   '/admin/reports/[reportId]': 'Admin report',
   '/admin/users': 'Admin users',
   '/admin/users/[userId]': 'Admin user detail',
+  '/admin/problem-reports': 'Admin problem reports',
+  '/admin/problem-reports/[reportId]': 'Admin problem report',
   '/admin/email-templates': 'Admin email templates',
   '/admin/system-settings': 'Admin system settings',
   '/admin/data-studio': 'Admin data studio',
@@ -117,6 +119,8 @@ export function classifyNavigationPathname(
       return buildClassification('/admin/reports', 'admin');
     case '/admin/users':
       return buildClassification('/admin/users', 'admin');
+    case '/admin/problem-reports':
+      return buildClassification('/admin/problem-reports', 'admin');
     case '/admin/email-templates':
       return buildClassification('/admin/email-templates', 'admin');
     case '/admin/system-settings':
@@ -173,6 +177,14 @@ export function classifyNavigationPathname(
     segments.length === 3
   ) {
     return buildClassification('/admin/users/[userId]', 'admin');
+  }
+
+  if (
+    segments[0] === 'admin' &&
+    segments[1] === 'problem-reports' &&
+    segments.length === 3
+  ) {
+    return buildClassification('/admin/problem-reports/[reportId]', 'admin');
   }
 
   const resolvedPublicRoute = resolvePublicRoute(loadActiveApp(), segments);

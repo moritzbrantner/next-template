@@ -36,15 +36,16 @@ describe('admin page helpers', () => {
       'admin.content': true,
       'admin.reports': false,
       'admin.users': true,
+      reportProblem: true,
       'admin.systemSettings': false,
       'admin.dataStudio': true,
     });
 
     expect(
       getEnabledAdminPageDefinitions(manifest).map((page) => page.key),
-    ).toEqual(['overview', 'content', 'users', 'dataStudio']);
+    ).toEqual(['overview', 'content', 'users', 'problemReports', 'dataStudio']);
     expect(
       getEnabledAdminWorkspacePageDefinitions(manifest).map((page) => page.key),
-    ).toEqual(['content', 'users', 'dataStudio']);
+    ).toEqual(['content', 'users', 'problemReports', 'dataStudio']);
   });
 });

@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -15,7 +15,13 @@ describe('showcase content roots contract', () => {
         expect(existsSync(absoluteRoot)).toBe(true);
 
         for (const locale of supportedLocales) {
-          expect(existsSync(path.join(absoluteRoot, locale))).toBe(true);
+          const localeRoot = path.join(absoluteRoot, locale);
+          expect(existsSync(localeRoot)).toBe(true);
+          expect(
+            readdirSync(localeRoot).some((fileName) =>
+              fileName.endsWith('.mdx'),
+            ),
+          ).toBe(true);
         }
       }
     }

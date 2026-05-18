@@ -6,20 +6,17 @@ Ship a consistent Next.js App Router platform scaffold where the documentation, 
 
 ## Active milestone: scaffold-v2 alignment
 
-- Make Next.js 16 App Router the single documented runtime
-- Keep `app.manifest.ts` aligned with the standalone scaffold contract
-- Consume `ui` and `storytelling` from `platform-packages`
-- Add contract coverage around the showcase app-pack seam
-- Split oversized service modules behind stable barrel exports
+- Keep `app.manifest.ts` aligned with the standalone scaffold contract.
+- Keep registered showcase routes, messages, content roots, and example APIs covered by contract tests.
+- Keep local app-pack package exports aligned with built `dist` artifacts.
 
-## Follow-up milestone: package and app-pack ergonomics
+## Follow-up milestone: service-module ergonomics
 
-- Tighten package release documentation
-- Keep app-pack route/message/content contracts aligned with tests
-- Reassess a future `apps/web` relocation only after package boundaries are stable
+- Continue decomposing oversized domain modules behind stable public imports.
+- Reassess a future `apps/web` relocation only after package boundaries remain stable.
 
 ## Risks
 
 - App-pack drift if manifest changes land without contract tests
 - Workspace package drift if public entrypoints change without verification
-- Large service modules still need ongoing decomposition after the first split
+- Large service modules still need ongoing decomposition without changing public imports.

@@ -33,16 +33,21 @@ describe('navigation classification', () => {
     });
   });
 
-  it('classifies profile routes and removed showcase paths', () => {
+  it('classifies profile routes and registered showcase paths', () => {
     expect(classifyNavigationPathname('/en/profile/@alice/followers')).toEqual({
       canonicalPath: '/profile/[userId]/followers',
       routeGroup: 'public',
       displayLabel: 'Profile followers',
     });
     expect(classifyNavigationPathname('/en/forms')).toEqual({
-      canonicalPath: '/[unknown]',
-      routeGroup: 'unknown',
-      displayLabel: 'Unknown route',
+      canonicalPath: '/[publicSlug*]',
+      routeGroup: 'public',
+      displayLabel: 'Public page',
+    });
+    expect(classifyNavigationPathname('/en/admin/problem-reports/1')).toEqual({
+      canonicalPath: '/admin/problem-reports/[reportId]',
+      routeGroup: 'admin',
+      displayLabel: 'Admin problem report',
     });
   });
 });

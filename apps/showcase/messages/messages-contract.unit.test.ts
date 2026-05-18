@@ -17,6 +17,21 @@ const messagesByLocale = {
   es: esMessages,
 } as const;
 
+function collectShape(value: unknown, prefix = ''): string[] {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return [prefix];
+  }
+
+  return Object.keys(value)
+    .sort()
+    .flatMap((key) =>
+      collectShape(
+        (value as Record<string, unknown>)[key],
+        prefix ? `${prefix}.${key}` : key,
+      ),
+    );
+}
+
 describe('showcase message contract', () => {
   it('covers every public page namespace in every supported locale', () => {
     const englishNamespaces = new Set(Object.keys(enMessages));
@@ -30,6 +45,7 @@ describe('showcase message contract', () => {
 
       expect(localeNamespaces).toEqual(englishNamespaces);
       expect(missingNamespaces).toEqual([]);
+      expect(collectShape(localeMessages)).toEqual(collectShape(enMessages));
     }
   });
 });

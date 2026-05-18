@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   resolveEnabledPublicRoute,
   resolvePublicRoute,
+  type FoundationFeatureKey,
 } from '@moritzbrantner/app-pack';
 
 import showcaseManifest from '@/apps/showcase/manifest';
@@ -36,30 +37,52 @@ describe('showcase manifest contract', () => {
     }
   });
 
-  it('keeps temporary showcase routes unregistered', () => {
+  it('registers the showcase examples behind feature-gated routes and aliases', () => {
+    const registeredExamples = [
+      ['forms', 'showcase.forms'],
+      ['story', 'showcase.story'],
+      ['communication', 'showcase.communication'],
+      ['chat', 'showcase.chat'],
+      ['uploads', 'showcase.uploads'],
+      ['remocn', 'showcase.remocn'],
+      ['table', 'showcase.employeeTable'],
+    ] as const satisfies readonly [string, FoundationFeatureKey][];
+
     expect(showcaseManifest.publicPages.map((page) => page.id)).toEqual([
       'home',
       'about',
+      ...registeredExamples.map(([pageId]) => pageId),
     ]);
 
-    for (const slug of [
-      ['remocn'],
-      ['forms'],
-      ['story'],
-      ['communication'],
-      ['chat'],
-      ['table'],
-      ['examples', 'forms'],
-      ['examples', 'story'],
-      ['examples', 'communication'],
-      ['examples', 'chat'],
-    ]) {
-      expect(resolveEnabledPublicRoute(showcaseManifest, slug)).toBeNull();
+    for (const [pageId, featureKey] of registeredExamples) {
+      expect(
+        resolveEnabledPublicRoute(showcaseManifest, ['examples', pageId])?.page
+          .id,
+      ).toBe(pageId);
+      expect(
+        resolveEnabledPublicRoute(showcaseManifest, [pageId])?.page.id,
+      ).toBe(pageId);
+
+      const disabledManifest = {
+        ...showcaseManifest,
+        enabledFeatures: {
+          ...showcaseManifest.enabledFeatures,
+          [featureKey]: false,
+        },
+      };
+
+      expect(
+        resolveEnabledPublicRoute(disabledManifest, ['examples', pageId]),
+      ).toBeNull();
+      expect(resolveEnabledPublicRoute(disabledManifest, [pageId])).toBeNull();
     }
   });
 
-  it('does not expose temporary showcase API routes', async () => {
-    expect(showcaseManifest.exampleApis).toEqual({});
+  it('exposes feature-gated showcase API routes', async () => {
+    expect(Object.keys(showcaseManifest.exampleApis)).toEqual(['employees']);
+    expect(showcaseManifest.exampleApis.employees?.featureKey).toBe(
+      'showcase.employeeTable',
+    );
   });
 
   it('supports every configured locale', () => {

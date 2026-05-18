@@ -109,8 +109,8 @@ test.describe('superadmin functionality controls', () => {
       page.getByRole('heading', { name: 'Friends', exact: true, level: 1 }),
     ).toBeVisible();
 
-    await page.getByRole('button', { name: 'Add friend' }).click();
-    const searchDialog = page.getByRole('dialog', { name: 'Add friends' });
+    await page.getByRole('button', { name: 'Find people' }).click();
+    const searchDialog = page.getByRole('dialog', { name: 'Find people' });
     await searchDialog
       .getByRole('textbox', { name: 'Search by name' })
       .fill('Ava Adler');

@@ -31,6 +31,12 @@ export const adminPageDefinitions = [
     permission: 'admin.users.read',
   },
   {
+    key: 'problemReports',
+    href: '/admin/problem-reports',
+    featureKey: 'reportProblem',
+    permission: 'admin.problemReports.read',
+  },
+  {
     key: 'emailTemplates',
     href: '/admin/email-templates',
     featureKey: 'admin.systemSettings',

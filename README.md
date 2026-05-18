@@ -1,6 +1,6 @@
 # next-template
 
-Next.js 16 App Router platform scaffold with localized routing, credential auth, account lifecycle flows, MDX + Postgres content foundations, released shared packages, and an internal app-pack seam built around `AppManifest`.
+Next.js 16 App Router platform scaffold with localized routing, credential auth, account lifecycle flows, problem-report triage, MDX + Postgres content foundations, released shared packages, and an internal app-pack seam built around `AppManifest`.
 
 ## Stack
 
@@ -10,6 +10,7 @@ Next.js 16 App Router platform scaffold with localized routing, credential auth,
 - Vitest + Playwright
 - Tailwind CSS 4
 - MDX with repo-managed content roots and DB-backed operational content
+- English, German, French, and Spanish locale catalogs/content roots
 
 ## Repository layout
 
@@ -84,7 +85,15 @@ bun run packages:test
 bun run packages:build
 ```
 
-These package commands only target the local app-pack packages. `@moritzbrantner/ui` and `@moritzbrantner/storytelling` resolve from GitHub Packages through the committed `.npmrc`.
+These package commands only target the local app-pack packages. The local packages publish built `dist` entrypoints; root typecheck and package tests build them first. `@moritzbrantner/ui` and `@moritzbrantner/storytelling` resolve from GitHub Packages through the committed `.npmrc`.
+
+## Showcase examples
+
+The active showcase app-pack registers example pages under `/examples/*` with short aliases such as `/forms`, `/story`, `/communication`, `/chat`, `/uploads`, `/remocn`, and `/table`. The employee table demo uses the feature-gated `/api/examples/employees` route.
+
+## Support reports
+
+The public `/report-problem` form persists submissions in Postgres and returns a stable `PRB-*` reference ID. Admins can review and triage submissions under `/admin/problem-reports`.
 
 ## GitHub Pages build with Unlighthouse
 

@@ -118,7 +118,17 @@ export const foundationFeatureModules: readonly FoundationFeatureModule[] = [
   },
   {
     featureKey: 'showcase.employeeTable',
-    requiredMessageNamespaces: [],
+    requiredMessageNamespaces: ['TablePage'],
+    requiredContentCollections: [],
+  },
+  {
+    featureKey: 'showcase.chat',
+    requiredMessageNamespaces: ['ChatPage'],
+    requiredContentCollections: [],
+  },
+  {
+    featureKey: 'showcase.uploads',
+    requiredMessageNamespaces: ['UploadsPage'],
     requiredContentCollections: [],
   },
   {

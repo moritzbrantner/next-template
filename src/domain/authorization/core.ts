@@ -21,6 +21,8 @@ export const appPermissionKeys = [
   'admin.content.edit',
   'admin.reports.read',
   'admin.reports.export',
+  'admin.problemReports.read',
+  'admin.problemReports.update',
   'admin.users.read',
   'admin.users.notify',
   'admin.roles.read',
@@ -57,6 +59,8 @@ type BusinessAction =
   | 'editAdminContent'
   | 'viewReports'
   | 'exportReports'
+  | 'readProblemReports'
+  | 'updateProblemReports'
   | 'manageUsers'
   | 'notifyUsers'
   | 'readRoleSettings'
@@ -90,6 +94,7 @@ const appAccessControl = createAccessControl({
   adminContent: ['read', 'edit'],
   reports: ['view'],
   reportExport: ['export'],
+  problemReports: ['read', 'update'],
   users: ['manage'],
   userNotification: ['send'],
   roleAssignments: ['read', 'edit'],
@@ -142,6 +147,7 @@ const baseUserPermissions = {
     adminContent: ['read', 'edit'],
     reports: ['view'],
     reportExport: ['export'],
+    problemReports: ['read', 'update'],
     users: ['manage'],
     userNotification: ['send'],
     roleAssignments: ['read'],
@@ -166,6 +172,7 @@ const baseUserPermissions = {
     adminContent: ['read', 'edit'],
     reports: ['view'],
     reportExport: ['export'],
+    problemReports: ['read', 'update'],
     users: ['manage'],
     userNotification: ['send'],
     roleAssignments: ['read', 'edit'],
@@ -233,6 +240,12 @@ const actionPermissions: Record<BusinessAction, PermissionRequest> = {
   exportReports: {
     reportExport: ['export'],
   },
+  readProblemReports: {
+    problemReports: ['read'],
+  },
+  updateProblemReports: {
+    problemReports: ['update'],
+  },
   manageUsers: {
     users: ['manage'],
   },
@@ -278,6 +291,8 @@ const permissionActionMap: Record<AppPermissionKey, BusinessAction> = {
   'admin.content.edit': 'editAdminContent',
   'admin.reports.read': 'viewReports',
   'admin.reports.export': 'exportReports',
+  'admin.problemReports.read': 'readProblemReports',
+  'admin.problemReports.update': 'updateProblemReports',
   'admin.users.read': 'manageUsers',
   'admin.users.notify': 'notifyUsers',
   'admin.roles.read': 'readRoleSettings',
@@ -386,6 +401,16 @@ export const appPermissionMetadata: Record<
     description: 'Download report exports from the admin workspace.',
     category: 'admin',
   },
+  'admin.problemReports.read': {
+    label: 'Read problem reports',
+    description: 'Review submitted support and problem reports.',
+    category: 'admin',
+  },
+  'admin.problemReports.update': {
+    label: 'Update problem reports',
+    description: 'Triage and close submitted support and problem reports.',
+    category: 'admin',
+  },
   'admin.users.read': {
     label: 'Read admin users',
     description: 'Inspect the user directory and user detail screens.',
@@ -482,6 +507,8 @@ export const defaultRolePermissionAssignments: RolePermissionAssignments = {
     'admin.content.edit',
     'admin.reports.read',
     'admin.reports.export',
+    'admin.problemReports.read',
+    'admin.problemReports.update',
     'admin.users.read',
     'admin.users.notify',
     'admin.roles.read',
@@ -509,6 +536,8 @@ export const defaultRolePermissionAssignments: RolePermissionAssignments = {
     'admin.content.edit',
     'admin.reports.read',
     'admin.reports.export',
+    'admin.problemReports.read',
+    'admin.problemReports.update',
     'admin.users.read',
     'admin.users.notify',
     'admin.roles.read',
@@ -680,6 +709,18 @@ export function canViewReports(role: AppRole | null | undefined): boolean {
 
 export function canExportReports(role: AppRole | null | undefined): boolean {
   return hasPermission(role, 'admin.reports.export');
+}
+
+export function canReadProblemReports(
+  role: AppRole | null | undefined,
+): boolean {
+  return hasPermission(role, 'admin.problemReports.read');
+}
+
+export function canUpdateProblemReports(
+  role: AppRole | null | undefined,
+): boolean {
+  return hasPermission(role, 'admin.problemReports.update');
 }
 
 export function canAccessDataEntryWorkspace(

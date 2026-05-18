@@ -28,6 +28,8 @@ export const foundationFeatureKeys = [
   'showcase.communication',
   'showcase.remocn',
   'showcase.employeeTable',
+  'showcase.chat',
+  'showcase.uploads',
   'showcase.unlighthouse',
 ] as const;
 

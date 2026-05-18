@@ -169,6 +169,13 @@
       "when": 1778093368274,
       "tag": "0023_moaning_tempest",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1779130964341,
+      "tag": "0024_wandering_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

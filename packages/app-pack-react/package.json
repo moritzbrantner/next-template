@@ -8,15 +8,15 @@
     "directory": "packages/app-pack-react"
   },
   "files": [
-    "src"
+    "dist"
   ],
   "type": "module",
-  "main": "./src/index.tsx",
-  "types": "./src/index.tsx",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.tsx",
-      "import": "./src/index.tsx"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "publishConfig": {

@@ -16,7 +16,7 @@ test('navbar groups destinations into categories and reveals submenu links on cl
 
   await expect(page.getByRole('button', { name: 'Discover' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Social' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Workspace' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Workspace' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'About' })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Discover' }).click();

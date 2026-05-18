@@ -105,10 +105,16 @@ describe('app routes', () => {
         'memberChat',
         'groups',
         'notifications',
-        'dataEntry',
         'profile',
         'settings',
         'admin',
+        'adminContent',
+        'adminReports',
+        'adminUsers',
+        'adminProblemReports',
+        'adminEmailTemplates',
+        'adminSystemSettings',
+        'adminDataStudio',
       ],
     },
     {
@@ -123,7 +129,18 @@ describe('app routes', () => {
         'profile',
         'settings',
       ],
-      hiddenKeys: ['login', 'register', 'dataEntry', 'admin'],
+      hiddenKeys: [
+        'login',
+        'register',
+        'admin',
+        'adminContent',
+        'adminReports',
+        'adminUsers',
+        'adminProblemReports',
+        'adminEmailTemplates',
+        'adminSystemSettings',
+        'adminDataStudio',
+      ],
     },
     {
       label: 'managers',
@@ -137,7 +154,18 @@ describe('app routes', () => {
         'profile',
         'settings',
       ],
-      hiddenKeys: ['login', 'register', 'dataEntry', 'admin'],
+      hiddenKeys: [
+        'login',
+        'register',
+        'admin',
+        'adminContent',
+        'adminReports',
+        'adminUsers',
+        'adminProblemReports',
+        'adminEmailTemplates',
+        'adminSystemSettings',
+        'adminDataStudio',
+      ],
     },
     {
       label: 'admins',
@@ -147,10 +175,16 @@ describe('app routes', () => {
         'memberChat',
         'groups',
         'notifications',
-        'dataEntry',
         'profile',
         'settings',
         'admin',
+        'adminContent',
+        'adminReports',
+        'adminUsers',
+        'adminProblemReports',
+        'adminEmailTemplates',
+        'adminSystemSettings',
+        'adminDataStudio',
       ],
       hiddenKeys: ['login', 'register'],
     },
@@ -161,10 +195,16 @@ describe('app routes', () => {
         'friends',
         'groups',
         'notifications',
-        'dataEntry',
         'profile',
         'settings',
         'admin',
+        'adminContent',
+        'adminReports',
+        'adminUsers',
+        'adminProblemReports',
+        'adminEmailTemplates',
+        'adminSystemSettings',
+        'adminDataStudio',
       ],
       hiddenKeys: ['login', 'register'],
     },
@@ -203,7 +243,7 @@ describe('app routes', () => {
     expect(visiblePageKeys.has('notifications')).toBe(false);
     expect(visiblePageKeys.has('friends')).toBe(false);
     expect(visiblePageKeys.has('memberChat')).toBe(false);
-    expect(visiblePageKeys.has('dataEntry')).toBe(false);
+    expect(visiblePageKeys.has('adminDataStudio')).toBe(false);
   });
 
   it('does not let a raw permission set bypass admin route visibility', () => {
@@ -215,7 +255,7 @@ describe('app routes', () => {
       }).map((page) => page.key),
     );
 
-    expect(visiblePageKeys.has('dataEntry')).toBe(false);
+    expect(visiblePageKeys.has('adminDataStudio')).toBe(false);
     expect(visiblePageKeys.has('admin')).toBe(false);
   });
 });

@@ -6,6 +6,7 @@ export {
   jobOutboxStatusEnum,
   notificationAudienceEnum,
   notificationStatusEnum,
+  problemReportStatusEnum,
   roleEnum,
   siteAnnouncementStatusEnum,
 } from './legacy';

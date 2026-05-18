@@ -86,4 +86,25 @@ describe('navigation categories', () => {
 
     expect(groupedKeys.has('settings')).toBe(false);
   });
+
+  it('gathers admin workspaces into the admin category', () => {
+    const categories = buildNavigationCategories({
+      isAuthenticated: true,
+      role: 'ADMIN',
+    });
+    const adminCategory = categories.find(
+      (category) => category.key === 'admin',
+    );
+
+    expect(adminCategory?.links.map((link) => link.key)).toEqual([
+      'admin',
+      'adminContent',
+      'adminReports',
+      'adminUsers',
+      'adminProblemReports',
+      'adminEmailTemplates',
+      'adminSystemSettings',
+      'adminDataStudio',
+    ]);
+  });
 });

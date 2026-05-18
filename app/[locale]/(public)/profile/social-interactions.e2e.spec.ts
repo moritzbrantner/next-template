@@ -113,14 +113,21 @@ test.describe('social interactions', () => {
     ).toBeVisible();
     await expect(getFriendsCard(page)).toContainText('Alice Archer');
     await expect(getFriendsCard(page)).toContainText('Bob Baker');
+    const existingCaseyEntry = getFriendsEntry(page, 'Casey Carter');
+    if ((await existingCaseyEntry.count()) > 0) {
+      await existingCaseyEntry
+        .getByRole('button', { name: 'Unfollow' })
+        .click();
+      await expect(existingCaseyEntry).toHaveCount(0);
+    }
 
-    await page.getByRole('button', { name: 'Add friend' }).click();
-    const searchDialog = page.getByRole('dialog', { name: 'Add friends' });
+    await page.getByRole('button', { name: 'Find people' }).click();
+    const searchDialog = page.getByRole('dialog', { name: 'Find people' });
     await searchDialog
       .getByRole('textbox', { name: 'Search by name' })
       .fill('Casey');
 
-    const caseySearchResult = getSearchResult(page, 'Casey Carter');
+    const caseySearchResult = getSearchResult(searchDialog, 'Casey Carter');
     await expect(caseySearchResult).toBeVisible();
     await expect(page.getByText(hiddenUser.name, { exact: true })).toHaveCount(
       0,
@@ -129,8 +136,9 @@ test.describe('social interactions', () => {
     await caseySearchResult.getByRole('button', { name: 'Follow' }).click();
 
     await expect(getFriendsCard(page)).toContainText('Casey Carter');
+    await expect(caseySearchResult.getByText('Friend')).toBeVisible();
     await expect(
-      page.getByText('No discoverable users matched your search.'),
+      caseySearchResult.getByRole('button', { name: 'Unfollow' }),
     ).toBeVisible();
 
     await searchDialog
@@ -281,11 +289,10 @@ function getFriendsCard(page: Page) {
     .first();
 }
 
-function getSearchResult(page: Page, displayName: string): Locator {
-  return page
+function getSearchResult(scope: Page | Locator, displayName: string): Locator {
+  return scope
     .locator('div.rounded-lg')
     .filter({ hasText: displayName })
-    .filter({ has: page.getByRole('button', { name: 'Follow' }) })
     .first();
 }
 

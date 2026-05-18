@@ -50,6 +50,8 @@ const manifest: AppManifest = {
 describe('@moritzbrantner/app-pack', () => {
   it('exports the foundation feature catalog', () => {
     expect(foundationFeatureKeys).toContain('showcase.forms');
+    expect(foundationFeatureKeys).toContain('showcase.chat');
+    expect(foundationFeatureKeys).toContain('showcase.uploads');
   });
 
   it('resolves public routes and aliases from the package export surface', () => {

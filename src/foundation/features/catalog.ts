@@ -166,6 +166,18 @@ export const foundationFeatureMetadata: Record<
     category: 'showcase',
     supportsUserOverrides: false,
   },
+  'showcase.chat': {
+    label: 'Showcase chat',
+    description: 'Expose the chat example page.',
+    category: 'showcase',
+    supportsUserOverrides: false,
+  },
+  'showcase.uploads': {
+    label: 'Showcase uploads',
+    description: 'Expose the upload playground example page.',
+    category: 'showcase',
+    supportsUserOverrides: false,
+  },
   'showcase.unlighthouse': {
     label: 'Showcase unlighthouse',
     description: 'Expose the unlighthouse report page.',

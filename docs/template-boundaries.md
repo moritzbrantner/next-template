@@ -8,7 +8,7 @@
 - `lib/**`
 - `scripts/**`
 
-Foundation owns runtime plumbing, auth/session, DB, jobs, observability, route wrappers, manifest loading, feature keys, feature guards, navigation composition, and reusable UI primitives.
+Foundation owns runtime plumbing, auth/session, DB, jobs, observability, route wrappers, manifest loading, feature keys, feature guards, navigation composition, support-report triage, and reusable UI primitives.
 
 ## App-owned paths
 
@@ -29,5 +29,5 @@ App packs own public pages, public navigation, public message namespaces, public
 ## Safe edit zones for downstream repos
 
 - Change the active app by editing [`app.config.ts`](/home/moenarch/moritzbrantner/next-template/app.config.ts).
-- Add or replace public pages, public nav, app messages, public content, and example APIs under `apps/<app>/**`.
+- Add or replace public pages, public nav, app messages, public content, and manifest-registered example APIs under `apps/<app>/**`.
 - Avoid editing `src/**`, `components/**`, or `app/**` unless you are intentionally changing the foundation for all downstream consumers.
