@@ -76,6 +76,9 @@ jobs:
         run: bun run db:check
 
       - name: Build app
+        env:
+          AUTH_SECRET: ci-build-secret-ci-build-secret
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/next_template?schema=public
         run: bun run build
 
       - name: Run e2e tests
