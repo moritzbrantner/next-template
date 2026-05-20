@@ -44,7 +44,7 @@ describe('scaffold-v2 contract', () => {
     ]);
     expect(packageJson.dependencies['@moritzbrantner/ui']).toBe('^0.5.2');
     expect(packageJson.dependencies['@moritzbrantner/storytelling']).toBe(
-      '^0.2.0',
+      '^0.3.1',
     );
     expect(
       Object.values(packageJson.dependencies).some((version) =>
