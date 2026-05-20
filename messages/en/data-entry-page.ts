@@ -1,7 +1,7 @@
 export const dataEntryPage = {
-  title: 'Schema data entry',
+  title: 'Repair console data entry',
   description:
-    'Create rows for allowed tables. Access is controlled per table and role.',
+    'Create rows for repair-only tables. Access is restricted to superadmins.',
   permissions: {
     read: 'Read',
     write: 'Write',

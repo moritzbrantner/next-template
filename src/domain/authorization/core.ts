@@ -25,6 +25,7 @@ export const appPermissionKeys = [
   'admin.problemReports.update',
   'admin.users.read',
   'admin.users.notify',
+  'admin.users.manageStatus',
   'admin.roles.read',
   'admin.roles.edit',
   'admin.systemSettings.read',
@@ -63,6 +64,7 @@ type BusinessAction =
   | 'updateProblemReports'
   | 'manageUsers'
   | 'notifyUsers'
+  | 'manageUserStatus'
   | 'readRoleSettings'
   | 'manageRoles'
   | 'readSystemSettings'
@@ -97,6 +99,7 @@ const appAccessControl = createAccessControl({
   problemReports: ['read', 'update'],
   users: ['manage'],
   userNotification: ['send'],
+  userStatus: ['manage'],
   roleAssignments: ['read', 'edit'],
   system: ['manage'],
   systemSettings: ['read', 'edit'],
@@ -153,7 +156,6 @@ const baseUserPermissions = {
     roleAssignments: ['read'],
     system: ['manage'],
     systemSettings: ['read', 'edit'],
-    dataStudio: ['read', 'write'],
   }),
   SUPERADMIN: appAccessControl.newRole({
     dashboard: ['view'],
@@ -175,6 +177,7 @@ const baseUserPermissions = {
     problemReports: ['read', 'update'],
     users: ['manage'],
     userNotification: ['send'],
+    userStatus: ['manage'],
     roleAssignments: ['read', 'edit'],
     system: ['manage'],
     systemSettings: ['read', 'edit'],
@@ -252,6 +255,9 @@ const actionPermissions: Record<BusinessAction, PermissionRequest> = {
   notifyUsers: {
     userNotification: ['send'],
   },
+  manageUserStatus: {
+    userStatus: ['manage'],
+  },
   readRoleSettings: {
     roleAssignments: ['read'],
   },
@@ -295,6 +301,7 @@ const permissionActionMap: Record<AppPermissionKey, BusinessAction> = {
   'admin.problemReports.update': 'updateProblemReports',
   'admin.users.read': 'manageUsers',
   'admin.users.notify': 'notifyUsers',
+  'admin.users.manageStatus': 'manageUserStatus',
   'admin.roles.read': 'readRoleSettings',
   'admin.roles.edit': 'manageRoles',
   'admin.systemSettings.read': 'readSystemSettings',
@@ -422,6 +429,11 @@ export const appPermissionMetadata: Record<
       'Send direct, role-based, or broadcast notifications from admin tools.',
     category: 'admin',
   },
+  'admin.users.manageStatus': {
+    label: 'Manage user status',
+    description: 'Disable, reactivate, and clear account lockouts.',
+    category: 'admin',
+  },
   'admin.roles.read': {
     label: 'Read role permissions',
     description: 'Inspect role-to-permission assignments.',
@@ -514,8 +526,6 @@ export const defaultRolePermissionAssignments: RolePermissionAssignments = {
     'admin.roles.read',
     'admin.systemSettings.read',
     'admin.systemSettings.edit',
-    'admin.dataStudio.read',
-    'admin.dataStudio.write',
   ]),
   SUPERADMIN: uniquePermissions([
     'dashboard.view',
@@ -540,6 +550,7 @@ export const defaultRolePermissionAssignments: RolePermissionAssignments = {
     'admin.problemReports.update',
     'admin.users.read',
     'admin.users.notify',
+    'admin.users.manageStatus',
     'admin.roles.read',
     'admin.roles.edit',
     'admin.systemSettings.read',
@@ -753,6 +764,10 @@ export function canManageUsers(role: AppRole | null | undefined): boolean {
 
 export function canNotifyUsers(role: AppRole | null | undefined): boolean {
   return hasPermission(role, 'admin.users.notify');
+}
+
+export function canManageUserStatus(role: AppRole | null | undefined): boolean {
+  return hasPermission(role, 'admin.users.manageStatus');
 }
 
 export function canReadRoleSettings(role: AppRole | null | undefined): boolean {

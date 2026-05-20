@@ -46,4 +46,38 @@ describe('env parsing', () => {
 
     expect(getEnv().auth.secret).toBe('local-build-secret-local-build-secret');
   });
+
+  it('requires SMTP settings when SMTP email delivery is selected', () => {
+    Object.assign(process.env, {
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      EMAIL_PROVIDER: 'smtp',
+    });
+
+    expect(() => getEnv()).toThrowError(/SMTP_HOST/);
+  });
+
+  it('parses SMTP settings for production email delivery', () => {
+    Object.assign(process.env, {
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      EMAIL_PROVIDER: 'smtp',
+      SMTP_HOST: 'smtp.example.com',
+      SMTP_PORT: '465',
+      SMTP_USER: 'mailer',
+      SMTP_PASSWORD: 'secret',
+      SMTP_SECURE: 'true',
+    });
+
+    expect(getEnv().email).toMatchObject({
+      provider: 'smtp',
+      smtp: {
+        host: 'smtp.example.com',
+        port: 465,
+        user: 'mailer',
+        password: 'secret',
+        secure: true,
+      },
+    });
+  });
 });

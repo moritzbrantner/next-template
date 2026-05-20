@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     request,
     action: 'admin.dataStudio.createRecord',
     requiredFeatureKey: 'admin.dataStudio',
+    allowedRoles: ['SUPERADMIN'],
     requiredPermission: 'admin.dataStudio.write',
   });
 

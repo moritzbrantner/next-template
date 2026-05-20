@@ -20,6 +20,7 @@ describe('authorizeCredentials', () => {
       emailVerified: new Date(),
       passwordHash: 'hashed',
       lockoutUntil: null,
+      disabledAt: null,
     });
     const verifyPassword = vi.fn().mockResolvedValue(true);
 
@@ -96,6 +97,33 @@ describe('authorizeCredentials', () => {
           emailVerified: new Date(),
           passwordHash: 'hashed',
           lockoutUntil: new Date(Date.now() + 60_000),
+          disabledAt: null,
+        }),
+        verifyPassword: vi.fn(),
+        onAuthenticationFailure: vi.fn(),
+        onAuthenticationSuccess: vi.fn(),
+      },
+    );
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null when account is disabled', async () => {
+    const result = await authorizeCredentials(
+      { email: 'person@example.com', password: 'password' },
+      {
+        findUserByEmail: vi.fn().mockResolvedValue({
+          id: 'user_disabled',
+          email: 'person@example.com',
+          tag: 'person',
+          name: null,
+          image: null,
+          bannerImage: null,
+          role: 'USER',
+          emailVerified: new Date(),
+          passwordHash: 'hashed',
+          lockoutUntil: null,
+          disabledAt: new Date(),
         }),
         verifyPassword: vi.fn(),
         onAuthenticationFailure: vi.fn(),
@@ -123,6 +151,7 @@ describe('authorizeCredentials', () => {
           emailVerified: new Date(),
           passwordHash: 'hashed',
           lockoutUntil: null,
+          disabledAt: null,
         }),
         verifyPassword: vi.fn().mockResolvedValue(false),
         onAuthenticationFailure,
@@ -152,6 +181,7 @@ describe('authorizeCredentials', () => {
           emailVerified: null,
           passwordHash: 'hashed',
           lockoutUntil: null,
+          disabledAt: null,
         }),
         verifyPassword: vi.fn().mockResolvedValue(true),
         onAuthenticationFailure,

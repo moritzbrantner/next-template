@@ -2,6 +2,12 @@
 
 Next.js 16 App Router platform scaffold with localized routing, credential auth, account lifecycle flows, problem-report triage, MDX + Postgres content foundations, released shared packages, and an internal app-pack seam built around `AppManifest`.
 
+This is suitable today as an internal/full-stack starter. Production SaaS use
+requires the hardening checklist in
+[docs/production-readiness.md](./docs/production-readiness.md), including SMTP,
+object storage, backups, job worker deployment, admin recovery, and security
+review.
+
 ## Stack
 
 - Next.js 16 App Router + React 19
@@ -67,11 +73,21 @@ bun run jobs:work
 ## Checks
 
 ```bash
+bun run test
+bun run format:check
+bun run lint
+bun run build
+bun run verify
 bun run checks:nightly
 bun run checks:beta
 bun run checks:main
 ```
 
+- `test`: fastest meaningful test pass, currently unit tests
+- `format:check`: non-mutating `oxfmt` check
+- `lint`: existing formatter-backed lint command, `oxfmt --check .`
+- `build`: local package build plus production Next build
+- `verify`: repo hygiene report plus the full `checks:main` confidence path
 - `checks:nightly`: app lint/typecheck/unit tests plus workspace package lint/typecheck/tests
 - `checks:beta`: nightly checks plus integration tests
 - `checks:main`: beta checks plus database check, production build, and e2e setup/tests
@@ -120,7 +136,9 @@ The GitHub Pages workflow uses Bun end to end. It builds the static export, runs
 
 - [ARCHITECTURE.md](/home/moenarch/moritzbrantner/next-template/ARCHITECTURE.md)
 - [SCAFFOLD_ALIGNMENT.md](./SCAFFOLD_ALIGNMENT.md)
+- [docs/development.md](./docs/development.md)
 - [docs/platform-layout.md](/home/moenarch/moritzbrantner/next-template/docs/platform-layout.md)
 - [docs/adding-an-app-pack.md](/home/moenarch/moritzbrantner/next-template/docs/adding-an-app-pack.md)
+- [docs/production-readiness.md](/home/moenarch/moritzbrantner/next-template/docs/production-readiness.md)
 - [docs/updating-from-upstream.md](/home/moenarch/moritzbrantner/next-template/docs/updating-from-upstream.md)
 - [docs/releasing-packages.md](/home/moenarch/moritzbrantner/next-template/docs/releasing-packages.md)

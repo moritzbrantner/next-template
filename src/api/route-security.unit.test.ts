@@ -1,8 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { createRouteSecurity } from '@/src/api/route-security';
 import type { AppSession } from '@/src/auth';
 import type { AuditRecord, RateLimitResult } from '@/src/api/security';
+import { resetEnvForTests } from '@/src/config/env';
+
+const originalEnv = { ...process.env };
 
 function createDependencies(input?: {
   session?: AppSession | null;
@@ -41,6 +44,24 @@ function createDependencies(input?: {
 }
 
 describe('route security helper', () => {
+  beforeEach(() => {
+    process.env.DATABASE_URL = 'postgres://example';
+    process.env.AUTH_SECRET = 'test-secret';
+    process.env.SITE_URL = 'https://example.com';
+    resetEnvForTests();
+  });
+
+  afterEach(() => {
+    for (const key of Object.keys(process.env)) {
+      if (!(key in originalEnv)) {
+        delete process.env[key];
+      }
+    }
+
+    Object.assign(process.env, originalEnv);
+    resetEnvForTests();
+  });
+
   it('returns 429 and audits rate-limited requests', async () => {
     const { secure, audit } = createDependencies({
       rateLimitResult: {
@@ -158,6 +179,9 @@ describe('route security helper', () => {
     const result = await secure({
       request: new Request('https://example.com/api/admin/users/user_1/role', {
         method: 'PATCH',
+        headers: {
+          origin: 'https://example.com',
+        },
       }),
       action: 'admin.users.updateRole',
       requiredPermission: 'admin.roles.edit',
@@ -231,6 +255,51 @@ describe('route security helper', () => {
           surface: 'admin',
           report: 'authorization',
         },
+      }),
+    );
+  });
+
+  it('rejects cross-origin mutating cookie-authenticated requests', async () => {
+    const { secure, audit } = createDependencies({
+      session: {
+        user: {
+          id: 'admin_1',
+          email: 'admin@example.com',
+          tag: 'admin',
+          name: 'Admin',
+          image: null,
+          bannerImage: null,
+          role: 'ADMIN',
+        },
+      },
+    });
+
+    const result = await secure({
+      request: new Request('https://example.com/api/admin/users/user_1/role', {
+        method: 'PATCH',
+        headers: {
+          origin: 'https://evil.example',
+        },
+      }),
+      action: 'admin.users.updateRole',
+      requiredPermission: 'admin.roles.edit',
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('Expected forbidden result');
+    }
+
+    expect(result.response.status).toBe(403);
+    expect(audit).toContainEqual(
+      expect.objectContaining({
+        actorId: 'admin_1',
+        action: 'admin.users.updateRole',
+        outcome: 'denied',
+        statusCode: 403,
+        metadata: expect.objectContaining({
+          reason: 'invalid_origin',
+        }),
       }),
     );
   });

@@ -1,3 +1,5 @@
+name: next-template
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -59,3 +61,9 @@ services:
 volumes:
   postgres_data:
   minio_data:
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.90.4.0/24

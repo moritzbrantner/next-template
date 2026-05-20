@@ -13,7 +13,7 @@ import { buildProfileImageUrl } from '@/src/profile/object-storage';
 export type NotificationStatus = 'unread' | 'read';
 export type NotificationAudience = 'user' | 'role' | 'all';
 export type NotificationRoleTarget = AppRole | 'ALL';
-export type AdminUserStatus = 'active' | 'pending' | 'suspended';
+export type AdminUserStatus = 'active' | 'pending' | 'suspended' | 'disabled';
 
 export type NotificationFeedItem = {
   id: string;
@@ -71,6 +71,10 @@ export type AdminUserDetail = {
   updatedAt: string;
   emailVerifiedAt: string | null;
   lockoutUntil: string | null;
+  disabledAt: string | null;
+  disabledReason: string | null;
+  disabledById: string | null;
+  lockoutClearedAt: string | null;
   timezone: string | null;
   locale: string | null;
   bio: string | null;
@@ -110,6 +114,7 @@ type UserRecord = {
   image: string | null;
   emailVerified: Date | null;
   lockoutUntil: Date | null;
+  disabledAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -126,8 +131,12 @@ function resolveDisplayName(user: Pick<UserRecord, 'name' | 'email'>) {
 }
 
 function resolveUserStatus(
-  user: Pick<UserRecord, 'emailVerified' | 'lockoutUntil'>,
+  user: Pick<UserRecord, 'emailVerified' | 'lockoutUntil' | 'disabledAt'>,
 ): AdminUserStatus {
+  if (user.disabledAt) {
+    return 'disabled';
+  }
+
   if (user.lockoutUntil && user.lockoutUntil.getTime() > Date.now()) {
     return 'suspended';
   }
@@ -139,8 +148,24 @@ function resolveUserStatus(
   return 'active';
 }
 
-function toIsoString(value: Date | null | undefined) {
-  return value ? value.toISOString() : null;
+function toIsoString(value: Date | string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function toRequiredIsoString(value: Date | string) {
+  const isoString = toIsoString(value);
+
+  if (!isoString) {
+    throw new Error('Expected valid date value.');
+  }
+
+  return isoString;
 }
 
 async function getLatestVisitMap(userIds: string[]) {
@@ -221,7 +246,7 @@ function mapNotificationFeedItem(item: {
     body: item.body,
     href: item.href,
     status: item.status,
-    createdAt: item.createdAt.toISOString(),
+    createdAt: toRequiredIsoString(item.createdAt),
   };
 }
 
@@ -412,6 +437,7 @@ export async function searchAdminUsersUseCase(
       image: users.image,
       emailVerified: users.emailVerified,
       lockoutUntil: users.lockoutUntil,
+      disabledAt: users.disabledAt,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
     })
@@ -446,7 +472,7 @@ export async function searchAdminUsersUseCase(
         email: user.email ?? 'No email',
         role: user.role,
         status: resolveUserStatus(user),
-        createdAt: user.createdAt.toISOString(),
+        createdAt: toRequiredIsoString(user.createdAt),
         lastActivityAt: toIsoString(latestVisitMap.get(user.id)),
         totalNotifications: counts.total,
         unreadNotifications: counts.unread,
@@ -528,10 +554,14 @@ export async function getAdminUserDetailUseCase(
     role: user.role,
     status: resolveUserStatus(user),
     imageUrl: buildProfileImageUrl(user.image) ?? null,
-    createdAt: user.createdAt.toISOString(),
-    updatedAt: user.updatedAt.toISOString(),
+    createdAt: toRequiredIsoString(user.createdAt),
+    updatedAt: toRequiredIsoString(user.updatedAt),
     emailVerifiedAt: toIsoString(user.emailVerified),
     lockoutUntil: toIsoString(user.lockoutUntil),
+    disabledAt: toIsoString(user.disabledAt),
+    disabledReason: user.disabledReason ?? null,
+    disabledById: user.disabledById ?? null,
+    lockoutClearedAt: toIsoString(user.lockoutClearedAt),
     timezone: profile?.timezone ?? null,
     locale: profile?.locale ?? null,
     bio: profile?.bio ?? null,
@@ -544,7 +574,7 @@ export async function getAdminUserDetailUseCase(
       id: item.id,
       pathname: item.pathname,
       href: item.href,
-      visitedAt: item.visitedAt.toISOString(),
+      visitedAt: toRequiredIsoString(item.visitedAt),
     })),
     recentNotifications: recentNotifications.map(mapNotificationFeedItem),
   };

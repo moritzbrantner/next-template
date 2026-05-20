@@ -46,10 +46,11 @@ describe('authorization helpers', () => {
     expect(canAccessDataEntryWorkspace('MANAGER')).toBe(false);
     expect(canAccessAdminArea('MANAGER')).toBe(false);
     expect(canManageRoles('ADMIN')).toBe(false);
-    expect(canAccessDataEntryWorkspace('ADMIN')).toBe(true);
+    expect(canAccessDataEntryWorkspace('ADMIN')).toBe(false);
     expect(canViewReports('ADMIN')).toBe(true);
     expect(canManageUsers('ADMIN')).toBe(true);
     expect(canManageSystemSettings('ADMIN')).toBe(true);
+    expect(canAccessDataEntryWorkspace('SUPERADMIN')).toBe(true);
     expect(canManageRoles('SUPERADMIN')).toBe(true);
   });
 

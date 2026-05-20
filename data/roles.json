@@ -65,9 +65,7 @@
         "admin.users.notify",
         "admin.roles.read",
         "admin.systemSettings.read",
-        "admin.systemSettings.edit",
-        "admin.dataStudio.read",
-        "admin.dataStudio.write"
+        "admin.systemSettings.edit"
       ]
     },
     {
@@ -95,6 +93,7 @@
         "admin.reports.export",
         "admin.users.read",
         "admin.users.notify",
+        "admin.users.manageStatus",
         "admin.roles.read",
         "admin.roles.edit",
         "admin.systemSettings.read",

@@ -16,6 +16,7 @@
 /.next/
 /out/
 /dist/
+/.turbo/
 /packages/*/dist/
 /packages/*/.turbo/
 
@@ -45,5 +46,6 @@ yarn-error.log*
 *.tsbuildinfo
 
 test-results/
+playwright-report/
 /.generated/
 public/local-profile-images/

@@ -72,5 +72,41 @@ export async function sendEmail(request: SendEmailRequest): Promise<void> {
     return;
   }
 
+  if (provider === 'smtp') {
+    const { createTransport } = await import('nodemailer');
+    const smtp = getEnv().email.smtp;
+
+    if (!smtp.host || !smtp.port || !smtp.user || !smtp.password) {
+      throw new Error(
+        'SMTP email provider is selected, but SMTP configuration is incomplete.',
+      );
+    }
+
+    const transporter = createTransport({
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.secure,
+      auth: {
+        user: smtp.user,
+        pass: smtp.password,
+      },
+    });
+
+    await transporter.sendMail({
+      from: request.fromName ? `${request.fromName} <${from}>` : from,
+      to: request.to,
+      subject: request.subject,
+      html: request.html,
+      text: request.text ?? htmlToText(request.html),
+      headers: request.tags?.length
+        ? {
+            'X-Email-Tags': request.tags.join(','),
+          }
+        : undefined,
+    });
+
+    return;
+  }
+
   throw new Error(`Unsupported EMAIL_PROVIDER "${provider}".`);
 }

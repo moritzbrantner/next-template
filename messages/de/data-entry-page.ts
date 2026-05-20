@@ -1,7 +1,7 @@
 export const dataEntryPage = {
-  title: 'Schema-Dateneingabe',
+  title: 'Repair Console Dateneingabe',
   description:
-    'Erstelle Zeilen für erlaubte Tabellen. Zugriff wird pro Tabelle und Rolle gesteuert.',
+    'Erstelle Zeilen für Reparatur-Tabellen. Der Zugriff ist auf Superadmins beschränkt.',
   permissions: {
     read: 'Lesen',
     write: 'Schreiben',

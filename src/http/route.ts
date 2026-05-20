@@ -11,6 +11,7 @@ import {
   enforceRateLimit,
   getRateLimitKey,
 } from '@/src/api/security';
+import { getEnv } from '@/src/config/env';
 import { errorReporter, getLogger } from '@/src/observability/logger';
 import {
   createRequestContext,
@@ -50,6 +51,7 @@ type CreateApiRouteOptions<TBody, TQuery, TResult> = {
   auth?: boolean;
   roles?: readonly AppRole[];
   permission?: AppPermissionKey;
+  skipOriginCheck?: boolean;
   bodySchema?: BodySchema<TBody>;
   querySchema?: QuerySchema<TQuery>;
   handler: (
@@ -164,6 +166,35 @@ function withStandardHeaders(
   });
 }
 
+function isMutatingRequest(request: Request) {
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method);
+}
+
+function getOriginFromHeader(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+function hasValidRequestOrigin(request: Request) {
+  const requestOrigin = new URL(request.url).origin;
+  const siteOrigin = new URL(getEnv().site.url).origin;
+  const allowedOrigins = new Set([requestOrigin, siteOrigin]);
+  const origin = getOriginFromHeader(request.headers.get('origin'));
+  const referer = getOriginFromHeader(request.headers.get('referer'));
+
+  return Boolean(
+    (origin && allowedOrigins.has(origin)) ||
+    (!origin && referer && allowedOrigins.has(referer)),
+  );
+}
+
 export function createApiRoute<
   TBody = undefined,
   TQuery = undefined,
@@ -210,6 +241,21 @@ export function createApiRoute<
         if (!rateLimit.ok) {
           await audit(429);
           return createProblemResponse(rateLimitedProblem(), {
+            headers: new Headers({
+              ...Object.fromEntries(rateLimitHeaders.entries()),
+              'x-request-id': requestContext.requestId,
+            }),
+          });
+        }
+
+        if (
+          actorId &&
+          isMutatingRequest(request) &&
+          !options.skipOriginCheck &&
+          !hasValidRequestOrigin(request)
+        ) {
+          await audit(403);
+          return createProblemResponse(forbiddenProblem(), {
             headers: new Headers({
               ...Object.fromEntries(rateLimitHeaders.entries()),
               'x-request-id': requestContext.requestId,

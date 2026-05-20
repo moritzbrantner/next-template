@@ -3,6 +3,7 @@ import { getTablePermissionViews } from '@/src/domain/data-entry/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
 import {
   notFoundUnlessFeatureEnabled,
+  redirectToLocaleHome,
   requirePermission,
   resolveLocale,
 } from '@/src/server/page-guards';
@@ -16,6 +17,9 @@ export default async function DataEntryPage({
   const locale = resolveLocale(rawLocale);
   await notFoundUnlessFeatureEnabled('admin.dataStudio');
   const session = await requirePermission(locale, 'admin.dataStudio.read');
+  if (session.user.role !== 'SUPERADMIN') {
+    redirectToLocaleHome(locale);
+  }
   const t = createTranslator(locale, 'DataEntryPage');
   const readableTables = getTablePermissionViews(session.user.role ?? 'USER');
 

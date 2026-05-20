@@ -138,7 +138,11 @@ async function saveManualAccountVerificationSetting(formData: FormData) {
 async function saveRolePermissions(formData: FormData) {
   'use server';
 
-  await forbidUnlessAllowed('admin.systemSettings.edit');
+  const session = await getAuthSession();
+
+  if (!(await hasPermissionForRole(session?.user.role, 'admin.roles.edit'))) {
+    throw new Error('Forbidden');
+  }
 
   const locale = String(formData.get('locale') ?? 'en');
   const role = String(formData.get('role') ?? '') as AppRole;
@@ -166,10 +170,14 @@ export default async function SystemSettingsPage({
   const session = await requirePermission(locale, 'admin.systemSettings.read');
   const t = createTranslator(locale, 'AdminPage');
   const adminPages = await getAuthorizedAdminPageDefinitions(session.user.role);
-  const canEditAuthorization = await hasPermissionForRole(
+  const canEditSystemSettings = await hasPermissionForRole(
     session.user.role,
     'admin.systemSettings.edit',
   );
+  const [canReadRoles, canEditRoles] = await Promise.all([
+    hasPermissionForRole(session.user.role, 'admin.roles.read'),
+    hasPermissionForRole(session.user.role, 'admin.roles.edit'),
+  ]);
   const [
     settings,
     flags,
@@ -279,7 +287,7 @@ export default async function SystemSettingsPage({
                 name="retentionDays"
                 min={1}
                 defaultValue={analyticsSettings.pageVisitRetentionDays}
-                disabled={!canEditAuthorization}
+                disabled={!canEditSystemSettings}
                 className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
               />
             </label>
@@ -291,7 +299,7 @@ export default async function SystemSettingsPage({
               <select
                 name="defaultWindow"
                 defaultValue={analyticsSettings.defaultAdminReportWindow}
-                disabled={!canEditAuthorization}
+                disabled={!canEditSystemSettings}
                 className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
               >
                 {adminReportWindows.map((window) => (
@@ -320,7 +328,7 @@ export default async function SystemSettingsPage({
             <div className="md:col-span-2">
               <button
                 type="submit"
-                disabled={!canEditAuthorization}
+                disabled={!canEditSystemSettings}
                 className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950"
               >
                 Save analytics settings
@@ -354,12 +362,12 @@ export default async function SystemSettingsPage({
                 type="text"
                 name="value"
                 defaultValue={setting.value}
-                disabled={!canEditAuthorization}
+                disabled={!canEditSystemSettings}
                 className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
               />
               <button
                 type="submit"
-                disabled={!canEditAuthorization}
+                disabled={!canEditSystemSettings}
                 className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950"
               >
                 Save
@@ -395,7 +403,7 @@ export default async function SystemSettingsPage({
                   type="checkbox"
                   name="enabled"
                   defaultChecked={flag.enabled}
-                  disabled={!canEditAuthorization}
+                  disabled={!canEditSystemSettings}
                 />
                 Enabled
               </label>
@@ -404,12 +412,12 @@ export default async function SystemSettingsPage({
                 name="description"
                 defaultValue={flag.description ?? ''}
                 placeholder="Optional operator note"
-                disabled={!canEditAuthorization}
+                disabled={!canEditSystemSettings}
                 className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
               />
               <button
                 type="submit"
-                disabled={!canEditAuthorization}
+                disabled={!canEditSystemSettings}
                 className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950"
               >
                 Save
@@ -419,92 +427,92 @@ export default async function SystemSettingsPage({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Role permissions</CardTitle>
-          <CardDescription>
-            Every protected action is mapped to an explicit permission, and each
-            role is assigned the permissions it should inherit.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="rounded-2xl border p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-300">
-            <p>
-              Admins can review and update the effective role-permission matrix
-              here.
-            </p>
-            <p className="mt-2">
-              Changes take effect across protected pages, routes, and admin
-              tools after save.
-            </p>
-          </div>
+      {canReadRoles ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Role permissions</CardTitle>
+            <CardDescription>
+              Every protected action is mapped to an explicit permission, and
+              each role is assigned the permissions it should inherit.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="rounded-2xl border p-4 text-sm text-zinc-600 dark:border-zinc-800 dark:text-zinc-300">
+              <p>
+                Admins can review the effective role-permission matrix here.
+              </p>
+              <p className="mt-2">
+                Only users with role editing permission can save changes.
+              </p>
+            </div>
 
-          {roleOrder.map((role) => (
-            <form
-              key={role}
-              action={saveRolePermissions}
-              className="space-y-4 rounded-2xl border p-4 dark:border-zinc-800"
-            >
-              <input type="hidden" name="locale" value={locale} />
-              <input type="hidden" name="role" value={role} />
+            {roleOrder.map((role) => (
+              <form
+                key={role}
+                action={saveRolePermissions}
+                className="space-y-4 rounded-2xl border p-4 dark:border-zinc-800"
+              >
+                <input type="hidden" name="locale" value={locale} />
+                <input type="hidden" name="role" value={role} />
 
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="font-medium">
-                    {t(`users.notifications.roles.${role}`)}
-                  </p>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                    {rolePermissions[role].length} assigned permissions
-                  </p>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium">
+                      {t(`users.notifications.roles.${role}`)}
+                    </p>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                      {rolePermissions[role].length} assigned permissions
+                    </p>
+                  </div>
+                  <Badge variant="outline">{role}</Badge>
                 </div>
-                <Badge variant="outline">{role}</Badge>
-              </div>
 
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {appPermissionKeys.map((permission) => (
-                  <label
-                    key={`${role}-${permission}`}
-                    className="rounded-2xl border p-3 text-sm dark:border-zinc-800"
-                  >
-                    <span className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
-                        name="permission"
-                        value={permission}
-                        defaultChecked={rolePermissions[role].includes(
-                          permission,
-                        )}
-                        disabled={!canEditAuthorization}
-                      />
-                      <span className="space-y-1">
-                        <span className="block font-medium">
-                          {appPermissionMetadata[permission].label}
-                        </span>
-                        <span className="block text-zinc-600 dark:text-zinc-300">
-                          {appPermissionMetadata[permission].description}
-                        </span>
-                        <span className="block font-mono text-xs text-zinc-500">
-                          {permission}
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {appPermissionKeys.map((permission) => (
+                    <label
+                      key={`${role}-${permission}`}
+                      className="rounded-2xl border p-3 text-sm dark:border-zinc-800"
+                    >
+                      <span className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          name="permission"
+                          value={permission}
+                          defaultChecked={rolePermissions[role].includes(
+                            permission,
+                          )}
+                          disabled={!canEditRoles}
+                        />
+                        <span className="space-y-1">
+                          <span className="block font-medium">
+                            {appPermissionMetadata[permission].label}
+                          </span>
+                          <span className="block text-zinc-600 dark:text-zinc-300">
+                            {appPermissionMetadata[permission].description}
+                          </span>
+                          <span className="block font-mono text-xs text-zinc-500">
+                            {permission}
+                          </span>
                         </span>
                       </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
+                    </label>
+                  ))}
+                </div>
 
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={!canEditAuthorization}
-                  className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950"
-                >
-                  Save role permissions
-                </button>
-              </div>
-            </form>
-          ))}
-        </CardContent>
-      </Card>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={!canEditRoles}
+                    className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950"
+                  >
+                    Save role permissions
+                  </button>
+                </div>
+              </form>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
     </AdminPageShell>
   );
 }

@@ -25,6 +25,7 @@ describe('account lockout controls', () => {
         email: 'person@example.com',
         failedSignInAttempts: 4,
         lockoutUntil: null,
+        disabledAt: null,
       }),
     };
 

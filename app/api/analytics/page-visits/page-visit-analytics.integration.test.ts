@@ -100,7 +100,10 @@ describe('page visit analytics route', () => {
     const response = await route.POST(
       new Request('https://app.example.com/api/analytics/page-visits', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          origin: 'https://app.example.com',
+        },
         body: JSON.stringify({
           href: '/en',
           visitorId: 'visitor_1',
@@ -131,7 +134,10 @@ describe('page visit analytics route', () => {
     const response = await route.POST(
       new Request('https://app.example.com/api/analytics/page-visits', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        headers: {
+          'content-type': 'application/json',
+          origin: 'https://app.example.com',
+        },
         body: JSON.stringify({
           href: '/en/profile',
           visitorId: 'visitor_1',

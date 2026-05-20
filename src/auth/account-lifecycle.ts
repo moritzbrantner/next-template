@@ -71,6 +71,7 @@ type DbUser = {
   emailVerified: Date | null;
   failedSignInAttempts: number;
   lockoutUntil: Date | null;
+  disabledAt: Date | null;
 };
 
 type VerificationTokenRecord = {
@@ -548,7 +549,8 @@ export async function requestLoginOneTimePassword(
   if (!email || !email.includes('@')) return { ok: true };
 
   const user = await d.findUserByEmail(email);
-  if (!user?.email || !user.emailVerified) return { ok: true };
+  if (!user?.email || !user.emailVerified || user.disabledAt)
+    return { ok: true };
 
   const identifier = `${LOGIN_OTP_PREFIX}${user.id}`;
   const code = createOneTimePassword();
@@ -617,7 +619,7 @@ export async function verifyLoginOneTimePassword(
 
   const d = deps ?? (await resolveDependencies());
   const user = await d.findUserByEmail(email);
-  if (!user?.email || !user.emailVerified) {
+  if (!user?.email || !user.emailVerified || user.disabledAt) {
     return { ok: false, error: 'The one-time password is invalid.' };
   }
 

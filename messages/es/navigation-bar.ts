@@ -23,7 +23,7 @@ export const navigationBar = {
     adminProblemReports: 'Informes de problemas',
     adminEmailTemplates: 'Plantillas de email',
     adminSystemSettings: 'Configuracion del sistema',
-    adminDataStudio: 'Data Studio',
+    adminDataStudio: 'Repair console',
   },
   auth: {
     login: 'Iniciar sesion',

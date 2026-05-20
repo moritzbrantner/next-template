@@ -109,6 +109,7 @@ describe('account lifecycle', () => {
       emailVerified: null,
       failedSignInAttempts: 0,
       lockoutUntil: null,
+      disabledAt: null,
     });
 
     const result = await sendAccountVerificationEmailForUser(
@@ -194,6 +195,7 @@ describe('account lifecycle', () => {
       email: 'person@example.com',
       failedSignInAttempts: 0,
       lockoutUntil: null,
+      disabledAt: null,
     });
 
     await expect(
@@ -272,6 +274,7 @@ describe('account lifecycle', () => {
       email: 'person@example.com',
       failedSignInAttempts: 0,
       lockoutUntil: null,
+      disabledAt: null,
     });
 
     const requestResult = await requestPasswordResetLifecycle(

@@ -1,6 +1,7 @@
 import type { AppPermissionKey, AppRole } from '@/lib/authorization';
 import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import { getAuthSession } from '@/src/auth.server';
+import { getEnv } from '@/src/config/env';
 import {
   auditAction,
   enforceRateLimit,
@@ -31,6 +32,7 @@ type RouteSecurityOptions = {
   requireAuth?: boolean;
   allowedRoles?: readonly AppRole[];
   requiredPermission?: AppPermissionKey;
+  skipOriginCheck?: boolean;
   metadata?: Record<string, unknown>;
 };
 
@@ -106,6 +108,35 @@ function defaultOutcomeForStatus(status: number): AuditOutcome {
   return 'allowed';
 }
 
+function isMutatingRequest(request: Request) {
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method);
+}
+
+function getOriginFromHeader(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+function hasValidRequestOrigin(request: Request) {
+  const requestOrigin = new URL(request.url).origin;
+  const siteOrigin = new URL(getEnv().site.url).origin;
+  const allowedOrigins = new Set([requestOrigin, siteOrigin]);
+  const origin = getOriginFromHeader(request.headers.get('origin'));
+  const referer = getOriginFromHeader(request.headers.get('referer'));
+
+  return Boolean(
+    (origin && allowedOrigins.has(origin)) ||
+    (!origin && referer && allowedOrigins.has(referer)),
+  );
+}
+
 export function createRouteSecurity(deps: SecurityDependencies) {
   return async function secureRoute(
     options: RouteSecurityOptions,
@@ -130,6 +161,35 @@ export function createRouteSecurity(deps: SecurityDependencies) {
           { error: 'Rate limit exceeded.' },
           {
             status: 429,
+            headers: withRateLimitHeaders(rateLimit),
+          },
+        ),
+      };
+    }
+
+    if (
+      actorId &&
+      isMutatingRequest(options.request) &&
+      !options.skipOriginCheck &&
+      !hasValidRequestOrigin(options.request)
+    ) {
+      await deps.auditAction({
+        actorId,
+        action: options.action,
+        outcome: 'denied',
+        statusCode: 403,
+        metadata: {
+          ...(options.metadata ?? {}),
+          reason: 'invalid_origin',
+        },
+      });
+
+      return {
+        ok: false,
+        response: Response.json(
+          { error: 'Forbidden.' },
+          {
+            status: 403,
             headers: withRateLimitHeaders(rateLimit),
           },
         ),

@@ -20,6 +20,7 @@ import { isAdmin, isSuperAdmin } from '@/lib/authorization';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import { getAuthSession } from '@/src/auth.server';
 import { sendAccountVerificationEmailForUser } from '@/src/auth/account-lifecycle';
+import { updateAdminUserStatusUseCase } from '@/src/domain/admin-users/use-cases';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { getAdminUserDetailUseCase } from '@/src/domain/notifications/use-cases';
 import { createTranslator } from '@/src/i18n/messages';
@@ -56,6 +57,48 @@ async function sendAccountVerificationEmailAction(formData: FormData) {
   redirect(`${basePath}?status=verification-email-sent`);
 }
 
+async function updateUserStatusAction(formData: FormData) {
+  'use server';
+
+  const session = await getAuthSession();
+
+  if (
+    !(await hasPermissionForRole(
+      session?.user.role,
+      'admin.users.manageStatus',
+    ))
+  ) {
+    throw new Error('Forbidden');
+  }
+
+  const locale = resolveLocale(String(formData.get('locale') ?? 'en'));
+  const userId = String(formData.get('userId') ?? '');
+  const action = String(formData.get('action') ?? '') as
+    | 'disable'
+    | 'reactivate'
+    | 'clearLockout';
+  const reason = String(formData.get('reason') ?? '');
+  const basePath = withLocalePath(`/admin/users/${userId}`, locale);
+  const result = await updateAdminUserStatusUseCase({
+    actorUserId: session!.user.id,
+    targetUserId: userId,
+    action,
+    reason,
+  });
+
+  revalidatePath(basePath);
+
+  if (!result.ok) {
+    redirect(
+      `${basePath}?status=user-status-error:${encodeURIComponent(
+        result.error.message,
+      )}`,
+    );
+  }
+
+  redirect(`${basePath}?status=user-status-${action}`);
+}
+
 export default async function AdminUserDetailPage({
   params,
   searchParams,
@@ -81,6 +124,10 @@ export default async function AdminUserDetailPage({
   const canNotifyUsers = await hasPermissionForRole(
     session.user.role,
     'admin.users.notify',
+  );
+  const canManageStatus = await hasPermissionForRole(
+    session.user.role,
+    'admin.users.manageStatus',
   );
 
   if (!user) {
@@ -181,6 +228,16 @@ export default async function AdminUserDetailPage({
                   value={
                     user.lockoutUntil
                       ? formatDateTime(user.lockoutUntil, locale)
+                      : t('users.detail.none')
+                  }
+                />
+                <DetailField
+                  label="Disabled"
+                  value={
+                    user.disabledAt
+                      ? `${formatDateTime(user.disabledAt, locale)}${
+                          user.disabledReason ? `: ${user.disabledReason}` : ''
+                        }`
                       : t('users.detail.none')
                   }
                 />
@@ -339,6 +396,68 @@ export default async function AdminUserDetailPage({
             </Card>
           ) : null}
 
+          {canManageStatus ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Account status</CardTitle>
+                <CardDescription>
+                  Disable access, reactivate an account, or clear credential
+                  lockout state.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {user.disabledAt ? (
+                  <form action={updateUserStatusAction}>
+                    <input type="hidden" name="locale" value={locale} />
+                    <input type="hidden" name="userId" value={user.id} />
+                    <input type="hidden" name="action" value="reactivate" />
+                    <button type="submit" className={buttonVariants({})}>
+                      Reactivate user
+                    </button>
+                  </form>
+                ) : (
+                  <form action={updateUserStatusAction} className="space-y-3">
+                    <input type="hidden" name="locale" value={locale} />
+                    <input type="hidden" name="userId" value={user.id} />
+                    <input type="hidden" name="action" value="disable" />
+                    <label className="space-y-2">
+                      <span className="block text-sm font-medium">
+                        Disable reason
+                      </span>
+                      <textarea
+                        name="reason"
+                        rows={3}
+                        maxLength={500}
+                        className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      className={buttonVariants({
+                        className:
+                          'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:text-white dark:hover:bg-red-400',
+                      })}
+                    >
+                      Disable user
+                    </button>
+                  </form>
+                )}
+
+                <form action={updateUserStatusAction}>
+                  <input type="hidden" name="locale" value={locale} />
+                  <input type="hidden" name="userId" value={user.id} />
+                  <input type="hidden" name="action" value="clearLockout" />
+                  <button
+                    type="submit"
+                    className={buttonVariants({ variant: 'outline' })}
+                  >
+                    Clear lockout
+                  </button>
+                </form>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {canEditRoles ? (
             <Card>
               <CardHeader>
@@ -427,10 +546,26 @@ function StatusBanner({ status }: { status: string | null }) {
     );
   }
 
+  if (status.startsWith('user-status-error:')) {
+    return (
+      <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+        {decodeURIComponent(status.slice('user-status-error:'.length))}
+      </div>
+    );
+  }
+
   if (status === 'verification-email-sent') {
     return (
       <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
         Verification email sent.
+      </div>
+    );
+  }
+
+  if (status.startsWith('user-status-')) {
+    return (
+      <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
+        User status updated.
       </div>
     );
   }

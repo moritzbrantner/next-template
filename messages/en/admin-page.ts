@@ -4,11 +4,12 @@ export const adminPage = {
     overview: 'Overview',
     content: 'Content',
     reports: 'Reports',
+    auditLog: 'Audit log',
     users: 'Users',
     problemReports: 'Problem reports',
     emailTemplates: 'Email templates',
     systemSettings: 'System settings',
-    dataStudio: 'Data studio',
+    dataStudio: 'Repair console',
   },
   overview: {
     title: 'Admin overview',
@@ -132,6 +133,11 @@ export const adminPage = {
       },
     },
   },
+  auditLog: {
+    title: 'Audit log',
+    description:
+      'Review security-sensitive route decisions and operational actions.',
+  },
   users: {
     title: 'User management',
     description:
@@ -169,6 +175,7 @@ export const adminPage = {
       active: 'Active',
       pending: 'Pending invite',
       suspended: 'Suspended',
+      disabled: 'Disabled',
     },
     actions: {
       inspect: 'Inspect user',
@@ -240,10 +247,10 @@ export const adminPage = {
         description:
           'Send in-app notices to one user, a role cohort, or the entire workspace from the admin panel.',
       },
-      suspend: {
-        title: 'Suspend',
+      status: {
+        title: 'Manage status',
         description:
-          'Pause access immediately when an account should be investigated or archived.',
+          'Open a user detail view to disable access, reactivate an account, or clear credential lockout.',
       },
     },
     detail: {
@@ -442,9 +449,9 @@ export const adminPage = {
     },
   },
   dataStudio: {
-    title: 'Data studio',
+    title: 'Repair console',
     description:
-      'Insert records through schema-driven forms generated from db-schema.json. Access is restricted to ADMIN and SUPERADMIN users.',
+      'Privileged repair tool for schema-driven record creation. Access is restricted to SUPERADMIN users.',
     summary: {
       tables: 'Writable tables',
       fields: 'Available fields',

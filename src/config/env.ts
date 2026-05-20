@@ -29,9 +29,15 @@ const rawEnvSchema = z.object({
   AUTH_URL: z.string().url().optional(),
   NEXTAUTH_URL: z.string().url().optional(),
   SITE_URL: z.string().url().optional(),
-  EMAIL_PROVIDER: z.enum(['console', 'mailpit']).optional(),
+  EMAIL_PROVIDER: z.enum(['console', 'mailpit', 'smtp']).optional(),
   EMAIL_FROM: z.string().email().optional(),
   MAILPIT_BASE_URL: z.string().url().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  SMTP_SECURE: booleanStringSchema.optional(),
+  IMAGE_REMOTE_HOSTS: z.string().optional(),
   PROFILE_IMAGE_STORAGE_REGION: z.string().optional(),
   PROFILE_IMAGE_STORAGE_ENDPOINT: z.string().url().optional(),
   PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE: booleanStringSchema.optional(),
@@ -88,9 +94,19 @@ export type AppEnv = {
     url: string;
   };
   email: {
-    provider: 'console' | 'mailpit';
+    provider: 'console' | 'mailpit' | 'smtp';
     from: string;
     mailpitBaseUrl: string;
+    smtp: {
+      host?: string;
+      port?: number;
+      user?: string;
+      password?: string;
+      secure: boolean;
+    };
+  };
+  images: {
+    remoteHosts: readonly string[];
   };
   storage: {
     region: string;
@@ -223,6 +239,27 @@ export function getEnv(): AppEnv {
     );
   }
 
+  const smtpHost = trimOptional(raw.SMTP_HOST);
+  const smtpUser = trimOptional(raw.SMTP_USER);
+  const smtpPassword = trimOptional(raw.SMTP_PASSWORD);
+
+  if (
+    raw.EMAIL_PROVIDER === 'smtp' &&
+    (!smtpHost || !raw.SMTP_PORT || !smtpUser || !smtpPassword)
+  ) {
+    throw new Error(
+      'Invalid environment configuration: SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASSWORD are required when EMAIL_PROVIDER=smtp.',
+    );
+  }
+
+  const remoteImageHosts = [
+    ...(trimOptional(raw.IMAGE_REMOTE_HOSTS)
+      ?.split(',')
+      .map((host) => host.trim())
+      .filter(Boolean) ?? []),
+    ...(storagePublicBaseUrl ? [new URL(storagePublicBaseUrl).hostname] : []),
+  ];
+
   cachedEnv = {
     nodeEnv: raw.NODE_ENV,
     isProduction: raw.NODE_ENV === 'production',
@@ -262,6 +299,16 @@ export function getEnv(): AppEnv {
       from: raw.EMAIL_FROM ?? 'no-reply@example.com',
       mailpitBaseUrl:
         trimOptional(raw.MAILPIT_BASE_URL) ?? DEFAULT_MAILPIT_BASE_URL,
+      smtp: {
+        host: smtpHost,
+        port: raw.SMTP_PORT,
+        user: smtpUser,
+        password: smtpPassword,
+        secure: raw.SMTP_SECURE ?? false,
+      },
+    },
+    images: {
+      remoteHosts: [...new Set(remoteImageHosts)],
     },
     storage: {
       region: trimOptional(raw.PROFILE_IMAGE_STORAGE_REGION) ?? 'auto',

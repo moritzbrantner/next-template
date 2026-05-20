@@ -20,32 +20,32 @@ export type TablePermission = {
   writeRoles: readonly AppRole[];
 };
 
-const adminDataEntryRoles = ['ADMIN', 'SUPERADMIN'] as const;
+const repairConsoleRoles = ['SUPERADMIN'] as const;
 
 export const tablePermissions: readonly TablePermission[] = [
   {
     table: 'User',
     label: 'User',
-    readRoles: adminDataEntryRoles,
-    writeRoles: adminDataEntryRoles,
+    readRoles: repairConsoleRoles,
+    writeRoles: repairConsoleRoles,
   },
   {
     table: 'Profile',
     label: 'Profile',
-    readRoles: adminDataEntryRoles,
-    writeRoles: adminDataEntryRoles,
+    readRoles: repairConsoleRoles,
+    writeRoles: repairConsoleRoles,
   },
   {
     table: 'SecurityAuditLog',
     label: 'SecurityAuditLog',
-    readRoles: adminDataEntryRoles,
-    writeRoles: adminDataEntryRoles,
+    readRoles: repairConsoleRoles,
+    writeRoles: repairConsoleRoles,
   },
   {
     table: 'SecurityRateLimitCounter',
     label: 'SecurityRateLimitCounter',
-    readRoles: adminDataEntryRoles,
-    writeRoles: adminDataEntryRoles,
+    readRoles: repairConsoleRoles,
+    writeRoles: repairConsoleRoles,
   },
 ] as const;
 

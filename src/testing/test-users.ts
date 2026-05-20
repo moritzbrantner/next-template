@@ -447,6 +447,10 @@ export async function seedTestUsers() {
           passwordHash,
           failedSignInAttempts: 0,
           lockoutUntil: null,
+          disabledAt: null,
+          disabledReason: null,
+          disabledById: null,
+          lockoutClearedAt: null,
           updatedAt: new Date(),
         })
         .where(eq(users.id, existingUser.id));
@@ -468,6 +472,10 @@ export async function seedTestUsers() {
       passwordHash,
       failedSignInAttempts: 0,
       lockoutUntil: null,
+      disabledAt: null,
+      disabledReason: null,
+      disabledById: null,
+      lockoutClearedAt: null,
     });
 
     userIdByEmail.set(testUser.email, userId);

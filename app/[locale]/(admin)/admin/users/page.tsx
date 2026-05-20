@@ -19,7 +19,7 @@ import {
 } from '@/src/server/page-guards';
 
 const userMetricKeys = ['privileged', 'operational', 'member'] as const;
-const workflowKeys = ['inspect', 'broadcast', 'suspend'] as const;
+const workflowKeys = ['inspect', 'broadcast', 'status'] as const;
 
 export default async function UsersPage({
   params,

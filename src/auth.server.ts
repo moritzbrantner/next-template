@@ -87,7 +87,24 @@ export async function getAuthSession(): Promise<AppSession | null> {
   const cookieStore = await getCookieStore();
   const payload = parseSession(cookieStore.get(SESSION_COOKIE_NAME)?.value);
 
-  return payload?.user ? { user: payload.user } : null;
+  if (!payload?.user) {
+    return null;
+  }
+
+  const { getDb } = await import('@/src/db/client');
+  const dbUser = await getDb().query.users.findFirst({
+    where: (table, { eq }) => eq(table.id, payload.user!.id),
+    columns: {
+      disabledAt: true,
+    },
+  });
+
+  if (!dbUser || dbUser.disabledAt) {
+    await writeSessionCookie(null);
+    return null;
+  }
+
+  return { user: payload.user };
 }
 
 export async function signInSession(

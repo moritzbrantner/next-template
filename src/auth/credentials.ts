@@ -28,6 +28,7 @@ type DbUser = {
   emailVerified: Date | null;
   passwordHash: string | null;
   lockoutUntil: Date | null;
+  disabledAt: Date | null;
 };
 
 type AuthorizedCredentialsUser = {
@@ -116,7 +117,7 @@ export async function authorizeCredentialsDetailed(
     dependencies ?? (await resolveDefaultDependencies());
   const user = await resolvedDependencies.findUserByEmail(normalizedEmail);
 
-  if (!user?.passwordHash) {
+  if (!user?.passwordHash || user.disabledAt) {
     registerCredentialAttemptFailure(throttleKey);
     await resolvedDependencies.onAuthenticationFailure(user?.id ?? null);
     return { ok: false, reason: 'invalid_credentials' };

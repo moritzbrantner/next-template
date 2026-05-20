@@ -36,6 +36,13 @@ const reportCatalogKeys = [
   'navigationJourneys',
 ] as const;
 
+const auditLogLinksByReport: Partial<
+  Record<(typeof reportCatalogKeys)[number], string>
+> = {
+  securityAccess: '/admin/audit-log?outcome=denied',
+  auditActivity: '/admin/audit-log?action=admin.',
+};
+
 export default async function ReportsPage({
   params,
 }: {
@@ -183,6 +190,18 @@ export default async function ReportsPage({
                       >
                         {t('reports.actions.export')}
                       </a>
+                      {auditLogLinksByReport[reportKey] ? (
+                        <LocalizedLink
+                          href={auditLogLinksByReport[reportKey]}
+                          locale={locale}
+                          className={buttonVariants({
+                            variant: 'ghost',
+                            size: 'sm',
+                          })}
+                        >
+                          Audit log
+                        </LocalizedLink>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>

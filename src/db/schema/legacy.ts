@@ -104,6 +104,16 @@ export const users = pgTable(
       withTimezone: false,
       mode: 'date',
     }),
+    disabledAt: timestamp('disabledAt', {
+      withTimezone: false,
+      mode: 'date',
+    }),
+    disabledReason: text('disabledReason'),
+    disabledById: text('disabledById'),
+    lockoutClearedAt: timestamp('lockoutClearedAt', {
+      withTimezone: false,
+      mode: 'date',
+    }),
     createdAt: timestamp('createdAt', { withTimezone: false, mode: 'date' })
       .notNull()
       .defaultNow(),

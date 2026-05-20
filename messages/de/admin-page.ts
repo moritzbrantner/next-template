@@ -4,11 +4,12 @@ export const adminPage = {
     overview: 'Übersicht',
     content: 'Inhalte',
     reports: 'Berichte',
+    auditLog: 'Audit Log',
     users: 'Benutzer',
     problemReports: 'Problemmeldungen',
     emailTemplates: 'E-Mail-Templates',
     systemSettings: 'Systemeinstellungen',
-    dataStudio: 'Data Studio',
+    dataStudio: 'Repair Console',
   },
   overview: {
     title: 'Admin-Übersicht',
@@ -132,6 +133,11 @@ export const adminPage = {
       },
     },
   },
+  auditLog: {
+    title: 'Audit Log',
+    description:
+      'Prüfe sicherheitsrelevante Routenentscheidungen und operative Aktionen.',
+  },
   users: {
     title: 'Benutzerverwaltung',
     description:
@@ -168,6 +174,7 @@ export const adminPage = {
       active: 'Aktiv',
       pending: 'Einladung offen',
       suspended: 'Gesperrt',
+      disabled: 'Deaktiviert',
     },
     actions: {
       inspect: 'Nutzer pruefen',
@@ -241,10 +248,10 @@ export const adminPage = {
         description:
           'Sende In-App-Hinweise an einen Nutzer, eine Rollen-Gruppe oder den gesamten Workspace.',
       },
-      suspend: {
-        title: 'Sperren',
+      status: {
+        title: 'Status verwalten',
         description:
-          'Zugriff sofort pausieren, wenn ein Konto geprüft oder archiviert werden muss.',
+          'Oeffne die Nutzerdetailansicht, um Zugriff zu deaktivieren, Konten zu reaktivieren oder Anmeldesperren zu loeschen.',
       },
     },
     detail: {
@@ -448,9 +455,9 @@ export const adminPage = {
     },
   },
   dataStudio: {
-    title: 'Data Studio',
+    title: 'Repair Console',
     description:
-      'Erstelle Datensätze über schema-gesteuerte Formulare aus db-schema.json. Der Zugriff ist auf ADMIN und SUPERADMIN beschränkt.',
+      'Privilegiertes Reparaturwerkzeug für schema-gesteuerte Datensatz-Erstellung. Der Zugriff ist auf SUPERADMIN beschränkt.',
     summary: {
       tables: 'Schreibbare Tabellen',
       fields: 'Verfügbare Felder',

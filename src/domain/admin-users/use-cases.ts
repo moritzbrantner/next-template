@@ -28,9 +28,30 @@ export type RoleManagementError =
       message: string;
     };
 
+export type UserStatusAction = 'disable' | 'reactivate' | 'clearLockout';
+
+export type UserStatusManagementError =
+  | {
+      code: 'FORBIDDEN';
+      message: string;
+    }
+  | {
+      code: 'NOT_FOUND';
+      message: string;
+    }
+  | {
+      code: 'CONFLICT';
+      message: string;
+    }
+  | {
+      code: 'VALIDATION_ERROR';
+      message: string;
+    };
+
 type UserRoleRecord = {
   id: string;
   role: AppRole;
+  disabledAt?: Date | null;
 };
 
 export type UserFeatureManagementError =
@@ -57,6 +78,17 @@ type UpdateAdminUserRoleDependencies = {
   updateUserRole: (userId: string, nextRole: AppRole) => Promise<void>;
 };
 
+type UpdateAdminUserStatusDependencies = {
+  findUserById: (userId: string) => Promise<UserRoleRecord | undefined>;
+  countActiveUsersByRole: (role: AppRole) => Promise<number>;
+  disableUser: (
+    userId: string,
+    input: { disabledById: string; disabledReason: string | null },
+  ) => Promise<void>;
+  reactivateUser: (userId: string) => Promise<void>;
+  clearUserLockout: (userId: string) => Promise<void>;
+};
+
 type UpdateAdminUserFeatureDependencies = {
   findUserById: (userId: string) => Promise<UserRoleRecord | undefined>;
   saveUserFeatureOverride: (input: {
@@ -74,6 +106,7 @@ async function createDefaultDependencies(): Promise<UpdateAdminUserRoleDependenc
         columns: {
           id: true,
           role: true,
+          disabledAt: true,
         },
       });
     },
@@ -90,6 +123,63 @@ async function createDefaultDependencies(): Promise<UpdateAdminUserRoleDependenc
         .update(users)
         .set({
           role: nextRole,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+    },
+  };
+}
+
+async function createStatusDependencies(): Promise<UpdateAdminUserStatusDependencies> {
+  return {
+    findUserById: async (userId) => {
+      return getDb().query.users.findFirst({
+        where: (table, { eq: innerEq }) => innerEq(table.id, userId),
+        columns: {
+          id: true,
+          role: true,
+          disabledAt: true,
+        },
+      });
+    },
+    countActiveUsersByRole: async (role) => {
+      const matchingUsers = await getDb().query.users.findMany({
+        where: (table, { and: innerAnd, eq: innerEq, isNull }) =>
+          innerAnd(innerEq(table.role, role), isNull(table.disabledAt)),
+        columns: { id: true },
+      });
+
+      return matchingUsers.length;
+    },
+    disableUser: async (userId, input) => {
+      await getDb()
+        .update(users)
+        .set({
+          disabledAt: new Date(),
+          disabledReason: input.disabledReason,
+          disabledById: input.disabledById,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+    },
+    reactivateUser: async (userId) => {
+      await getDb()
+        .update(users)
+        .set({
+          disabledAt: null,
+          disabledReason: null,
+          disabledById: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+    },
+    clearUserLockout: async (userId) => {
+      await getDb()
+        .update(users)
+        .set({
+          failedSignInAttempts: 0,
+          lockoutUntil: null,
+          lockoutClearedAt: new Date(),
           updatedAt: new Date(),
         })
         .where(eq(users.id, userId));
@@ -165,6 +255,88 @@ export async function updateAdminUserRoleUseCase(
   return success({
     role: input.nextRole,
   });
+}
+
+export async function updateAdminUserStatusUseCase(
+  input: {
+    actorUserId: string;
+    targetUserId: string;
+    action: UserStatusAction;
+    reason?: string | null;
+  },
+  depsPromise: Promise<UpdateAdminUserStatusDependencies> = createStatusDependencies(),
+): Promise<
+  ServiceResult<{ action: UserStatusAction }, UserStatusManagementError>
+> {
+  const deps = await depsPromise;
+  const [actor, target] = await Promise.all([
+    deps.findUserById(input.actorUserId),
+    deps.findUserById(input.targetUserId),
+  ]);
+
+  if (!actor || !isSuperAdmin(actor.role)) {
+    return failure({
+      code: 'FORBIDDEN',
+      message: 'Only superadmins can manage account status.',
+    });
+  }
+
+  if (!target) {
+    return failure({
+      code: 'NOT_FOUND',
+      message: 'The selected user could not be found.',
+    });
+  }
+
+  const reason = input.reason?.trim() || null;
+
+  if (reason && reason.length > 500) {
+    return failure({
+      code: 'VALIDATION_ERROR',
+      message: 'Disable reason must be 500 characters or fewer.',
+    });
+  }
+
+  if (input.action === 'disable') {
+    if (target.id === actor.id) {
+      return failure({
+        code: 'CONFLICT',
+        message: 'Superadmins cannot disable their own account.',
+      });
+    }
+
+    if (target.role === 'SUPERADMIN' && !target.disabledAt) {
+      const activeSuperadminCount =
+        await deps.countActiveUsersByRole('SUPERADMIN');
+
+      if (activeSuperadminCount <= 1) {
+        return failure({
+          code: 'CONFLICT',
+          message: 'At least one active superadmin account must remain.',
+        });
+      }
+    }
+
+    if (!target.disabledAt) {
+      await deps.disableUser(target.id, {
+        disabledById: actor.id,
+        disabledReason: reason,
+      });
+    }
+
+    return success({ action: input.action });
+  }
+
+  if (input.action === 'reactivate') {
+    if (target.disabledAt) {
+      await deps.reactivateUser(target.id);
+    }
+
+    return success({ action: input.action });
+  }
+
+  await deps.clearUserLockout(target.id);
+  return success({ action: input.action });
 }
 
 export async function updateAdminUserFeatureAccessUseCase(

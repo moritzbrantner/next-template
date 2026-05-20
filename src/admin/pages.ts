@@ -25,6 +25,12 @@ export const adminPageDefinitions = [
     permission: 'admin.reports.read',
   },
   {
+    key: 'auditLog',
+    href: '/admin/audit-log',
+    featureKey: 'admin.reports',
+    permission: 'admin.reports.read',
+  },
+  {
     key: 'users',
     href: '/admin/users',
     featureKey: 'admin.users',
@@ -89,7 +95,11 @@ export async function getAuthorizedAdminPageDefinitions(
 ) {
   const enabledPages = getEnabledAdminPageDefinitions(manifest);
   const checks = await Promise.all(
-    enabledPages.map((page) => hasPermissionForRole(role, page.permission)),
+    enabledPages.map((page) =>
+      page.key === 'dataStudio' && role !== 'SUPERADMIN'
+        ? false
+        : hasPermissionForRole(role, page.permission),
+    ),
   );
 
   return enabledPages.filter((_, index) => checks[index]);
@@ -101,7 +111,11 @@ export async function getAuthorizedAdminWorkspacePageDefinitions(
 ) {
   const enabledPages = getEnabledAdminWorkspacePageDefinitions(manifest);
   const checks = await Promise.all(
-    enabledPages.map((page) => hasPermissionForRole(role, page.permission)),
+    enabledPages.map((page) =>
+      page.key === 'dataStudio' && role !== 'SUPERADMIN'
+        ? false
+        : hasPermissionForRole(role, page.permission),
+    ),
   );
 
   return enabledPages.filter((_, index) => checks[index]);

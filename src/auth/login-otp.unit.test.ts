@@ -23,6 +23,7 @@ function createOtpDeps() {
     emailVerified: new Date() as Date | null,
     failedSignInAttempts: 0,
     lockoutUntil: null,
+    disabledAt: null,
   };
   const issuedTokens: IssuedToken[] = [];
 

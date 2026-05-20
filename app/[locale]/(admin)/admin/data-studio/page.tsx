@@ -2,6 +2,7 @@ import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import { DataStudioClient } from './data-studio-client';
 import {
   notFoundUnlessFeatureEnabled,
+  redirectToLocaleHome,
   requirePermission,
   resolveLocale,
 } from '@/src/server/page-guards';
@@ -15,6 +16,9 @@ export default async function DataStudioPage({
   const locale = resolveLocale(rawLocale);
   await notFoundUnlessFeatureEnabled('admin.dataStudio');
   const session = await requirePermission(locale, 'admin.dataStudio.read');
+  if (session.user.role !== 'SUPERADMIN') {
+    redirectToLocaleHome(locale);
+  }
   return (
     <DataStudioClient
       adminPages={await getAuthorizedAdminPageDefinitions(session.user.role)}

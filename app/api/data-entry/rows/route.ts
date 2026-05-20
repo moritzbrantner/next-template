@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     request,
     action: 'admin.dataEntry.createRow',
     requiredFeatureKey: 'admin.dataStudio',
-    allowedRoles: ['ADMIN', 'SUPERADMIN'],
+    allowedRoles: ['SUPERADMIN'],
     requiredPermission: 'admin.dataStudio.write',
   });
 

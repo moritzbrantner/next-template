@@ -8,7 +8,7 @@ import {
 import { getTablePermissionViews } from '@/src/domain/data-entry/use-cases';
 
 describe('data-entry table permissions', () => {
-  it.each(['USER', 'MANAGER'] as const)(
+  it.each(['USER', 'MANAGER', 'ADMIN'] as const)(
     'does not expose schema tables to %s users',
     (role) => {
       expect(getTablePermissionViews(role)).toEqual([]);
@@ -20,7 +20,7 @@ describe('data-entry table permissions', () => {
     },
   );
 
-  it.each(['ADMIN', 'SUPERADMIN'] as const)(
+  it.each(['SUPERADMIN'] as const)(
     'allows %s users to read and write managed schema tables',
     (role) => {
       expect(getTablePermissionViews(role)).toHaveLength(managedTables.length);
