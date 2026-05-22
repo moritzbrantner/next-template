@@ -1,66 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-import { getE2EBaseURL } from '@/scripts/e2e/environment';
 import {
-  extractFirstUrl,
   getSeededUser,
   gotoAndWaitForHydration,
   loginWithCredentials,
-  waitForMailpitMessage,
 } from '@/scripts/e2e/helpers';
+import { seedTestUsers } from '@/src/testing/test-users';
 
 const deletionUser = getSeededUser('delete-account@example.com');
-const signupUrl = new URL('/api/account/signup', getE2EBaseURL()).toString();
 
 async function recreateDeletionUserIfNeeded() {
-  const response = await fetch(signupUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: deletionUser.name,
-      email: deletionUser.email,
-      password: deletionUser.password,
-      locale: 'en',
-    }),
-  });
-
-  if (response.ok) {
-    const verificationMessage = await waitForMailpitMessage({
-      to: deletionUser.email,
-      subject: 'Verify your email address',
-    });
-    const verificationUrl = new URL(extractFirstUrl(verificationMessage.raw));
-    const verificationToken = verificationUrl.searchParams.get('token');
-
-    if (!verificationToken) {
-      throw new Error('Unable to restore deletion user without a token.');
-    }
-
-    const verificationResponse = await fetch(
-      new URL(
-        `/api/account/verify-email?token=${encodeURIComponent(verificationToken)}`,
-        getE2EBaseURL(),
-      ),
-    );
-
-    if (!verificationResponse.ok) {
-      throw new Error(
-        `Unable to verify restored ${deletionUser.email} after account deletion test.`,
-      );
-    }
-
-    return;
-  }
-
-  if (response.status === 400) {
-    return;
-  }
-
-  throw new Error(
-    `Unable to restore ${deletionUser.email} after account deletion test.`,
-  );
+  await seedTestUsers();
 }
 
 test.describe('account deletion', () => {

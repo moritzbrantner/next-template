@@ -19,6 +19,7 @@ function clearE2EEnvironment() {
     'AUTH_SECRET',
     'DATABASE_URL',
     'E2E_BASE_URL',
+    'EMAIL_FROM',
     'EMAIL_PROVIDER',
     'INTERNAL_CRON_SECRET',
     'MAILPIT_BASE_URL',
@@ -38,6 +39,11 @@ function clearE2EEnvironment() {
     'PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY',
     'SITE_URL',
     'AUTH_URL',
+    'SMTP_HOST',
+    'SMTP_PASSWORD',
+    'SMTP_PORT',
+    'SMTP_SECURE',
+    'SMTP_USER',
   ]) {
     delete process.env[key];
   }
@@ -54,10 +60,14 @@ describe('e2e environment', () => {
     const environment = createE2EEnvironment();
 
     expect(environment.AUTH_SECRET).toBe('replace-with-a-long-random-secret');
-    expect(environment.INTERNAL_CRON_SECRET).toBe(
-      'replace-with-an-internal-cron-secret',
-    );
+    expect(environment.INTERNAL_CRON_SECRET).toBe('e2e-internal-cron-secret');
+    expect(environment.EMAIL_FROM).toBe('no-reply@example.com');
     expect(environment.MAILPIT_BASE_URL).toBe('http://127.0.0.1:8025');
+    expect(environment.SMTP_HOST).toBe('127.0.0.1');
+    expect(environment.SMTP_PORT).toBe('1025');
+    expect(environment.SMTP_USER).toBe('e2e');
+    expect(environment.SMTP_PASSWORD).toBe('e2e');
+    expect(environment.SMTP_SECURE).toBe('false');
     expect(environment.MINIO_ROOT_USER).toBe('minioadmin');
     expect(environment.PROFILE_IMAGE_STORAGE_REGION).toBe('us-east-1');
   });
@@ -71,7 +81,7 @@ describe('e2e environment', () => {
     expect(environment.SITE_URL).toBe('http://127.0.0.1:3006');
     expect(environment.AUTH_URL).toBe('http://127.0.0.1:3006');
     expect(environment.NEXTAUTH_URL).toBe('http://127.0.0.1:3006');
-    expect(environment.EMAIL_PROVIDER).toBe('mailpit');
+    expect(environment.EMAIL_PROVIDER).toBe('smtp');
     expect(environment.DATABASE_URL).toBe(
       'postgresql://postgres:postgres@127.0.0.1:55433/next_template?schema=public',
     );

@@ -56,6 +56,9 @@ container_name_for_service() {
     postgres)
       printf 'next-template-postgres'
       ;;
+    mailpit)
+      printf 'next-template-mailpit'
+      ;;
     minio)
       printf 'next-template-minio'
       ;;
@@ -63,6 +66,65 @@ container_name_for_service() {
       return 1
       ;;
   esac
+}
+
+compose_default_network_name() {
+  printf 'next-template_default'
+}
+
+expected_default_network_subnet() {
+  awk '
+    /^[[:space:]]+default:$/ { in_default = 1; next }
+    in_default && /^[^[:space:]]/ { exit }
+    in_default && /subnet:/ {
+      sub(/^.*subnet:[[:space:]]*/, "")
+      print
+      exit
+    }
+  ' "$COMPOSE_FILE_PATH"
+}
+
+current_default_network_subnet() {
+  docker network inspect "$(compose_default_network_name)" \
+    --format '{{range .IPAM.Config}}{{.Subnet}}{{end}}' 2>/dev/null || true
+}
+
+default_network_has_active_endpoints() {
+  local network_name
+  network_name="$(compose_default_network_name)"
+
+  [[ -n "$(docker network inspect "$network_name" \
+    --format '{{range $id, $_ := .Containers}}{{$id}}{{end}}' 2>/dev/null || true)" ]]
+}
+
+assert_default_network_matches_compose() {
+  local expected_subnet current_subnet
+  expected_subnet="$(expected_default_network_subnet)"
+  current_subnet="$(current_default_network_subnet)"
+
+  if [[ -z "$expected_subnet" || -z "$current_subnet" ]]; then
+    return 0
+  fi
+
+  if [[ "$expected_subnet" == "$current_subnet" ]]; then
+    return 0
+  fi
+
+  if ! default_network_has_active_endpoints; then
+    return 0
+  fi
+
+  cat >&2 <<EOF
+❌ The existing $(compose_default_network_name) Docker network does not match docker-compose.yml.
+   Current subnet:  ${current_subnet}
+   Expected subnet: ${expected_subnet}
+
+   Run:
+     bun run services:down
+   Then rerun:
+     bun run test:with-services
+EOF
+  exit 1
 }
 
 remove_stale_named_containers() {
@@ -128,7 +190,7 @@ teardown() {
     echo "ℹ️ Cleaning up compose services started by bootstrap script: ${STARTED_SERVICES[*]}"
     cleanup_services
     rm -f "$MARKER_FILE"
-  elif force_managed_services; then
+  elif [[ "${E2E_FORCE_MANAGED_SERVICES:-false}" == "true" ]]; then
     STARTED_SERVICES=("postgres" "mailpit" "minio")
     echo "ℹ️ No marker file found; cleaning compose-managed e2e services: ${STARTED_SERVICES[*]}"
     cleanup_services
@@ -218,6 +280,7 @@ if (( ${#STARTED_SERVICES[@]} > 0 )); then
   done
 
   echo "ℹ️ Starting compose services for e2e bootstrap: ${STARTED_SERVICES[*]}"
+  assert_default_network_matches_compose
   remove_stale_named_containers "${STARTED_SERVICES[@]}"
   (
     cd "$APP_ROOT"

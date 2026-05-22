@@ -6,7 +6,7 @@ import { TEST_USERS } from '@/src/testing/test-users';
 
 const DEFAULT_MAILPIT_BASE_URL = 'http://127.0.0.1:8025';
 const DEFAULT_E2E_BASE_URL = 'http://127.0.0.1:3006';
-const DEFAULT_INTERNAL_CRON_SECRET = 'replace-with-an-internal-cron-secret';
+const DEFAULT_INTERNAL_CRON_SECRET = 'e2e-internal-cron-secret';
 
 const PNG_SIGNATURE = Buffer.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
@@ -310,15 +310,20 @@ async function getMailpitMessageRaw(messageId: string) {
 }
 
 export async function runQueuedJobs() {
-  const response = await fetch(`${getE2EBaseURL()}/api/internal/jobs/run`, {
+  const baseURL = getE2EBaseURL();
+  const response = await fetch(`${baseURL}/api/internal/jobs/run`, {
     method: 'POST',
     headers: {
+      origin: new URL(baseURL).origin,
       'x-internal-cron-secret': getInternalCronSecret(),
     },
   });
 
   if (!response.ok) {
-    throw new Error('Unable to run queued jobs.');
+    const body = await response.text().catch(() => '');
+    throw new Error(
+      `Unable to run queued jobs: ${response.status} ${response.statusText}${body ? ` ${body}` : ''}`,
+    );
   }
 }
 
@@ -380,7 +385,12 @@ export async function waitForMailpitMessage(input: {
 }
 
 export function extractFirstUrl(text: string) {
-  const match = text.match(/https?:\/\/[^\s<>"')]+/);
+  const decodedText = text
+    .replace(/=\r?\n/g, '')
+    .replace(/=([0-9A-Fa-f]{2})/g, (_match, hex: string) =>
+      String.fromCharCode(Number.parseInt(hex, 16)),
+    );
+  const match = decodedText.match(/https?:\/\/[^\s<>"')]+/);
 
   if (!match) {
     throw new Error('Expected at least one URL in message content.');

@@ -9,6 +9,8 @@ import {
 
 const DEFAULT_E2E_BASE_URL = 'http://127.0.0.1:3006';
 const DEFAULT_MAILPIT_BASE_URL = 'http://127.0.0.1:8025';
+const DEFAULT_SMTP_HOST = '127.0.0.1';
+const DEFAULT_SMTP_PORT = '1025';
 const DEFAULT_MINIO_HOST = '127.0.0.1';
 const DEFAULT_MINIO_API_PORT = '9000';
 const DEFAULT_MINIO_CONSOLE_PORT = '9001';
@@ -251,16 +253,54 @@ export function createE2EEnvironment(baseURL = getE2EBaseURL()) {
     SITE_URL: baseURL,
     AUTH_URL: baseURL,
     NEXTAUTH_URL: baseURL,
-    EMAIL_PROVIDER: 'mailpit',
+    EMAIL_PROVIDER: 'smtp',
+    EMAIL_FROM: getE2EEnvironmentValue(
+      'EMAIL_FROM',
+      e2eExampleEnvironment,
+      exampleEnvironment,
+      'no-reply@example.com',
+    ),
     MAILPIT_BASE_URL: getE2EEnvironmentValue(
       'MAILPIT_BASE_URL',
       e2eExampleEnvironment,
       exampleEnvironment,
       DEFAULT_MAILPIT_BASE_URL,
     ),
-    INTERNAL_CRON_SECRET: getEnvironmentValue(
-      'INTERNAL_CRON_SECRET',
+    SMTP_HOST: getE2EEnvironmentValue(
+      'SMTP_HOST',
+      e2eExampleEnvironment,
       exampleEnvironment,
+      DEFAULT_SMTP_HOST,
+    ),
+    SMTP_PORT: getE2EEnvironmentValue(
+      'SMTP_PORT',
+      e2eExampleEnvironment,
+      exampleEnvironment,
+      DEFAULT_SMTP_PORT,
+    ),
+    SMTP_USER: getE2EEnvironmentValue(
+      'SMTP_USER',
+      e2eExampleEnvironment,
+      exampleEnvironment,
+      'e2e',
+    ),
+    SMTP_PASSWORD: getE2EEnvironmentValue(
+      'SMTP_PASSWORD',
+      e2eExampleEnvironment,
+      exampleEnvironment,
+      'e2e',
+    ),
+    SMTP_SECURE: getE2EEnvironmentValue(
+      'SMTP_SECURE',
+      e2eExampleEnvironment,
+      exampleEnvironment,
+      'false',
+    ),
+    INTERNAL_CRON_SECRET: getE2EEnvironmentValue(
+      'INTERNAL_CRON_SECRET',
+      e2eExampleEnvironment,
+      exampleEnvironment,
+      'e2e-internal-cron-secret',
     ),
     POSTGRES_PORT: process.env.POSTGRES_PORT ?? getComposePostgresPort(),
     MINIO_API_PORT: minioApiPort,

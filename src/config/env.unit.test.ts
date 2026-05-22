@@ -1,8 +1,53 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { getEnv, resetEnvForTests } from '@/src/config/env';
 
 const originalEnv = { ...process.env };
+const appEnvKeys = [
+  'ANALYTICS_ENABLED',
+  'AUTH_SECRET',
+  'AUTH_URL',
+  'DATABASE_URL',
+  'EMAIL_FROM',
+  'EMAIL_PROVIDER',
+  'FACEBOOK_CLIENT_ID',
+  'FACEBOOK_CLIENT_SECRET',
+  'GITHUB_PAGES_BASE_PATH',
+  'GOOGLE_CLIENT_ID',
+  'GOOGLE_CLIENT_SECRET',
+  'IMAGE_REMOTE_HOSTS',
+  'INTERNAL_CRON_SECRET',
+  'LOG_LEVEL',
+  'MAILPIT_BASE_URL',
+  'NEXTAUTH_URL',
+  'NEXT_DEPLOY_TARGET',
+  'NODE_ENV',
+  'PROFILE_IMAGE_PUBLIC_BASE_URL',
+  'PROFILE_IMAGE_STORAGE_ACCESS_KEY_ID',
+  'PROFILE_IMAGE_STORAGE_BUCKET',
+  'PROFILE_IMAGE_STORAGE_ENDPOINT',
+  'PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE',
+  'PROFILE_IMAGE_STORAGE_REGION',
+  'PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY',
+  'SITE_URL',
+  'SMTP_HOST',
+  'SMTP_PASSWORD',
+  'SMTP_PORT',
+  'SMTP_SECURE',
+  'SMTP_USER',
+  'TENOR_API_KEY',
+  'TENOR_CLIENT_KEY',
+  'X_CLIENT_ID',
+  'X_CLIENT_SECRET',
+] as const;
+
+function clearAppEnv() {
+  for (const key of appEnvKeys) {
+    delete process.env[key];
+  }
+
+  resetEnvForTests();
+}
 
 function restoreEnv() {
   for (const key of Object.keys(process.env)) {
@@ -16,6 +61,10 @@ function restoreEnv() {
 }
 
 describe('env parsing', () => {
+  beforeEach(() => {
+    clearAppEnv();
+  });
+
   afterEach(() => {
     restoreEnv();
   });
@@ -97,6 +146,13 @@ describe('env parsing', () => {
   });
 
   it('requires SMTP settings when SMTP email delivery is selected', () => {
+    Object.assign(process.env, {
+      SMTP_HOST: 'inherited.example.com',
+      SMTP_PORT: '2525',
+      SMTP_USER: 'inherited',
+      SMTP_PASSWORD: 'inherited',
+    });
+    clearAppEnv();
     Object.assign(process.env, {
       DATABASE_URL: 'postgres://example',
       AUTH_SECRET: 'test-secret',

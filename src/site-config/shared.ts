@@ -1,3 +1,6 @@
+import { closeSync, mkdirSync, openSync } from 'node:fs';
+import path from 'node:path';
+
 import { revalidateTag, unstable_cache } from 'next/cache';
 import { eq, inArray } from 'drizzle-orm';
 
@@ -141,7 +144,7 @@ let siteConfigCache:
     }
   | undefined;
 let databaseReadFallbackExpiresAt = 0;
-let databaseReadFallbackLoggedAt = 0;
+const databaseReadFallbackLoggedAtByOperation = new Map<string, number>();
 const databaseReadFallbackErrorCodes = new Set([
   'ECONNREFUSED',
   'ECONNRESET',
@@ -222,14 +225,58 @@ function logReadFallback(error: unknown, operation: string) {
   );
 }
 
+function isProductionBuild() {
+  return (
+    process.env.npm_lifecycle_event === 'build' ||
+    process.env.NEXT_PHASE === 'phase-production-build'
+  );
+}
+
+function shouldLogBuildReadFallback(operation: string) {
+  if (!isProductionBuild()) {
+    return true;
+  }
+
+  try {
+    const markerDirectory = path.join(
+      process.cwd(),
+      '.next',
+      'cache',
+      'site-config-fallback-logs',
+    );
+    mkdirSync(markerDirectory, { recursive: true });
+    const markerFile = path.join(markerDirectory, `${operation}.log`);
+    const fileDescriptor = openSync(markerFile, 'wx');
+    closeSync(fileDescriptor);
+    return true;
+  } catch (error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === 'EEXIST'
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+}
+
 function activateDatabaseReadFallback(error: unknown, operation: string) {
   const now = Date.now();
 
   databaseReadFallbackExpiresAt = now + CACHE_TTL_MS;
 
-  if (now - databaseReadFallbackLoggedAt >= CACHE_TTL_MS) {
-    databaseReadFallbackLoggedAt = now;
-    logReadFallback(error, operation);
+  if (
+    now - (databaseReadFallbackLoggedAtByOperation.get(operation) ?? 0) >=
+    CACHE_TTL_MS
+  ) {
+    databaseReadFallbackLoggedAtByOperation.set(operation, now);
+
+    if (shouldLogBuildReadFallback(operation)) {
+      logReadFallback(error, operation);
+    }
   }
 }
 
