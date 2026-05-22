@@ -47,6 +47,55 @@ describe('env parsing', () => {
     expect(getEnv().auth.secret).toBe('local-build-secret-local-build-secret');
   });
 
+  it('requires an explicit site url for production server builds', () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      EMAIL_PROVIDER: 'smtp',
+      SMTP_HOST: 'smtp.example.com',
+      SMTP_PORT: '465',
+      SMTP_USER: 'mailer',
+      SMTP_PASSWORD: 'secret',
+      INTERNAL_CRON_SECRET: 'cron-secret',
+    });
+    delete process.env.SITE_URL;
+    delete process.env.AUTH_URL;
+    delete process.env.NEXTAUTH_URL;
+
+    expect(() => getEnv()).toThrowError(/SITE_URL or AUTH_URL/);
+  });
+
+  it('requires SMTP delivery for production server builds', () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      SITE_URL: 'https://app.example.com',
+      EMAIL_PROVIDER: 'console',
+      INTERNAL_CRON_SECRET: 'cron-secret',
+    });
+
+    expect(() => getEnv()).toThrowError(/EMAIL_PROVIDER=smtp/);
+  });
+
+  it('requires an internal cron secret for production server builds', () => {
+    Object.assign(process.env, {
+      NODE_ENV: 'production',
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      SITE_URL: 'https://app.example.com',
+      EMAIL_PROVIDER: 'smtp',
+      SMTP_HOST: 'smtp.example.com',
+      SMTP_PORT: '465',
+      SMTP_USER: 'mailer',
+      SMTP_PASSWORD: 'secret',
+    });
+    delete process.env.INTERNAL_CRON_SECRET;
+
+    expect(() => getEnv()).toThrowError(/INTERNAL_CRON_SECRET/);
+  });
+
   it('requires SMTP settings when SMTP email delivery is selected', () => {
     Object.assign(process.env, {
       DATABASE_URL: 'postgres://example',

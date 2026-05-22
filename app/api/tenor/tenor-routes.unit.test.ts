@@ -1,5 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/src/auth.server', () => ({
+  getAuthSession: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock('@/src/api/security', () => ({
+  auditAction: vi.fn().mockResolvedValue(undefined),
+  enforceRateLimit: vi.fn().mockResolvedValue({
+    ok: true,
+    remaining: 29,
+    resetAt: 1_700_000_000_000,
+  }),
+  getRateLimitKey: vi.fn().mockReturnValue('ip:test'),
+}));
+
 import { POST as registerTenorShare } from '@/app/api/tenor/register-share/route';
 import { GET as searchTenor } from '@/app/api/tenor/search/route';
 import { resetEnvForTests } from '@/src/config/env';
@@ -56,6 +70,7 @@ describe('Tenor routes', () => {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
+          origin: 'http://localhost',
         },
         body: JSON.stringify({
           id: 'gif-1',
@@ -68,6 +83,28 @@ describe('Tenor routes', () => {
       ok: false,
       configured: false,
     });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects mutating requests without a same-origin signal', async () => {
+    applyBaseEnv();
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const response = await registerTenorShare(
+      new Request('http://localhost/api/tenor/register-share', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: 'gif-1',
+          q: 'ship-it',
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

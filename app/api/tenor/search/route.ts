@@ -1,6 +1,7 @@
 import * as z from 'zod';
 
 import { getEnv } from '@/src/config/env';
+import { createApiRoute } from '@/src/http/route';
 
 const TENOR_SEARCH_ENDPOINT = 'https://tenor.googleapis.com/v2/search';
 
@@ -53,59 +54,69 @@ function toGifResult(result: TenorResult, query: string) {
   };
 }
 
-export async function GET(request: Request) {
-  const parsedQuery = querySchema.safeParse(
-    Object.fromEntries(new URL(request.url).searchParams),
-  );
-
-  if (!parsedQuery.success) {
-    return Response.json(
-      { error: 'Invalid Tenor search query.' },
-      { status: 400 },
+export const GET = createApiRoute({
+  action: 'tenor.search',
+  async handler({ request }) {
+    const parsedQuery = querySchema.safeParse(
+      Object.fromEntries(new URL(request.url).searchParams),
     );
-  }
 
-  const query = parsedQuery.data;
-  const env = getEnv();
+    if (!parsedQuery.success) {
+      return Response.json(
+        { error: 'Invalid Tenor search query.' },
+        { status: 400 },
+      );
+    }
 
-  if (!env.tenor.apiKey) {
-    return Response.json({
-      configured: false,
-      results: [],
+    const query = parsedQuery.data;
+    const env = getEnv();
+
+    if (!env.tenor.apiKey) {
+      return Response.json({
+        configured: false,
+        results: [],
+      });
+    }
+
+    const url = new URL(TENOR_SEARCH_ENDPOINT);
+    url.searchParams.set('key', env.tenor.apiKey);
+    url.searchParams.set('client_key', env.tenor.clientKey);
+    url.searchParams.set('q', query.q);
+    url.searchParams.set('locale', query.locale ?? 'en_US');
+    url.searchParams.set(
+      'country',
+      query.locale?.endsWith('_DE') ? 'DE' : 'US',
+    );
+    url.searchParams.set('contentfilter', 'medium');
+    url.searchParams.set('media_filter', 'gif,tinygif,nanogif');
+    url.searchParams.set('limit', '12');
+
+    const response = await fetch(url, {
+      headers: {
+        accept: 'application/json',
+      },
+      next: {
+        revalidate: 60,
+      },
     });
-  }
 
-  const url = new URL(TENOR_SEARCH_ENDPOINT);
-  url.searchParams.set('key', env.tenor.apiKey);
-  url.searchParams.set('client_key', env.tenor.clientKey);
-  url.searchParams.set('q', query.q);
-  url.searchParams.set('locale', query.locale ?? 'en_US');
-  url.searchParams.set('country', query.locale?.endsWith('_DE') ? 'DE' : 'US');
-  url.searchParams.set('contentfilter', 'medium');
-  url.searchParams.set('media_filter', 'gif,tinygif,nanogif');
-  url.searchParams.set('limit', '12');
+    if (!response.ok) {
+      return Response.json(
+        { error: 'Unable to search Tenor.' },
+        { status: 502 },
+      );
+    }
 
-  const response = await fetch(url, {
-    headers: {
-      accept: 'application/json',
-    },
-    next: {
-      revalidate: 60,
-    },
-  });
+    const data = (await response.json()) as TenorResponse;
 
-  if (!response.ok) {
-    return Response.json({ error: 'Unable to search Tenor.' }, { status: 502 });
-  }
-
-  const data = (await response.json()) as TenorResponse;
-
-  return Response.json({
-    configured: true,
-    results: (data.results ?? [])
-      .map((result) => toGifResult(result, query.q))
-      .filter((result): result is NonNullable<ReturnType<typeof toGifResult>> =>
-        Boolean(result),
-      ),
-  });
-}
+    return Response.json({
+      configured: true,
+      results: (data.results ?? [])
+        .map((result) => toGifResult(result, query.q))
+        .filter(
+          (result): result is NonNullable<ReturnType<typeof toGifResult>> =>
+            Boolean(result),
+        ),
+    });
+  },
+});

@@ -39,6 +39,7 @@ type QuerySchema<TQuery> = ZodType<TQuery> | undefined;
 
 type HandlerContext<TBody, TQuery> = {
   request: Request;
+  routeContext: unknown;
   session: AppSession | null;
   actorId: string | null;
   body: TBody;
@@ -52,6 +53,7 @@ type CreateApiRouteOptions<TBody, TQuery, TResult> = {
   roles?: readonly AppRole[];
   permission?: AppPermissionKey;
   skipOriginCheck?: boolean;
+  metadata?: Record<string, unknown>;
   bodySchema?: BodySchema<TBody>;
   querySchema?: QuerySchema<TQuery>;
   handler: (
@@ -200,7 +202,7 @@ export function createApiRoute<
   TQuery = undefined,
   TResult = unknown,
 >(options: CreateApiRouteOptions<TBody, TQuery, TResult>) {
-  return async function routeHandler(request: Request) {
+  return async function routeHandler(request: Request, routeContext?: unknown) {
     const requestContext = createRequestContext(request);
 
     return withRequestContext(requestContext, async () => {
@@ -234,6 +236,7 @@ export function createApiRoute<
           action: options.action,
           outcome: defaultOutcomeForStatus(status),
           statusCode: status,
+          metadata: options.metadata,
         });
       };
 
@@ -241,21 +244,6 @@ export function createApiRoute<
         if (!rateLimit.ok) {
           await audit(429);
           return createProblemResponse(rateLimitedProblem(), {
-            headers: new Headers({
-              ...Object.fromEntries(rateLimitHeaders.entries()),
-              'x-request-id': requestContext.requestId,
-            }),
-          });
-        }
-
-        if (
-          actorId &&
-          isMutatingRequest(request) &&
-          !options.skipOriginCheck &&
-          !hasValidRequestOrigin(request)
-        ) {
-          await audit(403);
-          return createProblemResponse(forbiddenProblem(), {
             headers: new Headers({
               ...Object.fromEntries(rateLimitHeaders.entries()),
               'x-request-id': requestContext.requestId,
@@ -343,6 +331,20 @@ export function createApiRoute<
           }
         }
 
+        if (
+          isMutatingRequest(request) &&
+          !options.skipOriginCheck &&
+          !hasValidRequestOrigin(request)
+        ) {
+          await audit(403);
+          return createProblemResponse(forbiddenProblem(), {
+            headers: new Headers({
+              ...Object.fromEntries(rateLimitHeaders.entries()),
+              'x-request-id': requestContext.requestId,
+            }),
+          });
+        }
+
         const queryInput = toQueryRecord(new URL(request.url).searchParams);
         const parsedQuery = options.querySchema
           ? options.querySchema.safeParse(queryInput)
@@ -403,6 +405,7 @@ export function createApiRoute<
 
         const result = await options.handler({
           request,
+          routeContext,
           session,
           actorId,
           body: parsedBody as TBody,

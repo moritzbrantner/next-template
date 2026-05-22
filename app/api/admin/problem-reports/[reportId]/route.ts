@@ -3,70 +3,64 @@ import {
   isProblemReportStatus,
   updateProblemReport,
 } from '@/src/domain/support/problem-reports';
-import { secureRoute } from '@/src/api/route-security';
+import { createApiRoute } from '@/src/http/route';
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ reportId: string }> },
-) {
-  const { reportId } = await context.params;
-  const guard = await secureRoute({
-    request,
-    action: 'admin.problemReports.read',
-    requiredPermission: 'admin.problemReports.read',
-    metadata: { reportId },
-  });
+export const GET = createApiRoute({
+  action: 'admin.problemReports.read',
+  permission: 'admin.problemReports.read',
+  async handler({ routeContext }) {
+    const { params } = routeContext as {
+      params: Promise<{ reportId: string }>;
+    };
+    const { reportId } = await params;
 
-  if (!guard.ok) {
-    return guard.response;
-  }
+    const report = await getProblemReportById(reportId);
 
-  const report = await getProblemReportById(reportId);
+    if (!report) {
+      return Response.json(
+        { error: 'Problem report not found.' },
+        { status: 404 },
+      );
+    }
 
-  if (!report) {
-    return guard.json({ error: 'Problem report not found.' }, { status: 404 });
-  }
+    return { report };
+  },
+});
 
-  return guard.json({ report });
-}
+export const PATCH = createApiRoute({
+  action: 'admin.problemReports.update',
+  permission: 'admin.problemReports.update',
+  async handler({ request, routeContext }) {
+    const { params } = routeContext as {
+      params: Promise<{ reportId: string }>;
+    };
+    const { reportId } = await params;
 
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ reportId: string }> },
-) {
-  const { reportId } = await context.params;
-  const guard = await secureRoute({
-    request,
-    action: 'admin.problemReports.update',
-    requiredPermission: 'admin.problemReports.update',
-    metadata: { reportId },
-  });
+    const body = (await request.json().catch(() => null)) as {
+      status?: string;
+      adminNote?: string | null;
+    } | null;
 
-  if (!guard.ok) {
-    return guard.response;
-  }
+    if (!isProblemReportStatus(body?.status)) {
+      return Response.json(
+        { error: 'A valid problem report status is required.' },
+        { status: 400 },
+      );
+    }
 
-  const body = (await request.json().catch(() => null)) as {
-    status?: string;
-    adminNote?: string | null;
-  } | null;
+    const report = await updateProblemReport({
+      reportId,
+      status: body.status,
+      adminNote: body.adminNote,
+    });
 
-  if (!isProblemReportStatus(body?.status)) {
-    return guard.json(
-      { error: 'A valid problem report status is required.' },
-      { status: 400 },
-    );
-  }
+    if (!report) {
+      return Response.json(
+        { error: 'Problem report not found.' },
+        { status: 404 },
+      );
+    }
 
-  const report = await updateProblemReport({
-    reportId,
-    status: body.status,
-    adminNote: body.adminNote,
-  });
-
-  if (!report) {
-    return guard.json({ error: 'Problem report not found.' }, { status: 404 });
-  }
-
-  return guard.json({ report });
-}
+    return { report };
+  },
+});

@@ -1,13 +1,30 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+function mockApiRouteDependencies() {
+  vi.doMock('@/src/api/security', () => ({
+    auditAction: vi.fn().mockResolvedValue(undefined),
+    enforceRateLimit: vi
+      .fn()
+      .mockResolvedValue({ ok: true, remaining: 10, resetAt: 0 }),
+    getRateLimitKey: vi.fn().mockReturnValue('test'),
+  }));
+  vi.doMock('@/src/auth.server', () => ({
+    getAuthSession: vi.fn().mockResolvedValue(null),
+  }));
+}
+
 afterEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
+  vi.doUnmock('@/src/api/security');
+  vi.doUnmock('@/src/auth.server');
   vi.doUnmock('@/src/auth/oauth/service');
 });
 
 describe('oauth routes', () => {
   it('returns 404 for unsupported providers', async () => {
+    mockApiRouteDependencies();
+
     const startRoute =
       await import('@/app/api/auth/oauth/[provider]/start/route');
     const callbackRoute =
@@ -31,6 +48,8 @@ describe('oauth routes', () => {
   });
 
   it('delegates valid providers to the oauth service', async () => {
+    mockApiRouteDependencies();
+
     const beginOAuthFlow = vi
       .fn()
       .mockResolvedValue(new Response(null, { status: 302 }));

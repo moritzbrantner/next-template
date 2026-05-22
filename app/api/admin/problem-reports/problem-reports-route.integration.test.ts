@@ -1,20 +1,35 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+function mockForbiddenApiRouteDependencies() {
+  vi.doMock('@/src/api/security', () => ({
+    auditAction: vi.fn().mockResolvedValue(undefined),
+    enforceRateLimit: vi
+      .fn()
+      .mockResolvedValue({ ok: true, remaining: 10, resetAt: 0 }),
+    getRateLimitKey: vi.fn().mockReturnValue('test'),
+  }));
+  vi.doMock('@/src/auth.server', () => ({
+    getAuthSession: vi.fn().mockResolvedValue({
+      user: { id: 'user_1', role: 'USER' },
+    }),
+  }));
+  vi.doMock('@/src/domain/authorization/service', () => ({
+    hasPermissionForRole: vi.fn().mockResolvedValue(false),
+  }));
+}
+
 afterEach(() => {
   vi.resetModules();
-  vi.doUnmock('@/src/api/route-security');
+  vi.doUnmock('@/src/api/security');
+  vi.doUnmock('@/src/auth.server');
+  vi.doUnmock('@/src/domain/authorization/service');
   vi.doUnmock('@/src/domain/support/problem-reports');
 });
 
 describe('admin problem report routes', () => {
   it('rejects non-admin list access before reading reports', async () => {
     const listProblemReports = vi.fn();
-    vi.doMock('@/src/api/route-security', () => ({
-      secureRoute: vi.fn().mockResolvedValue({
-        ok: false,
-        response: Response.json({ error: 'Forbidden.' }, { status: 403 }),
-      }),
-    }));
+    mockForbiddenApiRouteDependencies();
     vi.doMock('@/src/domain/support/problem-reports', async () => {
       const actual = await vi.importActual<
         typeof import('@/src/domain/support/problem-reports')
@@ -36,12 +51,7 @@ describe('admin problem report routes', () => {
 
   it('rejects non-admin detail access before reading reports', async () => {
     const getProblemReportById = vi.fn();
-    vi.doMock('@/src/api/route-security', () => ({
-      secureRoute: vi.fn().mockResolvedValue({
-        ok: false,
-        response: Response.json({ error: 'Forbidden.' }, { status: 403 }),
-      }),
-    }));
+    mockForbiddenApiRouteDependencies();
     vi.doMock('@/src/domain/support/problem-reports', async () => {
       const actual = await vi.importActual<
         typeof import('@/src/domain/support/problem-reports')

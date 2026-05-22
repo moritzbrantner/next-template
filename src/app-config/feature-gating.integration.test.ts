@@ -173,6 +173,7 @@ describe('feature gating', () => {
   });
 
   it('returns 404 for disabled showcase pages and example APIs', async () => {
+    createApiMocks();
     vi.doMock('@/src/foundation/features/runtime', () =>
       createFeatureMock(['showcase.forms', 'showcase.employeeTable']),
     );

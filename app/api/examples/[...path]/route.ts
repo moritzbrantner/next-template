@@ -1,5 +1,6 @@
 import { loadActiveApp } from '@/src/app-config/load-active-app';
 import { isSiteFeatureEnabled } from '@/src/foundation/features/access';
+import { createApiRoute } from '@/src/http/route';
 
 function normalizePath(path: string[] | string | undefined) {
   return Array.isArray(path) ? path.join('/') : (path ?? '');
@@ -35,9 +36,10 @@ async function handleRequest(
   return handler(request);
 }
 
-export async function GET(
-  request: Request,
-  context: { params: Promise<{ path?: string[] }> },
-) {
-  return handleRequest(request, context.params);
-}
+export const GET = createApiRoute({
+  action: 'examples.dispatch',
+  async handler({ request, routeContext }) {
+    const { params } = routeContext as { params: Promise<{ path?: string[] }> };
+    return handleRequest(request, params);
+  },
+});

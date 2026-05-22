@@ -157,6 +157,10 @@ function deriveSiteUrl(raw: z.infer<typeof rawEnvSchema>) {
   );
 }
 
+function isDefaultProductionTarget(raw: z.infer<typeof rawEnvSchema>) {
+  return raw.NODE_ENV === 'production' && raw.NEXT_DEPLOY_TARGET !== 'gh-pages';
+}
+
 function resolveOAuthProviderConfig(
   provider: string,
   clientId?: string,
@@ -199,6 +203,18 @@ export function getEnv(): AppEnv {
   }
 
   const siteUrl = deriveSiteUrl(raw);
+
+  if (
+    isDefaultProductionTarget(raw) &&
+    !trimOptional(raw.SITE_URL) &&
+    !trimOptional(raw.AUTH_URL) &&
+    !trimOptional(raw.NEXTAUTH_URL)
+  ) {
+    throw new Error(
+      'Invalid environment configuration: SITE_URL or AUTH_URL is required in production.',
+    );
+  }
+
   const authSecret =
     trimOptional(raw.AUTH_SECRET) ??
     (raw.NODE_ENV === 'production' && deploymentTarget !== 'gh-pages'
@@ -249,6 +265,21 @@ export function getEnv(): AppEnv {
   ) {
     throw new Error(
       'Invalid environment configuration: SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASSWORD are required when EMAIL_PROVIDER=smtp.',
+    );
+  }
+
+  if (isDefaultProductionTarget(raw) && raw.EMAIL_PROVIDER !== 'smtp') {
+    throw new Error(
+      'Invalid environment configuration: EMAIL_PROVIDER=smtp is required in production.',
+    );
+  }
+
+  if (
+    isDefaultProductionTarget(raw) &&
+    !trimOptional(raw.INTERNAL_CRON_SECRET)
+  ) {
+    throw new Error(
+      'Invalid environment configuration: INTERNAL_CRON_SECRET is required in production.',
     );
   }
 

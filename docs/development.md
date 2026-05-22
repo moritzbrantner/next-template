@@ -2,7 +2,7 @@
 
 ## Setup
 
-Install Bun `1.3.12`, then install dependencies:
+Install Bun `1.3.14`, then install dependencies:
 
 ```bash
 bun install --frozen-lockfile

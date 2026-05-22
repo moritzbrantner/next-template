@@ -1,8 +1,8 @@
 import { and, eq, gte, ilike, lte, type SQL } from 'drizzle-orm';
 
-import { secureRoute } from '@/src/api/route-security';
 import { getDb } from '@/src/db/client';
 import { securityAuditLogs } from '@/src/db/schema';
+import { createApiRoute } from '@/src/http/route';
 
 function parseDate(value: string | null, endOfDay = false) {
   if (!value) {
@@ -62,50 +62,41 @@ function csvCell(value: unknown) {
   return `"${raw.replaceAll('"', '""')}"`;
 }
 
-export async function GET(request: Request) {
-  const guard = await secureRoute({
-    request,
-    action: 'admin.auditLog.export',
-    requiredFeatureKey: 'admin.reports',
-    requireAuth: true,
-    requiredPermission: 'admin.reports.export',
-  });
-
-  if (!guard.ok) {
-    return guard.response;
-  }
-
-  const where = buildFilters(new URL(request.url).searchParams);
-  const rows = await getDb().query.securityAuditLogs.findMany({
-    where: where ? () => where : undefined,
-    orderBy: (table, { asc: innerAsc }) => [innerAsc(table.timestamp)],
-    limit: 10_000,
-  });
-  const csv = [
-    ['timestamp', 'actorId', 'action', 'outcome', 'statusCode', 'metadata']
-      .map(csvCell)
-      .join(','),
-    ...rows.map((row) =>
-      [
-        row.timestamp,
-        row.actorId,
-        row.action,
-        row.outcome,
-        row.statusCode,
-        JSON.stringify(row.metadata ?? {}),
-      ]
+export const GET = createApiRoute({
+  action: 'admin.auditLog.export',
+  featureKey: 'admin.reports',
+  auth: true,
+  permission: 'admin.reports.export',
+  async handler({ request }) {
+    const where = buildFilters(new URL(request.url).searchParams);
+    const rows = await getDb().query.securityAuditLogs.findMany({
+      where: where ? () => where : undefined,
+      orderBy: (table, { asc: innerAsc }) => [innerAsc(table.timestamp)],
+      limit: 10_000,
+    });
+    const csv = [
+      ['timestamp', 'actorId', 'action', 'outcome', 'statusCode', 'metadata']
         .map(csvCell)
         .join(','),
-    ),
-  ].join('\n');
+      ...rows.map((row) =>
+        [
+          row.timestamp,
+          row.actorId,
+          row.action,
+          row.outcome,
+          row.statusCode,
+          JSON.stringify(row.metadata ?? {}),
+        ]
+          .map(csvCell)
+          .join(','),
+      ),
+    ].join('\n');
 
-  return guard.respond(csv, {
-    headers: {
-      'content-type': 'text/csv; charset=utf-8',
-      'content-disposition': 'attachment; filename="audit-log.csv"',
-    },
-    metadata: {
-      rowCount: rows.length,
-    },
-  });
-}
+    return new Response(csv, {
+      headers: {
+        'content-type': 'text/csv; charset=utf-8',
+        'content-disposition': 'attachment; filename="audit-log.csv"',
+      },
+    });
+  },
+});

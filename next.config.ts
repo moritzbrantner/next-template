@@ -64,9 +64,10 @@ const securityHeaders = [
       "object-src 'none'",
       ["img-src 'self' data: blob: https:", ...imageSourceOrigins()].join(' '),
       "font-src 'self' data:",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
       "connect-src 'self' https:",
+      'upgrade-insecure-requests',
     ].join('; '),
   },
   {

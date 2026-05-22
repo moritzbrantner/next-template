@@ -167,35 +167,6 @@ export function createRouteSecurity(deps: SecurityDependencies) {
       };
     }
 
-    if (
-      actorId &&
-      isMutatingRequest(options.request) &&
-      !options.skipOriginCheck &&
-      !hasValidRequestOrigin(options.request)
-    ) {
-      await deps.auditAction({
-        actorId,
-        action: options.action,
-        outcome: 'denied',
-        statusCode: 403,
-        metadata: {
-          ...(options.metadata ?? {}),
-          reason: 'invalid_origin',
-        },
-      });
-
-      return {
-        ok: false,
-        response: Response.json(
-          { error: 'Forbidden.' },
-          {
-            status: 403,
-            headers: withRateLimitHeaders(rateLimit),
-          },
-        ),
-      };
-    }
-
     if (options.requireAuth && !session?.user?.id) {
       await deps.auditAction({
         actorId,
@@ -343,6 +314,34 @@ export function createRouteSecurity(deps: SecurityDependencies) {
           ),
         };
       }
+    }
+
+    if (
+      isMutatingRequest(options.request) &&
+      !options.skipOriginCheck &&
+      !hasValidRequestOrigin(options.request)
+    ) {
+      await deps.auditAction({
+        actorId,
+        action: options.action,
+        outcome: 'denied',
+        statusCode: 403,
+        metadata: {
+          ...(options.metadata ?? {}),
+          reason: 'invalid_origin',
+        },
+      });
+
+      return {
+        ok: false,
+        response: Response.json(
+          { error: 'Forbidden.' },
+          {
+            status: 403,
+            headers: withRateLimitHeaders(rateLimit),
+          },
+        ),
+      };
     }
 
     return {

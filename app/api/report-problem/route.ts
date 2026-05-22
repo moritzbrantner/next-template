@@ -1,46 +1,39 @@
-import { secureRoute } from '@/src/api/route-security';
 import { createProblemReport } from '@/src/domain/support/problem-reports';
+import { createApiRoute } from '@/src/http/route';
 
 function readString(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === 'string' ? value.trim() : '';
 }
 
-export async function POST(request: Request) {
-  const guard = await secureRoute({
-    request,
-    action: 'support.reportProblem',
-    requiredFeatureKey: 'reportProblem',
-  });
+export const POST = createApiRoute({
+  action: 'support.reportProblem',
+  featureKey: 'reportProblem',
+  async handler({ request }) {
+    const formData = await request.formData();
+    const result = await createProblemReport({
+      name: readString(formData, 'name'),
+      email: readString(formData, 'email'),
+      area: readString(formData, 'area'),
+      pageUrl: readString(formData, 'pageUrl'),
+      subject: readString(formData, 'subject'),
+      details: readString(formData, 'details'),
+    });
 
-  if (!guard.ok) {
-    return guard.response;
-  }
+    if (!result.ok) {
+      return Response.json(
+        {
+          error: result.error,
+        },
+        { status: 400 },
+      );
+    }
 
-  const formData = await request.formData();
-  const result = await createProblemReport({
-    name: readString(formData, 'name'),
-    email: readString(formData, 'email'),
-    area: readString(formData, 'area'),
-    pageUrl: readString(formData, 'pageUrl'),
-    subject: readString(formData, 'subject'),
-    details: readString(formData, 'details'),
-  });
-
-  if (!result.ok) {
-    return guard.json(
+    return Response.json(
+      { referenceId: result.value.referenceId },
       {
-        error: result.error,
+        status: 201,
       },
-      { status: 400 },
     );
-  }
-
-  return guard.json(
-    { referenceId: result.value.referenceId },
-    {
-      status: 201,
-      metadata: { reportId: result.value.id },
-    },
-  );
-}
+  },
+});

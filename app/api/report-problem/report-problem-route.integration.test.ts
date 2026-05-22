@@ -1,22 +1,26 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-function mockSecurity() {
-  vi.doMock('@/src/api/route-security', () => ({
-    secureRoute: vi.fn().mockResolvedValue({
-      ok: true,
-      actorId: null,
-      session: null,
-      json: vi.fn(async (body, options = {}) =>
-        Response.json(body, { status: options.status ?? 200 }),
-      ),
-      respond: vi.fn(),
-    }),
+function mockApiRouteDependencies() {
+  vi.doMock('@/src/api/security', () => ({
+    auditAction: vi.fn().mockResolvedValue(undefined),
+    enforceRateLimit: vi
+      .fn()
+      .mockResolvedValue({ ok: true, remaining: 10, resetAt: 0 }),
+    getRateLimitKey: vi.fn().mockReturnValue('test'),
+  }));
+  vi.doMock('@/src/auth.server', () => ({
+    getAuthSession: vi.fn().mockResolvedValue(null),
+  }));
+  vi.doMock('@/src/foundation/features/access', () => ({
+    isFeatureEnabledForUser: vi.fn().mockResolvedValue(true),
   }));
 }
 
 afterEach(() => {
   vi.resetModules();
-  vi.doUnmock('@/src/api/route-security');
+  vi.doUnmock('@/src/api/security');
+  vi.doUnmock('@/src/auth.server');
+  vi.doUnmock('@/src/foundation/features/access');
   vi.doUnmock('@/src/domain/support/problem-reports');
 });
 
@@ -29,7 +33,7 @@ describe('problem report route', () => {
         referenceId: 'PRB-12345678',
       },
     });
-    mockSecurity();
+    mockApiRouteDependencies();
     vi.doMock('@/src/domain/support/problem-reports', () => ({
       createProblemReport,
     }));
@@ -49,6 +53,7 @@ describe('problem report route', () => {
     const response = await route.POST(
       new Request('https://app.example.com/api/report-problem', {
         method: 'POST',
+        headers: { origin: 'https://app.example.com' },
         body: formData,
       }),
     );
@@ -70,7 +75,7 @@ describe('problem report route', () => {
       ok: false,
       error: 'Please complete the form.',
     });
-    mockSecurity();
+    mockApiRouteDependencies();
     vi.doMock('@/src/domain/support/problem-reports', () => ({
       createProblemReport,
     }));
@@ -82,6 +87,7 @@ describe('problem report route', () => {
     const response = await route.POST(
       new Request('https://app.example.com/api/report-problem', {
         method: 'POST',
+        headers: { origin: 'https://app.example.com' },
         body: formData,
       }),
     );

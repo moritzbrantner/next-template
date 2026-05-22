@@ -1,5 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@/src/auth.server', () => ({
+  getAuthSession: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock('@/src/api/security', () => ({
+  auditAction: vi.fn().mockResolvedValue(undefined),
+  enforceRateLimit: vi.fn().mockResolvedValue({
+    ok: true,
+    remaining: 29,
+    resetAt: 1_700_000_000_000,
+  }),
+  getRateLimitKey: vi.fn().mockReturnValue('ip:test'),
+}));
+
 afterEach(() => {
   vi.resetModules();
   vi.doUnmock('@/src/foundation/features/access');
