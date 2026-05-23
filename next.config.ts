@@ -100,7 +100,7 @@ const productionHeaders =
 
 export const normalNextConfig: NextConfig = {
   allowedDevOrigins: [...allowedDevOrigins],
-  transpilePackages: ['@moritzbrantner/ui', '@moritzbrantner/storytelling'],
+  transpilePackages: ['@moritzbrantner/ui'],
   images: {
     remotePatterns: remoteImagePatterns(),
   },
@@ -109,7 +109,7 @@ export const normalNextConfig: NextConfig = {
 
 export const githubPagesNextConfig: NextConfig = {
   allowedDevOrigins: [...allowedDevOrigins],
-  transpilePackages: ['@moritzbrantner/ui', '@moritzbrantner/storytelling'],
+  transpilePackages: ['@moritzbrantner/ui'],
   assetPrefix: githubPagesBasePath === '/' ? undefined : githubPagesBasePath,
   basePath: githubPagesBasePath === '/' ? undefined : githubPagesBasePath,
   images: {

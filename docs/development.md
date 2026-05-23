@@ -95,6 +95,6 @@ Publish only from the package directory and do not commit built `dist/` output o
 
 ## Troubleshooting
 
-- GitHub Packages dependencies require the committed `.npmrc` and a valid `GH_PACKAGES_TOKEN` when private package access is needed.
+- Shared runtime packages resolve from the public npm registry; no root `.npmrc` is required for them.
 - E2E commands use `.env.example` plus test overrides and compose-backed services. Use `bun run test:e2e:setup` and `bun run test:e2e:teardown` when debugging setup separately.
 - If `next-env.d.ts`, `db-schema.json`, Drizzle snapshots, or lockfiles change, confirm they came from the normal generator or package-manager command before committing.

@@ -16,7 +16,6 @@ const manifest: AppManifest = {
   },
   enabledFeatures: {
     'showcase.forms': true,
-    'showcase.story': true,
     'showcase.communication': true,
   },
   publicPages: [

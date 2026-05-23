@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest';
 const APPROVED_PACKAGE_PREFIXES = [
   '@moritzbrantner/app-pack',
   '@moritzbrantner/app-pack-react',
-  '@moritzbrantner/storytelling',
   '@moritzbrantner/ui',
 ] as const;
 

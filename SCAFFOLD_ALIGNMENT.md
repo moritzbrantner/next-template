@@ -21,7 +21,7 @@ Shared:
 - scaffold contract from `monorepo`
 - local GitHub Actions workflow conventions
 - structural migrations from `@moritzbrantner/platform-upgrader`
-- released packages from GitHub Packages
+- released packages from npm
 
 ## Update path
 
@@ -36,7 +36,7 @@ Shared:
 - `.platform-upgrader.json`
 - package registry auth for shared `@moritzbrantner/*` packages
 - standalone repo semantics (`entryWorkspace: '.'`)
-- shared package contract for `@moritzbrantner/ui` and `@moritzbrantner/storytelling`
+- shared package contract for `@moritzbrantner/ui`
 
 ## Config references
 

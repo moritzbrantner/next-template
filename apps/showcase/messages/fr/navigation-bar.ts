@@ -5,7 +5,6 @@ export const navigationBar = {
     about: 'A propos',
     remocn: 'remocn',
     forms: 'Demo formulaire',
-    story: 'Demo histoire',
     chat: 'Chat',
     communication: 'Communication',
     table: 'Tableau',

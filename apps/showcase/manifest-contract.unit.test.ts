@@ -40,7 +40,6 @@ describe('showcase manifest contract', () => {
   it('registers the showcase examples behind feature-gated routes and aliases', () => {
     const registeredExamples = [
       ['forms', 'showcase.forms'],
-      ['story', 'showcase.story'],
       ['communication', 'showcase.communication'],
       ['chat', 'showcase.chat'],
       ['uploads', 'showcase.uploads'],

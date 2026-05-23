@@ -35,7 +35,7 @@
 ### Example accelerators
 
 - **Status:** done
-- **Summary:** Example routes demonstrate forms, storytelling, communication, uploads, and mock REST data under an explicit `/examples/*` namespace.
+- **Summary:** Example routes demonstrate forms, communication, uploads, and mock REST data under an explicit `/examples/*` namespace.
 - **Acceptance criteria:**
   - [x] Example pages are clearly separated from the core app surface.
   - [x] Example REST data is served from `/api/examples/*`.

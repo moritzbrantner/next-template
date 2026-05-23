@@ -24,7 +24,6 @@ export const foundationFeatureKeys = [
   'admin.systemSettings',
   'admin.dataStudio',
   'showcase.forms',
-  'showcase.story',
   'showcase.communication',
   'showcase.remocn',
   'showcase.employeeTable',

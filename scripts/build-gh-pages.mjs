@@ -38,8 +38,6 @@ const scannedRoutes = [
   '/de/table',
   '/en/examples/forms',
   '/de/examples/forms',
-  '/en/examples/story',
-  '/de/examples/story',
   '/en/examples/communication',
   '/de/examples/communication',
   '/en/examples/uploads',

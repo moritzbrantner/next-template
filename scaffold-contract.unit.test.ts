@@ -16,7 +16,7 @@ describe('scaffold-v2 contract', () => {
       packageName: 'next-template',
       entryWorkspace: '.',
       releaseCadence: 'independent',
-      sharedPackages: ['@moritzbrantner/ui', '@moritzbrantner/storytelling'],
+      sharedPackages: ['@moritzbrantner/ui'],
       deployment: {
         runtime: 'nextjs',
         output: '.next',
@@ -28,7 +28,7 @@ describe('scaffold-v2 contract', () => {
     expect(showcaseManifest.publicNavigation.length).toBeGreaterThan(0);
   });
 
-  it('uses GitHub Packages for shared runtime dependencies and keeps only the app-pack seam local', () => {
+  it('uses npm for shared runtime dependencies and keeps only the app-pack seam local', () => {
     const packageJson = JSON.parse(
       readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
     ) as {
@@ -36,28 +36,21 @@ describe('scaffold-v2 contract', () => {
       dependencies: Record<string, string>;
       overrides?: Record<string, string>;
     };
-    const npmrc = readFileSync(path.join(process.cwd(), '.npmrc'), 'utf8');
-
     expect(packageJson.workspaces).toEqual([
       'packages/app-pack',
       'packages/app-pack-react',
     ]);
-    expect(packageJson.dependencies['@moritzbrantner/ui']).toBe('^0.5.2');
-    expect(packageJson.dependencies['@moritzbrantner/storytelling']).toBe(
-      '^0.3.1',
-    );
+    expect(packageJson.dependencies['@moritzbrantner/ui']).toBe('^0.8.0');
+    expect(
+      packageJson.dependencies['@moritzbrantner/storytelling'],
+    ).toBeUndefined();
     expect(
       Object.values(packageJson.dependencies).some((version) =>
         version.startsWith('file:'),
       ),
     ).toBe(false);
     expect(packageJson.overrides?.['@moritzbrantner/ui']).toBeUndefined();
-    expect(npmrc).toContain(
-      '@moritzbrantner:registry=https://npm.pkg.github.com',
-    );
-    expect(npmrc).toContain(
-      '//npm.pkg.github.com/:_authToken=${GH_PACKAGES_TOKEN}',
-    );
+    expect(existsSync(path.join(process.cwd(), '.npmrc'))).toBe(false);
   });
 
   it('removes subtree-sync guidance and workflow hooks from the public contract', () => {

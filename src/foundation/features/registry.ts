@@ -102,11 +102,6 @@ export const foundationFeatureModules: readonly FoundationFeatureModule[] = [
     requiredContentCollections: [],
   },
   {
-    featureKey: 'showcase.story',
-    requiredMessageNamespaces: ['StoryPage'],
-    requiredContentCollections: [],
-  },
-  {
     featureKey: 'showcase.communication',
     requiredMessageNamespaces: ['CommunicationPage'],
     requiredContentCollections: [],

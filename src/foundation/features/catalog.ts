@@ -142,12 +142,6 @@ export const foundationFeatureMetadata: Record<
     category: 'showcase',
     supportsUserOverrides: false,
   },
-  'showcase.story': {
-    label: 'Showcase story',
-    description: 'Expose the storytelling example page.',
-    category: 'showcase',
-    supportsUserOverrides: false,
-  },
   'showcase.communication': {
     label: 'Showcase communication',
     description: 'Expose the communication example page.',

@@ -25,7 +25,6 @@ const enabledFeatures = {
   'admin.systemSettings': true,
   'admin.dataStudio': true,
   'showcase.forms': true,
-  'showcase.story': true,
   'showcase.communication': true,
   'showcase.remocn': true,
   'showcase.employeeTable': true,
@@ -76,19 +75,6 @@ const showcaseManifest: AppManifest = {
         const pageModule = await import('./pages/examples/forms-page');
         const FormsPage = pageModule.default;
         return createElement(FormsPage, { locale });
-      },
-    },
-    {
-      id: 'story',
-      slug: 'examples/story',
-      kind: 'component',
-      namespace: 'StoryPage',
-      featureKey: 'showcase.story',
-      aliases: ['story'],
-      render: async ({ locale }) => {
-        const pageModule = await import('./pages/examples/story-page');
-        const StoryPage = pageModule.default;
-        return createElement(StoryPage, { locale });
       },
     },
     {
@@ -161,22 +147,21 @@ const showcaseManifest: AppManifest = {
     { pageId: 'home', category: 'discover', hotkey: ['alt', 'h'], order: 10 },
     { pageId: 'about', category: 'discover', hotkey: ['alt', 'a'], order: 20 },
     { pageId: 'forms', category: 'discover', hotkey: ['alt', 'f'], order: 30 },
-    { pageId: 'story', category: 'discover', hotkey: ['alt', 'v'], order: 40 },
     {
       pageId: 'communication',
       category: 'discover',
       hotkey: ['alt', 'q'],
-      order: 50,
+      order: 40,
     },
-    { pageId: 'chat', category: 'discover', hotkey: ['alt', 'x'], order: 60 },
+    { pageId: 'chat', category: 'discover', hotkey: ['alt', 'x'], order: 50 },
     {
       pageId: 'uploads',
       category: 'discover',
       hotkey: ['alt', 'z'],
-      order: 70,
+      order: 60,
     },
-    { pageId: 'remocn', category: 'discover', hotkey: ['alt', 'w'], order: 80 },
-    { pageId: 'table', category: 'discover', hotkey: ['alt', '0'], order: 90 },
+    { pageId: 'remocn', category: 'discover', hotkey: ['alt', 'w'], order: 70 },
+    { pageId: 'table', category: 'discover', hotkey: ['alt', '0'], order: 80 },
   ],
   contentRoots: {
     pages: ['apps/showcase/content/pages'],

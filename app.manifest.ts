@@ -6,8 +6,8 @@ export const appManifest = {
   packageName: 'next-template',
   entryWorkspace: '.',
   releaseCadence: 'independent',
-  sharedPackages: ['@moritzbrantner/ui', '@moritzbrantner/storytelling'],
-  featureFlags: ['auth', 'admin', 'uploads', 'storytelling', 'app-pack'],
+  sharedPackages: ['@moritzbrantner/ui'],
+  featureFlags: ['auth', 'admin', 'uploads', 'app-pack'],
   deployment: {
     runtime: 'nextjs',
     output: '.next',

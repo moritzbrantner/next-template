@@ -101,11 +101,11 @@ bun run packages:test
 bun run packages:build
 ```
 
-These package commands only target the local app-pack packages. The local packages publish built `dist` entrypoints; root typecheck and package tests build them first. `@moritzbrantner/ui` and `@moritzbrantner/storytelling` resolve from GitHub Packages through the committed `.npmrc`.
+These package commands only target the local app-pack packages. The local packages publish built `dist` entrypoints; root typecheck and package tests build them first. `@moritzbrantner/ui` resolves from the public npm registry.
 
 ## Showcase examples
 
-The active showcase app-pack registers example pages under `/examples/*` with short aliases such as `/forms`, `/story`, `/communication`, `/chat`, `/uploads`, `/remocn`, and `/table`. The employee table demo uses the feature-gated `/api/examples/employees` route.
+The active showcase app-pack registers example pages under `/examples/*` with short aliases such as `/forms`, `/communication`, `/chat`, `/uploads`, `/remocn`, and `/table`. The employee table demo uses the feature-gated `/api/examples/employees` route.
 
 ## Support reports
 
