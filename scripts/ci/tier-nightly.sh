@@ -7,4 +7,5 @@ bun run packages:lint
 bun run packages:typecheck
 bun run packages:test
 bun run test:unit
+bun run test:storybook
 bun run bench:ci

@@ -2,12 +2,14 @@
 
 import {
   PlatformNavbar,
+  PlatformNavbarActionGroup,
   type PlatformNavbarGroup,
   type PlatformNavbarRenderLinkProps,
+  type PlatformNavbarVariant,
 } from '@moritzbrantner/ui';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useSyncExternalStore, type ReactNode } from 'react';
 
 type LocaleShellNavbarProps = {
   brandHref: string;
@@ -15,6 +17,28 @@ type LocaleShellNavbarProps = {
   groups: PlatformNavbarGroup[];
   actions: ReactNode;
 };
+
+const MOBILE_NAVBAR_QUERY = '(max-width: 639px)';
+
+function getMobileNavbarSnapshot() {
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia(MOBILE_NAVBAR_QUERY).matches
+  );
+}
+
+function subscribeMobileNavbar(onStoreChange: () => void) {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
+  const mediaQuery = window.matchMedia(MOBILE_NAVBAR_QUERY);
+  mediaQuery.addEventListener('change', onStoreChange);
+
+  return () => {
+    mediaQuery.removeEventListener('change', onStoreChange);
+  };
+}
 
 function renderNavbarLink({
   href,
@@ -57,6 +81,14 @@ export function LocaleShellNavbar({
   actions,
 }: LocaleShellNavbarProps) {
   const pathname = usePathname();
+  const isMobileNavbar = useSyncExternalStore(
+    subscribeMobileNavbar,
+    getMobileNavbarSnapshot,
+    () => false,
+  );
+  const navbarVariant: PlatformNavbarVariant = isMobileNavbar
+    ? 'mobile'
+    : 'web';
   const brand = (
     <NextLink href={brandHref} className="block truncate">
       {brandLabel}
@@ -70,7 +102,12 @@ export function LocaleShellNavbar({
         aria-label="Primary navigation"
         brand={brand}
         groups={groups}
-        actions={actions}
+        actionSlot={
+          <PlatformNavbarActionGroup className="min-w-0 max-w-[calc(100vw-8rem)] shrink flex-wrap gap-1 sm:max-w-none sm:shrink-0 sm:flex-nowrap sm:gap-2">
+            {actions}
+          </PlatformNavbarActionGroup>
+        }
+        variant={navbarVariant}
         defaultOpenGroupId={null}
         renderLink={renderNavbarLink}
       />

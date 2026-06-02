@@ -13,7 +13,7 @@ review.
 - Next.js 16 App Router + React 19
 - Bun workspaces
 - Drizzle ORM + PostgreSQL
-- Vitest + Playwright
+- Storybook + Vitest + Playwright + Unlighthouse
 - Tailwind CSS 4
 - MDX with repo-managed content roots and DB-backed operational content
 - English, German, French, and Spanish locale catalogs/content roots
@@ -74,9 +74,11 @@ bun run jobs:work
 
 ```bash
 bun run test
+bun run test:storybook
 bun run format:check
 bun run lint
 bun run build
+bun run test:unlighthouse
 bun run verify
 bun run checks:nightly
 bun run checks:beta
@@ -84,13 +86,15 @@ bun run checks:main
 ```
 
 - `test`: fastest meaningful test pass, currently unit tests
+- `test:storybook`: builds colocated component stories
 - `format:check`: non-mutating `oxfmt` check
 - `lint`: existing formatter-backed lint command, `oxfmt --check .`
 - `build`: local package build plus production Next build
+- `test:unlighthouse`: builds the static export and runs the Unlighthouse performance scan
 - `verify`: repo hygiene report plus the full `checks:main` confidence path
-- `checks:nightly`: app lint/typecheck/unit tests plus workspace package lint/typecheck/tests
+- `checks:nightly`: app lint/typecheck/unit tests, Storybook build, and workspace package lint/typecheck/tests
 - `checks:beta`: nightly checks plus integration tests
-- `checks:main`: beta checks plus database check, production build, and e2e setup/tests
+- `checks:main`: beta checks plus database check, production build, Unlighthouse, and Playwright e2e setup/tests
 
 Workspace package commands are also available directly:
 
@@ -117,7 +121,7 @@ The public `/report-problem` form persists submissions in Postgres and returns a
 bun run build:gh-pages
 ```
 
-The GitHub Pages workflow uses Bun end to end. It builds the static export, runs Unlighthouse against the exported site, then re-exports so `/en/unlighthouse` and `/de/unlighthouse` are present in the final artifact.
+The GitHub Pages workflow and `bun run test:unlighthouse` use Bun end to end. They build the static export, run Unlighthouse against the exported site, then re-export so `/en/unlighthouse` and `/de/unlighthouse` are present in the final artifact.
 
 ## Seeded users
 

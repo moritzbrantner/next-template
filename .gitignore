@@ -47,5 +47,6 @@ yarn-error.log*
 
 test-results/
 playwright-report/
+storybook-static/
 /.generated/
 public/local-profile-images/

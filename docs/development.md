@@ -51,9 +51,11 @@ bun run verify
 ```
 
 - `bun run test`: fastest meaningful test pass, currently unit tests.
+- `bun run test:storybook`: builds colocated Storybook stories.
 - `bun run format:check`: non-mutating `oxfmt` check.
 - `bun run lint`: existing project lint command, also `oxfmt --check .`.
 - `bun run build`: package build plus production Next build.
+- `bun run test:unlighthouse`: builds the static export and runs the Unlighthouse performance scan.
 - `bun run verify`: hygiene report plus the full `checks:main` confidence path.
 
 CI tiers are also available directly:
@@ -64,7 +66,7 @@ bun run checks:beta
 bun run checks:main
 ```
 
-`checks:main` includes e2e setup and Playwright tests, so expect it to be slower and to require Docker-compatible local services.
+`checks:nightly` includes the Storybook build. `checks:main` includes Unlighthouse, e2e setup, and Playwright tests, so expect it to be slower and to require Docker-compatible local services.
 
 ## Repo Hygiene
 

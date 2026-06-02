@@ -90,6 +90,21 @@ jobs:
           INTERNAL_CRON_SECRET: ci-cron-secret
         run: bun run build
 
+      - name: Run Unlighthouse performance check
+        env:
+          AUTH_SECRET: ci-build-secret-ci-build-secret
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/next_template?schema=public
+          SITE_URL: http://127.0.0.1:3000
+          EMAIL_PROVIDER: smtp
+          EMAIL_FROM: no-reply@example.com
+          SMTP_HOST: localhost
+          SMTP_PORT: 1025
+          SMTP_USER: ci
+          SMTP_PASSWORD: ci
+          SMTP_SECURE: 'false'
+          INTERNAL_CRON_SECRET: ci-cron-secret
+        run: bun run test:unlighthouse
+
       - name: Run e2e tests
         run: ./scripts/ci/run-e2e.sh
 
