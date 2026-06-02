@@ -52,7 +52,8 @@ bun run verify
 ```
 
 - `bun run test`: fastest meaningful test pass, currently unit tests.
-- `bun run test:storybook`: builds colocated Storybook stories.
+- `bun run test:storybook`: builds colocated Storybook stories and runs
+  Storybook a11y checks.
 - `bun run format:check`: non-mutating `oxfmt` check.
 - `bun run lint:format`: non-mutating `oxfmt` check.
 - `bun run lint:semantic`: ESLint checks for TypeScript, Next.js, and React
@@ -62,7 +63,9 @@ bun run verify
 - `bun run supply-chain`: critical dependency audit plus package publication
   surface checks. Use `bun run supply-chain:audit:all` to review all known
   advisories.
-- `bun run test:unlighthouse`: builds the static export and runs the Unlighthouse performance scan.
+- `bun run bench:unlighthouse`: builds the static export, benchmarks public
+  routes with Unlighthouse, and enforces route score budgets.
+- `bun run test:unlighthouse`: aliases the Unlighthouse benchmark gate for CI.
 - `bun run verify`: hygiene report plus the full `checks:main` confidence path.
 
 CI tiers are also available directly. `checks:nightly` includes supply-chain
@@ -74,7 +77,7 @@ bun run checks:beta
 bun run checks:main
 ```
 
-`checks:nightly` includes the Storybook build. `checks:main` includes Unlighthouse, e2e setup, and Playwright tests, so expect it to be slower and to require Docker-compatible local services.
+`checks:nightly` includes the Storybook build and a11y checks. `checks:main` includes Unlighthouse benchmarks, e2e setup, and Playwright tests, so expect it to be slower and to require Docker-compatible local services.
 
 ## Repo Hygiene
 

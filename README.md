@@ -80,6 +80,7 @@ bun run lint
 bun run lint:semantic
 bun run supply-chain
 bun run build
+bun run bench:unlighthouse
 bun run test:unlighthouse
 bun run verify
 bun run checks:nightly
@@ -88,13 +89,14 @@ bun run checks:main
 ```
 
 - `test`: fastest meaningful test pass, currently unit tests
-- `test:storybook`: builds colocated component stories
+- `test:storybook`: builds colocated component stories and runs Storybook a11y checks
 - `format:check`: non-mutating `oxfmt` check
 - `lint:semantic`: ESLint checks for TypeScript, Next.js, and React Hooks issues
 - `lint`: formatter check plus semantic lint
 - `supply-chain`: critical dependency audit plus package publication surface checks
 - `build`: local package build plus production Next build
-- `test:unlighthouse`: builds the static export and runs the Unlighthouse performance scan
+- `bench:unlighthouse`: builds the static export, benchmarks public routes with Unlighthouse, and enforces route score budgets
+- `test:unlighthouse`: aliases the Unlighthouse benchmark gate for CI checks
 - `verify`: repo hygiene report plus the full `checks:main` confidence path
 - `checks:nightly`: app lint/typecheck/unit tests, Storybook build, and workspace package lint/typecheck/tests
 - `checks:beta`: nightly checks plus integration tests
@@ -125,7 +127,7 @@ The public `/report-problem` form persists submissions in Postgres and returns a
 bun run build:gh-pages
 ```
 
-The GitHub Pages workflow and `bun run test:unlighthouse` use Bun end to end. They build the static export, run Unlighthouse against the exported site, then re-export so `/en/unlighthouse` and `/de/unlighthouse` are present in the final artifact.
+The GitHub Pages workflow and `bun run test:unlighthouse` use Bun end to end. They build the static export, run Unlighthouse against the exported public routes for every supported locale, enforce score budgets, then re-export so the localized `/unlighthouse` report pages are present in the final artifact.
 
 ## Seeded users
 

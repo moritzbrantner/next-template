@@ -226,7 +226,7 @@ export function AdminOverviewGrid({ pages }: AdminOverviewGridProps) {
                     <Link
                       href={item.href}
                       data-swapy-no-drag
-                      className="inline-block text-sm font-semibold text-emerald-600 hover:underline dark:text-emerald-400"
+                      className="inline-block text-sm font-semibold text-emerald-700 hover:underline dark:text-emerald-300"
                     >
                       {t('overview.openWorkspace')}
                     </Link>

@@ -3,9 +3,13 @@ import { mkdir, readFile, rename, rm, stat } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 
+import activeManifest from '../app.config.ts';
+import { routing } from '../i18n/routing.ts';
+
 const repoRoot = process.cwd();
 const stashRoot = path.join(repoRoot, '.gh-pages-build-stash');
 const reportOutputPath = path.join(repoRoot, '.generated', 'unlighthouse');
+const reportJsonPath = path.join(reportOutputPath, 'ci-result.json');
 const previewPort = Number.parseInt(
   process.env.GH_PAGES_PREVIEW_PORT ?? '4173',
   10,
@@ -23,26 +27,16 @@ const excludedPaths = [
   'app/[locale]/(protected)',
   'app/[locale]/(public)/profile',
 ];
-const scannedRoutes = [
-  '/en',
-  '/de',
-  '/en/about',
-  '/de/about',
-  '/en/blog',
-  '/de/blog',
-  '/en/changelog',
-  '/de/changelog',
-  '/en/report-problem',
-  '/de/report-problem',
-  '/en/table',
-  '/de/table',
-  '/en/examples/forms',
-  '/de/examples/forms',
-  '/en/examples/communication',
-  '/de/examples/communication',
-  '/en/examples/uploads',
-  '/de/examples/uploads',
-].map((route) => `${githubPagesBasePath}${route}`);
+const extraPublicSlugs = ['blog', 'changelog', 'report-problem'];
+const unlighthouseBudgets = {
+  routeScore: 85,
+  categories: {
+    performance: 55,
+    accessibility: 90,
+    'best-practices': 90,
+    seo: 90,
+  },
+};
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
@@ -66,6 +60,34 @@ const renames = excludedPaths.map((relativePath) => ({
 }));
 
 const movedPaths = [];
+
+function pageIsEnabled(page) {
+  if (!page.featureKey) {
+    return true;
+  }
+
+  return activeManifest.enabledFeatures[page.featureKey] !== false;
+}
+
+function joinRoute(locale, slug) {
+  const normalizedSlug = slug.replace(/^\/+|\/+$/g, '');
+  const localeRoute = normalizedSlug
+    ? `/${locale}/${normalizedSlug}`
+    : `/${locale}`;
+
+  return `${githubPagesBasePath}${localeRoute}`;
+}
+
+function createScannedRoutes() {
+  const publicSlugs = activeManifest.publicPages
+    .filter(pageIsEnabled)
+    .map((page) => page.slug);
+  const routeSlugs = [...new Set([...publicSlugs, ...extraPublicSlugs])];
+
+  return routing.locales.flatMap((locale) =>
+    routeSlugs.map((slug) => joinRoute(locale, slug)),
+  );
+}
 
 async function movePath(from, to) {
   try {
@@ -260,6 +282,8 @@ function runNextBuild() {
 }
 
 function runUnlighthouse() {
+  const scannedRoutes = createScannedRoutes();
+
   return new Promise((resolve, reject) => {
     const child = spawn(
       'bun',
@@ -302,6 +326,59 @@ function runUnlighthouse() {
   });
 }
 
+function formatScore(score) {
+  return `${Math.round(score * 100)}%`;
+}
+
+async function assertUnlighthouseBudgets() {
+  const report = JSON.parse(await readFile(reportJsonPath, 'utf8'));
+  const failures = [];
+
+  for (const route of report.routes ?? []) {
+    if ((route.score ?? 0) * 100 < unlighthouseBudgets.routeScore) {
+      failures.push(
+        `${route.path}: overall ${formatScore(route.score ?? 0)} < ${unlighthouseBudgets.routeScore}%`,
+      );
+    }
+
+    for (const [category, minimumScore] of Object.entries(
+      unlighthouseBudgets.categories,
+    )) {
+      const score = route.categories?.[category]?.score ?? 0;
+
+      if (score * 100 < minimumScore) {
+        failures.push(
+          `${route.path}: ${category} ${formatScore(score)} < ${minimumScore}%`,
+        );
+      }
+    }
+  }
+
+  if (failures.length > 0) {
+    throw new Error(
+      [
+        'Unlighthouse budgets failed:',
+        ...failures.slice(0, 25).map((failure) => `- ${failure}`),
+        failures.length > 25
+          ? `- ${failures.length - 25} additional failures omitted`
+          : null,
+      ]
+        .filter(Boolean)
+        .join('\n'),
+    );
+  }
+
+  console.log(
+    [
+      `Unlighthouse budgets passed for ${report.routes?.length ?? 0} route(s).`,
+      `overall >= ${unlighthouseBudgets.routeScore}%`,
+      ...Object.entries(unlighthouseBudgets.categories).map(
+        ([category, minimumScore]) => `${category} >= ${minimumScore}%`,
+      ),
+    ].join(' '),
+  );
+}
+
 let staticServer;
 
 try {
@@ -315,6 +392,7 @@ try {
   await staticServer.start();
   await waitForStaticExport(previewCheckUrl);
   await runUnlighthouse();
+  await assertUnlighthouseBudgets();
   await staticServer.stop();
   staticServer = null;
   await runNextBuild();

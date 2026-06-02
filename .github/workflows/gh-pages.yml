@@ -47,6 +47,8 @@ jobs:
           test -f .generated/unlighthouse/ci-result.json
           test -f out/en/unlighthouse/index.html
           test -f out/de/unlighthouse/index.html
+          test -f out/fr/unlighthouse/index.html
+          test -f out/es/unlighthouse/index.html
 
       - name: Prepare GitHub Pages artifact
         run: |
