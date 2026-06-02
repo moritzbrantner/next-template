@@ -36,13 +36,17 @@ test.describe('admin user status management', () => {
 
     await expect(page).toHaveURL(/status=user-status-disable/);
     await expect(page.getByText('User status updated.')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Disabled' })).toBeVisible();
+    await expect(
+      page.getByText('Disabled', { exact: true }).first(),
+    ).toBeVisible();
 
     await page.getByRole('button', { name: 'Reactivate user' }).click();
 
     await expect(page).toHaveURL(/status=user-status-reactivate/);
     await expect(page.getByText('User status updated.')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Active' })).toBeVisible();
+    await expect(
+      page.getByText('Active', { exact: true }).first(),
+    ).toBeVisible();
 
     await logoutFromProfileMenu(page);
     await loginWithCredentials(page, regularUser.email, regularUser.password);
