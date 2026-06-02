@@ -6,6 +6,7 @@ export const jobNames = [
   'publishAnnouncement',
   'archiveAnnouncement',
   'pruneAnalytics',
+  'pruneOperationalTables',
 ] as const;
 
 export type JobName = (typeof jobNames)[number];
@@ -31,5 +32,11 @@ export type JobPayloadMap = {
   };
   pruneAnalytics: {
     olderThanDays?: number;
+  };
+  pruneOperationalTables: {
+    rateLimitCounterOlderThanDays?: number;
+    auditLogOlderThanDays?: number;
+    completedJobOlderThanDays?: number;
+    failedJobOlderThanDays?: number;
   };
 };

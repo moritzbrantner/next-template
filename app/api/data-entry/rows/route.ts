@@ -5,16 +5,33 @@ import {
   securityRateLimitCounters,
   users,
 } from '@/src/db/schema';
+import { getEnv } from '@/src/config/env';
 import { canWriteTable } from '@/src/domain/data-entry/table-permissions';
 import { isManagedTable } from '@/src/domain/data-entry/use-cases';
 import { createApiRoute } from '@/src/http/route';
 import { getFallbackProfileTag } from '@/src/profile/tags';
+
+const REPAIR_MODE_TABLES = new Set([
+  'AppRole',
+  'UserRole',
+  'UserFeatureOverride',
+  'SecurityRateLimitCounter',
+  'SecurityAuditLog',
+]);
+
+export function requiresRepairModeForTable(table: string) {
+  return REPAIR_MODE_TABLES.has(table);
+}
 
 export const POST = createApiRoute({
   action: 'admin.dataEntry.createRow',
   featureKey: 'admin.dataStudio',
   roles: ['SUPERADMIN'],
   permission: 'admin.dataStudio.write',
+  metadata: {
+    surface: 'admin.dataStudio',
+    breakGlassCapable: true,
+  },
   async handler({ request, session }) {
     const userId = session!.user.id;
     const role = session!.user.role;
@@ -29,6 +46,19 @@ export const POST = createApiRoute({
     }
 
     const table = rawTable;
+
+    if (
+      requiresRepairModeForTable(table) &&
+      !getEnv().admin.repairModeEnabled
+    ) {
+      return Response.json(
+        {
+          error:
+            'Repair mode is disabled. Set ADMIN_REPAIR_MODE_ENABLED=true for break-glass table writes.',
+        },
+        { status: 403 },
+      );
+    }
 
     if (!canWriteTable(role, table)) {
       return Response.json(

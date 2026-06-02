@@ -4,6 +4,7 @@ import { getEnv, resetEnvForTests } from '@/src/config/env';
 
 const originalEnv = { ...process.env };
 const appEnvKeys = [
+  'ADMIN_REPAIR_MODE_ENABLED',
   'ANALYTICS_ENABLED',
   'AUTH_SECRET',
   'AUTH_URL',
@@ -184,5 +185,24 @@ describe('env parsing', () => {
         secure: true,
       },
     });
+  });
+
+  it('defaults admin repair mode to disabled', () => {
+    Object.assign(process.env, {
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+    });
+
+    expect(getEnv().admin.repairModeEnabled).toBe(false);
+  });
+
+  it('parses admin repair mode when explicitly enabled', () => {
+    Object.assign(process.env, {
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      ADMIN_REPAIR_MODE_ENABLED: 'true',
+    });
+
+    expect(getEnv().admin.repairModeEnabled).toBe(true);
   });
 });

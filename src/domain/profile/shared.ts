@@ -51,7 +51,6 @@ import {
 } from '@/src/profile/follower-visibility';
 import {
   buildProfileChatPath,
-  buildPublicProfilePath,
   normalizeProfileTagInput,
   validateProfileTag,
 } from '@/src/profile/tags';

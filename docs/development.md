@@ -34,7 +34,8 @@ bun run db:seed:test-users
 bun run dev:app
 ```
 
-Run the background job worker separately when testing queued email or announcement jobs:
+Run the background job worker separately when testing queued email,
+announcement, analytics pruning, or operational retention jobs:
 
 ```bash
 bun run jobs:work
@@ -53,12 +54,19 @@ bun run verify
 - `bun run test`: fastest meaningful test pass, currently unit tests.
 - `bun run test:storybook`: builds colocated Storybook stories.
 - `bun run format:check`: non-mutating `oxfmt` check.
-- `bun run lint`: existing project lint command, also `oxfmt --check .`.
+- `bun run lint:format`: non-mutating `oxfmt` check.
+- `bun run lint:semantic`: ESLint checks for TypeScript, Next.js, and React
+  Hooks issues.
+- `bun run lint`: formatter check plus semantic lint.
 - `bun run build`: package build plus production Next build.
+- `bun run supply-chain`: critical dependency audit plus package publication
+  surface checks. Use `bun run supply-chain:audit:all` to review all known
+  advisories.
 - `bun run test:unlighthouse`: builds the static export and runs the Unlighthouse performance scan.
 - `bun run verify`: hygiene report plus the full `checks:main` confidence path.
 
-CI tiers are also available directly:
+CI tiers are also available directly. `checks:nightly` includes supply-chain
+checks before unit and Storybook tests:
 
 ```bash
 bun run checks:nightly

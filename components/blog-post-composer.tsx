@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useEffectEvent, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
@@ -124,32 +124,35 @@ export function BlogPostComposer({
     setEditorContent(activeDraft.contentMarkdown);
   }, [activeDraft, drafts.length]);
 
-  const runOutbox = useEffectEvent(async (currentUserId: string) => {
-    if (outboxRunningRef.current) {
-      return {
-        processedCount: 0,
-        publishedDraftIds: [],
-      };
-    }
-
-    outboxRunningRef.current = true;
-
-    try {
-      const result = await flushBlogPublishOutbox({ userId: currentUserId });
-
-      if (result.publishedDraftIds.length > 0) {
-        router.refresh();
+  const runOutbox = useCallback(
+    async (currentUserId: string) => {
+      if (outboxRunningRef.current) {
+        return {
+          processedCount: 0,
+          publishedDraftIds: [],
+        };
       }
 
-      return result;
-    } finally {
-      outboxRunningRef.current = false;
-    }
-  });
+      outboxRunningRef.current = true;
+
+      try {
+        const result = await flushBlogPublishOutbox({ userId: currentUserId });
+
+        if (result.publishedDraftIds.length > 0) {
+          router.refresh();
+        }
+
+        return result;
+      } finally {
+        outboxRunningRef.current = false;
+      }
+    },
+    [router],
+  );
 
   useEffect(() => {
     void runOutbox(userId);
-  }, [userId]);
+  }, [runOutbox, userId]);
 
   useEffect(() => {
     function handleOnline() {
@@ -169,7 +172,7 @@ export function BlogPostComposer({
       window.removeEventListener('online', handleOnline);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [userId]);
+  }, [runOutbox, userId]);
 
   async function ensureDraft(nextTitle: string, nextContent: string) {
     if (activeDraftId) {

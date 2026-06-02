@@ -46,6 +46,7 @@ const rawEnvSchema = z.object({
   PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY: z.string().optional(),
   PROFILE_IMAGE_PUBLIC_BASE_URL: z.string().url().optional(),
   ANALYTICS_ENABLED: booleanStringSchema.optional(),
+  ADMIN_REPAIR_MODE_ENABLED: booleanStringSchema.optional(),
   INTERNAL_CRON_SECRET: z.string().optional(),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
@@ -120,6 +121,9 @@ export type AppEnv = {
   };
   analytics: {
     enabled: boolean;
+  };
+  admin: {
+    repairModeEnabled: boolean;
   };
   jobs: {
     internalCronSecret?: string;
@@ -353,6 +357,9 @@ export function getEnv(): AppEnv {
     },
     analytics: {
       enabled: raw.ANALYTICS_ENABLED ?? true,
+    },
+    admin: {
+      repairModeEnabled: raw.ADMIN_REPAIR_MODE_ENABLED ?? false,
     },
     jobs: {
       internalCronSecret: trimOptional(raw.INTERNAL_CRON_SECRET),

@@ -77,6 +77,8 @@ bun run test
 bun run test:storybook
 bun run format:check
 bun run lint
+bun run lint:semantic
+bun run supply-chain
 bun run build
 bun run test:unlighthouse
 bun run verify
@@ -88,7 +90,9 @@ bun run checks:main
 - `test`: fastest meaningful test pass, currently unit tests
 - `test:storybook`: builds colocated component stories
 - `format:check`: non-mutating `oxfmt` check
-- `lint`: existing formatter-backed lint command, `oxfmt --check .`
+- `lint:semantic`: ESLint checks for TypeScript, Next.js, and React Hooks issues
+- `lint`: formatter check plus semantic lint
+- `supply-chain`: critical dependency audit plus package publication surface checks
 - `build`: local package build plus production Next build
 - `test:unlighthouse`: builds the static export and runs the Unlighthouse performance scan
 - `verify`: repo hygiene report plus the full `checks:main` confidence path

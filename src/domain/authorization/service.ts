@@ -12,7 +12,6 @@ import {
   normalizeRolePermissionAssignments,
 } from '@/lib/authorization';
 import { getDb } from '@/src/db/client';
-import { siteSettings } from '@/src/db/schema';
 import { upsertSiteSetting } from '@/src/site-config/service';
 
 const AUTHORIZATION_SITE_SETTING_KEY = 'authorization.rolePermissions';

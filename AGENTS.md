@@ -25,8 +25,10 @@ bun install --frozen-lockfile
 bun run dev
 bun run test
 bun run lint
+bun run lint:semantic
 bun run format:check
 bun run format
+bun run supply-chain
 bun run build
 bun run verify
 ```
@@ -34,9 +36,11 @@ bun run verify
 - `bun run dev`: starts an ephemeral Postgres database, applies migrations, seeds baseline users, regenerates `db-schema.json`, and runs the app.
 - `bun run dev:app`: runs `next dev` after package builds when long-lived local services are already running.
 - `bun run test`: fastest meaningful test pass; currently aliases `bun run test:unit`.
-- `bun run lint`: existing formatter check, `oxfmt --check .`.
+- `bun run lint`: formatter check plus semantic lint.
+- `bun run lint:semantic`: ESLint checks for TypeScript, Next.js, and React Hooks issues.
 - `bun run format:check`: checks formatting without mutation.
 - `bun run format`: writes formatter changes with `oxfmt --write .`.
+- `bun run supply-chain`: critical dependency audit plus package publication surface checks.
 - `bun run build`: builds local packages and the production Next app.
 - `bun run verify`: repo hygiene report plus the full CI confidence path from `checks:main`.
 - `bun run checks:nightly`: app lint/typecheck/unit tests plus workspace package lint/typecheck/tests.

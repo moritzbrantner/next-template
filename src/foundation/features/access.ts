@@ -6,7 +6,7 @@ import {
 import { loadActiveApp } from '@/src/app-config/load-active-app';
 import type { AppManifest } from '@/src/app-config/contracts';
 import { getDb } from '@/src/db/client';
-import { siteSettings, userFeatureOverrides } from '@/src/db/schema';
+import { userFeatureOverrides } from '@/src/db/schema';
 import {
   shouldUseDatabaseReadFallback,
   upsertSiteSetting,

@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, lte, or } from 'drizzle-orm';
+import { and, eq, inArray, isNull, lt, lte, or } from 'drizzle-orm';
 
 import { getDb } from '@/src/db/client';
 import {
@@ -6,9 +6,15 @@ import {
   notifications,
   pageVisitQueryParameters,
   pageVisits,
+  securityAuditLogs,
+  securityRateLimitCounters,
 } from '@/src/db/schema';
 import { sendEmail } from '@/src/email/service';
-import type { JobName, JobPayloadMap } from '@/src/jobs/contracts';
+import {
+  jobNames,
+  type JobName,
+  type JobPayloadMap,
+} from '@/src/jobs/contracts';
 import { getLogger } from '@/src/observability/logger';
 import {
   archiveAnnouncementNow,
@@ -18,17 +24,19 @@ import {
 } from '@/src/site-config/service';
 
 const MAX_JOB_ATTEMPTS = 5;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const operationalRetentionDefaults = {
+  rateLimitCounterRetentionDays: 7,
+  auditLogRetentionDays: 180,
+  completedJobRetentionDays: 30,
+  failedJobRetentionDays: 90,
+} as const;
 
 export class PermanentJobError extends Error {}
 
 function isJobName(value: string): value is JobName {
-  return [
-    'sendEmail',
-    'fanoutNotification',
-    'publishAnnouncement',
-    'archiveAnnouncement',
-    'pruneAnalytics',
-  ].includes(value);
+  return (jobNames as readonly string[]).includes(value);
 }
 
 async function runSendEmailJob(payload: JobPayloadMap['sendEmail']) {
@@ -121,7 +129,7 @@ export async function resolvePruneAnalyticsOlderThanDays(
 
 async function runPruneAnalyticsJob(payload: JobPayloadMap['pruneAnalytics']) {
   const olderThanDays = await resolvePruneAnalyticsOlderThanDays(payload);
-  const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
+  const cutoff = new Date(Date.now() - olderThanDays * DAY_MS);
   const visits = await getDb().query.pageVisits.findMany({
     where: (table, { lt }) => lt(table.visitedAt, cutoff),
     columns: { id: true },
@@ -138,6 +146,82 @@ async function runPruneAnalyticsJob(payload: JobPayloadMap['pruneAnalytics']) {
       .delete(pageVisitQueryParameters)
       .where(inArray(pageVisitQueryParameters.pageVisitId, ids));
     await tx.delete(pageVisits).where(inArray(pageVisits.id, ids));
+  });
+}
+
+function resolvePositiveRetentionDays(
+  value: number | undefined,
+  fallback: number,
+) {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? value
+    : fallback;
+}
+
+export function resolvePruneOperationalTablesRetentionDays(
+  payload: JobPayloadMap['pruneOperationalTables'],
+) {
+  return {
+    rateLimitCounterRetentionDays: resolvePositiveRetentionDays(
+      payload.rateLimitCounterOlderThanDays,
+      operationalRetentionDefaults.rateLimitCounterRetentionDays,
+    ),
+    auditLogRetentionDays: resolvePositiveRetentionDays(
+      payload.auditLogOlderThanDays,
+      operationalRetentionDefaults.auditLogRetentionDays,
+    ),
+    completedJobRetentionDays: resolvePositiveRetentionDays(
+      payload.completedJobOlderThanDays,
+      operationalRetentionDefaults.completedJobRetentionDays,
+    ),
+    failedJobRetentionDays: resolvePositiveRetentionDays(
+      payload.failedJobOlderThanDays,
+      operationalRetentionDefaults.failedJobRetentionDays,
+    ),
+  };
+}
+
+async function runPruneOperationalTablesJob(
+  payload: JobPayloadMap['pruneOperationalTables'],
+) {
+  const retention = resolvePruneOperationalTablesRetentionDays(payload);
+  const now = Date.now();
+  const rateLimitCounterCutoff = new Date(
+    now - retention.rateLimitCounterRetentionDays * DAY_MS,
+  );
+  const auditLogCutoff = new Date(
+    now - retention.auditLogRetentionDays * DAY_MS,
+  );
+  const completedJobCutoff = new Date(
+    now - retention.completedJobRetentionDays * DAY_MS,
+  );
+  const failedJobCutoff = new Date(
+    now - retention.failedJobRetentionDays * DAY_MS,
+  );
+
+  await getDb().transaction(async (tx) => {
+    await tx
+      .delete(securityRateLimitCounters)
+      .where(lt(securityRateLimitCounters.resetAt, rateLimitCounterCutoff));
+    await tx
+      .delete(securityAuditLogs)
+      .where(lt(securityAuditLogs.timestamp, auditLogCutoff));
+    await tx
+      .delete(jobOutbox)
+      .where(
+        and(
+          eq(jobOutbox.status, 'completed'),
+          lt(jobOutbox.updatedAt, completedJobCutoff),
+        ),
+      );
+    await tx
+      .delete(jobOutbox)
+      .where(
+        and(
+          eq(jobOutbox.status, 'failed'),
+          lt(jobOutbox.updatedAt, failedJobCutoff),
+        ),
+      );
   });
 }
 
@@ -159,6 +243,10 @@ async function runJob(jobName: JobName, payload: JobPayloadMap[JobName]) {
       );
     case 'pruneAnalytics':
       return runPruneAnalyticsJob(payload as JobPayloadMap['pruneAnalytics']);
+    case 'pruneOperationalTables':
+      return runPruneOperationalTablesJob(
+        payload as JobPayloadMap['pruneOperationalTables'],
+      );
     default:
       throw new PermanentJobError(`Unsupported job name: ${String(jobName)}`);
   }

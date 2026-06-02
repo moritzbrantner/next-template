@@ -13,6 +13,22 @@ import { themeToggle } from '../en/theme-toggle';
 import { unlighthousePage } from '../en/unlighthouse-page';
 import { navigationBar } from './navigation-bar';
 
+export const frEnglishFallbackNamespaces = [
+  'AuthPages',
+  'ThemeToggle',
+  'AdminPage',
+  'BlogPage',
+  'DataEntryPage',
+  'GroupsPage',
+  'NotificationsPage',
+  'PeoplePage',
+  'ProfileChatPage',
+  'ProfilePage',
+  'ReportProblemPage',
+  'SettingsPage',
+  'UnlighthousePage',
+] as const;
+
 const frMessages = {
   NavigationBar: navigationBar,
   AuthPages: authPages,

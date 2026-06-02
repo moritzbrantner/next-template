@@ -539,9 +539,6 @@ export async function requestLoginOneTimePassword(
   optionsOrDeps?: { locale?: string } | LifecycleDependencies,
   deps?: LifecycleDependencies,
 ): Promise<{ ok: true; code?: string }> {
-  const options = isLifecycleDependencies(optionsOrDeps)
-    ? undefined
-    : optionsOrDeps;
   const d =
     (isLifecycleDependencies(optionsOrDeps) ? optionsOrDeps : deps) ??
     (await resolveDependencies());

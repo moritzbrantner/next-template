@@ -29,14 +29,16 @@ export const writableTableConfigs: WritableTableConfig[] = [
   {
     name: 'AppRole',
     label: 'Role',
-    description: 'Create or repair role definitions and permission JSON.',
+    description:
+      'Repair mode only: create or repair role definitions and permission JSON.',
     table: appRoles,
     includeFields: ['id', 'label', 'description', 'permissions'],
   },
   {
     name: 'UserRole',
     label: 'User Role',
-    description: 'Assign roles to users through the many-to-many join table.',
+    description:
+      'Repair mode only: assign roles to users through the many-to-many join table.',
     table: userRoles,
     includeFields: ['userId', 'roleId'],
   },
@@ -44,7 +46,7 @@ export const writableTableConfigs: WritableTableConfig[] = [
     name: 'UserFeatureOverride',
     label: 'User Functionality Override',
     description:
-      'Enable or disable user-specific functionality by feature key.',
+      'Repair mode only: enable or disable user-specific functionality by feature key.',
     table: userFeatureOverrides,
     includeFields: ['userId', 'featureKey', 'enabled'],
     includeDefaultedFields: true,
@@ -59,14 +61,14 @@ export const writableTableConfigs: WritableTableConfig[] = [
   {
     name: 'SecurityRateLimitCounter',
     label: 'Security Rate Limit Counter',
-    description: 'Create or repair security rate-limit rows.',
+    description: 'Repair mode only: create or repair security rate-limit rows.',
     table: securityRateLimitCounters,
     includeFields: ['key', 'count', 'resetAt'],
   },
   {
     name: 'SecurityAuditLog',
     label: 'Security Audit Log',
-    description: 'Create security audit entries manually.',
+    description: 'Repair mode only: create security audit entries manually.',
     table: securityAuditLogs,
     includeFields: [
       'id',

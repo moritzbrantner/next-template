@@ -70,11 +70,48 @@ bun run jobs:work
 
 Protect internal job triggers with `INTERNAL_CRON_SECRET`.
 
+### Retention Cleanup
+
+Analytics pruning is handled by the `pruneAnalytics` job and follows the
+configured `analytics.pageVisitRetentionDays` value.
+
+Operational tables are pruned by the `pruneOperationalTables` job. Enqueue it
+from the same scheduler that triggers job runs, then let `bun run jobs:work` or
+`/api/internal/jobs/run` process it.
+
+Default retention windows:
+
+- Expired `SecurityRateLimitCounter` rows: 7 days after `resetAt`.
+- `SecurityAuditLog` rows: 180 days after `timestamp`.
+- Completed `JobOutbox` rows: 30 days after `updatedAt`.
+- Failed `JobOutbox` rows: 90 days after `updatedAt`.
+
+The job payload may override those windows with positive day counts:
+
+```json
+{
+  "rateLimitCounterOlderThanDays": 7,
+  "auditLogOlderThanDays": 180,
+  "completedJobOlderThanDays": 30,
+  "failedJobOlderThanDays": 90
+}
+```
+
 ## Admin Bootstrap
 
 Seed or promote at least one `SUPERADMIN` before launch. Keep a documented
 superadmin recovery path that uses direct database access only under incident
 process controls.
+
+## Admin Repair Mode
+
+Keep `ADMIN_REPAIR_MODE_ENABLED=false` in production except during controlled
+incident work. When enabled, the admin data-studio write route permits
+superadmin repair writes for selected operational tables such as role,
+functionality override, rate-limit, and audit-log rows.
+
+Review repair-mode activity in `/admin/audit-log` after each use and disable
+the flag as part of incident closure.
 
 ## Security Checklist
 
