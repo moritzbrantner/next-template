@@ -313,11 +313,16 @@ export async function isSiteFeatureEnabled(
   featureKey: FoundationFeatureKey,
   manifest: AppManifest = loadActiveApp(),
 ) {
+  const manifestEnabled = isFeatureEnabled(featureKey, manifest);
+  if (!manifestEnabled) {
+    return false;
+  }
+
   const siteWideOverrides = await getSiteWideFeatureOverrideMap();
 
   return resolveFeatureEnabledState({
     featureKey,
-    manifestEnabled: isFeatureEnabled(featureKey, manifest),
+    manifestEnabled,
     siteEnabled: siteWideOverrides[featureKey] ?? true,
   });
 }
@@ -327,6 +332,11 @@ export async function isFeatureEnabledForUser(
   user: FeatureRuntimeUser | null | undefined,
   manifest: AppManifest = loadActiveApp(),
 ) {
+  const manifestEnabled = isFeatureEnabled(featureKey, manifest);
+  if (!manifestEnabled) {
+    return false;
+  }
+
   const [siteWideOverrides, roleOverrides, userOverrides] = await Promise.all([
     getSiteWideFeatureOverrideMap(),
     getRoleFeatureOverrideMap(),
@@ -337,7 +347,7 @@ export async function isFeatureEnabledForUser(
 
   return resolveFeatureEnabledState({
     featureKey,
-    manifestEnabled: isFeatureEnabled(featureKey, manifest),
+    manifestEnabled,
     siteEnabled: siteWideOverrides[featureKey] ?? true,
     roleEnabled: user?.role
       ? (roleOverrides[user.role]?.[featureKey] ?? null)

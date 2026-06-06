@@ -20,6 +20,17 @@ describe('site-config database fallback', () => {
     ).toBe(true);
   });
 
+  it('treats missing databases as a fallback condition for read-only config', () => {
+    expect(
+      shouldUseDatabaseReadFallback({
+        cause: {
+          code: '3D000',
+          message: 'database "next_template" does not exist',
+        },
+      }),
+    ).toBe(true);
+  });
+
   it('does not swallow unrelated database errors', () => {
     expect(
       shouldUseDatabaseReadFallback({

@@ -150,6 +150,7 @@ const databaseReadFallbackErrorCodes = new Set([
   'ECONNRESET',
   'ENOTFOUND',
   'ETIMEDOUT',
+  '3D000',
   '42P01',
 ]);
 

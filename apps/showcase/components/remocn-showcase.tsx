@@ -1,23 +1,16 @@
-'use client';
+import type { CSSProperties, ReactNode } from 'react';
 
-import type { ReactNode } from 'react';
-
-import { Player } from '@remotion/player';
-import { Badge, buttonVariants } from '@moritzbrantner/ui';
-
-import { useTranslations } from '@/src/i18n';
-import { BlurReveal } from '@/src/components/remocn/blur-reveal';
-import { MatrixDecode } from '@/src/components/remocn/matrix-decode';
-import { SpotlightCard } from '@/src/components/remocn/spotlight-card';
-import {
-  TerminalSimulator,
-  type TerminalLine,
-} from '@/src/components/remocn/terminal-simulator';
+import { RemocnPlayerPreview } from '@/apps/showcase/components/remocn-player-preview';
+import type { TerminalLine } from '@/src/components/remocn/terminal-simulator';
 
 const docsUrl = 'https://www.remocn.dev/docs/components';
 const installUrl = 'https://www.remocn.dev/docs/getting-started/installation';
 const installCommand =
   'bunx shadcn@latest add @remocn/blur-reveal @remocn/matrix-decode @remocn/spotlight-card @remocn/terminal-simulator';
+const buttonClassName =
+  'inline-flex min-h-10 min-w-10 items-center justify-center whitespace-nowrap rounded-[var(--ui-button-radius,var(--ui-radius-control))] px-[var(--ui-button-padding-x-md,var(--ui-control-padding-x-md))] py-2 text-sm font-medium outline-none transition-colors focus-visible:ring-[var(--ui-focus-ring-width)] focus-visible:ring-ring/50';
+const primaryButtonClassName = `${buttonClassName} bg-primary text-primary-foreground shadow-[var(--ui-shadow-interactive)] hover:bg-primary/90`;
+const outlineButtonClassName = `${buttonClassName} border bg-background shadow-[var(--ui-shadow-interactive)] hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50`;
 
 const terminalLines: TerminalLine[] = [
   {
@@ -40,20 +33,6 @@ const terminalLines: TerminalLine[] = [
   { text: 'Showcase ready.', type: 'success', delay: 8 },
 ];
 
-const playerBaseProps = {
-  fps: 30,
-  controls: false,
-  loop: true,
-  autoPlay: true,
-  clickToPlay: false,
-  allowFullscreen: false,
-  spaceKeyToPlayOrPause: false,
-  initiallyMuted: true,
-  acknowledgeRemotionLicense: true,
-  noSuspense: true,
-  style: { width: '100%', height: '100%' },
-} as const;
-
 type PreviewCardProps = {
   eyebrow: string;
   title: string;
@@ -61,6 +40,85 @@ type PreviewCardProps = {
   children: ReactNode;
   className?: string;
 };
+
+type PillVariant = 'solid' | 'outline' | 'secondary';
+
+type CardCopy = {
+  eyebrow: string;
+  title: string;
+  description: string;
+};
+
+export type RemocnShowcaseCopy = {
+  eyebrow: string;
+  subeyebrow: string;
+  title: string;
+  description: string;
+  supportingCopy: string;
+  actions: {
+    catalog: string;
+    installation: string;
+  };
+  stats: {
+    components: string;
+    registryFlow: string;
+    browserPreview: string;
+  };
+  cards: {
+    terminal: CardCopy;
+    blur: CardCopy;
+    matrix: CardCopy;
+    spotlight: CardCopy;
+  };
+  install: {
+    title: string;
+    description: string;
+  };
+  integration: {
+    title: string;
+    pointOne: string;
+    pointTwo: string;
+    pointThree: string;
+  };
+};
+
+const terminalLineColors: Record<TerminalLine['type'], string> = {
+  command: 'text-zinc-50',
+  log: 'text-zinc-400',
+  success: 'text-emerald-400',
+  error: 'text-red-400',
+};
+
+function Pill({
+  children,
+  variant = 'secondary',
+  className,
+}: {
+  children: ReactNode;
+  variant?: PillVariant;
+  className?: string;
+}) {
+  const variantClassNames: Record<PillVariant, string> = {
+    solid: 'bg-zinc-950 text-zinc-50 dark:bg-zinc-50 dark:text-zinc-950',
+    outline:
+      'border border-zinc-400/60 bg-white/60 text-zinc-700 dark:bg-zinc-950/40 dark:text-zinc-200',
+    secondary: 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100',
+  };
+
+  return (
+    <span
+      className={[
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+        variantClassNames[variant],
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {children}
+    </span>
+  );
+}
 
 function PreviewCard({
   eyebrow,
@@ -98,13 +156,61 @@ function PreviewCard({
   );
 }
 
-export function RemocnShowcase() {
-  const t = useTranslations('RemocnPage');
+function TerminalMock({
+  title,
+  lines,
+  fontSize = 17,
+}: {
+  title: string;
+  lines: TerminalLine[];
+  fontSize?: number;
+}) {
+  return (
+    <div className="flex size-full items-center justify-center bg-[#050505] p-6">
+      <div className="flex h-[72%] w-[82%] flex-col overflow-hidden rounded-xl bg-[#0a0a0a] font-mono shadow-[0_30px_80px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)]">
+        <div className="flex h-10 items-center gap-2 border-b border-white/10 bg-[#1a1a1a] px-4">
+          <span className="size-3 rounded-full bg-[#ff5f57]/85" />
+          <span className="size-3 rounded-full bg-[#febc2e]/85" />
+          <span className="size-3 rounded-full bg-[#28c840]/85" />
+          <span className="min-w-0 flex-1 truncate text-center text-[13px] text-zinc-500">
+            {title}
+          </span>
+        </div>
+        <div
+          className="min-w-0 flex-1 space-y-2 overflow-hidden p-5"
+          style={
+            {
+              '--terminal-font-size': `${fontSize}px`,
+            } as CSSProperties
+          }
+        >
+          {lines.map((line) => (
+            <div
+              key={`${line.type}-${line.text}`}
+              className={[
+                'flex min-w-0 items-center whitespace-pre text-[length:var(--terminal-font-size)] leading-[1.6]',
+                terminalLineColors[line.type],
+              ].join(' ')}
+            >
+              {line.type === 'command' && (
+                <span className="mr-2 shrink-0 text-emerald-400">$</span>
+              )}
+              <span className="min-w-0 overflow-hidden text-ellipsis">
+                {line.text}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
+export function RemocnShowcase({ copy }: { copy: RemocnShowcaseCopy }) {
   const stats = [
-    { value: '4', label: t('stats.components') },
-    { value: '1', label: t('stats.registryFlow') },
-    { value: '100%', label: t('stats.browserPreview') },
+    { value: '4', label: copy.stats.components },
+    { value: '1', label: copy.stats.registryFlow },
+    { value: '100%', label: copy.stats.browserPreview },
   ];
 
   const importedComponents = [
@@ -121,23 +227,16 @@ export function RemocnShowcase() {
         <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,540px)] lg:items-center">
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-3">
-              <Badge className="bg-zinc-950 text-zinc-50 dark:bg-zinc-50 dark:text-zinc-950">
-                {t('eyebrow')}
-              </Badge>
-              <Badge
-                variant="outline"
-                className="border-zinc-400/60 bg-white/60 dark:bg-zinc-950/40"
-              >
-                {t('subeyebrow')}
-              </Badge>
+              <Pill variant="solid">{copy.eyebrow}</Pill>
+              <Pill variant="outline">{copy.subeyebrow}</Pill>
             </div>
 
             <div className="space-y-4">
               <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 md:text-5xl">
-                {t('title')}
+                {copy.title}
               </h1>
               <p className="max-w-2xl text-base leading-7 text-zinc-700 dark:text-zinc-300 md:text-lg">
-                {t('description')}
+                {copy.description}
               </p>
             </div>
 
@@ -146,40 +245,31 @@ export function RemocnShowcase() {
                 href={docsUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={buttonVariants({ variant: 'default' })}
+                className={primaryButtonClassName}
               >
-                {t('actions.catalog')}
+                {copy.actions.catalog}
               </a>
               <a
                 href={installUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={buttonVariants({ variant: 'outline' })}
+                className={outlineButtonClassName}
               >
-                {t('actions.installation')}
+                {copy.actions.installation}
               </a>
             </div>
 
             <p className="max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-              {t('supportingCopy')}
+              {copy.supportingCopy}
             </p>
           </div>
 
           <div className="overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-zinc-950/95 p-3 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.75)] dark:border-zinc-700/80">
             <div className="aspect-[16/11] overflow-hidden rounded-[1.25rem]">
-              <Player
-                component={TerminalSimulator}
-                inputProps={{
-                  title: '~/projects/remocn-showcase',
-                  lines: terminalLines,
-                  fontSize: 17,
-                  speed: 0.9,
-                }}
-                durationInFrames={180}
-                compositionWidth={1280}
-                compositionHeight={880}
-                className="size-full"
-                {...playerBaseProps}
+              <TerminalMock
+                title="~/projects/remocn-showcase"
+                lines={terminalLines}
+                fontSize={17}
               />
             </div>
           </div>
@@ -205,97 +295,47 @@ export function RemocnShowcase() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-6">
           <PreviewCard
-            eyebrow={t('cards.terminal.eyebrow')}
-            title={t('cards.terminal.title')}
-            description={t('cards.terminal.description')}
+            eyebrow={copy.cards.terminal.eyebrow}
+            title={copy.cards.terminal.title}
+            description={copy.cards.terminal.description}
           >
             <div className="aspect-[16/10] overflow-hidden bg-zinc-950">
-              <Player
-                component={TerminalSimulator}
-                inputProps={{
-                  title: '~/projects/remocn-showcase',
-                  lines: terminalLines,
-                  fontSize: 17,
-                  speed: 0.9,
-                }}
-                durationInFrames={180}
-                compositionWidth={1280}
-                compositionHeight={800}
-                className="size-full"
-                {...playerBaseProps}
+              <RemocnPlayerPreview
+                variant="terminal"
+                terminalLines={terminalLines}
               />
             </div>
           </PreviewCard>
 
           <div className="grid gap-6 lg:grid-cols-2">
             <PreviewCard
-              eyebrow={t('cards.blur.eyebrow')}
-              title={t('cards.blur.title')}
-              description={t('cards.blur.description')}
+              eyebrow={copy.cards.blur.eyebrow}
+              title={copy.cards.blur.title}
+              description={copy.cards.blur.description}
             >
               <div className="aspect-[4/3] overflow-hidden bg-white">
-                <Player
-                  component={BlurReveal}
-                  inputProps={{
-                    text: 'remocn',
-                    fontSize: 138,
-                    blur: 18,
-                    color: '#111827',
-                  }}
-                  durationInFrames={90}
-                  compositionWidth={1200}
-                  compositionHeight={900}
-                  className="size-full"
-                  {...playerBaseProps}
-                />
+                <RemocnPlayerPreview variant="blur" />
               </div>
             </PreviewCard>
 
             <PreviewCard
-              eyebrow={t('cards.matrix.eyebrow')}
-              title={t('cards.matrix.title')}
-              description={t('cards.matrix.description')}
+              eyebrow={copy.cards.matrix.eyebrow}
+              title={copy.cards.matrix.title}
+              description={copy.cards.matrix.description}
             >
               <div className="aspect-[4/3] overflow-hidden bg-white">
-                <Player
-                  component={MatrixDecode}
-                  inputProps={{
-                    text: 'REGISTRY READY',
-                    fontSize: 82,
-                    color: '#16a34a',
-                    revealDuration: 72,
-                  }}
-                  durationInFrames={96}
-                  compositionWidth={1200}
-                  compositionHeight={900}
-                  className="size-full"
-                  {...playerBaseProps}
-                />
+                <RemocnPlayerPreview variant="matrix" />
               </div>
             </PreviewCard>
           </div>
 
           <PreviewCard
-            eyebrow={t('cards.spotlight.eyebrow')}
-            title={t('cards.spotlight.title')}
-            description={t('cards.spotlight.description')}
+            eyebrow={copy.cards.spotlight.eyebrow}
+            title={copy.cards.spotlight.title}
+            description={copy.cards.spotlight.description}
           >
             <div className="aspect-[16/9] overflow-hidden bg-zinc-950">
-              <Player
-                component={SpotlightCard}
-                inputProps={{
-                  title: 'Render once, showcase anywhere',
-                  body: 'These remocn primitives were pulled in with the CLI and mounted in-browser with @remotion/player.',
-                  cardWidth: 760,
-                  cardHeight: 420,
-                  glowOpacity: 0.12,
-                }}
-                durationInFrames={150}
-                compositionWidth={1400}
-                compositionHeight={820}
-                className="size-full"
-                {...playerBaseProps}
-              />
+              <RemocnPlayerPreview variant="spotlight" />
             </div>
           </PreviewCard>
         </div>
@@ -303,31 +343,29 @@ export function RemocnShowcase() {
         <aside className="space-y-6">
           <div className="rounded-[1.75rem] border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
-              {t('install.title')}
+              {copy.install.title}
             </p>
             <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
-              {t('install.description')}
+              {copy.install.description}
             </p>
             <pre className="mt-4 overflow-x-auto rounded-2xl bg-zinc-950 p-4 text-xs leading-6 text-zinc-100">
               <code>{installCommand}</code>
             </pre>
             <div className="mt-4 flex flex-wrap gap-2">
               {importedComponents.map((componentName) => (
-                <Badge key={componentName} variant="secondary">
-                  {componentName}
-                </Badge>
+                <Pill key={componentName}>{componentName}</Pill>
               ))}
             </div>
           </div>
 
           <div className="rounded-[1.75rem] border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
-              {t('integration.title')}
+              {copy.integration.title}
             </p>
             <div className="mt-3 space-y-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
-              <p>{t('integration.pointOne')}</p>
-              <p>{t('integration.pointTwo')}</p>
-              <p>{t('integration.pointThree')}</p>
+              <p>{copy.integration.pointOne}</p>
+              <p>{copy.integration.pointTwo}</p>
+              <p>{copy.integration.pointThree}</p>
             </div>
           </div>
         </aside>
