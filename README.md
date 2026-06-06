@@ -57,12 +57,15 @@ Playwright e2e runs use `.env.example` as their baseline and then apply a small 
 ## Long-lived local services
 
 ```bash
-docker compose up -d postgres mailpit minio minio-create-bucket
+docker compose up -d postgres mailpit redis minio minio-create-bucket
 bun run db:migrate
 bun run db:schema:generate
 bun run db:seed:test-users
 bun run dev:app
 ```
+
+Redis is exposed at `redis://127.0.0.1:6379`; set
+`RATE_LIMIT_STORE=redis` to exercise Redis-backed rate limits locally.
 
 Run the outbox worker in another shell if you want queued email and announcement jobs processed locally:
 

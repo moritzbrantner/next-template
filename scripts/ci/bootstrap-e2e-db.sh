@@ -14,6 +14,37 @@ BUN_BINARY="${BUN_BINARY:-bun}"
 BOOTSTRAP_STARTED=0
 STARTED_SERVICES=()
 OBJECT_STORAGE_MANAGED=0
+REDIS_EXPECTED=0
+
+add_started_service() {
+  local service existing
+
+  for service in "$@"; do
+    for existing in "${STARTED_SERVICES[@]}"; do
+      if [[ "$service" == "$existing" ]]; then
+        continue 2
+      fi
+    done
+
+    STARTED_SERVICES+=("$service")
+  done
+}
+
+compose_service_requested() {
+  local service requested
+
+  if [[ -z "${COMPOSE_SERVICES:-}" ]]; then
+    return 1
+  fi
+
+  for requested in $COMPOSE_SERVICES; do
+    if [[ "$requested" == "$service" ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
 
 can_reach_database() {
   (
@@ -58,6 +89,9 @@ container_name_for_service() {
       ;;
     mailpit)
       printf 'next-template-mailpit'
+      ;;
+    redis)
+      printf 'next-template-redis'
       ;;
     minio)
       printf 'next-template-minio'
@@ -165,6 +199,25 @@ can_reach_object_storage() {
   curl --silent --show-error --fail --max-time 5 "${PROFILE_IMAGE_STORAGE_ENDPOINT%/}/minio/health/live" >/dev/null 2>&1
 }
 
+can_reach_redis() {
+  "$BUN_BINARY" --eval '
+    (async () => {
+      const { createClient } = require("redis");
+      const client = createClient({ url: process.env.REDIS_URL });
+
+      try {
+        await client.connect();
+        const pong = await client.ping();
+        process.exit(pong === "PONG" ? 0 : 1);
+      } catch {
+        process.exit(1);
+      } finally {
+        await client.quit().catch(() => undefined);
+      }
+    })();
+  ' >/dev/null 2>&1
+}
+
 force_managed_services() {
   [[ "${E2E_REUSE_SERVICES:-false}" != "true" ]] \
     && { [[ "${CI:-false}" == "true" ]] || [[ "${E2E_FORCE_MANAGED_SERVICES:-false}" == "true" ]]; }
@@ -191,7 +244,7 @@ teardown() {
     cleanup_services
     rm -f "$MARKER_FILE"
   elif [[ "${E2E_FORCE_MANAGED_SERVICES:-false}" == "true" ]]; then
-    STARTED_SERVICES=("postgres" "mailpit" "minio")
+    STARTED_SERVICES=("postgres" "mailpit" "redis" "minio")
     echo "ℹ️ No marker file found; cleaning compose-managed e2e services: ${STARTED_SERVICES[*]}"
     cleanup_services
   else
@@ -227,25 +280,36 @@ trap cleanup_on_error EXIT
 
 if force_managed_services; then
   echo "ℹ️ Using compose-managed e2e services."
-  STARTED_SERVICES+=("postgres" "mailpit" "minio")
+  add_started_service postgres mailpit redis minio
   OBJECT_STORAGE_MANAGED=1
+  REDIS_EXPECTED=1
 else
   if can_reach_database; then
     echo "ℹ️ Reusing already-reachable Postgres instance from DATABASE_URL."
   else
-    STARTED_SERVICES+=("postgres")
+    add_started_service postgres
   fi
 
   if can_reach_mailpit; then
     echo "ℹ️ Reusing already-reachable Mailpit instance from ${MAILPIT_BASE_URL}."
   else
-    STARTED_SERVICES+=("mailpit")
+    add_started_service mailpit
+  fi
+
+  if [[ "${RATE_LIMIT_STORE:-postgres}" == "redis" ]] || compose_service_requested redis; then
+    REDIS_EXPECTED=1
+
+    if can_reach_redis; then
+      echo "ℹ️ Reusing already-reachable Redis instance from ${REDIS_URL}."
+    else
+      add_started_service redis
+    fi
   fi
 
   if can_reach_object_storage; then
     echo "ℹ️ Reusing already-reachable object storage instance from ${PROFILE_IMAGE_STORAGE_ENDPOINT}."
   else
-    STARTED_SERVICES+=("minio")
+    add_started_service minio
     OBJECT_STORAGE_MANAGED=1
   fi
 fi
@@ -343,6 +407,39 @@ echo "ℹ️ Waiting for Mailpit readiness..."
     process.exit(1);
   })();
 '
+
+if [[ "$REDIS_EXPECTED" -eq 1 ]]; then
+  echo "ℹ️ Waiting for Redis readiness..."
+  "$BUN_BINARY" --eval '
+    (async () => {
+      const { createClient } = require("redis");
+      const timeoutSeconds = Number(process.env.DB_BOOTSTRAP_TIMEOUT_SECONDS ?? "90");
+      const start = Date.now();
+
+      while (Date.now() - start < timeoutSeconds * 1_000) {
+        const client = createClient({ url: process.env.REDIS_URL });
+
+        try {
+          await client.connect();
+          const pong = await client.ping();
+
+          if (pong === "PONG") {
+            console.log("✅ Redis is ready.");
+            process.exit(0);
+          }
+        } catch {
+        } finally {
+          await client.quit().catch(() => undefined);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      console.error("❌ Timed out waiting for Redis after " + timeoutSeconds + "s.");
+      process.exit(1);
+    })();
+  '
+fi
 
 echo "ℹ️ Waiting for object storage readiness..."
 "$BUN_BINARY" --eval '

@@ -76,7 +76,7 @@ There is no root `release` or `publish` script. Package publishing is documented
 
 ## Docker And Codex/T3 Cleanup
 
-This project uses Docker services for local development or tests: `postgres mailpit minio`.
+This project uses Docker services for local development or tests: `postgres mailpit redis minio`.
 
 Standard commands:
 

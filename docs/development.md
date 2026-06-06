@@ -27,12 +27,15 @@ bun run dev
 For long-lived local services:
 
 ```bash
-docker compose up -d postgres mailpit minio minio-create-bucket
+docker compose up -d postgres mailpit redis minio minio-create-bucket
 bun run db:migrate
 bun run db:schema:generate
 bun run db:seed:test-users
 bun run dev:app
 ```
+
+Redis is exposed at `redis://127.0.0.1:6379` for experiments such as
+`RATE_LIMIT_STORE=redis`.
 
 Run the background job worker separately when testing queued email,
 announcement, analytics pruning, or operational retention jobs:
