@@ -127,21 +127,21 @@ function createUsers(labels: ChatLabels): ChatUser[] {
       id: 'mara',
       name: labels.users.mara,
       role: labels.roles.productDesigner,
-      color: 'bg-emerald-500 text-white',
+      color: 'bg-emerald-700 text-white',
       online: true,
     },
     {
       id: 'leon',
       name: labels.users.leon,
       role: labels.roles.frontendLead,
-      color: 'bg-sky-500 text-white',
+      color: 'bg-sky-700 text-white',
       online: true,
     },
     {
       id: 'priya',
       name: labels.users.priya,
       role: labels.roles.productManager,
-      color: 'bg-rose-500 text-white',
+      color: 'bg-rose-700 text-white',
       online: true,
     },
     {
@@ -155,7 +155,7 @@ function createUsers(labels: ChatLabels): ChatUser[] {
       id: 'ava',
       name: labels.users.ava,
       role: labels.roles.qaEngineer,
-      color: 'bg-violet-500 text-white',
+      color: 'bg-violet-700 text-white',
       online: true,
     },
   ];
@@ -643,7 +643,7 @@ export function ChatRoom({ locale, tenorEnabled, labels }: ChatRoomProps) {
                       <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
                         {sender?.name ?? labels.users.you}
                       </span>
-                      <span className="text-xs text-zinc-400">
+                      <span className="text-xs text-zinc-600 dark:text-zinc-400">
                         {message.sentAt}
                       </span>
                     </div>
@@ -739,13 +739,18 @@ export function ChatRoom({ locale, tenorEnabled, labels }: ChatRoomProps) {
                 <span className="ml-2 hidden sm:inline">GIF</span>
               </Button>
               <Textarea
+                aria-label={labels.messagePlaceholder}
                 value={messageDraft}
                 onChange={(event) => setMessageDraft(event.target.value)}
                 placeholder={labels.messagePlaceholder}
                 className="min-h-11 flex-1 resize-none rounded-lg"
                 rows={1}
               />
-              <Button type="submit" className="h-11 shrink-0 rounded-lg px-4">
+              <Button
+                type="submit"
+                aria-label={labels.send}
+                className="h-11 shrink-0 rounded-lg px-4"
+              >
                 <Send className="size-4" aria-hidden="true" />
                 <span className="ml-2 hidden sm:inline">{labels.send}</span>
               </Button>
