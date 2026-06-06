@@ -1,4 +1,4 @@
-import { PageContent, type PlatformNavbarGroup } from '@moritzbrantner/ui';
+import { PageContent, type NavbarGroup } from '@moritzbrantner/ui/shell';
 import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 
@@ -66,7 +66,7 @@ function getHotkeyGroupLabel(
   return t('hotkeys.accountGroup');
 }
 
-function getPlatformNavbarItemId(categoryKey: string, href: string) {
+function getNavbarItemId(categoryKey: string, href: string) {
   return `${categoryKey}:${href}`;
 }
 
@@ -111,7 +111,7 @@ export async function LocaleShell({
   const t = createTranslator(locale, 'NavigationBar');
   const languageT = createTranslator(locale, 'LanguageSelector');
   const themeT = createTranslator(locale, 'ThemeToggle');
-  const navigationGroups: PlatformNavbarGroup[] = buildNavigationCategories({
+  const navigationGroups: NavbarGroup[] = buildNavigationCategories({
     isAuthenticated: Boolean(resolvedSession?.user?.id),
     role: resolvedSession?.user?.role,
     permissionSet,
@@ -120,7 +120,7 @@ export async function LocaleShell({
     id: category.key,
     label: t(`categories.${category.key}`),
     items: category.links.map((link) => ({
-      id: getPlatformNavbarItemId(category.key, link.href),
+      id: getNavbarItemId(category.key, link.href),
       href: withLocalePath(link.href, locale),
       label: t(link.translationKey),
       meta: formatAppHotkey(link.hotkey),

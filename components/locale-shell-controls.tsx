@@ -1,13 +1,12 @@
 'use client';
 
 import {
-  AccountMenu,
   Button,
   defaultLanguageSwitcherLanguages,
   LanguageSwitcher,
-  NotificationMenu,
   ThemeModeSwitch,
 } from '@moritzbrantner/ui';
+import { AccountMenu, NotificationMenu } from '@moritzbrantner/ui/shell';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 
 import { NavigationHotkeysTrigger } from '@/components/navigation-hotkeys-trigger';

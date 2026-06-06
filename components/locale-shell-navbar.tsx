@@ -1,12 +1,12 @@
 'use client';
 
 import {
-  PlatformNavbar,
-  PlatformNavbarActionGroup,
-  type PlatformNavbarGroup,
-  type PlatformNavbarRenderLinkProps,
-  type PlatformNavbarVariant,
-} from '@moritzbrantner/ui';
+  Navbar,
+  NavbarActionGroup,
+  type NavbarGroup,
+  type NavbarRenderLinkProps,
+  type NavbarVariant,
+} from '@moritzbrantner/ui/shell';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSyncExternalStore, type ReactNode } from 'react';
@@ -14,7 +14,7 @@ import { useSyncExternalStore, type ReactNode } from 'react';
 type LocaleShellNavbarProps = {
   brandHref: string;
   brandLabel: string;
-  groups: PlatformNavbarGroup[];
+  groups: NavbarGroup[];
   actions: ReactNode;
 };
 
@@ -47,7 +47,7 @@ function renderNavbarLink({
   onClick,
   disabled,
   'aria-current': ariaCurrent,
-}: PlatformNavbarRenderLinkProps) {
+}: NavbarRenderLinkProps) {
   if (!href || disabled) {
     return (
       <button
@@ -86,9 +86,7 @@ export function LocaleShellNavbar({
     getMobileNavbarSnapshot,
     () => false,
   );
-  const navbarVariant: PlatformNavbarVariant = isMobileNavbar
-    ? 'mobile'
-    : 'web';
+  const navbarVariant: NavbarVariant = isMobileNavbar ? 'mobile' : 'web';
   const brand = (
     <NextLink href={brandHref} className="block truncate">
       {brandLabel}
@@ -97,15 +95,15 @@ export function LocaleShellNavbar({
 
   return (
     <header className="sticky top-0 z-10 overflow-visible border-b border-zinc-200 bg-white/95 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950/95">
-      <PlatformNavbar
+      <Navbar
         key={pathname}
         aria-label="Primary navigation"
         brand={brand}
         groups={groups}
         actionSlot={
-          <PlatformNavbarActionGroup className="min-w-0 max-w-[calc(100vw-8rem)] shrink flex-wrap gap-1 sm:max-w-none sm:shrink-0 sm:flex-nowrap sm:gap-2">
+          <NavbarActionGroup className="min-w-0 max-w-[calc(100vw-8rem)] shrink flex-wrap gap-1 sm:max-w-none sm:shrink-0 sm:flex-nowrap sm:gap-2">
             {actions}
-          </PlatformNavbarActionGroup>
+          </NavbarActionGroup>
         }
         variant={navbarVariant}
         defaultOpenGroupId={null}
