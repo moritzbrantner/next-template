@@ -1,5 +1,5 @@
 import type { AuthProvider } from '@/src/auth';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@moritzbrantner/ui';
 import type { AppLocale } from '@/i18n/routing';
 
 const socialProviders = [

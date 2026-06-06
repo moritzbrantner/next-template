@@ -1,14 +1,14 @@
 import { notFound } from 'next/navigation';
 
 import { BlogPostComposer } from '@/components/blog-post-composer';
-import { buttonVariants } from '@/components/ui/button';
 import {
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
 import { getUserBlogUseCase } from '@/src/domain/blog/use-cases';

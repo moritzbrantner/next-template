@@ -5,9 +5,7 @@ import { useForm } from 'react-hook-form';
 
 import { Link, useRouter } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button, Input, Label } from '@moritzbrantner/ui';
 import { SocialAuthButtons } from '@/components/auth/social-auth-buttons';
 import type { AuthProvider } from '@/src/auth';
 import { readProblemDetail } from '@/src/http/problem-client';

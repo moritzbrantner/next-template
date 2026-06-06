@@ -9,9 +9,14 @@ import { ProfileImageForm } from '@/components/profile-image-form';
 import { ConsentSettingsCard } from '@/components/privacy/consent-settings-card';
 import { ProfileSearchVisibilityForm } from '@/components/profile-search-visibility-form';
 import { AppSettingsPanel } from '@/components/settings/app-settings-panel';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Badge,
+  buttonVariants,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@moritzbrantner/ui';
 import { Link, usePathname } from '@/i18n/navigation';
 
 import type { AppSession } from '@/src/auth';

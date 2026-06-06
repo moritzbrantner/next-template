@@ -9,10 +9,7 @@ import {
 } from 'react';
 
 import type { AppRole } from '@/lib/authorization';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Button, Input, Label, Textarea } from '@moritzbrantner/ui';
 import type { AdminUserSearchResult } from '@/src/domain/notifications/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';

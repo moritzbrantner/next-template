@@ -18,9 +18,7 @@ import {
   type ReactNode,
 } from 'react';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge, Button, Textarea } from '@moritzbrantner/ui';
 import {
   applyChatComposerSlashCommand,
   buildChatMessageInput,

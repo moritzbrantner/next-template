@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 
 import { Link, usePathname } from '@/i18n/navigation';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@moritzbrantner/ui';
 import { useTranslations } from '@/src/i18n';
 
 export type AdminPageNavigationItem = {

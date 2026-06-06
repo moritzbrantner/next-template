@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@moritzbrantner/ui';
 import { useRouter } from '@/i18n/navigation';
 import { readProblemDetail } from '@/src/http/problem-client';
 import {

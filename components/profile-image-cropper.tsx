@@ -4,7 +4,7 @@ import NextImage from 'next/image';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@moritzbrantner/ui';
 import { imageConstraints } from '@/src/profile/image-validation';
 
 const CROP_FRAME_SIZE_PX = 240;

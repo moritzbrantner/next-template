@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
+import { Button } from '@moritzbrantner/ui';
 import { readProblemDetail } from '@/src/http/problem-client';
 
 type ProfileDisplayNameFormProps = {

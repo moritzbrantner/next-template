@@ -3,9 +3,14 @@
 import { startTransition, useOptimistic, type MouseEvent } from 'react';
 
 import { Link, useRouter } from '@/i18n/navigation';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Badge,
+  buttonVariants,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@moritzbrantner/ui';
 import { dispatchNotificationMarkedRead } from '@/components/notifications/events';
 import { MarkAllReadButton } from '@/components/notifications/mark-all-read-button';
 import { MarkNotificationReadButton } from '@/components/notifications/mark-notification-read-button';

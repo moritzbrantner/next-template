@@ -10,7 +10,7 @@ import {
   PinnedMessagesSummary,
   type ChatMessageLabels,
 } from '@/components/chat-message-tools';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@moritzbrantner/ui';
 import type { ChatMessageInput } from '@/src/domain/chat/messages';
 import type {
   ProfileChatMessage,

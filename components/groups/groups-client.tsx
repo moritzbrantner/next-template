@@ -4,18 +4,18 @@ import { useState, type FormEvent } from 'react';
 import { ArrowRight, Globe2, Lock, Mail, Plus, Users } from 'lucide-react';
 
 import { Link } from '@/i18n/navigation';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+  Input,
+  Label,
+  Textarea,
+} from '@moritzbrantner/ui';
 import type {
   GroupInvitationSummary,
   GroupSummary,

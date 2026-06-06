@@ -2,10 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Button, Input, Label, Textarea } from '@moritzbrantner/ui';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
 

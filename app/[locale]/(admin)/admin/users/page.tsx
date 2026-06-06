@@ -7,7 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
 import { getAdminUsersPageDataUseCase } from '@/src/domain/notifications/use-cases';

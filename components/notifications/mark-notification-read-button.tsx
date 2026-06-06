@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from '@/i18n/navigation';
 import { dispatchNotificationMarkedRead } from '@/components/notifications/events';
 import { postNotificationRead } from '@/components/notifications/read-action';
-import { Button } from '@/components/ui/button';
+import { Button } from '@moritzbrantner/ui';
 import { readProblemDetail } from '@/src/http/problem-client';
 
 type ButtonVariant = 'default' | 'ghost' | 'outline';

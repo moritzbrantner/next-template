@@ -4,8 +4,7 @@ import { useState, type FormEvent } from 'react';
 
 import type { AppRole } from '@/lib/authorization';
 import { useRouter } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Button, Label } from '@moritzbrantner/ui';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';
 

@@ -1,15 +1,15 @@
 import { and, count, eq, gte, ilike, lte, type SQL } from 'drizzle-orm';
 
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import {
+  Badge,
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
 import { getDb } from '@/src/db/client';

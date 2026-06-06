@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@moritzbrantner/ui';
 import { useRouter } from '@/i18n/navigation';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { bannerImageConstraints } from '@/src/profile/image-validation';

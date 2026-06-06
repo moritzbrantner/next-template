@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
+import { Button } from '@moritzbrantner/ui';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { formatProfileTag } from '@/src/profile/tags';

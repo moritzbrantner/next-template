@@ -1,21 +1,19 @@
 import type { Metadata } from 'next';
 
-import { Badge } from '@/components/ui/badge';
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@moritzbrantner/ui';
 import { createTranslator } from '@/src/i18n/messages';
 import { resolveLocale } from '@/src/server/page-guards';
 import {

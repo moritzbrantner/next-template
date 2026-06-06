@@ -1,11 +1,11 @@
 import {
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { buttonVariants } from '@/components/ui/button';
+} from '@moritzbrantner/ui';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';

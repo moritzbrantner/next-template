@@ -3,14 +3,14 @@ import { revalidatePath } from 'next/cache';
 import { isSuperAdmin } from '@/lib/authorization';
 import type { AppRole } from '@/lib/authorization';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import {
+  Badge,
+  buttonVariants,
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';

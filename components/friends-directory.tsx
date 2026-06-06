@@ -6,14 +6,14 @@ import { useState } from 'react';
 
 import { ProfileFriendSearchDialog } from '@/components/profile-friend-search-dialog';
 import { Link } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import type { ProfileDirectoryEntry } from '@/src/domain/profile/use-cases';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';

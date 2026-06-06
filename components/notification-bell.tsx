@@ -10,8 +10,7 @@ import {
 } from '@/components/notifications/events';
 import { MarkNotificationReadButton } from '@/components/notifications/mark-notification-read-button';
 import { postNotificationRead } from '@/components/notifications/read-action';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
+import { Badge, buttonVariants } from '@moritzbrantner/ui';
 import type { NotificationFeedItem } from '@/src/domain/notifications/use-cases';
 import { useTranslations } from '@/src/i18n';
 

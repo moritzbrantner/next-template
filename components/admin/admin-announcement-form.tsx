@@ -2,10 +2,13 @@
 
 import { useActionState } from 'react';
 
-import { buttonVariants, Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import {
+  Button,
+  buttonVariants,
+  Input,
+  Label,
+  Textarea,
+} from '@moritzbrantner/ui';
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import type { SiteAnnouncementStatus } from '@/src/site-config/service';

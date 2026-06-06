@@ -1,15 +1,15 @@
 import { revalidatePath } from 'next/cache';
 
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import {
+  Badge,
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import type { AppRole } from '@/lib/authorization';
 import { isSuperAdmin } from '@/lib/authorization';
 import { appPermissionKeys, appPermissionMetadata } from '@/lib/authorization';

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@moritzbrantner/ui';
 import { useRouter } from '@/i18n/navigation';
 
 type ProfileMenuProps = {

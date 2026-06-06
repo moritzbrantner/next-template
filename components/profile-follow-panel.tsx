@@ -7,8 +7,7 @@ import { useState, type FormEvent } from 'react';
 import { ProfileFriendSearchDialog } from '@/components/profile-friend-search-dialog';
 import type { AppLocale } from '@/i18n/routing';
 import { Link } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Button, Textarea } from '@moritzbrantner/ui';
 import type {
   ProfileDirectoryEntry,
   ProfileSearchEntry,

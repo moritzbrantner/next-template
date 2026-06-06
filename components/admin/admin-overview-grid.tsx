@@ -5,13 +5,13 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createSwapy, utils, type SlotItemMapArray, type Swapy } from 'swapy';
 
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+} from '@moritzbrantner/ui';
 import { Link } from '@/i18n/navigation';
 import {
   ADMIN_OVERVIEW_LAYOUT_STORAGE_KEY,

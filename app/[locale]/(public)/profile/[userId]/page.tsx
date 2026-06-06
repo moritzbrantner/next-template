@@ -1,14 +1,14 @@
 import { notFound } from 'next/navigation';
 
 import { ProfileFollowPanel } from '@/components/profile-follow-panel';
-import { buttonVariants } from '@/components/ui/button';
 import {
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
 import {

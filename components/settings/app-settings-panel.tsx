@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 
-import { Input } from '@/components/ui/input';
+import { Input } from '@moritzbrantner/ui';
 import { useLocale, useTranslations } from '@/src/i18n';
 import {
   backgroundOptions,

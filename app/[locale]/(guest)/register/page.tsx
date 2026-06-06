@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { resolveOAuthPageError } from '@/src/auth/oauth/page-state';
 import { createTranslator } from '@/src/i18n/messages';
 import {

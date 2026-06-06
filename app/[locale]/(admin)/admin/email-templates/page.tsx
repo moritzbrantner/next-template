@@ -2,18 +2,18 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import {
+  Badge,
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+  Input,
+  Label,
+  Textarea,
+} from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { withLocalePath, type AppLocale } from '@/i18n/routing';
 import { isSuperAdmin } from '@/lib/authorization';

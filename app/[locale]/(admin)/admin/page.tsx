@@ -1,14 +1,14 @@
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { AdminReportChart } from '@/components/admin/admin-report-chart';
 import { AdminOverviewGrid } from '@/components/admin/admin-overview-grid';
-import { buttonVariants } from '@/components/ui/button';
 import {
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import {
   getAuthorizedAdminPageDefinitions,

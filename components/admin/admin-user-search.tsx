@@ -2,17 +2,17 @@
 
 import { useDeferredValue, useEffect, useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
+  Badge,
+  buttonVariants,
+  Input,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@moritzbrantner/ui';
 import { Link } from '@/i18n/navigation';
 import type { AppLocale } from '@/i18n/routing';
 import type { AdminUserSearchResult } from '@/src/domain/notifications/use-cases';

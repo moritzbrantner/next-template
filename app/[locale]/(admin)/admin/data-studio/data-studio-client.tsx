@@ -8,14 +8,14 @@ import {
   type AdminPageNavigationItem,
 } from '@/components/admin/admin-page-shell';
 import { SchemaTableForm } from '@/components/dynamic-db/schema-table-form';
-import { Badge } from '@/components/ui/badge';
 import {
+  Badge,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { parseDbSchemaDocument } from '@/src/dynamic-db/schema';
 import { useTranslations } from '@/src/i18n';
 

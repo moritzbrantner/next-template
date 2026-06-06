@@ -4,8 +4,7 @@ import Image from 'next/image';
 import { Search, X } from 'lucide-react';
 import { useDeferredValue, useEffect, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button, Input } from '@moritzbrantner/ui';
 import { Link } from '@/i18n/navigation';
 import type {
   ProfileDirectoryEntry,

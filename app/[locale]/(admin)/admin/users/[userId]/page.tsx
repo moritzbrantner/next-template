@@ -5,15 +5,15 @@ import { notFound, redirect } from 'next/navigation';
 import { AdminNotificationComposer } from '@/components/admin/admin-notification-composer';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { AdminRoleManager } from '@/components/admin/admin-role-manager';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import {
+  Badge,
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { withLocalePath } from '@/i18n/routing';
 import { isAdmin, isSuperAdmin } from '@/lib/authorization';

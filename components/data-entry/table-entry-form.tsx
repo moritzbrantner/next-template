@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@moritzbrantner/ui';
 import { readProblemDetail } from '@/src/http/problem-client';
 import type { TablePermissionView } from '@/src/domain/data-entry/use-cases';
 

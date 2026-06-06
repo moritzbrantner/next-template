@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { useRouter } from '@/i18n/navigation';
-import { Button } from '@/components/ui/button';
+import { Button } from '@moritzbrantner/ui';
 import { dispatchAllNotificationsMarkedRead } from '@/components/notifications/events';
 import { readProblemDetail } from '@/src/http/problem-client';
 import { useTranslations } from '@/src/i18n';

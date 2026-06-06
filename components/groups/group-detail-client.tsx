@@ -11,16 +11,16 @@ import {
   PinnedMessagesSummary,
   type ChatMessageLabels,
 } from '@/components/chat-message-tools';
-import { Button } from '@/components/ui/button';
 import {
+  Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+  Input,
+} from '@moritzbrantner/ui';
 import type { AppLocale } from '@/i18n/routing';
 import type { ChatMessageInput } from '@/src/domain/chat/messages';
 import type {

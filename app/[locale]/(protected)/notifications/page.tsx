@@ -1,5 +1,5 @@
 import { NotificationsFeedCard } from '@/components/notifications/notifications-feed-card';
-import { buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 
 import { getNotificationsPageDataUseCase } from '@/src/domain/notifications/use-cases';

@@ -7,15 +7,15 @@ import {
   type AnnouncementFormValues,
 } from '@/components/admin/admin-announcement-form';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import {
+  Badge,
+  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { withLocalePath, type AppLocale } from '@/i18n/routing';
 import { getAuthSession } from '@/src/auth.server';
