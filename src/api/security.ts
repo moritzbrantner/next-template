@@ -1,5 +1,7 @@
 import { eq, lte, sql } from 'drizzle-orm';
+import { createClient } from 'redis';
 
+import { getEnv } from '@/src/config/env';
 import { getDb } from '@/src/db/client';
 import { securityAuditLogs, securityRateLimitCounters } from '@/src/db/schema';
 
@@ -16,6 +18,18 @@ export type AuditRecord = {
 export type RateLimitResult =
   | { ok: true; remaining: number; resetAt: number }
   | { ok: false; retryAfterSeconds: number; resetAt: number };
+
+export type RateLimitPolicy = {
+  maxRequests: number;
+  windowMs: number;
+};
+
+export type RateLimitPolicyMap = Record<string, RateLimitPolicy>;
+
+export type RateLimitInput = {
+  action: string;
+  key: string;
+};
 
 export interface RateLimitAdapter {
   incrementWindow(input: {
@@ -39,12 +53,45 @@ export interface AuditPersistenceAdapter {
 
 export interface SecurityService {
   getRateLimitKey(request: Request, userId: string | null): string;
-  enforceRateLimit(key: string): Promise<RateLimitResult>;
+  enforceRateLimit(input: RateLimitInput): Promise<RateLimitResult>;
   auditAction(record: AuditRecord): Promise<void>;
 }
 
-const WINDOW_MS = 60_000;
-const MAX_REQUESTS = 30;
+export const DEFAULT_RATE_LIMIT_POLICY = {
+  maxRequests: 30,
+  windowMs: 60_000,
+} satisfies RateLimitPolicy;
+
+export const DEFAULT_RATE_LIMIT_POLICIES = {
+  'auth.login': {
+    maxRequests: 5,
+    windowMs: 60_000,
+  },
+  'auth.loginOtp.request': {
+    maxRequests: 3,
+    windowMs: 60_000,
+  },
+  'auth.loginOtp.verify': {
+    maxRequests: 5,
+    windowMs: 60_000,
+  },
+  'account.forgotPassword': {
+    maxRequests: 3,
+    windowMs: 300_000,
+  },
+  'account.resetPassword': {
+    maxRequests: 5,
+    windowMs: 300_000,
+  },
+  'profile.image.upload': {
+    maxRequests: 10,
+    windowMs: 60_000,
+  },
+  'admin.*': {
+    maxRequests: 60,
+    windowMs: 60_000,
+  },
+} satisfies RateLimitPolicyMap;
 
 const REDACTED = '[REDACTED]';
 const BLOCKED_METADATA_KEYS = [
@@ -90,6 +137,25 @@ function getClientIp(request: Request): string {
   }
 
   return request.headers.get('x-real-ip') ?? 'unknown';
+}
+
+export function resolveRateLimitPolicy(
+  action: string,
+  policies: RateLimitPolicyMap = DEFAULT_RATE_LIMIT_POLICIES,
+  defaultPolicy: RateLimitPolicy = DEFAULT_RATE_LIMIT_POLICY,
+): RateLimitPolicy {
+  const exactPolicy = policies[action];
+
+  if (exactPolicy) {
+    return exactPolicy;
+  }
+
+  const wildcardMatch = Object.entries(policies)
+    .filter(([key]) => key.endsWith('.*'))
+    .sort(([left], [right]) => right.length - left.length)
+    .find(([key]) => action.startsWith(key.slice(0, -1)));
+
+  return wildcardMatch?.[1] ?? defaultPolicy;
 }
 
 export class RedisRateLimitAdapter implements RateLimitAdapter {
@@ -209,14 +275,27 @@ export class PostgresAuditPersistenceAdapter implements AuditPersistenceAdapter 
 }
 
 export class DefaultSecurityService implements SecurityService {
+  private readonly defaultPolicy: RateLimitPolicy;
+  private readonly policies: RateLimitPolicyMap;
+
   constructor(
     private readonly rateLimitAdapter: RateLimitAdapter,
     private readonly auditPersistenceAdapter: AuditPersistenceAdapter,
-    private readonly config: { maxRequests: number; windowMs: number } = {
-      maxRequests: MAX_REQUESTS,
-      windowMs: WINDOW_MS,
-    },
-  ) {}
+    config: {
+      maxRequests?: number;
+      windowMs?: number;
+      policies?: RateLimitPolicyMap;
+    } = {},
+  ) {
+    this.defaultPolicy = {
+      maxRequests: config.maxRequests ?? DEFAULT_RATE_LIMIT_POLICY.maxRequests,
+      windowMs: config.windowMs ?? DEFAULT_RATE_LIMIT_POLICY.windowMs,
+    };
+    this.policies = {
+      ...DEFAULT_RATE_LIMIT_POLICIES,
+      ...(config.policies ?? {}),
+    };
+  }
 
   getRateLimitKey(request: Request, userId: string | null): string {
     if (userId) {
@@ -226,17 +305,22 @@ export class DefaultSecurityService implements SecurityService {
     return `ip:${getClientIp(request)}`;
   }
 
-  async enforceRateLimit(key: string): Promise<RateLimitResult> {
+  async enforceRateLimit(input: RateLimitInput): Promise<RateLimitResult> {
     const now = Date.now();
+    const policy = resolveRateLimitPolicy(
+      input.action,
+      this.policies,
+      this.defaultPolicy,
+    );
 
     const { count, resetAt } = await this.rateLimitAdapter.incrementWindow({
-      key,
+      key: input.key,
       now,
-      windowMs: this.config.windowMs,
-      maxRequests: this.config.maxRequests,
+      windowMs: policy.windowMs,
+      maxRequests: policy.maxRequests,
     });
 
-    if (count > this.config.maxRequests) {
+    if (count > policy.maxRequests) {
       return {
         ok: false,
         retryAfterSeconds: Math.max(1, Math.ceil((resetAt - now) / 1000)),
@@ -246,7 +330,7 @@ export class DefaultSecurityService implements SecurityService {
 
     return {
       ok: true,
-      remaining: this.config.maxRequests - count,
+      remaining: policy.maxRequests - count,
       resetAt,
     };
   }
@@ -265,30 +349,76 @@ export class DefaultSecurityService implements SecurityService {
   }
 }
 
-const securityService = new DefaultSecurityService(
-  new PostgresRateLimitAdapter(),
-  new PostgresAuditPersistenceAdapter(),
-);
+let securityService: SecurityService | null = null;
+let redisClientPromise: Promise<{
+  eval(
+    script: string,
+    options: { keys: string[]; arguments: string[] },
+  ): Promise<unknown>;
+}> | null = null;
+
+function createRedisRateLimitAdapter(redisUrl: string): RateLimitAdapter {
+  return new RedisRateLimitAdapter({
+    async eval(script, options) {
+      redisClientPromise ??= createClient({ url: redisUrl }).connect();
+      const client = await redisClientPromise;
+      const result = await client.eval(script, options);
+
+      return Array.isArray(result) ? result : [];
+    },
+  });
+}
+
+function getSecurityService() {
+  if (!securityService) {
+    const env = getEnv();
+    const rateLimitAdapter =
+      env.rateLimit.store === 'redis'
+        ? createRedisRateLimitAdapter(env.rateLimit.redisUrl!)
+        : new PostgresRateLimitAdapter();
+
+    securityService = new DefaultSecurityService(
+      rateLimitAdapter,
+      new PostgresAuditPersistenceAdapter(),
+      {
+        policies: env.rateLimit.overrides,
+      },
+    );
+  }
+
+  return securityService;
+}
+
+export function resetSecurityServiceForTests() {
+  securityService = null;
+  redisClientPromise = null;
+}
 
 export function getRateLimitKey(
   request: Request,
   userId: string | null,
 ): string {
-  return securityService.getRateLimitKey(request, userId);
+  return getSecurityService().getRateLimitKey(request, userId);
 }
 
-export async function enforceRateLimit(key: string): Promise<RateLimitResult> {
-  return securityService.enforceRateLimit(key);
+export async function enforceRateLimit(
+  input: RateLimitInput,
+): Promise<RateLimitResult> {
+  return getSecurityService().enforceRateLimit(input);
 }
 
 export async function auditAction(record: AuditRecord): Promise<void> {
-  return securityService.auditAction(record);
+  return getSecurityService().auditAction(record);
 }
 
 export function createSecurityService(adapters: {
   rateLimit: RateLimitAdapter;
   audit: AuditPersistenceAdapter;
-  config?: { maxRequests: number; windowMs: number };
+  config?: {
+    maxRequests?: number;
+    windowMs?: number;
+    policies?: RateLimitPolicyMap;
+  };
 }): SecurityService {
   return new DefaultSecurityService(
     adapters.rateLimit,

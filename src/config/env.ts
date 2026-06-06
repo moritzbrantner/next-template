@@ -48,6 +48,10 @@ const rawEnvSchema = z.object({
   ANALYTICS_ENABLED: booleanStringSchema.optional(),
   ADMIN_REPAIR_MODE_ENABLED: booleanStringSchema.optional(),
   INTERNAL_CRON_SECRET: z.string().optional(),
+  RATE_LIMIT_STORE: z.enum(['postgres', 'redis']).optional(),
+  REDIS_URL: z.string().url().optional(),
+  RATE_LIMIT_OVERRIDES_JSON: z.string().optional(),
+  CSP_REPORT_URI: z.string().optional(),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .optional(),
@@ -128,6 +132,14 @@ export type AppEnv = {
   jobs: {
     internalCronSecret?: string;
   };
+  rateLimit: {
+    store: 'postgres' | 'redis';
+    redisUrl?: string;
+    overrides: Record<string, { maxRequests: number; windowMs: number }>;
+  };
+  security: {
+    cspReportUri?: string;
+  };
   observability: {
     logLevel:
       | 'fatal'
@@ -184,6 +196,31 @@ function resolveOAuthProviderConfig(
     clientSecret: normalizedClientSecret,
     configured: Boolean(normalizedClientId && normalizedClientSecret),
   };
+}
+
+function parseRateLimitOverrides(value?: string) {
+  const trimmed = trimOptional(value);
+
+  if (!trimmed) {
+    return {};
+  }
+
+  try {
+    return z
+      .record(
+        z.string().min(1),
+        z.object({
+          maxRequests: z.number().int().positive(),
+          windowMs: z.number().int().positive(),
+        }),
+      )
+      .parse(JSON.parse(trimmed));
+  } catch (error) {
+    throw new Error(
+      'Invalid environment configuration: RATE_LIMIT_OVERRIDES_JSON must be a JSON object of positive integer maxRequests/windowMs policies.',
+      { cause: error },
+    );
+  }
 }
 
 export function resetEnvForTests() {
@@ -287,6 +324,19 @@ export function getEnv(): AppEnv {
     );
   }
 
+  const rateLimitStore = raw.RATE_LIMIT_STORE ?? 'postgres';
+  const redisUrl = trimOptional(raw.REDIS_URL);
+
+  if (rateLimitStore === 'redis' && !redisUrl) {
+    throw new Error(
+      'Invalid environment configuration: REDIS_URL is required when RATE_LIMIT_STORE=redis.',
+    );
+  }
+
+  const rateLimitOverrides = parseRateLimitOverrides(
+    raw.RATE_LIMIT_OVERRIDES_JSON,
+  );
+
   const remoteImageHosts = [
     ...(trimOptional(raw.IMAGE_REMOTE_HOSTS)
       ?.split(',')
@@ -363,6 +413,14 @@ export function getEnv(): AppEnv {
     },
     jobs: {
       internalCronSecret: trimOptional(raw.INTERNAL_CRON_SECRET),
+    },
+    rateLimit: {
+      store: rateLimitStore,
+      redisUrl,
+      overrides: rateLimitOverrides,
+    },
+    security: {
+      cspReportUri: trimOptional(raw.CSP_REPORT_URI),
     },
     observability: {
       logLevel:

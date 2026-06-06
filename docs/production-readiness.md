@@ -70,6 +70,39 @@ bun run jobs:work
 
 Protect internal job triggers with `INTERNAL_CRON_SECRET`.
 
+## Rate Limiting
+
+The default rate-limit store is Postgres:
+
+```env
+RATE_LIMIT_STORE=postgres
+```
+
+Use Redis for horizontally scaled production deployments so every app instance
+shares the same counters:
+
+```env
+RATE_LIMIT_STORE=redis
+REDIS_URL=redis://...
+```
+
+`REDIS_URL` is required when `RATE_LIMIT_STORE=redis`; the app fails
+environment validation when it is missing.
+
+Route-specific rate-limit policies are built in for sensitive auth, account,
+profile-image, and admin actions. Override them only when production traffic
+patterns justify it:
+
+```json
+{
+  "auth.login": { "maxRequests": 5, "windowMs": 60000 },
+  "admin.*": { "maxRequests": 60, "windowMs": 60000 }
+}
+```
+
+Set that JSON as `RATE_LIMIT_OVERRIDES_JSON`. Invalid JSON or non-positive
+policy values fail environment validation.
+
 ### Retention Cleanup
 
 Analytics pruning is handled by the `pruneAnalytics` job and follows the
@@ -120,5 +153,11 @@ the flag as part of incident closure.
 - Review `/admin/audit-log` after privileged changes.
 - Configure allowed image hosts instead of wildcard image patterns.
 - Use HTTPS, secure cookies, and production security headers.
+- Production responses include HSTS with `preload`. Only submit a domain for
+  browser preload lists after every subdomain is HTTPS-ready.
+- Configure `CSP_REPORT_URI` to collect `Content-Security-Policy-Report-Only`
+  violations before enforcing stricter CSP rules. Review reports for Next.js,
+  MDX, analytics, and app-pack scripts/styles before removing inline allowances
+  from the enforced policy.
 - Validate mutating authenticated requests with same-origin `Origin` or
   `Referer` headers.

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   createSecurityService,
+  resolveRateLimitPolicy,
   type AuditOutcome,
   type RateLimitAdapter,
 } from '@/src/api/security';
@@ -66,9 +67,18 @@ describe('security service', () => {
       },
     });
 
-    const first = await service.enforceRateLimit('ip:test');
-    const second = await service.enforceRateLimit('ip:test');
-    const third = await service.enforceRateLimit('ip:test');
+    const first = await service.enforceRateLimit({
+      action: 'test.action',
+      key: 'ip:test',
+    });
+    const second = await service.enforceRateLimit({
+      action: 'test.action',
+      key: 'ip:test',
+    });
+    const third = await service.enforceRateLimit({
+      action: 'test.action',
+      key: 'ip:test',
+    });
 
     expect(first).toMatchObject({ ok: true, remaining: 1 });
     expect(second).toMatchObject({ ok: true, remaining: 0 });
@@ -98,11 +108,20 @@ describe('security service', () => {
       },
     });
 
-    const first = await service.enforceRateLimit('user:u1');
-    const second = await service.enforceRateLimit('user:u1');
+    const first = await service.enforceRateLimit({
+      action: 'test.action',
+      key: 'user:u1',
+    });
+    const second = await service.enforceRateLimit({
+      action: 'test.action',
+      key: 'user:u1',
+    });
 
     vi.setSystemTime(new Date('2024-01-01T00:00:00.600Z'));
-    const third = await service.enforceRateLimit('user:u1');
+    const third = await service.enforceRateLimit({
+      action: 'test.action',
+      key: 'user:u1',
+    });
 
     expect(first).toMatchObject({ ok: true, remaining: 0 });
     expect(second).toMatchObject({ ok: false });
@@ -152,5 +171,78 @@ describe('security service', () => {
       },
     });
     expect(auditRows[0]?.timestamp).toBeInstanceOf(Date);
+  });
+
+  it('resolves exact rate-limit policies before wildcard policies', () => {
+    expect(
+      resolveRateLimitPolicy(
+        'admin.users.updateRole',
+        {
+          'admin.*': { maxRequests: 60, windowMs: 60_000 },
+          'admin.users.updateRole': { maxRequests: 2, windowMs: 10_000 },
+        },
+        { maxRequests: 30, windowMs: 60_000 },
+      ),
+    ).toEqual({ maxRequests: 2, windowMs: 10_000 });
+  });
+
+  it('resolves wildcard policies before the fallback policy', () => {
+    expect(
+      resolveRateLimitPolicy(
+        'admin.reports.authorization',
+        {
+          'admin.*': { maxRequests: 60, windowMs: 60_000 },
+        },
+        { maxRequests: 30, windowMs: 60_000 },
+      ),
+    ).toEqual({ maxRequests: 60, windowMs: 60_000 });
+  });
+
+  it('uses the fallback policy when no exact or wildcard policy matches', () => {
+    expect(
+      resolveRateLimitPolicy(
+        'profile.search',
+        {
+          'admin.*': { maxRequests: 60, windowMs: 60_000 },
+        },
+        { maxRequests: 30, windowMs: 60_000 },
+      ),
+    ).toEqual({ maxRequests: 30, windowMs: 60_000 });
+  });
+
+  it('applies action-specific policies when enforcing rate limits', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
+
+    const service = createSecurityService({
+      rateLimit: new FakeWindowedRateLimitAdapter(),
+      audit: {
+        async persist(record) {
+          auditRows.push(record);
+        },
+      },
+      config: {
+        maxRequests: 10,
+        windowMs: 60_000,
+        policies: {
+          'auth.login': {
+            maxRequests: 1,
+            windowMs: 1_000,
+          },
+        },
+      },
+    });
+
+    const first = await service.enforceRateLimit({
+      action: 'auth.login',
+      key: 'ip:test',
+    });
+    const second = await service.enforceRateLimit({
+      action: 'auth.login',
+      key: 'ip:test',
+    });
+
+    expect(first).toMatchObject({ ok: true, remaining: 0 });
+    expect(second).toMatchObject({ ok: false });
   });
 });

@@ -8,6 +8,7 @@ const appEnvKeys = [
   'ANALYTICS_ENABLED',
   'AUTH_SECRET',
   'AUTH_URL',
+  'CSP_REPORT_URI',
   'DATABASE_URL',
   'EMAIL_FROM',
   'EMAIL_PROVIDER',
@@ -30,6 +31,9 @@ const appEnvKeys = [
   'PROFILE_IMAGE_STORAGE_FORCE_PATH_STYLE',
   'PROFILE_IMAGE_STORAGE_REGION',
   'PROFILE_IMAGE_STORAGE_SECRET_ACCESS_KEY',
+  'RATE_LIMIT_OVERRIDES_JSON',
+  'RATE_LIMIT_STORE',
+  'REDIS_URL',
   'SITE_URL',
   'SMTP_HOST',
   'SMTP_PASSWORD',
@@ -204,5 +208,74 @@ describe('env parsing', () => {
     });
 
     expect(getEnv().admin.repairModeEnabled).toBe(true);
+  });
+
+  it('defaults rate limiting to the postgres store with no overrides', () => {
+    Object.assign(process.env, {
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+    });
+
+    expect(getEnv().rateLimit).toEqual({
+      store: 'postgres',
+      redisUrl: undefined,
+      overrides: {},
+    });
+  });
+
+  it('requires REDIS_URL when redis rate limiting is selected', () => {
+    Object.assign(process.env, {
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      RATE_LIMIT_STORE: 'redis',
+    });
+
+    expect(() => getEnv()).toThrowError(/REDIS_URL is required/);
+  });
+
+  it('parses redis rate limiting configuration and policy overrides', () => {
+    Object.assign(process.env, {
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      RATE_LIMIT_STORE: 'redis',
+      REDIS_URL: 'redis://127.0.0.1:6379',
+      RATE_LIMIT_OVERRIDES_JSON: JSON.stringify({
+        'auth.login': { maxRequests: 2, windowMs: 30_000 },
+        'admin.*': { maxRequests: 120, windowMs: 60_000 },
+      }),
+    });
+
+    expect(getEnv().rateLimit).toEqual({
+      store: 'redis',
+      redisUrl: 'redis://127.0.0.1:6379',
+      overrides: {
+        'auth.login': { maxRequests: 2, windowMs: 30_000 },
+        'admin.*': { maxRequests: 120, windowMs: 60_000 },
+      },
+    });
+  });
+
+  it('fails fast for invalid rate-limit override JSON', () => {
+    Object.assign(process.env, {
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      RATE_LIMIT_OVERRIDES_JSON: JSON.stringify({
+        'auth.login': { maxRequests: 0, windowMs: 30_000 },
+      }),
+    });
+
+    expect(() => getEnv()).toThrowError(/RATE_LIMIT_OVERRIDES_JSON/);
+  });
+
+  it('parses the optional CSP report URI', () => {
+    Object.assign(process.env, {
+      DATABASE_URL: 'postgres://example',
+      AUTH_SECRET: 'test-secret',
+      CSP_REPORT_URI: 'https://reports.example.com/csp',
+    });
+
+    expect(getEnv().security.cspReportUri).toBe(
+      'https://reports.example.com/csp',
+    );
   });
 });

@@ -5,14 +5,17 @@ import type { FoundationFeatureKey } from '@/src/app-config/feature-keys';
 import type { AppSession } from '@/src/auth';
 import { getAuthSession } from '@/src/auth.server';
 import { hasPermissionForRole } from '@/src/domain/authorization/service';
-import { isFeatureEnabledForUser } from '@/src/foundation/features/access';
 import {
   auditAction,
   enforceRateLimit,
   getRateLimitKey,
+  type AuditRecord,
+  type RateLimitInput,
+  type RateLimitResult,
 } from '@/src/api/security';
 import { getEnv } from '@/src/config/env';
-import { errorReporter, getLogger } from '@/src/observability/logger';
+import { errorReporter, logger } from '@/src/observability/logger';
+import type { ErrorReporter, Logger } from '@/src/observability/contracts';
 import {
   createRequestContext,
   setRequestActorId,
@@ -26,6 +29,7 @@ import {
   invalidBodyProblem,
   invalidQueryProblem,
   notFoundProblem,
+  type ProblemDetail,
   ProblemError,
   rateLimitedProblem,
   zodFieldErrors,
@@ -33,6 +37,8 @@ import {
 
 type QueryValue = string | string[];
 type QueryRecord = Record<string, QueryValue>;
+type IsFeatureEnabledForUser =
+  (typeof import('@/src/foundation/features/access'))['isFeatureEnabledForUser'];
 
 type BodySchema<TBody> = ZodType<TBody> | undefined;
 type QuerySchema<TQuery> = ZodType<TQuery> | undefined;
@@ -61,7 +67,26 @@ type CreateApiRouteOptions<TBody, TQuery, TResult> = {
   ) => Promise<Response | TResult> | Response | TResult;
 };
 
+export type ApiRouteDependencies = {
+  getSession: () => Promise<AppSession | null>;
+  getRateLimitKey: (request: Request, userId: string | null) => string;
+  enforceRateLimit: (input: RateLimitInput) => Promise<RateLimitResult>;
+  auditAction: (record: AuditRecord) => Promise<void>;
+  hasPermission: (
+    role: AppRole | null | undefined,
+    permission: AppPermissionKey,
+  ) => Promise<boolean>;
+  isFeatureEnabledForUser: IsFeatureEnabledForUser;
+  getSiteUrl: () => string;
+  logger: Logger;
+  errorReporter: ErrorReporter;
+};
+
 function defaultOutcomeForStatus(status: number) {
+  if (status === 429) {
+    return 'rate_limited' as const;
+  }
+
   if (status >= 500) {
     return 'error' as const;
   }
@@ -168,6 +193,20 @@ function withStandardHeaders(
   });
 }
 
+function buildRateLimitHeaders(rateLimit: RateLimitResult) {
+  const headers = new Headers({
+    'x-ratelimit-reset': String(rateLimit.resetAt),
+  });
+
+  if (rateLimit.ok) {
+    headers.set('x-ratelimit-remaining', String(rateLimit.remaining));
+  } else {
+    headers.set('retry-after', String(rateLimit.retryAfterSeconds));
+  }
+
+  return headers;
+}
+
 function isMutatingRequest(request: Request) {
   return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method);
 }
@@ -184,9 +223,9 @@ function getOriginFromHeader(value: string | null) {
   }
 }
 
-function hasValidRequestOrigin(request: Request) {
+function hasValidRequestOriginForSite(request: Request, siteUrl: string) {
   const requestOrigin = new URL(request.url).origin;
-  const siteOrigin = new URL(getEnv().site.url).origin;
+  const siteOrigin = new URL(siteUrl).origin;
   const allowedOrigins = new Set([requestOrigin, siteOrigin]);
   const origin = getOriginFromHeader(request.headers.get('origin'));
   const referer = getOriginFromHeader(request.headers.get('referer'));
@@ -197,255 +236,258 @@ function hasValidRequestOrigin(request: Request) {
   );
 }
 
-export function createApiRoute<
-  TBody = undefined,
-  TQuery = undefined,
-  TResult = unknown,
->(options: CreateApiRouteOptions<TBody, TQuery, TResult>) {
-  return async function routeHandler(request: Request, routeContext?: unknown) {
-    const requestContext = createRequestContext(request);
+function createGuardProblemResponse(
+  problemDetail: ProblemDetail,
+  headers: Headers,
+  requestId: string,
+) {
+  return createProblemResponse(problemDetail, {
+    headers: new Headers({
+      ...Object.fromEntries(headers.entries()),
+      'x-request-id': requestId,
+    }),
+  });
+}
 
-    return withRequestContext(requestContext, async () => {
-      const logger = getLogger({ action: options.action });
-      const session = await getAuthSession();
-      const actorId = session?.user.id ?? null;
-      setRequestActorId(actorId);
+const defaultApiRouteDependencies = {
+  getSession: getAuthSession,
+  getRateLimitKey,
+  enforceRateLimit,
+  auditAction,
+  hasPermission: hasPermissionForRole,
+  isFeatureEnabledForUser: async (featureKey, user) => {
+    const featureAccess = await import('@/src/foundation/features/access');
+    return featureAccess.isFeatureEnabledForUser(featureKey, user);
+  },
+  getSiteUrl: () => getEnv().site.url,
+  logger,
+  errorReporter,
+} satisfies ApiRouteDependencies;
 
-      const rateLimit = await enforceRateLimit(
-        `${options.action}:${getRateLimitKey(request, actorId)}`,
-      );
-      const rateLimitHeaders = new Headers({
-        'x-ratelimit-reset': String(rateLimit.resetAt),
-      });
+export function createApiRouteWithDependencies(deps: ApiRouteDependencies) {
+  return function createInjectedApiRoute<
+    TBody = undefined,
+    TQuery = undefined,
+    TResult = unknown,
+  >(options: CreateApiRouteOptions<TBody, TQuery, TResult>) {
+    return async function routeHandler(
+      request: Request,
+      routeContext?: unknown,
+    ) {
+      const requestContext = createRequestContext(request);
 
-      if (rateLimit.ok) {
-        rateLimitHeaders.set(
-          'x-ratelimit-remaining',
-          String(rateLimit.remaining),
-        );
-      } else {
-        rateLimitHeaders.set(
-          'retry-after',
-          String(rateLimit.retryAfterSeconds),
-        );
-      }
+      return withRequestContext(requestContext, async () => {
+        const routeLogger = deps.logger.child({ action: options.action });
+        const session = await deps.getSession();
+        const actorId = session?.user.id ?? null;
+        setRequestActorId(actorId);
 
-      const audit = async (status: number) => {
-        await auditAction({
-          actorId,
+        const rateLimit = await deps.enforceRateLimit({
           action: options.action,
-          outcome: defaultOutcomeForStatus(status),
-          statusCode: status,
-          metadata: options.metadata,
+          key: `${options.action}:${deps.getRateLimitKey(request, actorId)}`,
         });
-      };
+        const rateLimitHeaders = buildRateLimitHeaders(rateLimit);
 
-      try {
-        if (!rateLimit.ok) {
-          await audit(429);
-          return createProblemResponse(rateLimitedProblem(), {
-            headers: new Headers({
-              ...Object.fromEntries(rateLimitHeaders.entries()),
-              'x-request-id': requestContext.requestId,
-            }),
+        const audit = async (status: number) => {
+          await deps.auditAction({
+            actorId,
+            action: options.action,
+            outcome: defaultOutcomeForStatus(status),
+            statusCode: status,
+            metadata: options.metadata,
           });
-        }
+        };
 
-        if (
-          options.featureKey &&
-          !(await isFeatureEnabledForUser(
-            options.featureKey,
-            session?.user?.id
-              ? { id: session.user.id, role: session.user.role }
-              : null,
-          ))
-        ) {
-          await audit(404);
-          return createProblemResponse(notFoundProblem(), {
-            headers: new Headers({
-              ...Object.fromEntries(rateLimitHeaders.entries()),
-              'x-request-id': requestContext.requestId,
-            }),
-          });
-        }
-
-        if (options.auth && !actorId) {
-          await audit(401);
-          return createProblemResponse(authenticationRequiredProblem(), {
-            headers: new Headers({
-              ...Object.fromEntries(rateLimitHeaders.entries()),
-              'x-request-id': requestContext.requestId,
-            }),
-          });
-        }
-
-        if (options.roles?.length) {
-          if (!actorId) {
-            await audit(401);
-            return createProblemResponse(authenticationRequiredProblem(), {
-              headers: new Headers({
-                ...Object.fromEntries(rateLimitHeaders.entries()),
-                'x-request-id': requestContext.requestId,
-              }),
-            });
+        try {
+          if (!rateLimit.ok) {
+            await audit(429);
+            return createGuardProblemResponse(
+              rateLimitedProblem(),
+              rateLimitHeaders,
+              requestContext.requestId,
+            );
           }
 
           if (
-            !session?.user.role ||
-            !options.roles.includes(session.user.role)
-          ) {
-            await audit(403);
-            return createProblemResponse(forbiddenProblem(), {
-              headers: new Headers({
-                ...Object.fromEntries(rateLimitHeaders.entries()),
-                'x-request-id': requestContext.requestId,
-              }),
-            });
-          }
-        }
-
-        if (options.permission) {
-          if (!actorId) {
-            await audit(401);
-            return createProblemResponse(authenticationRequiredProblem(), {
-              headers: new Headers({
-                ...Object.fromEntries(rateLimitHeaders.entries()),
-                'x-request-id': requestContext.requestId,
-              }),
-            });
-          }
-
-          if (
-            !(await hasPermissionForRole(
-              session?.user.role,
-              options.permission,
+            options.featureKey &&
+            !(await deps.isFeatureEnabledForUser(
+              options.featureKey,
+              session?.user?.id
+                ? { id: session.user.id, role: session.user.role }
+                : null,
             ))
           ) {
+            await audit(404);
+            return createGuardProblemResponse(
+              notFoundProblem(),
+              rateLimitHeaders,
+              requestContext.requestId,
+            );
+          }
+
+          if (options.auth && !actorId) {
+            await audit(401);
+            return createGuardProblemResponse(
+              authenticationRequiredProblem(),
+              rateLimitHeaders,
+              requestContext.requestId,
+            );
+          }
+
+          if (options.roles?.length) {
+            if (!actorId) {
+              await audit(401);
+              return createGuardProblemResponse(
+                authenticationRequiredProblem(),
+                rateLimitHeaders,
+                requestContext.requestId,
+              );
+            }
+
+            if (
+              !session?.user.role ||
+              !options.roles.includes(session.user.role)
+            ) {
+              await audit(403);
+              return createGuardProblemResponse(
+                forbiddenProblem(),
+                rateLimitHeaders,
+                requestContext.requestId,
+              );
+            }
+          }
+
+          if (options.permission) {
+            if (!actorId) {
+              await audit(401);
+              return createGuardProblemResponse(
+                authenticationRequiredProblem(),
+                rateLimitHeaders,
+                requestContext.requestId,
+              );
+            }
+
+            if (
+              !(await deps.hasPermission(
+                session?.user.role,
+                options.permission,
+              ))
+            ) {
+              await audit(403);
+              return createGuardProblemResponse(
+                forbiddenProblem(),
+                rateLimitHeaders,
+                requestContext.requestId,
+              );
+            }
+          }
+
+          if (
+            isMutatingRequest(request) &&
+            !options.skipOriginCheck &&
+            !hasValidRequestOriginForSite(request, deps.getSiteUrl())
+          ) {
             await audit(403);
-            return createProblemResponse(forbiddenProblem(), {
-              headers: new Headers({
-                ...Object.fromEntries(rateLimitHeaders.entries()),
-                'x-request-id': requestContext.requestId,
-              }),
+            return createGuardProblemResponse(
+              forbiddenProblem(),
+              rateLimitHeaders,
+              requestContext.requestId,
+            );
+          }
+
+          const queryInput = toQueryRecord(new URL(request.url).searchParams);
+          const parsedQuery = options.querySchema
+            ? options.querySchema.safeParse(queryInput)
+            : ({ success: true, data: undefined } as const);
+
+          if (!parsedQuery.success) {
+            await audit(400);
+            return createGuardProblemResponse(
+              invalidQueryProblem(undefined, zodFieldErrors(parsedQuery.error)),
+              rateLimitHeaders,
+              requestContext.requestId,
+            );
+          }
+
+          let parsedBody: TBody | undefined;
+
+          if (options.bodySchema) {
+            let rawBody: unknown;
+
+            try {
+              rawBody = await parseRequestBody(request);
+            } catch {
+              await audit(400);
+              return createGuardProblemResponse(
+                invalidBodyProblem(
+                  'Request body must be valid JSON or form data.',
+                ),
+                rateLimitHeaders,
+                requestContext.requestId,
+              );
+            }
+
+            const bodyResult = options.bodySchema.safeParse(rawBody);
+
+            if (!bodyResult.success) {
+              await audit(400);
+              return createGuardProblemResponse(
+                invalidBodyProblem(undefined, zodFieldErrors(bodyResult.error)),
+                rateLimitHeaders,
+                requestContext.requestId,
+              );
+            }
+
+            parsedBody = bodyResult.data;
+          }
+
+          const result = await options.handler({
+            request,
+            routeContext,
+            session,
+            actorId,
+            body: parsedBody as TBody,
+            query: parsedQuery.data as TQuery,
+          });
+
+          const response =
+            result instanceof Response
+              ? result
+              : Response.json(result, {
+                  status: 200,
+                });
+
+          await audit(response.status);
+          return withStandardHeaders(
+            response,
+            requestContext.requestId,
+            rateLimitHeaders,
+          );
+        } catch (error) {
+          const problem =
+            error instanceof ProblemError
+              ? error.problem
+              : internalServerProblem();
+
+          if (problem.status >= 500) {
+            routeLogger.error({ err: error }, 'API route failed');
+            await deps.errorReporter.captureException(error, {
+              action: options.action,
             });
           }
-        }
 
-        if (
-          isMutatingRequest(request) &&
-          !options.skipOriginCheck &&
-          !hasValidRequestOrigin(request)
-        ) {
-          await audit(403);
-          return createProblemResponse(forbiddenProblem(), {
-            headers: new Headers({
-              ...Object.fromEntries(rateLimitHeaders.entries()),
-              'x-request-id': requestContext.requestId,
-            }),
-          });
-        }
-
-        const queryInput = toQueryRecord(new URL(request.url).searchParams);
-        const parsedQuery = options.querySchema
-          ? options.querySchema.safeParse(queryInput)
-          : ({ success: true, data: undefined } as const);
-
-        if (!parsedQuery.success) {
-          await audit(400);
-          return createProblemResponse(
-            invalidQueryProblem(undefined, zodFieldErrors(parsedQuery.error)),
-            {
-              headers: new Headers({
-                ...Object.fromEntries(rateLimitHeaders.entries()),
-                'x-request-id': requestContext.requestId,
-              }),
-            },
+          await audit(problem.status);
+          return createGuardProblemResponse(
+            problem,
+            rateLimitHeaders,
+            requestContext.requestId,
           );
         }
-
-        let parsedBody: TBody | undefined;
-
-        if (options.bodySchema) {
-          let rawBody: unknown;
-
-          try {
-            rawBody = await parseRequestBody(request);
-          } catch {
-            await audit(400);
-            return createProblemResponse(
-              invalidBodyProblem(
-                'Request body must be valid JSON or form data.',
-              ),
-              {
-                headers: new Headers({
-                  ...Object.fromEntries(rateLimitHeaders.entries()),
-                  'x-request-id': requestContext.requestId,
-                }),
-              },
-            );
-          }
-
-          const bodyResult = options.bodySchema.safeParse(rawBody);
-
-          if (!bodyResult.success) {
-            await audit(400);
-            return createProblemResponse(
-              invalidBodyProblem(undefined, zodFieldErrors(bodyResult.error)),
-              {
-                headers: new Headers({
-                  ...Object.fromEntries(rateLimitHeaders.entries()),
-                  'x-request-id': requestContext.requestId,
-                }),
-              },
-            );
-          }
-
-          parsedBody = bodyResult.data;
-        }
-
-        const result = await options.handler({
-          request,
-          routeContext,
-          session,
-          actorId,
-          body: parsedBody as TBody,
-          query: parsedQuery.data as TQuery,
-        });
-
-        const response =
-          result instanceof Response
-            ? result
-            : Response.json(result, {
-                status: 200,
-              });
-
-        await audit(response.status);
-        return withStandardHeaders(
-          response,
-          requestContext.requestId,
-          rateLimitHeaders,
-        );
-      } catch (error) {
-        const problem =
-          error instanceof ProblemError
-            ? error.problem
-            : internalServerProblem();
-
-        if (problem.status >= 500) {
-          logger.error({ err: error }, 'API route failed');
-          await errorReporter.captureException(error, {
-            action: options.action,
-          });
-        }
-
-        await audit(problem.status);
-        return createProblemResponse(problem, {
-          headers: new Headers({
-            ...Object.fromEntries(rateLimitHeaders.entries()),
-            'x-request-id': requestContext.requestId,
-          }),
-        });
-      }
-    });
+      });
+    };
   };
 }
+
+export const createApiRoute = createApiRouteWithDependencies(
+  defaultApiRouteDependencies,
+);

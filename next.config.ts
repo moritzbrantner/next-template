@@ -53,40 +53,93 @@ function imageSourceOrigins() {
   return [...new Set(origins)];
 }
 
-const securityHeaders = [
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "frame-ancestors 'none'",
-      "form-action 'self'",
-      "object-src 'none'",
-      ["img-src 'self' data: blob: https:", ...imageSourceOrigins()].join(' '),
-      "font-src 'self' data:",
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
-      "connect-src 'self' https:",
-      'upgrade-insecure-requests',
-    ].join('; '),
-  },
-  {
-    key: 'Referrer-Policy',
-    value: 'strict-origin-when-cross-origin',
-  },
-  {
-    key: 'X-Content-Type-Options',
-    value: 'nosniff',
-  },
-  {
-    key: 'X-Frame-Options',
-    value: 'DENY',
-  },
-  {
-    key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=()',
-  },
-];
+function enforcedContentSecurityPolicy(imageOrigins: readonly string[]) {
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "object-src 'none'",
+    ["img-src 'self' data: blob: https:", ...imageOrigins].join(' '),
+    "font-src 'self' data:",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "connect-src 'self' https:",
+    'upgrade-insecure-requests',
+  ].join('; ');
+}
+
+function reportOnlyContentSecurityPolicy(input: {
+  imageOrigins: readonly string[];
+  reportUri?: string;
+}) {
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "object-src 'none'",
+    ["img-src 'self' data: blob: https:", ...input.imageOrigins].join(' '),
+    "font-src 'self' data:",
+    "script-src 'self'",
+    "style-src 'self'",
+    "connect-src 'self' https:",
+    'upgrade-insecure-requests',
+    ...(input.reportUri ? [`report-uri ${input.reportUri}`] : []),
+  ].join('; ');
+}
+
+export function buildSecurityHeaders(input: {
+  imageOrigins: readonly string[];
+  cspReportUri?: string;
+}) {
+  return [
+    {
+      key: 'Content-Security-Policy',
+      value: enforcedContentSecurityPolicy(input.imageOrigins),
+    },
+    {
+      key: 'Content-Security-Policy-Report-Only',
+      value: reportOnlyContentSecurityPolicy({
+        imageOrigins: input.imageOrigins,
+        reportUri: input.cspReportUri,
+      }),
+    },
+    {
+      key: 'Referrer-Policy',
+      value: 'strict-origin-when-cross-origin',
+    },
+    {
+      key: 'Strict-Transport-Security',
+      value: 'max-age=31536000; includeSubDomains; preload',
+    },
+    {
+      key: 'X-Content-Type-Options',
+      value: 'nosniff',
+    },
+    {
+      key: 'X-Frame-Options',
+      value: 'DENY',
+    },
+    {
+      key: 'Permissions-Policy',
+      value: 'camera=(), microphone=(), geolocation=()',
+    },
+    {
+      key: 'Cross-Origin-Opener-Policy',
+      value: 'same-origin',
+    },
+    {
+      key: 'Cross-Origin-Resource-Policy',
+      value: 'same-origin',
+    },
+  ];
+}
+
+const securityHeaders = buildSecurityHeaders({
+  imageOrigins: imageSourceOrigins(),
+  cspReportUri: env.security.cspReportUri,
+});
 
 const productionHeaders =
   env.isProduction && env.deploymentTarget !== 'gh-pages'
