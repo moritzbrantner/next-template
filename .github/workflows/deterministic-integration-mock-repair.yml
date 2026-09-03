@@ -34,15 +34,8 @@ jobs:
               Path("src/domain/admin-reports/admin-reports.integration.test.ts"),
               Path("app/api/analytics/page-visits/page-visit-analytics.integration.test.ts"),
           ]
-          old = """  vi.doMock('@/src/observability/logger', () => ({
-            errorReporter: vi.fn(),
-            getLogger: vi.fn().mockReturnValue({
-              error: vi.fn(),
-              warn: vi.fn(),
-              info: vi.fn(),
-            }),
-          }));
-          """
+          start = "  vi.doMock('@/src/observability/logger', () => ({\n"
+          next_mock = "  vi.doMock('@/src/observability/request-context'"
           new = """  const logger = {
             child: vi.fn(),
             debug: vi.fn(),
@@ -60,10 +53,15 @@ jobs:
 
           for path in paths:
               text = path.read_text()
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"expected exactly one stale logger mock in {path}, found {count}")
-              path.write_text(text.replace(old, new))
+              if "    logger,\n  }));\n" in text:
+                  continue
+              start_index = text.find(start)
+              if start_index < 0:
+                  raise SystemExit(f"logger mock start not found in {path}")
+              end_index = text.find(next_mock, start_index)
+              if end_index < 0:
+                  raise SystemExit(f"request-context mock anchor not found in {path}")
+              path.write_text(text[:start_index] + new + text[end_index:])
           PY
       - name: Apply repository formatter
         run: bunx oxfmt@0.51.0 --write src/app-config/feature-gating.integration.test.ts src/domain/admin-reports/admin-reports.integration.test.ts app/api/analytics/page-visits/page-visit-analytics.integration.test.ts
