@@ -1,0 +1,82 @@
+name: Deterministic integration mock repair
+
+on:
+  push:
+    branches:
+      - fix/integration-observability-mocks
+    paths:
+      - .github/workflows/deterministic-integration-mock-repair.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repair branch
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: fix/integration-observability-mocks
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.14
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Repair complete observability mocks
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          paths = [
+              Path("src/app-config/feature-gating.integration.test.ts"),
+              Path("src/domain/admin-reports/admin-reports.integration.test.ts"),
+              Path("app/api/analytics/page-visits/page-visit-analytics.integration.test.ts"),
+          ]
+          old = """  vi.doMock('@/src/observability/logger', () => ({
+            errorReporter: vi.fn(),
+            getLogger: vi.fn().mockReturnValue({
+              error: vi.fn(),
+              warn: vi.fn(),
+              info: vi.fn(),
+            }),
+          }));
+          """
+          new = """  const logger = {
+            child: vi.fn(),
+            debug: vi.fn(),
+            error: vi.fn(),
+            info: vi.fn(),
+            warn: vi.fn(),
+          };
+          logger.child.mockReturnValue(logger);
+          vi.doMock('@/src/observability/logger', () => ({
+            errorReporter: { captureException: vi.fn() },
+            getLogger: vi.fn().mockReturnValue(logger),
+            logger,
+          }));
+          """
+
+          for path in paths:
+              text = path.read_text()
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected exactly one stale logger mock in {path}, found {count}")
+              path.write_text(text.replace(old, new))
+          PY
+      - name: Apply repository formatter
+        run: bunx oxfmt@0.51.0 --write src/app-config/feature-gating.integration.test.ts src/domain/admin-reports/admin-reports.integration.test.ts app/api/analytics/page-visits/page-visit-analytics.integration.test.ts
+      - name: Run integration validation
+        run: bun run test:integration
+      - name: Run typecheck
+        run: bun run typecheck
+      - name: Verify clean patch and commit repair
+        run: |
+          git diff --check
+          git rm .github/workflows/deterministic-integration-mock-repair.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app-config/feature-gating.integration.test.ts src/domain/admin-reports/admin-reports.integration.test.ts app/api/analytics/page-visits/page-visit-analytics.integration.test.ts
+          git commit -m "test: repair observability route mocks"
+          git push origin HEAD:fix/integration-observability-mocks
