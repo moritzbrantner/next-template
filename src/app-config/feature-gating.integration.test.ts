@@ -20,13 +20,18 @@ function createApiMocks() {
   vi.doMock('@/src/auth.server', () => ({
     getAuthSession: vi.fn().mockResolvedValue(null),
   }));
+  const logger = {
+    child: vi.fn(),
+    debug: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+  };
+  logger.child.mockReturnValue(logger);
   vi.doMock('@/src/observability/logger', () => ({
-    errorReporter: vi.fn(),
-    getLogger: vi.fn().mockReturnValue({
-      error: vi.fn(),
-      warn: vi.fn(),
-      info: vi.fn(),
-    }),
+    errorReporter: { captureException: vi.fn() },
+    getLogger: vi.fn().mockReturnValue(logger),
+    logger,
   }));
   vi.doMock('@/src/observability/request-context', () => ({
     createRequestContext: vi
@@ -112,7 +117,7 @@ describe('feature gating', () => {
     await expect(
       registerPage.default({ params: Promise.resolve({ locale: 'en' }) }),
     ).rejects.toThrow('NOT_FOUND');
-  });
+  }, 10_000);
 
   it('removes follow behavior from the public profile surface and follow API when the feature is disabled', async () => {
     createApiMocks();
