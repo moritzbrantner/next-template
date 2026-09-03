@@ -20,13 +20,18 @@ function createApiMocks() {
   vi.doMock('@/src/auth.server', () => ({
     getAuthSession: vi.fn().mockResolvedValue(null),
   }));
+  const logger = {
+    child: vi.fn(),
+    debug: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+  };
+  logger.child.mockReturnValue(logger);
   vi.doMock('@/src/observability/logger', () => ({
-    errorReporter: vi.fn(),
-    getLogger: vi.fn().mockReturnValue({
-      error: vi.fn(),
-      warn: vi.fn(),
-      info: vi.fn(),
-    }),
+    errorReporter: { captureException: vi.fn() },
+    getLogger: vi.fn().mockReturnValue(logger),
+    logger,
   }));
   vi.doMock('@/src/observability/request-context', () => ({
     createRequestContext: vi
