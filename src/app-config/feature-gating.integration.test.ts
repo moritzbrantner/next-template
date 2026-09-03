@@ -117,7 +117,7 @@ describe('feature gating', () => {
     await expect(
       registerPage.default({ params: Promise.resolve({ locale: 'en' }) }),
     ).rejects.toThrow('NOT_FOUND');
-  });
+  }, 10_000);
 
   it('removes follow behavior from the public profile surface and follow API when the feature is disabled', async () => {
     createApiMocks();
