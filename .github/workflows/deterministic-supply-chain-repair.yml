@@ -38,22 +38,15 @@ jobs:
 
           test_path = Path("src/app-config/feature-gating.integration.test.ts")
           text = test_path.read_text()
-          old = """    await expect(
-              registerPage.default({ params: Promise.resolve({ locale: 'en' }) }),
-            ).rejects.toThrow('NOT_FOUND');
-          });
-
-          it('removes follow behavior"""
-          new = """    await expect(
-              registerPage.default({ params: Promise.resolve({ locale: 'en' }) }),
-            ).rejects.toThrow('NOT_FOUND');
-          }, 10_000);
-
-          it('removes follow behavior"""
-          if old in text:
-              text = text.replace(old, new, 1)
-          elif new not in text:
-              raise SystemExit("feature-gating timeout anchor not found")
+          if "  }, 10_000);\n\n  it('removes follow behavior" not in text:
+              first_test = text.find("  it('returns 404 for the signup endpoint and page when registration is disabled'")
+              next_test = text.find("  it('removes follow behavior", first_test)
+              if first_test < 0 or next_test < 0:
+                  raise SystemExit("feature-gating test boundaries not found")
+              close = text.rfind("\n  });", first_test, next_test)
+              if close < 0:
+                  raise SystemExit("feature-gating test closure not found")
+              text = text[:close] + "\n  }, 10_000);" + text[close + len("\n  });"):]
           test_path.write_text(text)
           PY
           bunx oxfmt@0.51.0 --write package.json src/app-config/feature-gating.integration.test.ts
