@@ -12,7 +12,7 @@
     "dev": "./scripts/dev-with-test-db.sh",
     "dev:app": "bun run packages:build && next dev",
     "build": "bun run packages:build && next build",
-    "build:check": "./scripts/ci/run-build-check.sh",
+    "build:check": "bash ./scripts/ci/run-build-check.sh",
     "build:app": "next build",
     "build:gh-pages": "bun run packages:build && bun ./scripts/build-gh-pages.mjs",
     "build:staging": "bun run build:gh-pages",
