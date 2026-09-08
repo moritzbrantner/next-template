@@ -27,7 +27,7 @@
       "format:check": ["bun", "run", "format:check"],
       "lint": ["bun", "run", "lint"],
       "typecheck": ["bun", "run", "typecheck"],
-      "build": ["bun", "run", "build"],
+      "build": ["bun", "run", "build:check"],
       "test:unit": ["bun", "run", "test:unit"],
       "test:integration": ["bun", "run", "test:integration"],
       "test:e2e": ["bun", "run", "test:e2e"],
