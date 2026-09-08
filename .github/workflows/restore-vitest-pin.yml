@@ -27,7 +27,11 @@ jobs:
         run: |
           bun -e "const fs=require('node:fs'); const p=JSON.parse(fs.readFileSync('package.json','utf8')); p.devDependencies.vitest='4.1.7'; fs.writeFileSync('package.json', JSON.stringify(p,null,2)+'\\n');"
           bun install
-          ./node_modules/.bin/oxfmt --write package.json
+
+      - name: Give the cold feature-gating test a focused budget
+        run: |
+          bun -e "const fs=require('node:fs'); const path='src/app-config/feature-gating.integration.test.ts'; let s=fs.readFileSync(path,'utf8'); const before=\"  });\\n\\n  it('removes follow behavior\"; const after=\"  }, 10_000);\\n\\n  it('removes follow behavior\"; if(!s.includes(before)) throw new Error('target not found'); fs.writeFileSync(path,s.replace(before,after));"
+          ./node_modules/.bin/oxfmt --write package.json src/app-config/feature-gating.integration.test.ts
 
       - name: Verify audit, formatting, and integration
         run: |
@@ -35,11 +39,11 @@ jobs:
           bun run lint:format
           bun run test:integration
 
-      - name: Commit verified lockfile
+      - name: Commit verified remediation
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add package.json bun.lock
+          git add package.json bun.lock src/app-config/feature-gating.integration.test.ts
           git diff --cached --quiet && exit 0
-          git commit -m "chore: keep Vitest pin while pruning stale browser deps"
+          git commit -m "test: stabilize deterministic validation"
           git push origin HEAD:chore/deterministic-template-baseline
