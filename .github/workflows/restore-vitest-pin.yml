@@ -29,9 +29,10 @@ jobs:
           bun install
           ./node_modules/.bin/oxfmt --write package.json
 
-      - name: Verify narrow remediation
+      - name: Verify audit, formatting, and integration
         run: |
           bun audit --audit-level=critical
+          bun run lint:format
           bun run test:integration
 
       - name: Commit verified lockfile
