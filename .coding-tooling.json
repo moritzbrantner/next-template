@@ -14,7 +14,13 @@
       "storybook:check"
     ]
   },
-  "requiredCapabilities": ["format:check", "lint", "typecheck", "build", "test:unit"],
+  "requiredCapabilities": [
+    "format:check",
+    "lint",
+    "typecheck",
+    "build",
+    "test:unit"
+  ],
   "optionalCapabilities": ["test:integration", "test:e2e", "storybook:check"],
   "capabilityCommands": {
     ".": {
