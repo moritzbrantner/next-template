@@ -1,0 +1,44 @@
+name: Restore Vitest pin
+
+on:
+  push:
+    branches: [chore/deterministic-template-baseline]
+    paths:
+      - .github/workflows/restore-vitest-pin.yml
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: chore/deterministic-template-baseline
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Restore test-runner pin and refresh lock
+        run: |
+          bun -e "const fs=require('node:fs'); const p=JSON.parse(fs.readFileSync('package.json','utf8')); p.devDependencies.vitest='4.1.7'; fs.writeFileSync('package.json', JSON.stringify(p,null,2)+'\\n');"
+          bun install
+          ./node_modules/.bin/oxfmt --write package.json
+
+      - name: Verify narrow remediation
+        run: |
+          bun audit --audit-level=critical
+          bun run test:integration
+
+      - name: Commit verified lockfile
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add package.json bun.lock
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: keep Vitest pin while pruning stale browser deps"
+          git push origin HEAD:chore/deterministic-template-baseline
