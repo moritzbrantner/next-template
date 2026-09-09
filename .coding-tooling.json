@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "profile": "repository-foundation-v1",
+  "tiers": {
+    "fast": ["format:check", "lint", "typecheck", "test:unit"],
+    "standard": ["format:check", "lint", "typecheck", "test:unit", "build"]
+  },
+  "requiredCapabilities": ["format:check", "lint", "typecheck", "test:unit", "build"],
+  "capabilityCommands": {
+    ".": {
+      "format:check": ["bun", "run", "format:check"],
+      "lint": ["bun", "run", "lint"],
+      "typecheck": ["bun", "run", "typecheck"],
+      "test:unit": ["bun", "run", "test:unit"],
+      "build": ["bun", "run", "build"]
+    }
+  },
+  "merge": {
+    "authority": "hosted"
+  },
+  "conventionRefs": ["AGENT-001", "REPO-004", "REPO-008"]
+}
