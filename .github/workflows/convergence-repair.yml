@@ -52,7 +52,7 @@ jobs:
                   root = ''
                   if names:
                       root = "import {\n" + ''.join(f"  {name},\n" for name in names) + "} from '@moritzbrantner/ui';\n"
-                  return root + "import { buttonVariants } from '@moritzbrantner/ui/server';"
+                  return root + "import { buttonVariants } from '@moritzbrantner/ui/components/stable/button-variants';"
 
               updated, replacements = root_import.subn(replace_import, text)
               if replacements and updated != text:
