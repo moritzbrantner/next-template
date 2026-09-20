@@ -111,13 +111,16 @@ jobs:
                   return attrs, None
               return attrs[:match.start()] + attrs[match.end():], match.group(0).strip()
 
-          root_import = re.compile(r"import\s*\{(?P<body>.*?)\}\s*from '@moritzbrantner/ui';", re.DOTALL)
+          root_import = re.compile(
+              r"import\s*\{(?P<body>[^{}]*)\}\s*from\s*['\"]@moritzbrantner/ui['\"];",
+              re.DOTALL,
+          )
 
           for path in Path('.').rglob('*.tsx'):
               if ignored_parts.intersection(path.parts):
                   continue
               text = path.read_text()
-              if 'buttonVariants' not in text or "from '@moritzbrantner/ui'" not in text:
+              if 'buttonVariants' not in text or "@moritzbrantner/ui" not in text:
                   continue
               if re.match(r"\s*(['\"])use client\1;", text):
                   continue
