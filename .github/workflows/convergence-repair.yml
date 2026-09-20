@@ -31,7 +31,7 @@ jobs:
           ignored_parts = {'.git', '.next', 'node_modules', 'dist', 'storybook-static'}
           changed = []
 
-          def matching_end(text: str, start: int, opening: str, closing: str) -> int:
+          def matching_end(text, start, opening, closing):
               depth = 0
               quote = None
               escape = False
@@ -56,50 +56,7 @@ jobs:
                           return index
               raise ValueError(f'unclosed {opening}{closing} pair')
 
-          def parse_options(options: str) -> tuple[str, str, str | None]:
-              def string_prop(name: str, default: str) -> str:
-                  match = re.search(rf"\b{name}\s*:\s*(['\"])(.*?)\1", options, re.DOTALL)
-                  return match.group(2) if match else default
-
-              variant = string_prop('variant', 'default')
-              size = string_prop('size', 'default')
-              class_match = re.search(
-                  r"\bclassName\s*:\s*(?:(['\"])(.*?)\1|([^,}]+))",
-                  options,
-                  re.DOTALL,
-              )
-              class_name = None
-              if class_match:
-                  if class_match.group(1):
-                      class_name = repr(class_match.group(2))
-                  else:
-                      class_name = class_match.group(3).strip()
-              return variant, size, class_name
-
-          def prop_text(variant: str, size: str, class_name: str | None, *, as_child: bool) -> str:
-              props = []
-              if as_child:
-                  props.append('asChild')
-              if variant != 'default':
-                  props.append(f'variant="{variant}"')
-              if size != 'default':
-                  props.append(f'size="{size}"')
-              if class_name is not None:
-                  props.append(f'className={{{class_name}}}')
-              return (' ' + ' '.join(props)) if props else ''
-
-          def remove_attr(attrs: str, name: str) -> tuple[str, str | None]:
-              pattern = re.compile(
-                  rf"\s+{name}=(?:\{{(?:[^{{}}]|\{{[^{{}}]*\}})*\}}|(['\"]).*?\1)",
-                  re.DOTALL,
-              )
-              match = pattern.search(attrs)
-              if not match:
-                  return attrs, None
-              value = match.group(0).strip()
-              return attrs[:match.start()] + attrs[match.end():], value
-
-          def find_open_tag_end(text: str, start: int) -> int:
+          def find_open_tag_end(text, start):
               braces = 0
               quote = None
               escape = False
@@ -123,6 +80,39 @@ jobs:
                       return index
               raise ValueError('unclosed JSX opening tag')
 
+          def parse_options(options):
+              def string_prop(name, default):
+                  match = re.search(rf"\b{name}\s*:\s*(['\"])(.*?)\1", options, re.DOTALL)
+                  return match.group(2) if match else default
+              variant = string_prop('variant', 'default')
+              size = string_prop('size', 'default')
+              class_match = re.search(r"\bclassName\s*:\s*(?:(['\"])(.*?)\1|([^,}]+))", options, re.DOTALL)
+              class_name = None
+              if class_match:
+                  class_name = repr(class_match.group(2)) if class_match.group(1) else class_match.group(3).strip()
+              return variant, size, class_name
+
+          def props(variant, size, class_name, as_child):
+              values = []
+              if as_child:
+                  values.append('asChild')
+              if variant != 'default':
+                  values.append(f'variant="{variant}"')
+              if size != 'default':
+                  values.append(f'size="{size}"')
+              if class_name is not None:
+                  values.append(f'className={{{class_name}}}')
+              return (' ' + ' '.join(values)) if values else ''
+
+          def remove_key(attrs):
+              pattern = re.compile(r"\s+key=(?:\{(?:[^{}]|\{[^{}]*\})*\}|(['\"]).*?\1)", re.DOTALL)
+              match = pattern.search(attrs)
+              if not match:
+                  return attrs, None
+              return attrs[:match.start()] + attrs[match.end():], match.group(0).strip()
+
+          root_import = re.compile(r"import\s*\{(?P<body>.*?)\}\s*from '@moritzbrantner/ui';", re.DOTALL)
+
           for path in Path('.').rglob('*.tsx'):
               if ignored_parts.intersection(path.parts):
                   continue
@@ -131,24 +121,19 @@ jobs:
                   continue
               if re.match(r"\s*(['\"])use client\1;", text):
                   continue
-
               original = text
+
               while True:
                   marker = 'className={buttonVariants('
                   call_at = text.find(marker)
                   if call_at < 0:
                       break
                   open_start = text.rfind('<', 0, call_at)
-                  if open_start < 0 or text.startswith('</', open_start):
-                      raise SystemExit(f'{path}: cannot locate JSX opening tag for buttonVariants')
-                  tag_match = re.match(r'<([A-Za-z][A-Za-z0-9_.]*)\b', text[open_start:])
+                  tag_match = re.match(r'<([A-Za-z][A-Za-z0-9_.]*)\b', text[open_start:]) if open_start >= 0 else None
                   if not tag_match:
                       raise SystemExit(f'{path}: unsupported JSX tag near buttonVariants')
                   tag = tag_match.group(1)
                   open_end = find_open_tag_end(text, open_start)
-                  if call_at > open_end:
-                      raise SystemExit(f'{path}: buttonVariants is not an opening-tag className')
-
                   paren_start = call_at + len('className={buttonVariants')
                   paren_end = matching_end(text, paren_start, '(', ')')
                   if text[paren_end + 1:paren_end + 2] != '}':
@@ -158,24 +143,17 @@ jobs:
                   if not (options.startswith('{') and options.endswith('}')):
                       raise SystemExit(f'{path}: buttonVariants options must be an object literal')
                   variant, size, class_name = parse_options(options[1:-1])
-
                   opening = text[open_start:open_end + 1]
-                  local_call_start = call_at - open_start
-                  local_call_end = call_end - open_start
-                  opening_without_class = (
-                      opening[:local_call_start].rstrip()
-                      + opening[local_call_end:].lstrip()
-                  )
-                  if not opening_without_class.startswith(f'<{tag}'):
-                      raise SystemExit(f'{path}: malformed opening tag after class removal')
-
-                  attrs = opening_without_class[len(tag) + 1:-1]
-                  attrs, key_attr = remove_attr(attrs, 'key')
+                  local_start = call_at - open_start
+                  local_end = call_end - open_start
+                  opening = opening[:local_start].rstrip() + opening[local_end:].lstrip()
+                  attrs = opening[len(tag) + 1:-1]
+                  attrs, key_attr = remove_key(attrs)
                   attrs = re.sub(r'\s+', ' ', attrs).strip()
-                  child_opening = f'<{tag}' + (f' {attrs}' if attrs else '') + '>'
+                  child_open = f'<{tag}' + (f' {attrs}' if attrs else '') + '>'
 
                   if tag == 'button':
-                      button_props = prop_text(variant, size, class_name, as_child=False)
+                      button_props = props(variant, size, class_name, False)
                       if key_attr:
                           button_props += f' {key_attr}'
                       replacement = f'<Button{button_props}' + (f' {attrs}' if attrs else '') + '>'
@@ -190,28 +168,14 @@ jobs:
                       if close_at < 0:
                           raise SystemExit(f'{path}: cannot find closing {tag} tag')
                       children = text[open_end + 1:close_at]
-                      button_props = prop_text(variant, size, class_name, as_child=True)
+                      button_props = props(variant, size, class_name, True)
                       if key_attr:
                           button_props += f' {key_attr}'
-                      replacement = (
-                          f'<Button{button_props}>'
-                          + child_opening
-                          + children
-                          + close_token
-                          + '</Button>'
-                      )
+                      replacement = f'<Button{button_props}>' + child_open + children + close_token + '</Button>'
                       text = text[:open_start] + replacement + text[close_at + len(close_token):]
 
-              if 'buttonVariants' in text:
-                  raise SystemExit(f'{path}: unsupported server-side buttonVariants use remains')
-
-              root_import = re.compile(
-                  r"import\s*\{(?P<body>.*?)\}\s*from '@moritzbrantner/ui';",
-                  re.DOTALL,
-              )
-              def replace_import(match: re.Match[str]) -> str:
-                  body = match.group('body')
-                  names = [name.strip() for name in body.split(',') if name.strip()]
+              def replace_import(match):
+                  names = [name.strip() for name in match.group('body').split(',') if name.strip()]
                   if 'buttonVariants' not in names:
                       return match.group(0)
                   names = [name for name in names if name != 'buttonVariants']
@@ -220,8 +184,8 @@ jobs:
                   return "import {\n" + ''.join(f"  {name},\n" for name in names) + "} from '@moritzbrantner/ui';"
 
               text, replacements = root_import.subn(replace_import, text)
-              if replacements == 0:
-                  raise SystemExit(f'{path}: root UI import containing buttonVariants was not found')
+              if replacements == 0 or 'buttonVariants' in text:
+                  raise SystemExit(f'{path}: unsupported server-side buttonVariants use remains')
               if text != original:
                   path.write_text(text)
                   changed.append(str(path))
