@@ -1,10 +1,10 @@
 import {
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { LocalizedLink } from '@/i18n/server-link';
@@ -94,9 +94,9 @@ export default async function ProblemReportsPage({
                 ))}
               </select>
             </label>
-            <button className={buttonVariants({ size: 'sm' })} type="submit">
+            <Button size="sm" type="submit">
               {t('problemReports.actions.open')}
-            </button>
+            </Button>
           </form>
 
           {reports.length ? (
@@ -145,16 +145,14 @@ export default async function ProblemReportsPage({
                         }).format(report.createdAt)}
                       </td>
                       <td className="py-3">
-                        <LocalizedLink
-                          href={`/admin/problem-reports/${report.id}`}
-                          locale={locale}
-                          className={buttonVariants({
-                            variant: 'outline',
-                            size: 'sm',
-                          })}
-                        >
-                          {t('problemReports.actions.open')}
-                        </LocalizedLink>
+                        <Button asChild variant="outline" size="sm">
+                          <LocalizedLink
+                            href={`/admin/problem-reports/${report.id}`}
+                            locale={locale}
+                          >
+                            {t('problemReports.actions.open')}
+                          </LocalizedLink>
+                        </Button>
                       </td>
                     </tr>
                   ))}

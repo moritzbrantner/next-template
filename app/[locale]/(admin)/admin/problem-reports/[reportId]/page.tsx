@@ -2,12 +2,12 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import {
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { LocalizedLink } from '@/i18n/server-link';
@@ -75,13 +75,11 @@ export default async function ProblemReportDetailPage({
       description={report.subject}
       adminPages={adminPages}
     >
-      <LocalizedLink
-        href="/admin/problem-reports"
-        locale={locale}
-        className={buttonVariants({ variant: 'outline', size: 'sm' })}
-      >
-        {t('problemReports.back')}
-      </LocalizedLink>
+      <Button asChild variant="outline" size="sm">
+        <LocalizedLink href="/admin/problem-reports" locale={locale}>
+          {t('problemReports.back')}
+        </LocalizedLink>
+      </Button>
 
       {actionStatus === 'updated' ? (
         <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-300">
@@ -165,9 +163,7 @@ export default async function ProblemReportDetailPage({
                   className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
                 />
               </label>
-              <button type="submit" className={buttonVariants({})}>
-                {t('problemReports.actions.save')}
-              </button>
+              <Button type="submit">{t('problemReports.actions.save')}</Button>
             </form>
           </CardContent>
         </Card>

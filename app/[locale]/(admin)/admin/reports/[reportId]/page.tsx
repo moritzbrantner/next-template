@@ -4,7 +4,6 @@ import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { AdminReportChart } from '@/components/admin/admin-report-chart';
 import {
   Badge,
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
@@ -16,6 +15,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
@@ -113,43 +113,34 @@ export default async function AdminReportDetailPage({
       adminPages={adminPages}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <LocalizedLink
-          href="/admin/reports"
-          locale={locale}
-          className={buttonVariants({ variant: 'ghost', size: 'sm' })}
-        >
-          Back to reports
-        </LocalizedLink>
+        <Button asChild variant="ghost" size="sm">
+          <LocalizedLink href="/admin/reports" locale={locale}>
+            Back to reports
+          </LocalizedLink>
+        </Button>
 
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary">
             {detail.status === 'degraded' ? 'Degraded data' : 'Live data'}
           </Badge>
           {adminReportWindows.map((candidateWindow) => (
-            <LocalizedLink
-              key={candidateWindow}
-              href={`/admin/reports/${reportId}?${buildReportSearchParams({
-                window: candidateWindow,
-                audience: detail.filters?.audience,
-                routeGroup: detail.filters?.routeGroup,
-                path: detail.filters?.path,
-              })}`}
-              locale={locale}
-              className={buttonVariants({
-                variant: candidateWindow === window ? 'default' : 'outline',
-                size: 'sm',
-              })}
-            >
-              {candidateWindow}
-            </LocalizedLink>
+            <Button asChild size="sm" key={candidateWindow}>
+              <LocalizedLink
+                href={`/admin/reports/${reportId}?${buildReportSearchParams({ window: candidateWindow, audience: detail.filters?.audience, routeGroup: detail.filters?.routeGroup, path: detail.filters?.path })}`}
+                locale={locale}
+              >
+                {candidateWindow}
+              </LocalizedLink>
+            </Button>
           ))}
-          <a
-            href={`/api/admin/reports/${reportId}?${currentQuery}&format=csv`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
-            download
-          >
-            Export CSV
-          </a>
+          <Button asChild variant="outline" size="sm">
+            <a
+              href={`/api/admin/reports/${reportId}?${currentQuery}&format=csv`}
+              download
+            >
+              Export CSV
+            </a>
+          </Button>
         </div>
       </div>
 
@@ -207,19 +198,17 @@ export default async function AdminReportDetailPage({
               </datalist>
             </label>
             <div className="flex items-end gap-2">
-              <button
-                type="submit"
-                className={buttonVariants({ variant: 'default', size: 'sm' })}
-              >
+              <Button size="sm" type="submit">
                 Apply filters
-              </button>
-              <LocalizedLink
-                href={`/admin/reports/${reportId}?window=${window}`}
-                locale={locale}
-                className={buttonVariants({ variant: 'outline', size: 'sm' })}
-              >
-                Reset
-              </LocalizedLink>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <LocalizedLink
+                  href={`/admin/reports/${reportId}?window=${window}`}
+                  locale={locale}
+                >
+                  Reset
+                </LocalizedLink>
+              </Button>
             </div>
           </form>
           {detail.filters.path ? (

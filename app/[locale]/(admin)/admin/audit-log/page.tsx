@@ -3,12 +3,12 @@ import { and, count, eq, gte, ilike, lte, type SQL } from 'drizzle-orm';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import {
   Badge,
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
@@ -175,16 +175,17 @@ export default async function AuditLogPage({
               params={requestedSearchParams}
             />
             <div className="flex items-end gap-2 md:col-span-3 xl:col-span-6">
-              <button type="submit" className={buttonVariants({ size: 'sm' })}>
+              <Button size="sm" type="submit">
                 Apply filters
-              </button>
+              </Button>
               {canExport ? (
-                <a
-                  href={`/api/admin/audit-log/export?${queryString.toString()}`}
-                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                >
-                  Export CSV
-                </a>
+                <Button asChild variant="outline" size="sm">
+                  <a
+                    href={`/api/admin/audit-log/export?${queryString.toString()}`}
+                  >
+                    Export CSV
+                  </a>
+                </Button>
               ) : null}
             </div>
           </form>
@@ -236,26 +237,22 @@ export default async function AuditLogPage({
           </table>
 
           <div className="mt-4 flex items-center justify-between">
-            <LocalizedLink
-              href={`/admin/audit-log?${new URLSearchParams({
-                ...Object.fromEntries(queryString.entries()),
-                page: String(Math.max(1, page - 1)),
-              }).toString()}`}
-              locale={locale}
-              className={buttonVariants({ variant: 'outline', size: 'sm' })}
-            >
-              Previous
-            </LocalizedLink>
-            <LocalizedLink
-              href={`/admin/audit-log?${new URLSearchParams({
-                ...Object.fromEntries(queryString.entries()),
-                page: String(Math.min(totalPages, page + 1)),
-              }).toString()}`}
-              locale={locale}
-              className={buttonVariants({ variant: 'outline', size: 'sm' })}
-            >
-              Next
-            </LocalizedLink>
+            <Button asChild variant="outline" size="sm">
+              <LocalizedLink
+                href={`/admin/audit-log?${new URLSearchParams({ ...Object.fromEntries(queryString.entries()), page: String(Math.max(1, page - 1)) }).toString()}`}
+                locale={locale}
+              >
+                Previous
+              </LocalizedLink>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <LocalizedLink
+                href={`/admin/audit-log?${new URLSearchParams({ ...Object.fromEntries(queryString.entries()), page: String(Math.min(totalPages, page + 1)) }).toString()}`}
+                locale={locale}
+              >
+                Next
+              </LocalizedLink>
+            </Button>
           </div>
         </CardContent>
       </Card>
