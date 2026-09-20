@@ -19,20 +19,109 @@ jobs:
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: 1.3.14
-      - name: Repair server-safe UI helper imports
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Replace server calls to client-only buttonVariants
         shell: bash
         run: |
           python3 <<'PY'
-          import json
           import re
           from pathlib import Path
 
-          root_import = re.compile(
-              r"import\s*\{(?P<body>.*?)\}\s*from '@moritzbrantner/ui';",
-              re.DOTALL,
-          )
-          changed = []
           ignored_parts = {'.git', '.next', 'node_modules', 'dist', 'storybook-static'}
+          changed = []
+
+          def matching_end(text: str, start: int, opening: str, closing: str) -> int:
+              depth = 0
+              quote = None
+              escape = False
+              for index in range(start, len(text)):
+                  char = text[index]
+                  if quote:
+                      if escape:
+                          escape = False
+                      elif char == '\\':
+                          escape = True
+                      elif char == quote:
+                          quote = None
+                      continue
+                  if char in "'\"`":
+                      quote = char
+                      continue
+                  if char == opening:
+                      depth += 1
+                  elif char == closing:
+                      depth -= 1
+                      if depth == 0:
+                          return index
+              raise ValueError(f'unclosed {opening}{closing} pair')
+
+          def parse_options(options: str) -> tuple[str, str, str | None]:
+              def string_prop(name: str, default: str) -> str:
+                  match = re.search(rf"\b{name}\s*:\s*(['\"])(.*?)\1", options, re.DOTALL)
+                  return match.group(2) if match else default
+
+              variant = string_prop('variant', 'default')
+              size = string_prop('size', 'default')
+              class_match = re.search(
+                  r"\bclassName\s*:\s*(?:(['\"])(.*?)\1|([^,}]+))",
+                  options,
+                  re.DOTALL,
+              )
+              class_name = None
+              if class_match:
+                  if class_match.group(1):
+                      class_name = repr(class_match.group(2))
+                  else:
+                      class_name = class_match.group(3).strip()
+              return variant, size, class_name
+
+          def prop_text(variant: str, size: str, class_name: str | None, *, as_child: bool) -> str:
+              props = []
+              if as_child:
+                  props.append('asChild')
+              if variant != 'default':
+                  props.append(f'variant="{variant}"')
+              if size != 'default':
+                  props.append(f'size="{size}"')
+              if class_name is not None:
+                  props.append(f'className={{{class_name}}}')
+              return (' ' + ' '.join(props)) if props else ''
+
+          def remove_attr(attrs: str, name: str) -> tuple[str, str | None]:
+              pattern = re.compile(
+                  rf"\s+{name}=(?:\{{(?:[^{{}}]|\{{[^{{}}]*\}})*\}}|(['\"]).*?\1)",
+                  re.DOTALL,
+              )
+              match = pattern.search(attrs)
+              if not match:
+                  return attrs, None
+              value = match.group(0).strip()
+              return attrs[:match.start()] + attrs[match.end():], value
+
+          def find_open_tag_end(text: str, start: int) -> int:
+              braces = 0
+              quote = None
+              escape = False
+              for index in range(start, len(text)):
+                  char = text[index]
+                  if quote:
+                      if escape:
+                          escape = False
+                      elif char == '\\':
+                          escape = True
+                      elif char == quote:
+                          quote = None
+                      continue
+                  if char in "'\"`":
+                      quote = char
+                  elif char == '{':
+                      braces += 1
+                  elif char == '}':
+                      braces -= 1
+                  elif char == '>' and braces == 0:
+                      return index
+              raise ValueError('unclosed JSX opening tag')
 
           for path in Path('.').rglob('*.tsx'):
               if ignored_parts.intersection(path.parts):
@@ -43,41 +132,111 @@ jobs:
               if re.match(r"\s*(['\"])use client\1;", text):
                   continue
 
+              original = text
+              while True:
+                  marker = 'className={buttonVariants('
+                  call_at = text.find(marker)
+                  if call_at < 0:
+                      break
+                  open_start = text.rfind('<', 0, call_at)
+                  if open_start < 0 or text.startswith('</', open_start):
+                      raise SystemExit(f'{path}: cannot locate JSX opening tag for buttonVariants')
+                  tag_match = re.match(r'<([A-Za-z][A-Za-z0-9_.]*)\b', text[open_start:])
+                  if not tag_match:
+                      raise SystemExit(f'{path}: unsupported JSX tag near buttonVariants')
+                  tag = tag_match.group(1)
+                  open_end = find_open_tag_end(text, open_start)
+                  if call_at > open_end:
+                      raise SystemExit(f'{path}: buttonVariants is not an opening-tag className')
+
+                  paren_start = call_at + len('className={buttonVariants')
+                  paren_end = matching_end(text, paren_start, '(', ')')
+                  if text[paren_end + 1:paren_end + 2] != '}':
+                      raise SystemExit(f'{path}: unsupported buttonVariants expression')
+                  call_end = paren_end + 2
+                  options = text[paren_start + 1:paren_end].strip()
+                  if not (options.startswith('{') and options.endswith('}')):
+                      raise SystemExit(f'{path}: buttonVariants options must be an object literal')
+                  variant, size, class_name = parse_options(options[1:-1])
+
+                  opening = text[open_start:open_end + 1]
+                  local_call_start = call_at - open_start
+                  local_call_end = call_end - open_start
+                  opening_without_class = (
+                      opening[:local_call_start].rstrip()
+                      + opening[local_call_end:].lstrip()
+                  )
+                  if not opening_without_class.startswith(f'<{tag}'):
+                      raise SystemExit(f'{path}: malformed opening tag after class removal')
+
+                  attrs = opening_without_class[len(tag) + 1:-1]
+                  attrs, key_attr = remove_attr(attrs, 'key')
+                  attrs = re.sub(r'\s+', ' ', attrs).strip()
+                  child_opening = f'<{tag}' + (f' {attrs}' if attrs else '') + '>'
+
+                  if tag == 'button':
+                      button_props = prop_text(variant, size, class_name, as_child=False)
+                      if key_attr:
+                          button_props += f' {key_attr}'
+                      replacement = f'<Button{button_props}' + (f' {attrs}' if attrs else '') + '>'
+                      text = text[:open_start] + replacement + text[open_end + 1:]
+                      close_at = text.find('</button>', open_start + len(replacement))
+                      if close_at < 0:
+                          raise SystemExit(f'{path}: cannot find closing button tag')
+                      text = text[:close_at] + '</Button>' + text[close_at + len('</button>'):]
+                  else:
+                      close_token = f'</{tag}>'
+                      close_at = text.find(close_token, open_end + 1)
+                      if close_at < 0:
+                          raise SystemExit(f'{path}: cannot find closing {tag} tag')
+                      children = text[open_end + 1:close_at]
+                      button_props = prop_text(variant, size, class_name, as_child=True)
+                      if key_attr:
+                          button_props += f' {key_attr}'
+                      replacement = (
+                          f'<Button{button_props}>'
+                          + child_opening
+                          + children
+                          + close_token
+                          + '</Button>'
+                      )
+                      text = text[:open_start] + replacement + text[close_at + len(close_token):]
+
+              if 'buttonVariants' in text:
+                  raise SystemExit(f'{path}: unsupported server-side buttonVariants use remains')
+
+              root_import = re.compile(
+                  r"import\s*\{(?P<body>.*?)\}\s*from '@moritzbrantner/ui';",
+                  re.DOTALL,
+              )
               def replace_import(match: re.Match[str]) -> str:
                   body = match.group('body')
                   names = [name.strip() for name in body.split(',') if name.strip()]
                   if 'buttonVariants' not in names:
                       return match.group(0)
-                  names.remove('buttonVariants')
-                  root = ''
-                  if names:
-                      root = "import {\n" + ''.join(f"  {name},\n" for name in names) + "} from '@moritzbrantner/ui';\n"
-                  return root + "import { buttonVariants } from '@moritzbrantner/ui/components/stable/button-variants';"
+                  names = [name for name in names if name != 'buttonVariants']
+                  if 'Button' not in names:
+                      names.append('Button')
+                  return "import {\n" + ''.join(f"  {name},\n" for name in names) + "} from '@moritzbrantner/ui';"
 
-              updated, replacements = root_import.subn(replace_import, text)
-              if replacements and updated != text:
-                  path.write_text(updated)
+              text, replacements = root_import.subn(replace_import, text)
+              if replacements == 0:
+                  raise SystemExit(f'{path}: root UI import containing buttonVariants was not found')
+              if text != original:
+                  path.write_text(text)
                   changed.append(str(path))
 
-          package_path = Path('package.json')
-          package = json.loads(package_path.read_text())
-          package['dependencies']['@moritzbrantner/ui'] = '^1.1.0'
-          package_path.write_text(json.dumps(package, indent=2) + '\n')
-
-          Path('/tmp/server-safe-files.txt').write_text('\n'.join(changed) + ('\n' if changed else ''))
-          print(f'updated {len(changed)} server-side TSX consumers')
           if not changed:
-              raise SystemExit('expected at least one server-side buttonVariants consumer')
+              raise SystemExit('expected server-side buttonVariants consumers')
+          Path('/tmp/server-button-files.txt').write_text('\n'.join(changed) + '\n')
+          print(f'updated {len(changed)} server-side TSX consumers')
           PY
-      - name: Regenerate Bun lockfile
-        run: bun install
       - name: Format touched source
         shell: bash
         run: |
           while IFS= read -r file; do
             [ -n "$file" ] && bunx oxfmt --write "$file"
-          done < /tmp/server-safe-files.txt
-          bunx oxfmt --write package.json
+          done < /tmp/server-button-files.txt
       - name: Validate repair locally
         run: |
           bun run typecheck
@@ -89,5 +248,5 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add -A
-          git commit -m "fix: use server-safe UI helpers"
+          git commit -m "fix: render shared buttons from server components"
           git push origin HEAD:fix/integration-observability-mocks
