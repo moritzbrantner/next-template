@@ -115,7 +115,7 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.184.1",
-    "@unlighthouse/cli": "^0.17.9",
+    "@unlighthouse/cli": "^0.18.0",
     "axe-core": "^4.12.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.4.1",
