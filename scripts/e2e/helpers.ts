@@ -7,6 +7,9 @@ import { TEST_USERS } from '@/src/testing/test-users';
 const DEFAULT_MAILPIT_BASE_URL = 'http://127.0.0.1:8025';
 const DEFAULT_E2E_BASE_URL = 'http://127.0.0.1:3006';
 const DEFAULT_INTERNAL_CRON_SECRET = 'e2e-internal-cron-secret';
+const E2E_CLIENT_IP_PREFIX = '198.51.100';
+const e2eClientIpByPage = new WeakMap<Page, string>();
+let nextE2EClientIpSuffix = 1;
 
 const PNG_SIGNATURE = Buffer.from([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
@@ -21,6 +24,21 @@ for (let index = 0; index < CRC32_TABLE.length; index += 1) {
   }
 
   CRC32_TABLE[index] = value >>> 0;
+}
+
+async function ensureE2EClientIdentity(page: Page) {
+  if (e2eClientIpByPage.has(page)) {
+    return;
+  }
+
+  if (nextE2EClientIpSuffix > 254) {
+    throw new Error('E2E client IP pool exhausted.');
+  }
+
+  const clientIp = `${E2E_CLIENT_IP_PREFIX}.${nextE2EClientIpSuffix}`;
+  nextE2EClientIpSuffix += 1;
+  e2eClientIpByPage.set(page, clientIp);
+  await page.setExtraHTTPHeaders({ 'x-forwarded-for': clientIp });
 }
 
 export async function waitForAppHydration(page: Page) {
@@ -78,6 +96,7 @@ export async function gotoAndWaitForHydration(
   path: string,
   options?: { consent?: 'necessary-only' | 'accept-all' | 'leave' },
 ) {
+  await ensureE2EClientIdentity(page);
   await page.goto(path);
   await waitForAppHydration(page);
 

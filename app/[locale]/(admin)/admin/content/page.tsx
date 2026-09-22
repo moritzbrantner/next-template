@@ -9,12 +9,12 @@ import {
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import {
   Badge,
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { withLocalePath, type AppLocale } from '@/i18n/routing';
@@ -226,46 +226,39 @@ function AnnouncementCard({
         </p>
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        <LocalizedLink
-          href={`/admin/content?announcementId=${announcement.id}`}
-          locale={locale}
-          className={buttonVariants({ variant: 'outline', size: 'sm' })}
-        >
-          Edit
-        </LocalizedLink>
+        <Button asChild variant="outline" size="sm">
+          <LocalizedLink
+            href={`/admin/content?announcementId=${announcement.id}`}
+            locale={locale}
+          >
+            Edit
+          </LocalizedLink>
+        </Button>
         <form action={publishAnnouncementAction}>
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="id" value={announcement.id} />
-          <button
-            type="submit"
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
-          >
+          <Button variant="outline" size="sm" type="submit">
             Publish now
-          </button>
+          </Button>
         </form>
         <form action={archiveAnnouncementAction}>
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="id" value={announcement.id} />
-          <button
-            type="submit"
-            className={buttonVariants({ variant: 'ghost', size: 'sm' })}
-          >
+          <Button variant="ghost" size="sm" type="submit">
             Archive now
-          </button>
+          </Button>
         </form>
         <form action={deleteAnnouncementAction}>
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="id" value={announcement.id} />
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
+            className={'text-red-600 dark:text-red-400'}
             type="submit"
-            className={buttonVariants({
-              variant: 'ghost',
-              size: 'sm',
-              className: 'text-red-600 dark:text-red-400',
-            })}
           >
             Delete
-          </button>
+          </Button>
         </form>
       </div>
     </div>

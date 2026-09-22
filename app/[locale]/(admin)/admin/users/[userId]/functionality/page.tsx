@@ -5,11 +5,11 @@ import { isAdmin } from '@/lib/authorization';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import {
   Badge,
-  buttonVariants,
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
@@ -89,17 +89,11 @@ export default async function AdminUserFunctionalityPage({
       description="Admins can disable supported functionality for individual non-admin accounts without changing that user’s role."
       adminPages={adminPages}
     >
-      <LocalizedLink
-        href={`/admin/users/${user.id}`}
-        locale={locale}
-        className={buttonVariants({
-          variant: 'ghost',
-          size: 'sm',
-          className: 'w-fit',
-        })}
-      >
-        Back to user inspection
-      </LocalizedLink>
+      <Button asChild variant="ghost" size="sm" className={'w-fit'}>
+        <LocalizedLink href={`/admin/users/${user.id}`} locale={locale}>
+          Back to user inspection
+        </LocalizedLink>
+      </Button>
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard label="Role" value={user.role} />

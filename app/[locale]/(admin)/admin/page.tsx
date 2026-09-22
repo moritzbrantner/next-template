@@ -2,12 +2,12 @@ import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { AdminReportChart } from '@/components/admin/admin-report-chart';
 import { AdminOverviewGrid } from '@/components/admin/admin-overview-grid';
 import {
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import {
@@ -128,13 +128,14 @@ export default async function AdminPage({
               {navigationPulse.window}. Refreshed {navigationPulse.generatedAt}.
             </p>
           </div>
-          <LocalizedLink
-            href={`/admin/reports/navigationJourneys?window=${navigationPulse.window}`}
-            locale={locale}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
-          >
-            Open full report
-          </LocalizedLink>
+          <Button asChild variant="outline" size="sm">
+            <LocalizedLink
+              href={`/admin/reports/navigationJourneys?window=${navigationPulse.window}`}
+              locale={locale}
+            >
+              Open full report
+            </LocalizedLink>
+          </Button>
         </div>
 
         {navigationPulse.status === 'degraded' ? (

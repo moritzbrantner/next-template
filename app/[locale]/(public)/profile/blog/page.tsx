@@ -2,12 +2,12 @@ import { notFound } from 'next/navigation';
 
 import { BlogPostComposer } from '@/components/blog-post-composer';
 import {
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { createTranslator } from '@/src/i18n/messages';
@@ -54,24 +54,23 @@ export default async function ProfileBlogPage({
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <LocalizedLink
-              href="/profile"
-              locale={locale}
-              className={buttonVariants({ variant: 'outline' })}
-            >
-              {t('editor.backToProfile')}
-            </LocalizedLink>
-            <LocalizedLink
-              href={
-                session.user.tag
-                  ? buildPublicProfileBlogPath(session.user.tag)
-                  : '/profile/blog'
-              }
-              locale={locale}
-              className={buttonVariants({ variant: 'default' })}
-            >
-              {t('editor.viewPublicBlog')}
-            </LocalizedLink>
+            <Button asChild variant="outline">
+              <LocalizedLink href="/profile" locale={locale}>
+                {t('editor.backToProfile')}
+              </LocalizedLink>
+            </Button>
+            <Button asChild>
+              <LocalizedLink
+                href={
+                  session.user.tag
+                    ? buildPublicProfileBlogPath(session.user.tag)
+                    : '/profile/blog'
+                }
+                locale={locale}
+              >
+                {t('editor.viewPublicBlog')}
+              </LocalizedLink>
+            </Button>
           </div>
         </CardHeader>
       </Card>

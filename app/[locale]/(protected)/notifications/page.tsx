@@ -1,5 +1,5 @@
 import { NotificationsFeedCard } from '@/components/notifications/notifications-feed-card';
-import { buttonVariants } from '@moritzbrantner/ui';
+import { Button } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 
 import { getNotificationsPageDataUseCase } from '@/src/domain/notifications/use-cases';
@@ -31,13 +31,11 @@ export default async function NotificationsPage({
   return (
     <section className="mx-auto max-w-4xl space-y-4">
       <div className="flex justify-end">
-        <LocalizedLink
-          href="/settings/notifications"
-          locale={locale}
-          className={buttonVariants({ variant: 'outline' })}
-        >
-          {t('settingsButton')}
-        </LocalizedLink>
+        <Button asChild variant="outline">
+          <LocalizedLink href="/settings/notifications" locale={locale}>
+            {t('settingsButton')}
+          </LocalizedLink>
+        </Button>
       </div>
 
       <NotificationsFeedCard

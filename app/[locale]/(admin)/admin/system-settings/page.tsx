@@ -3,12 +3,12 @@ import { revalidatePath } from 'next/cache';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import {
   Badge,
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import type { AppRole } from '@/lib/authorization';
 import { isSuperAdmin } from '@/lib/authorization';
@@ -206,17 +206,14 @@ export default async function SystemSettingsPage({
       adminPages={adminPages}
     >
       {isSuperAdmin(session.user.role) ? (
-        <LocalizedLink
-          href="/admin/system-settings/functionality"
-          locale={locale}
-          className={buttonVariants({
-            variant: 'outline',
-            size: 'sm',
-            className: 'w-fit',
-          })}
-        >
-          Open functionality controls
-        </LocalizedLink>
+        <Button asChild variant="outline" size="sm" className={'w-fit'}>
+          <LocalizedLink
+            href="/admin/system-settings/functionality"
+            locale={locale}
+          >
+            Open functionality controls
+          </LocalizedLink>
+        </Button>
       ) : null}
 
       <Card>

@@ -1,5 +1,5 @@
 import type { AuthProvider } from '@/src/auth';
-import { buttonVariants } from '@moritzbrantner/ui';
+import { Button } from '@moritzbrantner/ui';
 import type { AppLocale } from '@/i18n/routing';
 
 const socialProviders = [
@@ -41,23 +41,23 @@ export function SocialAuthButtons({
     <div className="space-y-4">
       <div className="grid gap-3">
         {socialProviders.map((provider) => (
-          <a
+          <Button
+            asChild
+            variant="outline"
+            className={'h-11 w-full justify-start gap-3 rounded-2xl px-4'}
             key={provider}
-            href={buildSocialAuthHref(provider, locale, returnTo)}
-            className={buttonVariants({
-              variant: 'outline',
-              className: 'h-11 w-full justify-start gap-3 rounded-2xl px-4',
-            })}
           >
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-zinc-300 text-xs font-semibold uppercase dark:border-zinc-700">
-              {provider === 'facebook'
-                ? 'f'
-                : provider === 'google'
-                  ? 'G'
-                  : 'X'}
-            </span>
-            <span>{labels.providers[provider]}</span>
-          </a>
+            <a href={buildSocialAuthHref(provider, locale, returnTo)}>
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-zinc-300 text-xs font-semibold uppercase dark:border-zinc-700">
+                {provider === 'facebook'
+                  ? 'f'
+                  : provider === 'google'
+                    ? 'G'
+                    : 'X'}
+              </span>
+              <span>{labels.providers[provider]}</span>
+            </a>
+          </Button>
         ))}
       </div>
 
