@@ -99,7 +99,7 @@
     "remark-gfm": "^4.0.1",
     "remotion": "4.0.464",
     "swapy": "^1.0.5",
-    "three": "^0.184.0",
+    "three": "^0.186.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -114,7 +114,7 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "@types/three": "^0.184.1",
+    "@types/three": "^0.186.0",
     "@unlighthouse/cli": "^0.17.9",
     "axe-core": "^4.12.0",
     "drizzle-kit": "^0.31.10",
