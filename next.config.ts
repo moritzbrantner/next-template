@@ -171,6 +171,9 @@ export const githubPagesNextConfig: NextConfig = {
   },
   output: 'export',
   trailingSlash: true,
+  typescript: {
+    tsconfigPath: 'tsconfig.gh-pages.json',
+  },
 };
 
 const nextConfig =

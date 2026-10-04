@@ -7,12 +7,12 @@ import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { AdminRoleManager } from '@/components/admin/admin-role-manager';
 import {
   Badge,
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { withLocalePath } from '@/i18n/routing';
@@ -147,17 +147,11 @@ export default async function AdminUserDetailPage({
     >
       <StatusBanner status={status} />
 
-      <LocalizedLink
-        href="/admin/users"
-        locale={locale}
-        className={buttonVariants({
-          variant: 'ghost',
-          size: 'sm',
-          className: 'w-fit',
-        })}
-      >
-        {t('users.detail.back')}
-      </LocalizedLink>
+      <Button asChild variant="ghost" size="sm" className={'w-fit'}>
+        <LocalizedLink href="/admin/users" locale={locale}>
+          {t('users.detail.back')}
+        </LocalizedLink>
+      </Button>
 
       <div className="grid gap-4 md:grid-cols-4">
         <SummaryCard label={t('users.detail.summary.role')} value={user.role} />
@@ -384,13 +378,12 @@ export default async function AdminUserDetailPage({
                 <form action={sendAccountVerificationEmailAction}>
                   <input type="hidden" name="locale" value={locale} />
                   <input type="hidden" name="userId" value={user.id} />
-                  <button
+                  <Button
                     type="submit"
                     disabled={!canSendAccountVerificationEmail}
-                    className={buttonVariants({})}
                   >
                     Send verification email
-                  </button>
+                  </Button>
                 </form>
               </CardContent>
             </Card>
@@ -411,9 +404,7 @@ export default async function AdminUserDetailPage({
                     <input type="hidden" name="locale" value={locale} />
                     <input type="hidden" name="userId" value={user.id} />
                     <input type="hidden" name="action" value="reactivate" />
-                    <button type="submit" className={buttonVariants({})}>
-                      Reactivate user
-                    </button>
+                    <Button type="submit">Reactivate user</Button>
                   </form>
                 ) : (
                   <form action={updateUserStatusAction} className="space-y-3">
@@ -431,15 +422,14 @@ export default async function AdminUserDetailPage({
                         className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                       />
                     </label>
-                    <button
+                    <Button
+                      className={
+                        'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:text-white dark:hover:bg-red-400'
+                      }
                       type="submit"
-                      className={buttonVariants({
-                        className:
-                          'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:text-white dark:hover:bg-red-400',
-                      })}
                     >
                       Disable user
-                    </button>
+                    </Button>
                   </form>
                 )}
 
@@ -447,12 +437,9 @@ export default async function AdminUserDetailPage({
                   <input type="hidden" name="locale" value={locale} />
                   <input type="hidden" name="userId" value={user.id} />
                   <input type="hidden" name="action" value="clearLockout" />
-                  <button
-                    type="submit"
-                    className={buttonVariants({ variant: 'outline' })}
-                  >
+                  <Button variant="outline" type="submit">
                     Clear lockout
-                  </button>
+                  </Button>
                 </form>
               </CardContent>
             </Card>
@@ -486,13 +473,14 @@ export default async function AdminUserDetailPage({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <LocalizedLink
-                  href={`/admin/users/${user.id}/functionality`}
-                  locale={locale}
-                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                >
-                  Manage functionality
-                </LocalizedLink>
+                <Button asChild variant="outline" size="sm">
+                  <LocalizedLink
+                    href={`/admin/users/${user.id}/functionality`}
+                    locale={locale}
+                  >
+                    Manage functionality
+                  </LocalizedLink>
+                </Button>
               </CardContent>
             </Card>
           ) : null}

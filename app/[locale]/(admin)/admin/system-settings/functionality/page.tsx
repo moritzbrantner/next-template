@@ -5,11 +5,11 @@ import type { AppRole } from '@/lib/authorization';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import {
   Badge,
-  buttonVariants,
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
@@ -111,17 +111,11 @@ export default async function SystemFunctionalityPage({
       description="Superadmins can switch product surfaces on or off globally, for member roles, or for individual users without changing the active build manifest."
       adminPages={adminPages}
     >
-      <LocalizedLink
-        href="/admin/system-settings"
-        locale={locale}
-        className={buttonVariants({
-          variant: 'ghost',
-          size: 'sm',
-          className: 'w-fit',
-        })}
-      >
-        Back to system settings
-      </LocalizedLink>
+      <Button asChild variant="ghost" size="sm" className={'w-fit'}>
+        <LocalizedLink href="/admin/system-settings" locale={locale}>
+          Back to system settings
+        </LocalizedLink>
+      </Button>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard

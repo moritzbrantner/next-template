@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import {
   Badge,
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
@@ -13,6 +12,7 @@ import {
   Input,
   Label,
   Textarea,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { withLocalePath, type AppLocale } from '@/i18n/routing';
@@ -383,13 +383,9 @@ export default async function AdminEmailTemplatesPage({
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <button
-                      type="submit"
-                      disabled={!canEditTemplates}
-                      className={buttonVariants({})}
-                    >
+                    <Button type="submit" disabled={!canEditTemplates}>
                       Save template
-                    </button>
+                    </Button>
                   </div>
                 </form>
 
@@ -400,15 +396,16 @@ export default async function AdminEmailTemplatesPage({
                     name="templateId"
                     value={selectedTemplate.id}
                   />
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     type="submit"
                     disabled={
                       !canEditTemplates || !selectedTemplate.isCustomized
                     }
-                    className={buttonVariants({ variant: 'ghost', size: 'sm' })}
                   >
                     Reset to default
-                  </button>
+                  </Button>
                 </form>
               </CardContent>
             </Card>
@@ -479,15 +476,14 @@ export default async function AdminEmailTemplatesPage({
                     </div>
                   ))}
 
-                  <button
+                  <Button
                     type="submit"
                     disabled={
                       !canSendSelectedTemplate || data.recipients.length === 0
                     }
-                    className={buttonVariants({})}
                   >
                     Send email
-                  </button>
+                  </Button>
                 </form>
               </CardContent>
             </Card>

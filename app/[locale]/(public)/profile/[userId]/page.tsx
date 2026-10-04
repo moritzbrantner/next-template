@@ -2,12 +2,12 @@ import { notFound } from 'next/navigation';
 
 import { ProfileFollowPanel } from '@/components/profile-follow-panel';
 import {
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
@@ -143,13 +143,14 @@ export default async function PublicProfilePage({
               </CardDescription>
             </div>
 
-            <LocalizedLink
-              href={buildPublicProfileBlogPath(profile.tag)}
-              locale={locale}
-              className={buttonVariants({ variant: 'default' })}
-            >
-              {blogT('profileCard.open')}
-            </LocalizedLink>
+            <Button asChild>
+              <LocalizedLink
+                href={buildPublicProfileBlogPath(profile.tag)}
+                locale={locale}
+              >
+                {blogT('profileCard.open')}
+              </LocalizedLink>
+            </Button>
           </CardHeader>
 
           <CardContent>

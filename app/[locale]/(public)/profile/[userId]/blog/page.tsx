@@ -2,12 +2,12 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
 import {
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthSession } from '@/src/auth.server';
@@ -90,13 +90,14 @@ export default async function PublicUserBlogPage({
               </div>
             </div>
 
-            <LocalizedLink
-              href={buildPublicProfilePath(blog.tag)}
-              locale={locale}
-              className={buttonVariants({ variant: 'outline' })}
-            >
-              {t('publicPage.backToProfile')}
-            </LocalizedLink>
+            <Button asChild variant="outline">
+              <LocalizedLink
+                href={buildPublicProfilePath(blog.tag)}
+                locale={locale}
+              >
+                {t('publicPage.backToProfile')}
+              </LocalizedLink>
+            </Button>
           </div>
         </CardContent>
       </Card>

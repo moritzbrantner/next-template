@@ -2,7 +2,6 @@ import { AdminPageShell } from '@/components/admin/admin-page-shell';
 import { AdminReportChart } from '@/components/admin/admin-report-chart';
 import {
   Badge,
-  buttonVariants,
   Card,
   CardContent,
   CardDescription,
@@ -14,6 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Button,
 } from '@moritzbrantner/ui';
 import { LocalizedLink } from '@/i18n/server-link';
 import { getAuthorizedAdminPageDefinitions } from '@/src/admin/pages';
@@ -168,37 +168,31 @@ export default async function ReportsPage({
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
-                      <LocalizedLink
-                        href={`/admin/reports/${reportKey}?window=${analyticsSettings.defaultAdminReportWindow}`}
-                        locale={locale}
-                        className={buttonVariants({
-                          variant: 'outline',
-                          size: 'sm',
-                        })}
-                      >
-                        {t('reports.actions.open')}
-                      </LocalizedLink>
-                      <a
-                        href={`/api/admin/reports/${reportKey}?window=${analyticsSettings.defaultAdminReportWindow}&format=csv`}
-                        className={buttonVariants({
-                          variant: 'ghost',
-                          size: 'sm',
-                        })}
-                        download
-                      >
-                        {t('reports.actions.export')}
-                      </a>
-                      {auditLogLinksByReport[reportKey] ? (
+                      <Button asChild variant="outline" size="sm">
                         <LocalizedLink
-                          href={auditLogLinksByReport[reportKey]}
+                          href={`/admin/reports/${reportKey}?window=${analyticsSettings.defaultAdminReportWindow}`}
                           locale={locale}
-                          className={buttonVariants({
-                            variant: 'ghost',
-                            size: 'sm',
-                          })}
                         >
-                          Audit log
+                          {t('reports.actions.open')}
                         </LocalizedLink>
+                      </Button>
+                      <Button asChild variant="ghost" size="sm">
+                        <a
+                          href={`/api/admin/reports/${reportKey}?window=${analyticsSettings.defaultAdminReportWindow}&format=csv`}
+                          download
+                        >
+                          {t('reports.actions.export')}
+                        </a>
+                      </Button>
+                      {auditLogLinksByReport[reportKey] ? (
+                        <Button asChild variant="ghost" size="sm">
+                          <LocalizedLink
+                            href={auditLogLinksByReport[reportKey]}
+                            locale={locale}
+                          >
+                            Audit log
+                          </LocalizedLink>
+                        </Button>
                       ) : null}
                     </div>
                   </TableCell>
