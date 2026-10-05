@@ -23,6 +23,7 @@
     "bench": "vitest bench --run",
     "bench:ci": "mkdir -p .generated/benchmarks && vitest bench --run --outputJson=.generated/benchmarks/latest.json",
     "bench:unlighthouse": "bun run build:gh-pages",
+    "bench:s3-servers": "bun ./scripts/bench/s3-servers/run.ts",
     "verify": "bun run hygiene && bun run checks:main",
     "lint:format": "oxfmt --check .",
     "lint:semantic": "eslint .",
