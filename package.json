@@ -62,12 +62,12 @@
     "checks:all": "./scripts/ci/tier-all.sh",
     "db:schema:generate": "bun ./scripts/generate-db-schema.ts",
     "jobs:work": "bun ./scripts/run-jobs.ts --watch",
-    "services:up": "docker compose up -d postgres mailpit redis minio",
-    "services:down": "docker compose stop postgres mailpit redis minio",
+    "services:up": "docker compose up -d postgres mailpit redis rustfs",
+    "services:down": "docker compose stop postgres mailpit redis rustfs",
     "services:clean": "docker compose down -v --remove-orphans",
     "services:ps": "docker compose ps",
     "check:hygiene": "bash scripts/check_repo_hygiene.sh",
-    "test:with-services": "COMPOSE_SERVICES=\"postgres mailpit redis minio\" bash scripts/run-with-compose-services.sh bun run test:e2e"
+    "test:with-services": "COMPOSE_SERVICES=\"postgres mailpit redis rustfs\" bash scripts/run-with-compose-services.sh bun run test:e2e"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1050.0",
@@ -75,7 +75,7 @@
     "@moritzbrantner/app-pack": "workspace:*",
     "@moritzbrantner/app-pack-react": "workspace:*",
     "@moritzbrantner/ui": "^1.1.0",
-    "@next/mdx": "^16.3.5",
+    "@next/mdx": "^16.3.8",
     "@react-email/components": "1.0.12",
     "@react-email/render": "2.0.8",
     "@react-three/fiber": "^9.6.1",
@@ -86,7 +86,7 @@
     "drizzle-orm": "^0.45.2",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.16.0",
-    "next": "^16.3.5",
+    "next": "^16.3.8",
     "nodemailer": "^8.0.7",
     "pg": "^8.21.0",
     "pino": "^10.3.1",
@@ -104,7 +104,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@next/eslint-plugin-next": "^16.3.5",
+    "@next/eslint-plugin-next": "^16.3.8",
     "@playwright/test": "^1.60.0",
     "@storybook/addon-a11y": "^10.4.1",
     "@storybook/nextjs-vite": "^10.4.1",
