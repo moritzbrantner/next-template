@@ -48,7 +48,7 @@ async function check(
 }
 
 export function publicReadPolicy(bucket: string) {
-  // Equivalent of `mc anonymous set download local/<bucket>` in docker-compose.yml.
+  // Same policy as the `rustfs-create-bucket` job in docker-compose.yml (formerly `mc anonymous set download`).
   return JSON.stringify({
     Version: '2012-10-17',
     Statement: [
@@ -64,7 +64,7 @@ export function publicReadPolicy(bucket: string) {
 
 /**
  * Runs against a fresh bucket and exercises exactly what next-template does with object storage:
- * - docker-compose bucket bootstrap (`mc mb --ignore-existing`, `mc anonymous set download`)
+ * - docker-compose bucket bootstrap (`rustfs-create-bucket`: idempotent create + public-read policy)
  * - src/profile/object-storage.ts PutObject (ContentType, CacheControl,
  *   ContentDisposition, user metadata) and DeleteObject
  * - browsers loading the object anonymously from PROFILE_IMAGE_PUBLIC_BASE_URL
