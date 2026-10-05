@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "registry": "coding-agent-conventions",
+  "modules": [
+    "dependencies",
+    "environment",
+    "git",
+    "template-authoring",
+    "nextjs",
+    "moritzbrantner-ui",
+    "testing-library",
+    "tooling",
+    "vitest",
+    "storybook",
+    "playwright",
+    "lighthouse"
+  ]
+}
