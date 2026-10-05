@@ -1,0 +1,1524 @@
+{
+  "context": {
+    "date": "2026-10-05T06:47:27.305Z",
+    "kernel": "Linux version 6.18.33.2-microsoft-standard-WSL2 (root@f1bbfb02316b) (gcc (GCC) 13.2.0, GNU ld (GNU Binutils) 2.41) #1 SMP PREEMPT_DYNAMIC Thu Jun 18 21:54:43 UTC 2026",
+    "cpus": 8,
+    "cpuModel": "Intel(R) Core(TM) Ultra 7 258V",
+    "memTotalGiB": 15.4,
+    "memAvailableAtStartGiB": 9.3,
+    "containerRuntime": "docker: podman version 5.7.0",
+    "client": "bun 1.4.2 / node-compat v26.3.0, @aws-sdk/client-s3 3.1050.0"
+  },
+  "workload": {
+    "small4k": 2000,
+    "medium256k": 400,
+    "large64m": 8,
+    "smallConcurrency": 8,
+    "largeConcurrency": 4,
+    "listRepeats": 20
+  },
+  "images": {
+    "seaweedfs": {
+      "image": "docker.io/chrislusf/seaweedfs:4.48@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d",
+      "sizeBytes": 529573363
+    },
+    "rustfs": {
+      "image": "docker.io/rustfs/rustfs:1.0.1@sha256:1803faef57627e2d9c2e7d89d655d712ddded5389040054987163043fecb6a3c",
+      "sizeBytes": 291198151
+    },
+    "garage": {
+      "image": "docker.io/dxflrs/garage:v2.4.1@sha256:9c96caa2612d3411acc5b0e6701fb238dbfba33e533a6d7d3d811a4b12d0d020",
+      "sizeBytes": 71279608
+    }
+  },
+  "results": [
+    {
+      "server": "seaweedfs",
+      "round": 1,
+      "portUpMs": 3421,
+      "healthMs": 3422,
+      "bootstrapMs": 4999,
+      "usableMs": 8420,
+      "stopMs": 15319,
+      "idleRssMiB": 151,
+      "peakRssMiB": 1159,
+      "phases": [
+        {
+          "phase": "put 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 1112.34,
+          "opsPerSec": 1798.01,
+          "mibPerSec": 7.02,
+          "p50Ms": 3.89,
+          "p99Ms": 11.67
+        },
+        {
+          "phase": "get 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 852.85,
+          "opsPerSec": 2345.08,
+          "mibPerSec": 9.16,
+          "p50Ms": 3,
+          "p99Ms": 9.7
+        },
+        {
+          "phase": "put 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 345.71,
+          "opsPerSec": 1157.05,
+          "mibPerSec": 289.26,
+          "p50Ms": 6.36,
+          "p99Ms": 13.69
+        },
+        {
+          "phase": "get 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 374.2,
+          "opsPerSec": 1068.94,
+          "mibPerSec": 267.23,
+          "p50Ms": 7.02,
+          "p99Ms": 16.23
+        },
+        {
+          "phase": "put 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1788.41,
+          "opsPerSec": 4.47,
+          "mibPerSec": 286.29,
+          "p50Ms": 805.94,
+          "p99Ms": 1026.94
+        },
+        {
+          "phase": "get 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1618.4,
+          "opsPerSec": 4.94,
+          "mibPerSec": 316.36,
+          "p50Ms": 740.57,
+          "p99Ms": 1328.69
+        },
+        {
+          "phase": "list 2000 keys",
+          "ops": 20,
+          "errors": 0,
+          "concurrency": 1,
+          "bytes": 0,
+          "wallMs": 845.93,
+          "opsPerSec": 23.64,
+          "mibPerSec": 0,
+          "p50Ms": 41.3,
+          "p99Ms": 65.22
+        },
+        {
+          "phase": "delete 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 0,
+          "wallMs": 748.12,
+          "opsPerSec": 2673.37,
+          "mibPerSec": 0,
+          "p50Ms": 2.7,
+          "p99Ms": 9.23
+        }
+      ],
+      "compat": [
+        {
+          "name": "create bucket",
+          "ok": true
+        },
+        {
+          "name": "create bucket again (idempotent bootstrap)",
+          "ok": true,
+          "detail": "BucketAlreadyOwnedByYou"
+        },
+        {
+          "name": "put object with app headers + metadata",
+          "ok": true
+        },
+        {
+          "name": "head object returns metadata",
+          "ok": true
+        },
+        {
+          "name": "bucket is private before public-read grant",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "put public-read bucket policy",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via path-style S3 URL (current .env default)",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via public base URL",
+          "ok": true
+        },
+        {
+          "name": "anonymous write is rejected",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "delete object",
+          "ok": true,
+          "detail": "public GET after delete: HTTP 404"
+        },
+        {
+          "name": "delete missing object is not an error",
+          "ok": true
+        },
+        {
+          "name": "delete bucket",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "server": "rustfs",
+      "round": 1,
+      "portUpMs": 387,
+      "healthMs": 388,
+      "bootstrapMs": 157,
+      "usableMs": 545,
+      "stopMs": 634,
+      "idleRssMiB": 161,
+      "peakRssMiB": 381,
+      "phases": [
+        {
+          "phase": "put 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 3700.86,
+          "opsPerSec": 540.41,
+          "mibPerSec": 2.11,
+          "p50Ms": 14.26,
+          "p99Ms": 23.61
+        },
+        {
+          "phase": "get 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 757.91,
+          "opsPerSec": 2638.84,
+          "mibPerSec": 10.31,
+          "p50Ms": 2.39,
+          "p99Ms": 7.96
+        },
+        {
+          "phase": "put 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 1127.52,
+          "opsPerSec": 354.76,
+          "mibPerSec": 88.69,
+          "p50Ms": 20.17,
+          "p99Ms": 82.7
+        },
+        {
+          "phase": "get 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 498.42,
+          "opsPerSec": 802.54,
+          "mibPerSec": 200.64,
+          "p50Ms": 8.24,
+          "p99Ms": 39.24
+        },
+        {
+          "phase": "put 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1599.62,
+          "opsPerSec": 5,
+          "mibPerSec": 320.08,
+          "p50Ms": 777.94,
+          "p99Ms": 911.75
+        },
+        {
+          "phase": "get 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1461.91,
+          "opsPerSec": 5.47,
+          "mibPerSec": 350.23,
+          "p50Ms": 576.38,
+          "p99Ms": 922.35
+        },
+        {
+          "phase": "list 2000 keys",
+          "ops": 20,
+          "errors": 0,
+          "concurrency": 1,
+          "bytes": 0,
+          "wallMs": 6737.99,
+          "opsPerSec": 2.97,
+          "mibPerSec": 0,
+          "p50Ms": 327.54,
+          "p99Ms": 440.5
+        },
+        {
+          "phase": "delete 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 0,
+          "wallMs": 2348.59,
+          "opsPerSec": 851.57,
+          "mibPerSec": 0,
+          "p50Ms": 9.1,
+          "p99Ms": 15.07
+        }
+      ],
+      "compat": [
+        {
+          "name": "create bucket",
+          "ok": true
+        },
+        {
+          "name": "create bucket again (idempotent bootstrap)",
+          "ok": true,
+          "detail": "created without error"
+        },
+        {
+          "name": "put object with app headers + metadata",
+          "ok": true
+        },
+        {
+          "name": "head object returns metadata",
+          "ok": true
+        },
+        {
+          "name": "bucket is private before public-read grant",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "put public-read bucket policy",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via path-style S3 URL (current .env default)",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via public base URL",
+          "ok": true
+        },
+        {
+          "name": "anonymous write is rejected",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "delete object",
+          "ok": true,
+          "detail": "public GET after delete: HTTP 404"
+        },
+        {
+          "name": "delete missing object is not an error",
+          "ok": true
+        },
+        {
+          "name": "delete bucket",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "server": "garage",
+      "round": 1,
+      "portUpMs": 348,
+      "healthMs": 2676,
+      "bootstrapMs": 2328,
+      "usableMs": 2675,
+      "stopMs": 10288,
+      "idleRssMiB": 35,
+      "peakRssMiB": 68,
+      "phases": [
+        {
+          "phase": "put 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 1616.53,
+          "opsPerSec": 1237.22,
+          "mibPerSec": 4.83,
+          "p50Ms": 6.27,
+          "p99Ms": 11.64
+        },
+        {
+          "phase": "get 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 11348.95,
+          "opsPerSec": 176.23,
+          "mibPerSec": 0.69,
+          "p50Ms": 44.44,
+          "p99Ms": 49.65
+        },
+        {
+          "phase": "put 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 525.3,
+          "opsPerSec": 761.47,
+          "mibPerSec": 190.37,
+          "p50Ms": 9.99,
+          "p99Ms": 20.96
+        },
+        {
+          "phase": "get 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 515.53,
+          "opsPerSec": 775.9,
+          "mibPerSec": 193.97,
+          "p50Ms": 9.55,
+          "p99Ms": 19.61
+        },
+        {
+          "phase": "put 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1650.81,
+          "opsPerSec": 4.85,
+          "mibPerSec": 310.15,
+          "p50Ms": 777.52,
+          "p99Ms": 924.67
+        },
+        {
+          "phase": "get 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1232.73,
+          "opsPerSec": 6.49,
+          "mibPerSec": 415.34,
+          "p50Ms": 542.65,
+          "p99Ms": 699.68
+        },
+        {
+          "phase": "list 2000 keys",
+          "ops": 20,
+          "errors": 0,
+          "concurrency": 1,
+          "bytes": 0,
+          "wallMs": 795.75,
+          "opsPerSec": 25.13,
+          "mibPerSec": 0,
+          "p50Ms": 39.02,
+          "p99Ms": 45.48
+        },
+        {
+          "phase": "delete 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 0,
+          "wallMs": 759.09,
+          "opsPerSec": 2634.72,
+          "mibPerSec": 0,
+          "p50Ms": 2.67,
+          "p99Ms": 8.81
+        }
+      ],
+      "compat": [
+        {
+          "name": "create bucket",
+          "ok": true
+        },
+        {
+          "name": "create bucket again (idempotent bootstrap)",
+          "ok": true,
+          "detail": "BucketAlreadyOwnedByYou"
+        },
+        {
+          "name": "put object with app headers + metadata",
+          "ok": true
+        },
+        {
+          "name": "head object returns metadata",
+          "ok": true
+        },
+        {
+          "name": "bucket is private before public-read grant",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "put public-read bucket policy",
+          "ok": false,
+          "detail": "NotImplemented: Unimplemented action: PutBucketPolicy"
+        },
+        {
+          "name": "out-of-band public-read grant",
+          "ok": true,
+          "detail": "server-specific setup instead of a bucket policy"
+        },
+        {
+          "name": "anonymous GET via path-style S3 URL (current .env default)",
+          "ok": false,
+          "detail": "Error: HTTP 403"
+        },
+        {
+          "name": "anonymous GET via public base URL",
+          "ok": true
+        },
+        {
+          "name": "anonymous write is rejected",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "delete object",
+          "ok": true,
+          "detail": "public GET after delete: HTTP 404"
+        },
+        {
+          "name": "delete missing object is not an error",
+          "ok": true
+        },
+        {
+          "name": "delete bucket",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "server": "seaweedfs",
+      "round": 2,
+      "portUpMs": 3404,
+      "healthMs": 3405,
+      "bootstrapMs": 4977,
+      "usableMs": 8381,
+      "stopMs": 15316,
+      "idleRssMiB": 151,
+      "peakRssMiB": 1297,
+      "phases": [
+        {
+          "phase": "put 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 828.16,
+          "opsPerSec": 2415,
+          "mibPerSec": 9.43,
+          "p50Ms": 3.05,
+          "p99Ms": 7.07
+        },
+        {
+          "phase": "get 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 738.42,
+          "opsPerSec": 2708.49,
+          "mibPerSec": 10.58,
+          "p50Ms": 2.71,
+          "p99Ms": 8.16
+        },
+        {
+          "phase": "put 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 336.73,
+          "opsPerSec": 1187.9,
+          "mibPerSec": 296.97,
+          "p50Ms": 6.12,
+          "p99Ms": 13.72
+        },
+        {
+          "phase": "get 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 368.03,
+          "opsPerSec": 1086.86,
+          "mibPerSec": 271.72,
+          "p50Ms": 6.76,
+          "p99Ms": 16.1
+        },
+        {
+          "phase": "put 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1633.24,
+          "opsPerSec": 4.9,
+          "mibPerSec": 313.49,
+          "p50Ms": 789.27,
+          "p99Ms": 854.78
+        },
+        {
+          "phase": "get 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 956.46,
+          "opsPerSec": 8.36,
+          "mibPerSec": 535.31,
+          "p50Ms": 351.96,
+          "p99Ms": 864.22
+        },
+        {
+          "phase": "list 2000 keys",
+          "ops": 20,
+          "errors": 0,
+          "concurrency": 1,
+          "bytes": 0,
+          "wallMs": 717.55,
+          "opsPerSec": 27.87,
+          "mibPerSec": 0,
+          "p50Ms": 35.72,
+          "p99Ms": 42.08
+        },
+        {
+          "phase": "delete 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 0,
+          "wallMs": 588.86,
+          "opsPerSec": 3396.4,
+          "mibPerSec": 0,
+          "p50Ms": 2.11,
+          "p99Ms": 7.04
+        }
+      ],
+      "compat": [
+        {
+          "name": "create bucket",
+          "ok": true
+        },
+        {
+          "name": "create bucket again (idempotent bootstrap)",
+          "ok": true,
+          "detail": "BucketAlreadyOwnedByYou"
+        },
+        {
+          "name": "put object with app headers + metadata",
+          "ok": true
+        },
+        {
+          "name": "head object returns metadata",
+          "ok": true
+        },
+        {
+          "name": "bucket is private before public-read grant",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "put public-read bucket policy",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via path-style S3 URL (current .env default)",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via public base URL",
+          "ok": true
+        },
+        {
+          "name": "anonymous write is rejected",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "delete object",
+          "ok": true,
+          "detail": "public GET after delete: HTTP 404"
+        },
+        {
+          "name": "delete missing object is not an error",
+          "ok": true
+        },
+        {
+          "name": "delete bucket",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "server": "rustfs",
+      "round": 2,
+      "portUpMs": 314,
+      "healthMs": 314,
+      "bootstrapMs": 146,
+      "usableMs": 461,
+      "stopMs": 333,
+      "idleRssMiB": 199,
+      "peakRssMiB": 375,
+      "phases": [
+        {
+          "phase": "put 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 3363.27,
+          "opsPerSec": 594.66,
+          "mibPerSec": 2.32,
+          "p50Ms": 13.26,
+          "p99Ms": 19.51
+        },
+        {
+          "phase": "get 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 760.02,
+          "opsPerSec": 2631.52,
+          "mibPerSec": 10.28,
+          "p50Ms": 2.53,
+          "p99Ms": 7.49
+        },
+        {
+          "phase": "put 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 1002.06,
+          "opsPerSec": 399.18,
+          "mibPerSec": 99.79,
+          "p50Ms": 19.55,
+          "p99Ms": 27.48
+        },
+        {
+          "phase": "get 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 393.03,
+          "opsPerSec": 1017.74,
+          "mibPerSec": 254.44,
+          "p50Ms": 6.88,
+          "p99Ms": 16.46
+        },
+        {
+          "phase": "put 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1201.45,
+          "opsPerSec": 6.66,
+          "mibPerSec": 426.15,
+          "p50Ms": 590.43,
+          "p99Ms": 662.69
+        },
+        {
+          "phase": "get 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 872.85,
+          "opsPerSec": 9.17,
+          "mibPerSec": 586.59,
+          "p50Ms": 359.7,
+          "p99Ms": 633.37
+        },
+        {
+          "phase": "list 2000 keys",
+          "ops": 20,
+          "errors": 0,
+          "concurrency": 1,
+          "bytes": 0,
+          "wallMs": 5957.45,
+          "opsPerSec": 3.36,
+          "mibPerSec": 0,
+          "p50Ms": 275.5,
+          "p99Ms": 525.77
+        },
+        {
+          "phase": "delete 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 0,
+          "wallMs": 1778.5,
+          "opsPerSec": 1124.54,
+          "mibPerSec": 0,
+          "p50Ms": 6.79,
+          "p99Ms": 13.02
+        }
+      ],
+      "compat": [
+        {
+          "name": "create bucket",
+          "ok": true
+        },
+        {
+          "name": "create bucket again (idempotent bootstrap)",
+          "ok": true,
+          "detail": "created without error"
+        },
+        {
+          "name": "put object with app headers + metadata",
+          "ok": true
+        },
+        {
+          "name": "head object returns metadata",
+          "ok": true
+        },
+        {
+          "name": "bucket is private before public-read grant",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "put public-read bucket policy",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via path-style S3 URL (current .env default)",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via public base URL",
+          "ok": true
+        },
+        {
+          "name": "anonymous write is rejected",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "delete object",
+          "ok": true,
+          "detail": "public GET after delete: HTTP 404"
+        },
+        {
+          "name": "delete missing object is not an error",
+          "ok": true
+        },
+        {
+          "name": "delete bucket",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "server": "garage",
+      "round": 2,
+      "portUpMs": 304,
+      "healthMs": 2792,
+      "bootstrapMs": 2487,
+      "usableMs": 2791,
+      "stopMs": 10290,
+      "idleRssMiB": 35,
+      "peakRssMiB": 74,
+      "phases": [
+        {
+          "phase": "put 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 1578.76,
+          "opsPerSec": 1266.81,
+          "mibPerSec": 4.95,
+          "p50Ms": 6,
+          "p99Ms": 13.05
+        },
+        {
+          "phase": "get 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 11365.02,
+          "opsPerSec": 175.98,
+          "mibPerSec": 0.69,
+          "p50Ms": 44.59,
+          "p99Ms": 49.7
+        },
+        {
+          "phase": "put 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 529.09,
+          "opsPerSec": 756.01,
+          "mibPerSec": 189,
+          "p50Ms": 9.94,
+          "p99Ms": 19.16
+        },
+        {
+          "phase": "get 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 540.21,
+          "opsPerSec": 740.45,
+          "mibPerSec": 185.11,
+          "p50Ms": 9.66,
+          "p99Ms": 21.8
+        },
+        {
+          "phase": "put 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1636.41,
+          "opsPerSec": 4.89,
+          "mibPerSec": 312.88,
+          "p50Ms": 766.19,
+          "p99Ms": 921.04
+        },
+        {
+          "phase": "get 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1108.2,
+          "opsPerSec": 7.22,
+          "mibPerSec": 462.01,
+          "p50Ms": 492.01,
+          "p99Ms": 715.01
+        },
+        {
+          "phase": "list 2000 keys",
+          "ops": 20,
+          "errors": 0,
+          "concurrency": 1,
+          "bytes": 0,
+          "wallMs": 792.23,
+          "opsPerSec": 25.25,
+          "mibPerSec": 0,
+          "p50Ms": 39.43,
+          "p99Ms": 51.1
+        },
+        {
+          "phase": "delete 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 0,
+          "wallMs": 705.3,
+          "opsPerSec": 2835.65,
+          "mibPerSec": 0,
+          "p50Ms": 2.46,
+          "p99Ms": 7.81
+        }
+      ],
+      "compat": [
+        {
+          "name": "create bucket",
+          "ok": true
+        },
+        {
+          "name": "create bucket again (idempotent bootstrap)",
+          "ok": true,
+          "detail": "BucketAlreadyOwnedByYou"
+        },
+        {
+          "name": "put object with app headers + metadata",
+          "ok": true
+        },
+        {
+          "name": "head object returns metadata",
+          "ok": true
+        },
+        {
+          "name": "bucket is private before public-read grant",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "put public-read bucket policy",
+          "ok": false,
+          "detail": "NotImplemented: Unimplemented action: PutBucketPolicy"
+        },
+        {
+          "name": "out-of-band public-read grant",
+          "ok": true,
+          "detail": "server-specific setup instead of a bucket policy"
+        },
+        {
+          "name": "anonymous GET via path-style S3 URL (current .env default)",
+          "ok": false,
+          "detail": "Error: HTTP 403"
+        },
+        {
+          "name": "anonymous GET via public base URL",
+          "ok": true
+        },
+        {
+          "name": "anonymous write is rejected",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "delete object",
+          "ok": true,
+          "detail": "public GET after delete: HTTP 404"
+        },
+        {
+          "name": "delete missing object is not an error",
+          "ok": true
+        },
+        {
+          "name": "delete bucket",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "server": "seaweedfs",
+      "round": 3,
+      "portUpMs": 3491,
+      "healthMs": 3491,
+      "bootstrapMs": 215,
+      "usableMs": 3707,
+      "stopMs": 15318,
+      "idleRssMiB": 151,
+      "peakRssMiB": 1223,
+      "phases": [
+        {
+          "phase": "put 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 831.34,
+          "opsPerSec": 2405.77,
+          "mibPerSec": 9.4,
+          "p50Ms": 3.06,
+          "p99Ms": 7.52
+        },
+        {
+          "phase": "get 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 707.13,
+          "opsPerSec": 2828.35,
+          "mibPerSec": 11.05,
+          "p50Ms": 2.63,
+          "p99Ms": 6.74
+        },
+        {
+          "phase": "put 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 345.04,
+          "opsPerSec": 1159.27,
+          "mibPerSec": 289.82,
+          "p50Ms": 6.47,
+          "p99Ms": 16.36
+        },
+        {
+          "phase": "get 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 374.84,
+          "opsPerSec": 1067.11,
+          "mibPerSec": 266.78,
+          "p50Ms": 7.02,
+          "p99Ms": 16.49
+        },
+        {
+          "phase": "put 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1669.38,
+          "opsPerSec": 4.79,
+          "mibPerSec": 306.7,
+          "p50Ms": 819.17,
+          "p99Ms": 908.21
+        },
+        {
+          "phase": "get 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1292.95,
+          "opsPerSec": 6.19,
+          "mibPerSec": 396,
+          "p50Ms": 525.29,
+          "p99Ms": 778.07
+        },
+        {
+          "phase": "list 2000 keys",
+          "ops": 20,
+          "errors": 0,
+          "concurrency": 1,
+          "bytes": 0,
+          "wallMs": 697.25,
+          "opsPerSec": 28.68,
+          "mibPerSec": 0,
+          "p50Ms": 35.04,
+          "p99Ms": 38.4
+        },
+        {
+          "phase": "delete 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 0,
+          "wallMs": 545.33,
+          "opsPerSec": 3667.48,
+          "mibPerSec": 0,
+          "p50Ms": 1.99,
+          "p99Ms": 6.33
+        }
+      ],
+      "compat": [
+        {
+          "name": "create bucket",
+          "ok": true
+        },
+        {
+          "name": "create bucket again (idempotent bootstrap)",
+          "ok": true,
+          "detail": "BucketAlreadyOwnedByYou"
+        },
+        {
+          "name": "put object with app headers + metadata",
+          "ok": true
+        },
+        {
+          "name": "head object returns metadata",
+          "ok": true
+        },
+        {
+          "name": "bucket is private before public-read grant",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "put public-read bucket policy",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via path-style S3 URL (current .env default)",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via public base URL",
+          "ok": true
+        },
+        {
+          "name": "anonymous write is rejected",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "delete object",
+          "ok": true,
+          "detail": "public GET after delete: HTTP 404"
+        },
+        {
+          "name": "delete missing object is not an error",
+          "ok": true
+        },
+        {
+          "name": "delete bucket",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "server": "rustfs",
+      "round": 3,
+      "portUpMs": 312,
+      "healthMs": 313,
+      "bootstrapMs": 151,
+      "usableMs": 464,
+      "stopMs": 323,
+      "idleRssMiB": 201,
+      "peakRssMiB": 369,
+      "phases": [
+        {
+          "phase": "put 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 3427.29,
+          "opsPerSec": 583.55,
+          "mibPerSec": 2.28,
+          "p50Ms": 13.47,
+          "p99Ms": 19.14
+        },
+        {
+          "phase": "get 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 734.38,
+          "opsPerSec": 2723.39,
+          "mibPerSec": 10.64,
+          "p50Ms": 2.31,
+          "p99Ms": 7.19
+        },
+        {
+          "phase": "put 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 981.9,
+          "opsPerSec": 407.37,
+          "mibPerSec": 101.84,
+          "p50Ms": 19.19,
+          "p99Ms": 33.38
+        },
+        {
+          "phase": "get 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 386.63,
+          "opsPerSec": 1034.57,
+          "mibPerSec": 258.64,
+          "p50Ms": 7.37,
+          "p99Ms": 16.71
+        },
+        {
+          "phase": "put 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1220.12,
+          "opsPerSec": 6.56,
+          "mibPerSec": 419.63,
+          "p50Ms": 578.77,
+          "p99Ms": 686.49
+        },
+        {
+          "phase": "get 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 914.5,
+          "opsPerSec": 8.75,
+          "mibPerSec": 559.87,
+          "p50Ms": 257.52,
+          "p99Ms": 722.93
+        },
+        {
+          "phase": "list 2000 keys",
+          "ops": 20,
+          "errors": 0,
+          "concurrency": 1,
+          "bytes": 0,
+          "wallMs": 6030.73,
+          "opsPerSec": 3.32,
+          "mibPerSec": 0,
+          "p50Ms": 285.58,
+          "p99Ms": 565.66
+        },
+        {
+          "phase": "delete 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 0,
+          "wallMs": 1902.45,
+          "opsPerSec": 1051.28,
+          "mibPerSec": 0,
+          "p50Ms": 7.35,
+          "p99Ms": 12.65
+        }
+      ],
+      "compat": [
+        {
+          "name": "create bucket",
+          "ok": true
+        },
+        {
+          "name": "create bucket again (idempotent bootstrap)",
+          "ok": true,
+          "detail": "created without error"
+        },
+        {
+          "name": "put object with app headers + metadata",
+          "ok": true
+        },
+        {
+          "name": "head object returns metadata",
+          "ok": true
+        },
+        {
+          "name": "bucket is private before public-read grant",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "put public-read bucket policy",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via path-style S3 URL (current .env default)",
+          "ok": true
+        },
+        {
+          "name": "anonymous GET via public base URL",
+          "ok": true
+        },
+        {
+          "name": "anonymous write is rejected",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "delete object",
+          "ok": true,
+          "detail": "public GET after delete: HTTP 404"
+        },
+        {
+          "name": "delete missing object is not an error",
+          "ok": true
+        },
+        {
+          "name": "delete bucket",
+          "ok": true
+        }
+      ]
+    },
+    {
+      "server": "garage",
+      "round": 3,
+      "portUpMs": 305,
+      "healthMs": 2677,
+      "bootstrapMs": 2372,
+      "usableMs": 2676,
+      "stopMs": 10295,
+      "idleRssMiB": 35,
+      "peakRssMiB": 71,
+      "phases": [
+        {
+          "phase": "put 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 1613.33,
+          "opsPerSec": 1239.67,
+          "mibPerSec": 4.84,
+          "p50Ms": 6.18,
+          "p99Ms": 11.7
+        },
+        {
+          "phase": "get 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 8192000,
+          "wallMs": 11329.64,
+          "opsPerSec": 176.53,
+          "mibPerSec": 0.69,
+          "p50Ms": 44.52,
+          "p99Ms": 49.88
+        },
+        {
+          "phase": "put 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 500.11,
+          "opsPerSec": 799.83,
+          "mibPerSec": 199.96,
+          "p50Ms": 9.57,
+          "p99Ms": 17.15
+        },
+        {
+          "phase": "get 256KiB",
+          "ops": 400,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 104857600,
+          "wallMs": 548.73,
+          "opsPerSec": 728.96,
+          "mibPerSec": 182.24,
+          "p50Ms": 9.67,
+          "p99Ms": 21.78
+        },
+        {
+          "phase": "put 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1700.33,
+          "opsPerSec": 4.7,
+          "mibPerSec": 301.12,
+          "p50Ms": 745.78,
+          "p99Ms": 1006.33
+        },
+        {
+          "phase": "get 64MiB",
+          "ops": 8,
+          "errors": 0,
+          "concurrency": 4,
+          "bytes": 536870912,
+          "wallMs": 1226.38,
+          "opsPerSec": 6.52,
+          "mibPerSec": 417.49,
+          "p50Ms": 532.78,
+          "p99Ms": 713.78
+        },
+        {
+          "phase": "list 2000 keys",
+          "ops": 20,
+          "errors": 0,
+          "concurrency": 1,
+          "bytes": 0,
+          "wallMs": 752.97,
+          "opsPerSec": 26.56,
+          "mibPerSec": 0,
+          "p50Ms": 36.72,
+          "p99Ms": 42.93
+        },
+        {
+          "phase": "delete 4KiB",
+          "ops": 2000,
+          "errors": 0,
+          "concurrency": 8,
+          "bytes": 0,
+          "wallMs": 739.5,
+          "opsPerSec": 2704.51,
+          "mibPerSec": 0,
+          "p50Ms": 2.57,
+          "p99Ms": 8.16
+        }
+      ],
+      "compat": [
+        {
+          "name": "create bucket",
+          "ok": true
+        },
+        {
+          "name": "create bucket again (idempotent bootstrap)",
+          "ok": true,
+          "detail": "BucketAlreadyOwnedByYou"
+        },
+        {
+          "name": "put object with app headers + metadata",
+          "ok": true
+        },
+        {
+          "name": "head object returns metadata",
+          "ok": true
+        },
+        {
+          "name": "bucket is private before public-read grant",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "put public-read bucket policy",
+          "ok": false,
+          "detail": "NotImplemented: Unimplemented action: PutBucketPolicy"
+        },
+        {
+          "name": "out-of-band public-read grant",
+          "ok": true,
+          "detail": "server-specific setup instead of a bucket policy"
+        },
+        {
+          "name": "anonymous GET via path-style S3 URL (current .env default)",
+          "ok": false,
+          "detail": "Error: HTTP 403"
+        },
+        {
+          "name": "anonymous GET via public base URL",
+          "ok": true
+        },
+        {
+          "name": "anonymous write is rejected",
+          "ok": true,
+          "detail": "HTTP 403"
+        },
+        {
+          "name": "delete object",
+          "ok": true,
+          "detail": "public GET after delete: HTTP 404"
+        },
+        {
+          "name": "delete missing object is not an error",
+          "ok": true
+        },
+        {
+          "name": "delete bucket",
+          "ok": true
+        }
+      ]
+    }
+  ]
+}
