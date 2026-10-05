@@ -57,7 +57,7 @@ Playwright e2e runs use `.env.example` as their baseline and then apply a small 
 ## Long-lived local services
 
 ```bash
-docker compose up -d postgres mailpit redis minio minio-create-bucket
+docker compose up -d postgres mailpit redis rustfs rustfs-create-bucket
 bun run db:migrate
 bun run db:schema:generate
 bun run db:seed:test-users
