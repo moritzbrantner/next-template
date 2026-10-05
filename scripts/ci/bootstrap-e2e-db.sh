@@ -93,8 +93,8 @@ container_name_for_service() {
     redis)
       printf 'next-template-redis'
       ;;
-    minio)
-      printf 'next-template-minio'
+    rustfs)
+      printf 'next-template-rustfs'
       ;;
     *)
       return 1
@@ -244,7 +244,7 @@ teardown() {
     cleanup_services
     rm -f "$MARKER_FILE"
   elif [[ "${E2E_FORCE_MANAGED_SERVICES:-false}" == "true" ]]; then
-    STARTED_SERVICES=("postgres" "mailpit" "redis" "minio")
+    STARTED_SERVICES=("postgres" "mailpit" "redis" "rustfs")
     echo "ℹ️ No marker file found; cleaning compose-managed e2e services: ${STARTED_SERVICES[*]}"
     cleanup_services
   else
@@ -280,7 +280,7 @@ trap cleanup_on_error EXIT
 
 if force_managed_services; then
   echo "ℹ️ Using compose-managed e2e services."
-  add_started_service postgres mailpit redis minio
+  add_started_service postgres mailpit redis rustfs
   OBJECT_STORAGE_MANAGED=1
   REDIS_EXPECTED=1
 else
@@ -309,7 +309,7 @@ else
   if can_reach_object_storage; then
     echo "ℹ️ Reusing already-reachable object storage instance from ${PROFILE_IMAGE_STORAGE_ENDPOINT}."
   else
-    add_started_service minio
+    add_started_service rustfs
     OBJECT_STORAGE_MANAGED=1
   fi
 fi
@@ -470,7 +470,7 @@ if [[ "$OBJECT_STORAGE_MANAGED" -eq 1 ]] && docker_available && docker_compose_a
   echo "ℹ️ Ensuring object storage bucket exists..."
   (
     cd "$APP_ROOT"
-    docker_compose run --rm -T minio-create-bucket
+    docker_compose run --rm -T rustfs-create-bucket
   )
   echo "✅ Object storage bucket is ready."
 fi

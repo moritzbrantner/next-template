@@ -83,7 +83,7 @@ case "$subcommand" in
   config)
     if [[ "\${1:-}" == "--services" ]]; then
       if [[ "$has_expected_file" -eq 1 ]]; then
-        printf 'postgres\\nmailpit\\nredis\\nminio\\n'
+        printf 'postgres\\nmailpit\\nredis\\nrustfs\\n'
       else
         printf 'postgres\\n'
       fi
@@ -170,10 +170,10 @@ exit 0
         `compose -f ${composeFilePath} --project-directory ${appRoot} config --services`,
       );
       expect(dockerLog).toContain(
-        `compose -f ${composeFilePath} --project-directory ${appRoot} up -d postgres mailpit redis minio`,
+        `compose -f ${composeFilePath} --project-directory ${appRoot} up -d postgres mailpit redis rustfs`,
       );
       expect(dockerLog).toContain(
-        `compose -f ${composeFilePath} --project-directory ${appRoot} run --rm -T minio-create-bucket`,
+        `compose -f ${composeFilePath} --project-directory ${appRoot} run --rm -T rustfs-create-bucket`,
       );
       expect(bunLog).toContain('run db:migrate');
       expect(bunLog).toContain('run db:seed:test-users');
