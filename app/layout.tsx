@@ -1,3 +1,4 @@
+import '@moritzbrantner/ui/component-sources.css';
 import type { Metadata } from 'next';
 
 import { AppHydrationMarker } from '@/components/app-hydration-marker';
