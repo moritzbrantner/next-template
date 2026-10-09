@@ -1,3 +1,4 @@
+import '@moritzbrantner/ui/component-sources.css';
 import type { Preview } from 'storybook';
 
 import '../app/globals.css';
