@@ -10,9 +10,6 @@ permissions:
   pages: write
   id-token: write
 
-env:
-  GH_PACKAGES_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
-
 concurrency:
   group: pages
   cancel-in-progress: true
