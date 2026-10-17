@@ -48,7 +48,7 @@ services:
 
   rustfs:
     # S3-compatible object storage (MinIO drop-in). Pinned by tag and digest.
-    image: docker.io/rustfs/rustfs:1.0.1@sha256:1803faef57627e2d9c2e7d89d655d712ddded5389040054987163043fecb6a3c
+    image: docker.io/rustfs/rustfs:1.0.2@sha256:7e948dad4748bda48f8985fda7195f8cf2e4259427011f6120acc2c9acf51587
     container_name: next-template-rustfs
     restart: unless-stopped
     environment:
