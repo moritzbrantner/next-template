@@ -2,10 +2,7 @@
   "extends": ["github>moritzbrantner/coding-agent-conventions"],
   "packageRules": [
     {
-      "matchPackageNames": [
-        "remotion",
-        "@remotion/*"
-      ],
+      "matchPackageNames": ["remotion", "@remotion/*"],
       "groupName": "remotion"
     }
   ],
