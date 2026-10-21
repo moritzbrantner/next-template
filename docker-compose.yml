@@ -63,7 +63,7 @@ services:
       - rustfs_data:/data
 
   rustfs-create-bucket:
-    image: docker.io/amazon/aws-cli:2.38.1@sha256:733d5be1015825e4038c6016f3fa9954868ddee1f611b73be795a9cc2e706bfd
+    image: docker.io/amazon/aws-cli:2.38.4@sha256:de807aa682dd3f45d6de5f431b93762691c53f1134b318936dda39f99e321244
     depends_on:
       - rustfs
     restart: 'no'
