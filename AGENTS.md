@@ -18,7 +18,7 @@
 
 ## Commands
 
-Use Bun `1.4.2`, matching `packageManager` and CI.
+Use the latest stable Bun, matching CI; `packageManager` is a minimum.
 
 ```bash
 bun install --frozen-lockfile
