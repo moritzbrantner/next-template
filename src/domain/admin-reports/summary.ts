@@ -157,8 +157,10 @@ function buildAdminVisitSparkline(
   );
 }
 
-function buildSummaryMetrics(input: LoadedReportInputs): AdminReportMetric[] {
-  const currentAdminVisits = normalizeAdminVisits(input.current.visits);
+function buildSummaryMetrics(
+  input: LoadedReportInputs,
+  currentAdminVisits: ReturnType<typeof normalizeAdminVisits>,
+): AdminReportMetric[] {
   const previousAdminVisits = normalizeAdminVisits(input.previous.visits);
   const currentDeniedActions = input.current.auditLogs.filter(
     (log) =>
@@ -272,7 +274,7 @@ export async function getAdminReportSummaryUseCase(
     generatedAt: input.generatedAt.toISOString(),
     window,
     status: 'live',
-    metrics: buildSummaryMetrics(input),
+    metrics: buildSummaryMetrics(input, currentAdminVisits),
     series: [
       buildAdminVisitSparkline(currentAdminVisits, window, input.generatedAt),
     ],

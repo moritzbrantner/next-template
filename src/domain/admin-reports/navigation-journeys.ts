@@ -44,16 +44,19 @@ function formatNavigationDisplayLabel(path: string) {
 }
 
 function listNavigationReportPathOptions(visits: ReportPageVisit[]) {
-  return [
-    ...new Set(
-      visits
-        .flatMap((visit) => [
-          visit.canonicalPath,
-          visit.previousCanonicalPath ?? null,
-        ])
-        .filter((value): value is string => Boolean(value)),
-    ),
-  ].sort((left, right) => left.localeCompare(right));
+  const paths = new Set<string>();
+
+  for (const visit of visits) {
+    if (visit.canonicalPath) {
+      paths.add(visit.canonicalPath);
+    }
+
+    if (visit.previousCanonicalPath) {
+      paths.add(visit.previousCanonicalPath);
+    }
+  }
+
+  return [...paths].sort((left, right) => left.localeCompare(right));
 }
 
 function matchesNavigationBaseFilters(

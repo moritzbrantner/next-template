@@ -128,24 +128,32 @@ export function buildRankedBreakdown(
 }
 
 export function normalizeAdminVisits(visits: ReportPageVisit[]) {
+  // Pathnames repeat heavily across visits, so classify each distinct one once.
+  const pathInfoByPathname = new Map<
+    string,
+    { workspaceKey: AdminWorkspaceKey; normalizedPath: string } | null
+  >();
+
   return visits
     .map((visit) => {
       if (!visit.userId) {
         return null;
       }
 
-      const workspaceKey = getAdminWorkspaceKey(visit.pathname);
+      let pathInfo = pathInfoByPathname.get(visit.pathname);
 
-      if (!workspaceKey) {
-        return null;
+      if (pathInfo === undefined) {
+        const workspaceKey = getAdminWorkspaceKey(visit.pathname);
+
+        pathInfo = workspaceKey && {
+          workspaceKey,
+          normalizedPath:
+            stripLocalePrefix(visit.pathname).split(/[?#]/)[0] || '/',
+        };
+        pathInfoByPathname.set(visit.pathname, pathInfo);
       }
 
-      return {
-        ...visit,
-        workspaceKey,
-        normalizedPath:
-          stripLocalePrefix(visit.pathname).split(/[?#]/)[0] || '/',
-      };
+      return pathInfo && { ...visit, ...pathInfo };
     })
     .filter(
       (
