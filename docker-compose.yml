@@ -2,7 +2,7 @@ name: next-template
 
 services:
   postgres:
-    image: postgres:16-alpine@sha256:0cefaabd882e42bcb2a2f3dc56d3ce4770560ba62fd7f197f1a2e008fd5731ab
+    image: postgres:16-alpine@sha256:1fb72075a1de85a1d39de23c2da81baef1b71bf5c0b61a14cbbfdb072a6246d9
     container_name: next-template-postgres
     restart: unless-stopped
     environment:
@@ -31,7 +31,7 @@ services:
       - '8025:8025' # Web UI
 
   redis:
-    image: redis:7-alpine@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f
+    image: redis:7-alpine@sha256:c5d34a98396a4775e223c74e929162c35c5a2182901ba26b50ade939941ce14b
     container_name: next-template-redis
     restart: unless-stopped
     command: ['redis-server', '--appendonly', 'yes']
