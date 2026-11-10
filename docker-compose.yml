@@ -31,7 +31,7 @@ services:
       - '8025:8025' # Web UI
 
   redis:
-    image: redis:7-alpine@sha256:c5d34a98396a4775e223c74e929162c35c5a2182901ba26b50ade939941ce14b
+    image: redis:7-alpine@sha256:7b1753b4c5ad8458906c272a8132b8c15f5557b000379eb115fb239706a384b7
     container_name: next-template-redis
     restart: unless-stopped
     command: ['redis-server', '--appendonly', 'yes']
